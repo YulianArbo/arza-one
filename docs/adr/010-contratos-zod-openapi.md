@@ -23,4 +23,4 @@ Un cambio de contrato se ve en ambos lados al compilar.
 
 ## Cumplimiento
 
-Paquete `@arza/contracts` creado en B01; pruebas de contrato desde B02.
+Paquete `@arza/contracts` creado en B01. Desde B02, la API valida entradas y respuestas con esos esquemas (nestjs-zod), genera `apps/api/openapi.json` y una prueba falla si el archivo no coincide con el código.
