@@ -1,0 +1,38 @@
+{
+  "name": "arza-one",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.9.1",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "prepare": "lefthook install",
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:int": "turbo run test:int",
+    "test:e2e": "turbo run test:e2e",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint . --max-warnings 0",
+    "boundaries": "depcruise apps packages --config .dependency-cruiser.cjs",
+    "unused": "knip",
+    "secrets": "gitleaks git --no-banner --redact",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm boundaries && pnpm unused && pnpm test && pnpm build && pnpm secrets"
+  },
+  "devDependencies": {
+    "@arza/config": "workspace:*",
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
+    "@types/node": "^24.19.1",
+    "dependency-cruiser": "^18.5.0",
+    "eslint": "^10.12.0",
+    "knip": "^6.39.0",
+    "lefthook": "^2.1.16",
+    "prettier": "^3.9.9",
+    "turbo": "^2.11.7",
+    "typescript": "~6.0.3"
+  }
+}
