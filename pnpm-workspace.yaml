@@ -3,3 +3,5 @@ packages:
   - packages/*
 allowBuilds:
   lefthook: true
+  # Telemetría de swagger-ui-dist: no se permite ejecutar su script de instalación.
+  '@scarf/scarf': false
