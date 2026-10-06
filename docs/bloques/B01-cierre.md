@@ -2,7 +2,7 @@
 
 - Fecha: 05/10/2026
 - Rama: `feat/b01-monorepo-y-herramientas-de-cal`
-- Estado: en revisión (pendiente de la aprobación del Director General)
+- Estado: terminado (aprobado por el Director General e integrado a `main` el 05/10/2026)
 
 ## Qué se construyó
 
@@ -154,13 +154,12 @@ desde ahora en la lista de la definición de terminado.
 
 ## Pendientes
 
-| Pendiente                                                                                                                                                                                                                                                                                   | Responsable                                        | Cuándo                               |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ------------------------------------ |
-| Decidir si la capa de dominio puede depender de la de infraestructura (o al revés). El manual dice «las dependencias apuntan hacia abajo» y pone infraestructura al final, pero también dice que el dominio «no conoce la base de datos». Hoy ninguna de las dos direcciones está prohibida | Director General, con una propuesta de Claude Code | Antes de B02                         |
-| Iniciar sesión en GitHub CLI (`gh auth login`) para que Claude Code pueda abrir pull requests                                                                                                                                                                                               | Director General                                   | Ahora                                |
-| Borrar el archivo `AGENTS.md` que creó Turborepo en la raíz. No está en git y no se volverá a crear                                                                                                                                                                                         | Director General (`Remove-Item AGENTS.md`)         | Ahora                                |
-| Proteger la rama `main` en GitHub para que no admita cambios directos (capítulo 11.3)                                                                                                                                                                                                       | Director General                                   | B05                                  |
-| Ejecutar los controles también en GitHub Actions, junto con Semgrep y osv-scanner (capítulo 11.4, paso 6)                                                                                                                                                                                   | Claude Code                                        | B05                                  |
-| Umbral de cobertura de pruebas del capítulo 21 (90 % en dominio y aplicación)                                                                                                                                                                                                               | Claude Code                                        | B02, cuando exista código de dominio |
-| Instalar Docker Desktop con WSL 2                                                                                                                                                                                                                                                           | Director General                                   | Antes de B03                         |
-| `pnpm test:int` y `pnpm test:e2e` existen, pero todavía no hay pruebas de ese tipo                                                                                                                                                                                                          | Claude Code                                        | B03 y B04                            |
+| Pendiente                                                                                                 | Responsable                                | Cuándo                               |
+| --------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ------------------------------------ |
+| Iniciar sesión en GitHub CLI (`gh auth login`) para que Claude Code pueda abrir pull requests             | Director General                           | Ahora                                |
+| Borrar el archivo `AGENTS.md` que creó Turborepo en la raíz. No está en git y no se volverá a crear       | Director General (`Remove-Item AGENTS.md`) | Ahora                                |
+| Proteger la rama `main` en GitHub para que no admita cambios directos (capítulo 11.3)                     | Director General                           | B05                                  |
+| Ejecutar los controles también en GitHub Actions, junto con Semgrep y osv-scanner (capítulo 11.4, paso 6) | Claude Code                                | B05                                  |
+| Umbral de cobertura de pruebas del capítulo 21 (90 % en dominio y aplicación)                             | Claude Code                                | B02, cuando exista código de dominio |
+| Instalar Docker Desktop con WSL 2                                                                         | Director General                           | Antes de B03                         |
+| `pnpm test:int` y `pnpm test:e2e` existen, pero todavía no hay pruebas de ese tipo                        | Claude Code                                | B03 y B04                            |
