@@ -27,7 +27,15 @@ const TYPESCRIPT_RULES = {
 
 export default tseslint.config(
   {
-    ignores: ['**/dist/**', '**/coverage/**', '**/.turbo/**', '**/.next/**', 'docs/**'],
+    ignores: [
+      '**/dist/**',
+      '**/coverage/**',
+      '**/.turbo/**',
+      '**/.next/**',
+      'docs/**',
+      // Cliente generado por Prisma (B03): no se edita a mano.
+      '**/src/generated/**',
+    ],
   },
   {
     linterOptions: { reportUnusedDisableDirectives: 'error' },

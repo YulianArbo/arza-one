@@ -1,23 +1,17 @@
-import pg from 'pg';
+import type { HealthProbe } from '../health-probe.js';
 
-import { PROBE_TIMEOUT_MS, type HealthProbe } from '../health-probe.js';
+/** Lo único que la revisión necesita de la base de datos. */
+export interface DatabasePing {
+  ping(): Promise<void>;
+}
 
-/** Abre una conexión a PostgreSQL y ejecuta SELECT 1. */
+/** Ejecuta SELECT 1 por la conexión compartida de la API. */
 export class PostgresProbe implements HealthProbe {
   readonly component = 'database';
 
-  constructor(private readonly connectionString: string) {}
+  constructor(private readonly database: DatabasePing) {}
 
   async check(): Promise<void> {
-    const client = new pg.Client({
-      connectionString: this.connectionString,
-      connectionTimeoutMillis: PROBE_TIMEOUT_MS,
-    });
-    try {
-      await client.connect();
-      await client.query('SELECT 1');
-    } finally {
-      await client.end().catch(() => undefined);
-    }
+    await this.database.ping();
   }
 }

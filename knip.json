@@ -1,4 +1,10 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "ignoreBinaries": ["gitleaks"]
+  "ignoreBinaries": ["gitleaks"],
+  "workspaces": {
+    "apps/api": {
+      "entry": ["src/main.ts", "src/platform/database/seed/seed-main.ts"],
+      "ignoreDependencies": ["@prisma/client"]
+    }
+  }
 }

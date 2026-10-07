@@ -1,17 +1,23 @@
 # @arza/api
 
 API del backend de ARZA ONE (NestJS 11). Es el único componente que escribe en la base de datos
-(capítulo 8.2). Este documento describe la plataforma transversal construida en el bloque B02;
-los módulos de negocio se agregan en `src/modules/` a partir de B03.
+(capítulo 8.2). Este documento describe la plataforma transversal: la cadena de petición (B02)
+y la base de datos con contexto de empresa y seguridad por fila (B03). Los módulos de negocio se
+agregan en `src/modules/`.
 
 ## Cómo se ejecuta
 
-| Comando                           | Qué hace                                                   |
-| --------------------------------- | ---------------------------------------------------------- |
-| `pnpm --filter @arza/api dev`     | Compila y arranca la API en http://localhost:4000          |
-| `pnpm --filter @arza/api start`   | Arranca la versión ya compilada (`dist/`)                  |
-| `pnpm --filter @arza/api test`    | Pruebas unitarias y de la cadena de petición con cobertura |
-| `pnpm --filter @arza/api test -u` | Regenera `openapi.json` después de cambiar un contrato     |
+| Comando                               | Qué hace                                                   |
+| ------------------------------------- | ---------------------------------------------------------- |
+| `pnpm --filter @arza/api dev`         | Compila y arranca la API en http://localhost:4000          |
+| `pnpm --filter @arza/api start`       | Arranca la versión ya compilada (`dist/`)                  |
+| `pnpm --filter @arza/api test`        | Pruebas unitarias y de la cadena de petición con cobertura |
+| `pnpm --filter @arza/api test -u`     | Regenera `openapi.json` después de cambiar un contrato     |
+| `pnpm test:int`                       | Pruebas con PostgreSQL real (requiere Docker abierto)      |
+| `pnpm db:migrate`                     | Aplica las migraciones pendientes, como `migration_user`   |
+| `pnpm db:seed`                        | Datos semilla (empresa de la plataforma); idempotente      |
+| `pnpm db:seed:demo`                   | Semilla más dos empresas ficticias; nunca en producción    |
+| `pnpm --filter @arza/api db:generate` | Regenera el cliente de Prisma tras cambiar el modelo       |
 
 Las variables de entorno se leen del archivo `.env` de la raíz del proyecto (ver `.env.example`).
 
@@ -44,8 +50,9 @@ Cada petición pasa por los mismos eslabones, definidos una sola vez en `src/pla
 | 12   | Respuesta validada con Zod   | `ZodSerializerInterceptor`                | 500 `INTERNAL_ERROR`        |
 | —    | Formato único de error       | `platform/errors/api-exception.filter.ts` | Siempre el formato del 14.2 |
 
-Los pasos 5 (CSRF), 6 (contexto de empresa), 8 (autorización), 9 (idempotencia) y 11
-(auditoría) llegan en B03, B08, B10 y B11.
+El paso 6 (contexto de empresa) ya existe en la base de datos (ver «Base de datos»); B08 lo
+conecta a la sesión del usuario. Los pasos 5 (CSRF), 8 (autorización), 9 (idempotencia) y 11
+(auditoría) llegan en B08, B10 y B11.
 
 ### Configuración
 
@@ -105,6 +112,59 @@ conteo vive en memoria; pasa a Valkey en B06 y se agrega el conteo por usuario e
 `Cache-Control: no-store` y `X-Robots-Tag: noindex`. La página `/api/docs` permite estilos en
 línea porque Swagger UI los necesita. CORS solo admite `APP_URL`, `PORTAL_URL` y `PUBLIC_URL`.
 
+## Base de datos (B03)
+
+PostgreSQL 17 con Prisma 7 (ADR-006). El modelo está en [`prisma/schema.prisma`](prisma/schema.prisma)
+y las migraciones en `prisma/migrations/`. El cliente de Prisma se genera en `src/generated/`
+(fuera del repositorio) al instalar, compilar o ejecutar `db:generate`. El diccionario de las
+tablas está en [`docs/manual/datos/core.md`](../../docs/manual/datos/core.md).
+
+### Dos usuarios de base de datos
+
+[`infra/postgres/init/01-roles-and-database.sh`](../../infra/postgres/init/01-roles-and-database.sh)
+crea la base `arza_one` (UTF-8, intercalación ICU `es-CO`, zona UTC) y dos usuarios, con las
+contraseñas de `MIGRATION_DB_PASSWORD` y `APP_DB_PASSWORD`:
+
+| Usuario          | Lo usa                                       | Puede                                                                                                               |
+| ---------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `migration_user` | `pnpm db:migrate` (`DATABASE_MIGRATION_URL`) | Es dueño del esquema y de las tablas; aplica migraciones                                                            |
+| `app_user`       | La API y los datos semilla (`DATABASE_URL`)  | Solo lo que cada migración le concede. No es dueño ni superusuario, no salta la seguridad por fila y no borra filas |
+
+### Contexto de empresa y seguridad por fila (ADR-007)
+
+Toda lectura o escritura de datos de negocio pasa por `DatabaseService.withTenant`:
+
+```ts
+await database.withTenant({ tenantId, userId }, async (transaction) => {
+  await transaction.outboxEvent.create({
+    data: { tenantId, eventType: 'quote.accepted', payload },
+  });
+});
+```
+
+`withTenant` valida que los identificadores sean UUID, abre una transacción y fija
+`app.tenant_id` y `app.user_id` solo para ella (`set_config(..., true)`, equivalente a `SET LOCAL`,
+con parámetros). Las políticas RLS comparan cada fila con `core_current_tenant_id()`. Sin contexto
+no se ve ni se escribe ninguna fila; al terminar la transacción el contexto desaparece, así que una
+conexión reutilizada no lo hereda. Si el trabajo lanza un error, se revierte todo.
+
+### Reglas para cada tabla nueva de negocio
+
+Prisma no expresa estas piezas; van en el SQL de la migración (ver la primera migración):
+
+1. Columna `tenant_id` (primera en los índices compuestos) y las columnas de control.
+2. `ENABLE` y `FORCE ROW LEVEL SECURITY` y una política `USING` y `WITH CHECK` con
+   `core_current_tenant_id()`.
+3. El disparador `core_set_control_columns()`: fija `created_*`, `updated_*` y `version` (sube en
+   cada cambio) y ese valor no se puede falsificar desde el código.
+4. `GRANT` explícito a `app_user` solo de lo necesario. Sin `DELETE` salvo que el borrado físico
+   esté justificado (capítulo 12.1).
+5. Pruebas de aislamiento entre empresas y de permiso denegado en `test/int/`.
+
+Las migraciones nuevas se escriben con `prisma migrate diff` y se completan a mano con lo anterior;
+`migration_user` no puede crear la base auxiliar que usa `prisma migrate dev`. Una prueba falla si
+la base migrada no coincide con el modelo.
+
 ## Pruebas
 
 - `src/**/*.test.ts`: unitarias (configuración, identificador, registros, revisiones de /health).
@@ -113,4 +173,11 @@ línea porque Swagger UI los necesita. CORS solo admite `APP_URL`, `PORTAL_URL` 
   agrega rutas de ensayo que solo existen en las pruebas.
 - `test/startup.test.ts`: arranca el programa compilado real y comprueba que no arranca sin
   una variable obligatoria.
+- `test/int/*.int.test.ts` (`pnpm test:int`): con PostgreSQL 17 real en Docker (Testcontainers).
+  `test/int/support/global-setup.ts` crea la base con el mismo guion de `infra/postgres/init`,
+  contraseñas desechables, y aplica las migraciones desde cero. Cubren aislamiento entre empresas,
+  permisos denegados a `app_user`, columnas de control, transacciones, migraciones y semillas.
 - Cobertura mínima: 90 % de líneas, funciones e instrucciones y 85 % de ramas (capítulo 21.1).
+  Los datos semilla se miden en `test:int`, con el mismo umbral, porque solo se prueban con
+  PostgreSQL real. `@prisma/client` figura como dependencia usada en `knip.json` porque solo lo
+  importa el cliente generado, que no está en el repositorio.

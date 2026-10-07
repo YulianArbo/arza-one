@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 
 import { CONFIG } from '../config/config.module.js';
 import type { Env } from '../config/env-schema.js';
+import { DatabaseService } from '../database/database.service.js';
 import { HEALTH_PROBES, type HealthProbe } from './health-probe.js';
 import { HealthController } from './health.controller.js';
 import { HealthService } from './health.service.js';
@@ -9,9 +10,9 @@ import { PostgresProbe } from './probes/postgres-probe.js';
 import { S3Probe } from './probes/s3-probe.js';
 import { ValkeyProbe } from './probes/valkey-probe.js';
 
-function createProbes(config: Env): HealthProbe[] {
+function createProbes(config: Env, database: DatabaseService): HealthProbe[] {
   return [
-    new PostgresProbe(config.DATABASE_URL),
+    new PostgresProbe(database),
     new ValkeyProbe(config.VALKEY_URL),
     new S3Probe({
       endpoint: config.S3_ENDPOINT,
@@ -27,7 +28,7 @@ function createProbes(config: Env): HealthProbe[] {
   controllers: [HealthController],
   providers: [
     HealthService,
-    { provide: HEALTH_PROBES, useFactory: createProbes, inject: [CONFIG] },
+    { provide: HEALTH_PROBES, useFactory: createProbes, inject: [CONFIG, DatabaseService] },
   ],
 })
 export class HealthModule {}

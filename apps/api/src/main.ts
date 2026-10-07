@@ -1,8 +1,10 @@
-import { createApp } from './app.js';
 import { ConfigError, loadConfig } from './platform/config/load-config.js';
 
 async function bootstrap(): Promise<void> {
   const config = loadConfig(process.env);
+  // La aplicación (NestJS, Prisma) se carga solo con la configuración ya validada: si falta
+  // una variable, la API se detiene de inmediato sin cargar nada más.
+  const { createApp } = await import('./app.js');
   const app = await createApp(config);
   await app.listen(config.API_PORT);
 }

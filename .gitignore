@@ -9,3 +9,6 @@ coverage/
 !.env.example
 *.log
 .DS_Store
+
+# Cliente de Prisma: se genera con `pnpm db:generate` (también al instalar y compilar).
+apps/api/src/generated/
