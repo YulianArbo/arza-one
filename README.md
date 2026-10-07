@@ -38,6 +38,7 @@ pnpm check
 
 Debe terminar sin errores. Si falla, lea el mensaje: indica qué control falló y en qué archivo.
 Docker Desktop debe estar abierto: las pruebas de integración crean un PostgreSQL desechable.
+Las pruebas en navegador necesitan antes `pnpm e2e:install` (paso 7).
 
 ### 4. Variables de entorno
 
@@ -79,6 +80,29 @@ http://localhost:4000/api/docs (documentación de la API). Con la base de datos 
 la muestra `up`; las colas y los archivos siguen `down` hasta el entorno local completo (B06). Detalles
 en [`apps/api/README.md`](apps/api/README.md).
 
+### 7. Levantar la web
+
+La primera vez descargue el navegador de las pruebas (unos 300 MB):
+
+```bash
+pnpm e2e:install
+```
+
+Para ver la web, compile los paquetes compartidos y arránquela:
+
+```bash
+pnpm build
+```
+
+```bash
+pnpm --filter @arza/web dev
+```
+
+Abra http://localhost:3000 (sitio público), http://localhost:3000/app (aplicación interna) y
+http://localhost:3000/portal (portal del cliente). La pantalla «Estado del sistema» pide datos a la
+API del paso 6; si la API está apagada, muestra el mensaje de error con el botón «Reintentar».
+Detalles en [`apps/web/README.md`](apps/web/README.md) y [`packages/ui/README.md`](packages/ui/README.md).
+
 ## Comandos
 
 | Comando                                         | Qué hace                                                                          |
@@ -90,11 +114,12 @@ en [`apps/api/README.md`](apps/api/README.md).
 | `pnpm boundaries`                               | Fronteras entre módulos y aplicaciones (dependency-cruiser)                       |
 | `pnpm unused`                                   | Archivos, exportaciones y dependencias sin uso (knip)                             |
 | `pnpm test` · `pnpm test:int` · `pnpm test:e2e` | Pruebas unitarias · de integración (desde B03) · de extremo a extremo (desde B04) |
+| `pnpm e2e:install`                              | Descarga el navegador de las pruebas de extremo a extremo (una vez por equipo)    |
 | `pnpm build`                                    | Compila todas las aplicaciones y paquetes                                         |
 | `pnpm db:migrate`                               | Aplica las migraciones pendientes de la base de datos                             |
 | `pnpm db:seed` · `pnpm db:seed:demo`            | Datos semilla · semilla más dos empresas ficticias (nunca en producción)          |
 | `pnpm secrets`                                  | Busca secretos en todo el historial de git (gitleaks)                             |
-| `pnpm dev`                                      | Levanta api, worker y web (la API desde B02; web y worker desde B04 y B06)        |
+| `pnpm dev`                                      | Levanta api y web (la API desde B02, la web desde B04; el worker llega en B06)    |
 
 Los comandos `pnpm infra:up` y `pnpm infra:reset` se agregan en el bloque B06.
 
