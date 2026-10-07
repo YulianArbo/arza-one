@@ -1,0 +1,57 @@
+// Modelo de datos de ARZA ONE (capítulo 12). Las tablas llevan el prefijo de su dominio y las
+// columnas de control del numeral 12.1. La seguridad por fila, los permisos de app_user y los
+// disparadores de las columnas de control viven en el SQL de cada migración, porque Prisma no
+// los expresa.
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Empresas inquilinas (M00). La fila de una empresa solo es visible dentro de su propio contexto.
+model Tenant {
+  id           String        @id @default(uuid(7)) @db.Uuid
+  legalName    String        @map("legal_name")
+  tradeName    String?       @map("trade_name")
+  taxId        String        @unique @map("tax_id")
+  status       String        @default("active")
+  settings     Json          @default("{}")
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy    String?       @map("created_by") @db.Uuid
+  updatedAt    DateTime      @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy    String?       @map("updated_by") @db.Uuid
+  version      Int           @default(1)
+  deletedAt    DateTime?     @map("deleted_at") @db.Timestamptz(6)
+  outboxEvents OutboxEvent[]
+
+  @@map("core_tenants")
+}
+
+/// Eventos de dominio pendientes de publicar (bandeja de salida, numeral 13.2).
+model OutboxEvent {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  tenantId      String    @map("tenant_id") @db.Uuid
+  eventType     String    @map("event_type")
+  schemaVersion Int       @default(1) @map("schema_version")
+  payload       Json
+  actorId       String?   @map("actor_id") @db.Uuid
+  occurredAt    DateTime  @default(now()) @map("occurred_at") @db.Timestamptz(6)
+  publishedAt   DateTime? @map("published_at") @db.Timestamptz(6)
+  attempts      Int       @default(0)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?   @map("created_by") @db.Uuid
+  updatedAt     DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?   @map("updated_by") @db.Uuid
+  version       Int       @default(1)
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, occurredAt])
+  @@map("core_outbox_events")
+}
