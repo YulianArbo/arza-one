@@ -8,14 +8,14 @@ instrucciones permanentes para Claude Code están en [`CLAUDE.md`](CLAUDE.md).
 
 ### 1. Programas necesarios
 
-| Programa                   | Versión           | Cómo instalarlo en Windows                                  |
-| -------------------------- | ----------------- | ----------------------------------------------------------- |
-| Git                        | Vigente           | `winget install --id Git.Git -e`                            |
-| Node.js                    | 24 LTS o superior | `winget install --id OpenJS.NodeJS.LTS -e`                  |
-| pnpm                       | 12 o superior     | `npm install -g pnpm`                                       |
-| gitleaks                   | 8 o superior      | `winget install --id Gitleaks.Gitleaks -e`                  |
-| GitHub CLI (opcional)      | Vigente           | `winget install --id GitHub.cli -e` y luego `gh auth login` |
-| Docker Desktop (desde B03) | Vigente           | Ver capítulo 23.3 del manual (requiere WSL 2)               |
+| Programa              | Versión           | Cómo instalarlo en Windows                                  |
+| --------------------- | ----------------- | ----------------------------------------------------------- |
+| Git                   | Vigente           | `winget install --id Git.Git -e`                            |
+| Node.js               | 24 LTS o superior | `winget install --id OpenJS.NodeJS.LTS -e`                  |
+| pnpm                  | 12 o superior     | `npm install -g pnpm`                                       |
+| gitleaks              | 8 o superior      | `winget install --id Gitleaks.Gitleaks -e`                  |
+| GitHub CLI (opcional) | Vigente           | `winget install --id GitHub.cli -e` y luego `gh auth login` |
+| Docker Desktop        | Vigente           | Ver capítulo 23.3 del manual (requiere WSL 2)               |
 
 En macOS o Linux, instale los mismos programas con el gestor de paquetes del sistema.
 Después de instalar, cierre y vuelva a abrir la terminal para que reconozca los programas nuevos.
@@ -37,6 +37,7 @@ pnpm check
 ```
 
 Debe terminar sin errores. Si falla, lea el mensaje: indica qué control falló y en qué archivo.
+Docker Desktop debe estar abierto: las pruebas de integración crean un PostgreSQL desechable.
 
 ### 4. Variables de entorno
 
@@ -44,15 +45,38 @@ Copie `.env.example` como `.env` y reemplace los valores ficticios. Los valores 
 guardan en el repositorio (anexo F del manual). La API no arranca si falta una variable
 obligatoria o tiene un formato inválido: el mensaje dice cuál es.
 
-### 5. Levantar la API
+### 5. Base de datos local
+
+Mientras llega el entorno local completo (B06), la base de datos se levanta con un solo
+contenedor. Complete en `.env` las contraseñas de `POSTGRES_PASSWORD`, `APP_DB_PASSWORD` y
+`MIGRATION_DB_PASSWORD` y úselas también en `DATABASE_URL` y `DATABASE_MIGRATION_URL`. Desde la
+raíz del proyecto, en PowerShell:
+
+```bash
+docker run --rm -d --name arza-postgres --env-file .env -p 5432:5432 -v "${PWD}/infra/postgres/init:/docker-entrypoint-initdb.d:ro" postgres:17
+```
+
+```bash
+pnpm db:migrate
+```
+
+```bash
+pnpm db:seed
+```
+
+Si el puerto 5432 ya está ocupado (por ejemplo, por un PostgreSQL instalado en Windows), use
+`-p 5433:5432` y cambie `5432` por `5433` en las dos direcciones de `.env`. El contenedor no guarda
+los datos al detenerlo (`docker stop arza-postgres`); al volver a crearlo, repita los tres pasos.
+
+### 6. Levantar la API
 
 ```bash
 pnpm --filter @arza/api dev
 ```
 
 Abra http://localhost:4000/health (estado), http://localhost:4000/version (versión) y
-http://localhost:4000/api/docs (documentación de la API). Mientras no estén los servicios locales
-(bloque B06), /health muestra la base de datos, las colas y los archivos como `down`. Detalles
+http://localhost:4000/api/docs (documentación de la API). Con la base de datos del paso 5, /health
+la muestra `up`; las colas y los archivos siguen `down` hasta el entorno local completo (B06). Detalles
 en [`apps/api/README.md`](apps/api/README.md).
 
 ## Comandos
@@ -67,11 +91,12 @@ en [`apps/api/README.md`](apps/api/README.md).
 | `pnpm unused`                                   | Archivos, exportaciones y dependencias sin uso (knip)                             |
 | `pnpm test` · `pnpm test:int` · `pnpm test:e2e` | Pruebas unitarias · de integración (desde B03) · de extremo a extremo (desde B04) |
 | `pnpm build`                                    | Compila todas las aplicaciones y paquetes                                         |
+| `pnpm db:migrate`                               | Aplica las migraciones pendientes de la base de datos                             |
+| `pnpm db:seed` · `pnpm db:seed:demo`            | Datos semilla · semilla más dos empresas ficticias (nunca en producción)          |
 | `pnpm secrets`                                  | Busca secretos en todo el historial de git (gitleaks)                             |
 | `pnpm dev`                                      | Levanta api, worker y web (la API desde B02; web y worker desde B04 y B06)        |
 
-Los comandos `pnpm infra:up`, `pnpm infra:reset`, `pnpm db:migrate` y `pnpm db:seed` se
-agregan en los bloques B03 y B06.
+Los comandos `pnpm infra:up` y `pnpm infra:reset` se agregan en el bloque B06.
 
 ## Controles antes de cada commit
 
