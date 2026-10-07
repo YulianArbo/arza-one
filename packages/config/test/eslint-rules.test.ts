@@ -35,6 +35,16 @@ describe('reglas de código limpio (capítulo 11.2)', () => {
     expect(ruleIds).toContain('max-lines-per-function');
   });
 
+  it('rechaza una imagen sin texto alternativo (accesibilidad, 16.6)', async () => {
+    const eslint = new ESLint({ cwd: REPO_ROOT });
+    const component = `${REPO_ROOT}packages/ui/src/components/skeleton.tsx`;
+    const code =
+      'import type { JSX } from \'react\';\n\nexport function Logo(): JSX.Element {\n  return <img src="/logo.png" />;\n}\n';
+    const [result] = await eslint.lintText(code, { filePath: component });
+    const ruleIds = result?.messages.map((message) => message.ruleId) ?? [];
+    expect(ruleIds).toContain('jsx-a11y-x/alt-text');
+  });
+
   it('acepta código que cumple las reglas', async () => {
     const ruleIds = await ruleIdsFor(
       'export function sum(a: number, b: number): number {\n  return a + b;\n}\n',
