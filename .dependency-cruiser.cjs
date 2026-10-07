@@ -57,6 +57,14 @@ module.exports = {
     noUpwardLayer('infrastructure', 'application'),
     noUpwardLayer('infrastructure', 'interface'),
     {
+      name: 'no-domain-to-infrastructure',
+      comment:
+        'El dominio no conoce la base de datos ni los servicios externos: la infraestructura implementa sus interfaces.',
+      severity: 'error',
+      from: { path: `${MODULES}([^/]+)/domain/` },
+      to: { path: `${MODULES}$1/infrastructure/` },
+    },
+    {
       name: 'no-web-to-backend',
       comment: 'La web pide los datos a la API; nunca importa código del backend.',
       severity: 'error',

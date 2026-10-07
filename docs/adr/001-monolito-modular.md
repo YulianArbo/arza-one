@@ -23,4 +23,4 @@ Un solo despliegue y una sola base de datos. Cada módulo se puede entender y pr
 
 ## Cumplimiento
 
-`pnpm boundaries` (dependency-cruiser, `.dependency-cruiser.cjs`): reglas `no-module-internals`, `no-core-to-business` y de dirección de capas. Pruebas en `packages/config/test/boundaries.test.ts`.
+`pnpm boundaries` (dependency-cruiser, `.dependency-cruiser.cjs`): reglas `no-module-internals`, `no-core-to-business` y de dirección de capas. El dominio nunca depende de la infraestructura (`no-domain-to-infrastructure`); la infraestructura sí puede depender del dominio para implementar sus interfaces (aprobado por el Director General el 05/10/2026, al cierre de B01). Pruebas en `packages/config/test/boundaries.test.ts`.

@@ -21,6 +21,8 @@ const TYPESCRIPT_RULES = {
   '@typescript-eslint/no-explicit-any': 'error',
   '@typescript-eslint/consistent-type-imports': 'error',
   '@typescript-eslint/explicit-module-boundary-types': 'error',
+  // NestJS declara los módulos como clases vacías con el decorador @Module (ADR-004).
+  '@typescript-eslint/no-extraneous-class': ['error', { allowWithDecorator: true }],
 };
 
 export default tseslint.config(

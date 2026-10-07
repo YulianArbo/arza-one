@@ -41,8 +41,19 @@ Debe terminar sin errores. Si falla, lea el mensaje: indica qué control falló 
 ### 4. Variables de entorno
 
 Copie `.env.example` como `.env` y reemplace los valores ficticios. Los valores reales nunca se
-guardan en el repositorio (anexo F del manual). Por ahora ninguna aplicación las usa; se
-necesitan a partir del bloque B02.
+guardan en el repositorio (anexo F del manual). La API no arranca si falta una variable
+obligatoria o tiene un formato inválido: el mensaje dice cuál es.
+
+### 5. Levantar la API
+
+```bash
+pnpm --filter @arza/api dev
+```
+
+Abra http://localhost:4000/health (estado), http://localhost:4000/version (versión) y
+http://localhost:4000/api/docs (documentación de la API). Mientras no estén los servicios locales
+(bloque B06), /health muestra la base de datos, las colas y los archivos como `down`. Detalles
+en [`apps/api/README.md`](apps/api/README.md).
 
 ## Comandos
 
@@ -57,7 +68,7 @@ necesitan a partir del bloque B02.
 | `pnpm test` · `pnpm test:int` · `pnpm test:e2e` | Pruebas unitarias · de integración (desde B03) · de extremo a extremo (desde B04) |
 | `pnpm build`                                    | Compila todas las aplicaciones y paquetes                                         |
 | `pnpm secrets`                                  | Busca secretos en todo el historial de git (gitleaks)                             |
-| `pnpm dev`                                      | Levanta api, worker y web (desde B02 y B04)                                       |
+| `pnpm dev`                                      | Levanta api, worker y web (la API desde B02; web y worker desde B04 y B06)        |
 
 Los comandos `pnpm infra:up`, `pnpm infra:reset`, `pnpm db:migrate` y `pnpm db:seed` se
 agregan en los bloques B03 y B06.

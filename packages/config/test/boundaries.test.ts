@@ -54,7 +54,9 @@ describe('fronteras entre módulos', () => {
     expect(result.passed).toBe(false);
     expect(result.output).toContain('no-core-to-business');
   });
+});
 
+describe('dirección de las capas', () => {
   it('rechaza que el dominio dependa de la capa de aplicación', () => {
     const result = checkBoundaries({
       [`${MODULES}/crm/application/create-quote.ts`]: 'export const createQuote = 1;\n',
@@ -63,6 +65,26 @@ describe('fronteras entre módulos', () => {
     });
     expect(result.passed).toBe(false);
     expect(result.output).toContain('no-domain-to-application');
+  });
+
+  it('rechaza que el dominio dependa de la infraestructura', () => {
+    const result = checkBoundaries({
+      [`${MODULES}/crm/infrastructure/quote-repository.ts`]: 'export const repository = 1;\n',
+      [`${MODULES}/crm/domain/quote.ts`]:
+        "import { repository } from '../infrastructure/quote-repository.js';\nexport const quote = repository;\n",
+    });
+    expect(result.passed).toBe(false);
+    expect(result.output).toContain('no-domain-to-infrastructure');
+  });
+
+  it('permite que la infraestructura implemente interfaces del dominio', () => {
+    const result = checkBoundaries({
+      [`${MODULES}/crm/domain/quote-repository.ts`]: 'export const port = 1;\n',
+      [`${MODULES}/crm/infrastructure/prisma-quote-repository.ts`]:
+        "import { port } from '../domain/quote-repository.js';\nexport const adapter = port;\n",
+    });
+    expect(result.output).not.toMatch(/error/);
+    expect(result.passed).toBe(true);
   });
 });
 
