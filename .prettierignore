@@ -8,3 +8,6 @@ docs/bloques/B[0-9][0-9].md
 docs/bloques/README.md
 CLAUDE.md
 apps/api/openapi.json
+
+# Código generado por Prisma.
+apps/api/src/generated/

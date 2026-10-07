@@ -14,13 +14,16 @@
     "test": "turbo run test",
     "test:int": "turbo run test:int",
     "test:e2e": "turbo run test:e2e",
+    "db:migrate": "pnpm --filter @arza/api db:migrate",
+    "db:seed": "pnpm --filter @arza/api db:seed",
+    "db:seed:demo": "pnpm --filter @arza/api db:seed:demo",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --max-warnings 0",
     "boundaries": "depcruise apps packages --config .dependency-cruiser.cjs",
     "unused": "knip",
     "secrets": "gitleaks git --no-banner --redact",
-    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm boundaries && pnpm unused && pnpm test && pnpm build && pnpm secrets"
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm boundaries && pnpm unused && pnpm test && pnpm test:int && pnpm build && pnpm secrets"
   },
   "devDependencies": {
     "@arza/config": "workspace:*",

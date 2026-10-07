@@ -3,5 +3,12 @@ packages:
   - packages/*
 allowBuilds:
   lefthook: true
+  # Prisma descarga su motor de migraciones al instalarse (B03).
+  prisma: true
+  '@prisma/engines': true
   # Telemetría de swagger-ui-dist: no se permite ejecutar su script de instalación.
   '@scarf/scarf': false
+  # Complementos nativos opcionales de Testcontainers (conexión SSH a Docker); no se usan.
+  cpu-features: false
+  ssh2: false
+  protobufjs: false

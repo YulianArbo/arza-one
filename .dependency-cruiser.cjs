@@ -103,7 +103,8 @@ module.exports = {
   options: {
     doNotFollow: { path: 'node_modules' },
     // Solo las salidas de compilación propias; los paquetes instalados también tienen carpetas dist.
-    exclude: { path: '^(apps|packages)/[^/]+/(dist|coverage|\\.turbo|\\.next)/' },
+    // También el cliente que genera Prisma (B03).
+    exclude: { path: '^(apps|packages)/[^/]+/(dist|coverage|\\.turbo|\\.next|src/generated)/' },
     tsPreCompilationDeps: true,
     enhancedResolveOptions: {
       extensions: ['.ts', '.tsx', '.js', '.mjs', '.cjs', '.json'],
