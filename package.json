@@ -14,6 +14,7 @@
     "test": "turbo run test",
     "test:int": "turbo run test:int",
     "test:e2e": "turbo run test:e2e",
+    "e2e:install": "pnpm --filter @arza/web e2e:install",
     "db:migrate": "pnpm --filter @arza/api db:migrate",
     "db:seed": "pnpm --filter @arza/api db:seed",
     "db:seed:demo": "pnpm --filter @arza/api db:seed:demo",
@@ -23,7 +24,7 @@
     "boundaries": "depcruise apps packages --config .dependency-cruiser.cjs",
     "unused": "knip",
     "secrets": "gitleaks git --no-banner --redact",
-    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm boundaries && pnpm unused && pnpm test && pnpm test:int && pnpm build && pnpm secrets"
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm boundaries && pnpm unused && pnpm test && pnpm test:int && pnpm build && pnpm test:e2e && pnpm secrets"
   },
   "devDependencies": {
     "@arza/config": "workspace:*",

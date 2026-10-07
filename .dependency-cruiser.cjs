@@ -103,8 +103,13 @@ module.exports = {
   options: {
     doNotFollow: { path: 'node_modules' },
     // Solo las salidas de compilación propias; los paquetes instalados también tienen carpetas dist.
-    // También el cliente que genera Prisma (B03).
-    exclude: { path: '^(apps|packages)/[^/]+/(dist|coverage|\\.turbo|\\.next|src/generated)/' },
+    // También el cliente que genera Prisma (B03) y los tipos que genera Next.js (B04).
+    exclude: {
+      path: [
+        '^(apps|packages)/[^/]+/(dist|coverage|\\.turbo|\\.next|src/generated)/',
+        '^apps/web/next-env\\.d\\.ts$',
+      ],
+    },
     tsPreCompilationDeps: true,
     enhancedResolveOptions: {
       extensions: ['.ts', '.tsx', '.js', '.mjs', '.cjs', '.json'],

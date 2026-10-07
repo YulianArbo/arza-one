@@ -1,0 +1,5 @@
+@import 'tailwindcss';
+@import '@arza/ui/styles.css';
+
+/* Clases usadas por los componentes del sistema de diseño. */
+@source '../../../../packages/ui/src';

@@ -1,6 +1,9 @@
 // Configuración compartida de ESLint. Aplica las reglas de código limpio del capítulo 11.2.
 import js from '@eslint/js';
 import comments from '@eslint-community/eslint-plugin-eslint-comments/configs';
+import next from '@next/eslint-plugin-next';
+import jsxA11y from 'eslint-plugin-jsx-a11y-x';
+import reactHooks from 'eslint-plugin-react-hooks';
 import unicorn from 'eslint-plugin-unicorn';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
@@ -51,6 +54,18 @@ export default tseslint.config(
       parserOptions: { projectService: true },
     },
     rules: { ...CLEAN_CODE_RULES, ...TYPESCRIPT_RULES },
+  },
+  // Interfaz (B04): reglas de React, accesibilidad WCAG (16.6) y buenas prácticas de Next.js.
+  {
+    files: ['apps/web/**/*.{ts,tsx}', 'packages/ui/**/*.{ts,tsx}'],
+    languageOptions: { globals: { ...globals.browser, ...globals.node } },
+  },
+  { ...reactHooks.configs.flat.recommended, files: ['**/*.tsx'] },
+  { ...jsxA11y.configs.strict, files: ['**/*.tsx'] },
+  {
+    ...next.configs['core-web-vitals'],
+    files: ['apps/web/**/*.{ts,tsx}'],
+    settings: { next: { rootDir: 'apps/web/' } },
   },
   {
     files: ['**/*.js', '**/*.cjs', '**/*.mjs'],
