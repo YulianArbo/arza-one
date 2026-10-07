@@ -1,6 +1,8 @@
 packages:
   - apps/*
   - packages/*
+# Variables de entorno en los scripts (VAR=valor comando) también en Windows (B04).
+shellEmulator: true
 allowBuilds:
   lefthook: true
   # Prisma descarga su motor de migraciones al instalarse (B03).

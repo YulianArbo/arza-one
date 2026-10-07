@@ -12,3 +12,8 @@ coverage/
 
 # Cliente de Prisma: se genera con `pnpm db:generate` (también al instalar y compilar).
 apps/api/src/generated/
+
+# Next.js (B04): tipos generados y resultados de las pruebas en navegador.
+next-env.d.ts
+playwright-report/
+test-results/
