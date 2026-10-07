@@ -1,0 +1,17 @@
+# Lo que nunca entra a una imagen: secretos, dependencias y resultados de este equipo.
+# Las imágenes instalan y compilan todo desde cero (B05).
+.env
+.env.*
+!.env.example
+**/node_modules
+**/dist
+**/.next
+**/.turbo
+**/coverage
+**/test-results
+**/playwright-report
+**/*.tsbuildinfo
+apps/api/src/generated
+.git
+.github
+docs
