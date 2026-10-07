@@ -1,0 +1,11 @@
+# Análisis estático de seguridad (numeral 11.4, paso 6): solo el código propio.
+node_modules/
+dist/
+.next/
+.turbo/
+coverage/
+test-results/
+playwright-report/
+# Cliente de Prisma: código generado.
+apps/api/src/generated/
+pnpm-lock.yaml
