@@ -6,6 +6,7 @@ import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 import { AccessGuard } from './platform/access/access.guard.js';
 import { ConfigModule } from './platform/config/config.module.js';
 import type { Env } from './platform/config/env-schema.js';
+import { DatabaseModule } from './platform/database/database.module.js';
 import { ApiExceptionFilter } from './platform/errors/api-exception.filter.js';
 import { HealthModule } from './platform/health/health.module.js';
 import { LoggingModule } from './platform/logging/logging.module.js';
@@ -29,6 +30,7 @@ export class AppModule {
       imports: [
         ConfigModule.forRoot(config),
         LoggingModule.forRoot(config),
+        DatabaseModule,
         ThrottlerModule.forRoot([throttle]),
         HealthModule,
         VersionModule,
