@@ -1,6 +1,7 @@
 packages:
   - apps/*
   - packages/*
+  - infra/scripts
 # Variables de entorno en los scripts (VAR=valor comando) también en Windows (B04).
 shellEmulator: true
 allowBuilds:

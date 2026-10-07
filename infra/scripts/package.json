@@ -1,0 +1,21 @@
+{
+  "name": "@arza/infra-scripts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage",
+    "check:migrations": "node ci/check-migrations.ts",
+    "check:vulnerabilities": "node ci/check-vulnerabilities.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.1",
+    "@vitest/coverage-v8": "^5.0.3",
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.3"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
+  }
+}

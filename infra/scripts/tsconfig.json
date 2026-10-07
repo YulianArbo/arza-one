@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "noEmit": true,
+    // Node ejecuta estos guiones directamente, quitando los tipos: solo sintaxis borrable.
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true
+  },
+  "include": ["ci", "vitest.config.ts"]
+}
