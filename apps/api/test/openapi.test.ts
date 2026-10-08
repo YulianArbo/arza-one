@@ -19,21 +19,40 @@ describe('OpenAPI generado desde los esquemas Zod (ADR-010)', () => {
     // Si cambia un contrato, regenere el archivo con: pnpm --filter @arza/api test -u
     await expect(document).toMatchFileSnapshot('../openapi.json');
   });
+});
 
-  it('describe las respuestas de /health con su esquema', async () => {
+describe('rutas y esquemas del OpenAPI', () => {
+  it('describe cada ruta con el esquema de su contrato', async () => {
     app = await createTestApp();
     const document = buildOpenApiDocument(app);
     expect(document.openapi).toBe('3.1.0');
-    expect(Object.keys(document.paths)).toEqual(['/health', '/version']);
+    expect(Object.keys(document.paths).sort()).toEqual([
+      '/health',
+      '/v1/auth/invitation/accept',
+      '/v1/auth/login',
+      '/v1/auth/logout',
+      '/v1/auth/password/forgot',
+      '/v1/auth/password/reset',
+      '/v1/auth/session',
+      '/v1/me',
+      '/v1/me/password',
+      '/version',
+    ]);
     expect(Object.keys(document.components?.schemas ?? {})).toEqual(
       expect.arrayContaining([
         'HealthResponse_Output',
         'VersionResponse_Output',
         'ErrorResponse_Output',
+        'LoginRequest',
+        'SessionResponse_Output',
+        'MeResponse_Output',
+        'ChangePasswordRequest',
       ]),
     );
   });
+});
 
+describe('publicación de la documentación', () => {
   it('publica la documentación en local y en pruebas', async () => {
     app = await createTestApp({ env: { APP_ENV: 'staging' } });
     const response = await request(app.getHttpServer()).get('/api/docs/openapi.json');

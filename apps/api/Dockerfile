@@ -15,7 +15,8 @@ RUN pnpm turbo run build --filter=@arza/api
 # Solo las dependencias de producción. Los scripts de instalación no corren: el cliente de
 # Prisma ya quedó compilado dentro de dist.
 RUN pnpm --filter @arza/api deploy --prod --ignore-scripts /out \
-  && cp -r apps/api/dist /out/dist
+  && cp -r apps/api/dist /out/dist \
+  && cp -r apps/api/data /out/data
 
 # Imagen de migraciones (B07): solo la consola de Prisma, el esquema y las migraciones. Aquí sí
 # corren los scripts de instalación de Prisma (pnpm-workspace.yaml, allowBuilds): descargan el

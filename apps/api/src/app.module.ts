@@ -4,13 +4,17 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import type { Redis } from 'ioredis';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 
+import { IamModule } from './modules/iam/index.js';
 import { AccessGuard } from './platform/access/access.guard.js';
+import { ClockModule } from './platform/clock/clock.js';
 import { ConfigModule } from './platform/config/config.module.js';
 import type { Env } from './platform/config/env-schema.js';
 import { DatabaseModule } from './platform/database/database.module.js';
 import { ApiExceptionFilter } from './platform/errors/api-exception.filter.js';
 import { HealthModule } from './platform/health/health.module.js';
 import { LoggingModule } from './platform/logging/logging.module.js';
+import { QueueModule } from './platform/queues/queue.module.js';
+import { CsrfGuard } from './platform/security/csrf.guard.js';
 import { ValkeyThrottlerStorage } from './platform/valkey/valkey-throttler-storage.js';
 import { VALKEY, ValkeyModule } from './platform/valkey/valkey.module.js';
 import { VersionModule } from './platform/version/version.module.js';
@@ -19,7 +23,8 @@ const MILLISECONDS_PER_SECOND = 1000;
 
 /**
  * Cadena de petición del numeral 13.1. Los guardas se ejecutan en el orden en que se registran:
- * primero el límite de peticiones (paso 3) y después el acceso (paso 4).
+ * primero el límite de peticiones (paso 3), después la sesión (paso 4) y luego la protección
+ * contra peticiones falsificadas (paso 5).
  */
 @Module({})
 export class AppModule {
@@ -42,12 +47,16 @@ export class AppModule {
             storage: new ValkeyThrottlerStorage(valkey),
           }),
         }),
+        ClockModule,
+        QueueModule,
         HealthModule,
         VersionModule,
+        IamModule,
       ],
       providers: [
         { provide: APP_GUARD, useClass: ThrottlerGuard },
         { provide: APP_GUARD, useClass: AccessGuard },
+        { provide: APP_GUARD, useClass: CsrfGuard },
         { provide: APP_PIPE, useClass: ZodValidationPipe },
         { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
         { provide: APP_FILTER, useClass: ApiExceptionFilter },

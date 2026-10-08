@@ -4,12 +4,17 @@
   "private": true,
   "type": "module",
   "files": [
-    "dist"
+    "dist",
+    "data"
   ],
   "exports": {
     "./platform": {
       "types": "./dist/platform/index.d.ts",
       "default": "./dist/platform/index.js"
+    },
+    "./iam": {
+      "types": "./dist/modules/iam/index.d.ts",
+      "default": "./dist/modules/iam/index.js"
     }
   },
   "scripts": {
@@ -23,7 +28,8 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:seed": "node --env-file-if-exists=../../.env dist/platform/database/seed/seed-main.js",
-    "db:seed:demo": "node --env-file-if-exists=../../.env dist/platform/database/seed/seed-main.js --demo"
+    "db:seed:demo": "node --env-file-if-exists=../../.env dist/platform/database/seed/seed-main.js --demo",
+    "iam:invitar": "node --env-file-if-exists=../../.env dist/modules/iam/interface/cli/invite-main.js"
   },
   "devDependencies": {
     "@nestjs/testing": "~11.2.7",
