@@ -8,6 +8,9 @@
     },
     "apps/worker": {
       "entry": ["src/main.ts", "src/healthcheck.ts", "src/cli/enqueue-example.ts"]
+    },
+    "infra/migrate": {
+      "ignoreDependencies": ["prisma"]
     }
   }
 }
