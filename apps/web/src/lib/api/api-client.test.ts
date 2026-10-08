@@ -1,7 +1,7 @@
 import { versionResponseSchema } from '@arza/contracts';
 import { describe, expect, it, vi } from 'vitest';
 
-import { createApiClient } from './api-client';
+import { apiEndpoint, createApiClient } from './api-client';
 import { ApiError, CLIENT_ERROR_CODES, CLIENT_ERROR_MESSAGES } from './api-error';
 
 const BASE_URL = 'http://api.test:4000';
@@ -111,5 +111,20 @@ describe('cliente de la API: respuestas inválidas y sin conexión', () => {
       signal: controller.signal,
     });
     await expect(result).rejects.toBe(abortError);
+  });
+});
+
+describe('cliente de la API: dirección con prefijo', () => {
+  it('conserva el prefijo de la API detrás de Caddy (pruebas, B07)', () => {
+    expect(apiEndpoint('https://pruebas.example.test/api', '/health').href).toBe(
+      'https://pruebas.example.test/api/health',
+    );
+    expect(apiEndpoint('https://pruebas.example.test/api/', 'version').href).toBe(
+      'https://pruebas.example.test/api/version',
+    );
+  });
+
+  it('sin prefijo deja la ruta en la raíz de la API (local)', () => {
+    expect(apiEndpoint(BASE_URL, '/version').href).toBe('http://api.test:4000/version');
   });
 });

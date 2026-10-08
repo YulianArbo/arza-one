@@ -1,0 +1,56 @@
+# Puerta de entrada del ambiente de pruebas (B07, numerales 10.3 y 10.4).
+# Caddy obtiene y renueva solo los certificados TLS (Let's Encrypt) y es el único servicio que
+# escucha en internet (puertos 80 y 443). Todo lo demás vive en la red interna de Docker.
+# Las variables llegan del archivo .env del servidor (infra/server/generate-env.sh).
+{
+	email {$ACME_EMAIL}
+	# Solo HTTP/1.1 y HTTP/2 sobre TCP: el cortafuegos no abre UDP (HTTP/3).
+	servers {
+		protocols h1 h2
+	}
+	# Vacío en el servidor. El ensayo de GitHub pone «local_certs»: certificados de una autoridad
+	# propia de Caddy, porque allí no hay dominio público para Let's Encrypt.
+	{$CADDY_EXTRA_GLOBAL}
+	# Caddy corre sin privilegios: no intenta instalar su autoridad local en el sistema.
+	skip_install_trust
+}
+
+# No indexable (numeral 10.4), TLS obligatorio y sin anunciar el servidor.
+(staging_headers) {
+	header {
+		X-Robots-Tag "noindex, nofollow"
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+}
+
+# Ambiente de pruebas: autenticación adicional. La respuesta 401 (y cualquier otro error) lleva
+# también las cabeceras: sin handle_errors, Caddy las omite en los errores.
+(protected) {
+	import staging_headers
+	basic_auth {
+		{$STAGING_AUTH_USER} {$STAGING_AUTH_HASH}
+	}
+	handle_errors {
+		import staging_headers
+		respond "{err.status_code} {err.status_text}"
+	}
+}
+
+# La web y la API en la misma dirección: el navegador envía la autenticación adicional a ambas.
+# La API queda en /api (Caddy quita ese prefijo antes de pasarle la petición).
+{$STAGING_DOMAIN} {
+	import protected
+	handle_path /api/* {
+		reverse_proxy api:4000
+	}
+	handle {
+		reverse_proxy web:3000
+	}
+}
+
+# Bandeja de correo falsa (Mailpit): en pruebas ningún correo sale a buzones reales.
+correo.{$STAGING_DOMAIN} {
+	import protected
+	reverse_proxy mailpit:8025
+}

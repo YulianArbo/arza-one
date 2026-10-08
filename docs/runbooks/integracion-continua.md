@@ -9,21 +9,23 @@ Cada pull request, y cada cambio que llega a `main`, pone a correr el flujo
 resume todas: solo queda en verde si todas pasaron. La protección de `main` exige esa tarea en
 verde para permitir integrar.
 
-| #   | Tarea en GitHub                                      | Qué revisa                                                                                                                                                            | Falla si…                                                                           |
-| --- | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| 1-3 | Formato, análisis, tipos y fronteras                 | Mensajes de commit, Prettier, ESLint, TypeScript, dependency-cruiser y knip                                                                                           | Hay una sola advertencia, un error de tipos o un módulo importa el interior de otro |
-| 4   | Pruebas unitarias con cobertura                      | Todas las pruebas unitarias                                                                                                                                           | Falla una prueba o la cobertura baja de 90 % (capítulo 21)                          |
-| 5   | Integración con base de datos, colas y correo reales | Pruebas contra PostgreSQL 17, Valkey y Mailpit desechables: aislamiento entre empresas, permisos, límite de peticiones, reintentos del worker; migraciones desde cero | Falla una prueba                                                                    |
-| 6   | Secretos, seguridad y dependencias                   | gitleaks (todo el historial), Semgrep (patrones inseguros) y osv-scanner (dependencias)                                                                               | Hay un secreto, un hallazgo de severidad alta o una vulnerabilidad alta o crítica   |
-| 7   | Migraciones desde cero y sobre la versión anterior   | Que las migraciones nuevas no rompan la versión anterior; aplica las de `main` con datos ficticios y luego las nuevas                                                 | Una migración ya integrada cambió, una nueva borra o renombra algo, o no aplica     |
-| 8   | Imagen api / web / worker y análisis con Trivy       | Construye las imágenes Docker y busca vulnerabilidades                                                                                                                | Hay una vulnerabilidad crítica con corrección disponible                            |
-| 9   | Pruebas en navegador y accesibilidad                 | Playwright y axe-core sobre la web compilada                                                                                                                          | Falla un recorrido o hay una violación grave de accesibilidad                       |
-| 10  | OWASP ZAP (semanal)                                  | [`zap-semanal.yml`](../../.github/workflows/zap-semanal.yml): ataca una copia temporal de la web y la API                                                             | Hay una alerta de riesgo alto                                                       |
+| #   | Tarea en GitHub                                          | Qué revisa                                                                                                                                                                                                            | Falla si…                                                                           |
+| --- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| 1-3 | Formato, análisis, tipos y fronteras                     | Mensajes de commit, Prettier, ESLint, TypeScript, dependency-cruiser y knip                                                                                                                                           | Hay una sola advertencia, un error de tipos o un módulo importa el interior de otro |
+| 4   | Pruebas unitarias con cobertura                          | Todas las pruebas unitarias                                                                                                                                                                                           | Falla una prueba o la cobertura baja de 90 % (capítulo 21)                          |
+| 5   | Integración con base de datos, colas y correo reales     | Pruebas contra PostgreSQL 17, Valkey y Mailpit desechables: aislamiento entre empresas, permisos, límite de peticiones, reintentos del worker; migraciones desde cero                                                 | Falla una prueba                                                                    |
+| 6   | Secretos, seguridad y dependencias                       | gitleaks (todo el historial), Semgrep (patrones inseguros) y osv-scanner (dependencias)                                                                                                                               | Hay un secreto, un hallazgo de severidad alta o una vulnerabilidad alta o crítica   |
+| 7   | Migraciones desde cero y sobre la versión anterior       | Que las migraciones nuevas no rompan la versión anterior; aplica las de `main` con datos ficticios y luego las nuevas                                                                                                 | Una migración ya integrada cambió, una nueva borra o renombra algo, o no aplica     |
+| 8   | Imagen api / web / worker / migrate y análisis con Trivy | Construye las imágenes Docker (migrate: la de migraciones del despliegue, B07) y busca vulnerabilidades                                                                                                               | Hay una vulnerabilidad crítica con corrección disponible                            |
+| 9   | Pruebas en navegador y accesibilidad                     | Playwright y axe-core sobre la web compilada                                                                                                                                                                          | Falla un recorrido o hay una violación grave de accesibilidad                       |
+| 11  | Ensayo de despliegue y reversión automática              | [`rehearsal.sh`](../../infra/scripts/deploy/rehearsal.sh): la máquina de GitHub hace de servidor; publica una versión buena, revisa puertos y publica una dañada que debe revertirse sola (B07)                       | La versión buena no se publica, hay otro puerto abierto o la dañada no se revierte  |
+| 12  | Preparación y endurecimiento del servidor                | ShellCheck de los guiones de bash y [`infra/server/rehearsal.sh`](../../infra/server/rehearsal.sh): prepara la máquina de GitHub (Ubuntu 24.04) con `provision.sh` y comprueba SSH, root, contraseñas y puertos (B07) | Un guion tiene un error o un control del numeral 10.2 no se cumple                  |
+| 10  | OWASP ZAP (semanal)                                      | [`zap-semanal.yml`](../../.github/workflows/zap-semanal.yml): ataca una copia temporal de la web y la API                                                                                                             | Hay una alerta de riesgo alto                                                       |
 
 La verificación 10 corre los lunes a la 1:00 a. m. (hora de Bogotá) y se puede lanzar a mano en
-GitHub: **Actions → Análisis dinámico semanal (OWASP ZAP) → Run workflow**. Hasta B07 analiza una
-copia levantada dentro de GitHub ([`infra/compose/ci.yml`](../../infra/compose/ci.yml)); desde B07
-analizará el servidor de pruebas.
+GitHub: **Actions → Análisis dinámico semanal (OWASP ZAP) → Run workflow**. Analiza una copia
+levantada dentro de GitHub ([`infra/compose/ci.yml`](../../infra/compose/ci.yml)). Pasará a
+analizar el servidor de pruebas cuando este exista (pendiente de B07: ver su cierre).
 
 ## Qué hacer cuando una verificación falla
 
@@ -32,7 +34,9 @@ analizará el servidor de pruebas.
 2. Reproduzca en el equipo con `pnpm check`. Los análisis que solo corren en GitHub tienen su guion:
    - Migraciones: `node infra/scripts/ci/check-migrations.ts origin/main` y
      `bash infra/scripts/ci/migrations-upgrade.sh origin/main` (requiere Docker).
-   - Imágenes: `docker build -f apps/api/Dockerfile -t arza-one/api .` (igual con `web`).
+   - Imágenes: `bash infra/scripts/ci/build-image.sh api arza-one/api:ci` (igual con `web`,
+     `worker` y `migrate`).
+   - Ensayo de despliegue (requiere Linux con Docker): `bash infra/scripts/deploy/rehearsal.sh`.
 3. Corrija la causa. **Nunca** se debilita una prueba ni un control para que pase (CLAUDE.md).
 
 ### Excepciones de vulnerabilidades

@@ -7,5 +7,5 @@
     "allowImportingTsExtensions": true,
     "erasableSyntaxOnly": true
   },
-  "include": ["ci", "local", "vitest.config.ts"]
+  "include": ["ci", "local", "deploy", "vitest.config.ts"]
 }

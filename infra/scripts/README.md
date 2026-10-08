@@ -36,6 +36,31 @@ ALTER TABLE "crm_leads" DROP COLUMN "notes";
 La marca queda a la vista en la revisión del pull request. Desactivar la seguridad por fila
 (`DISABLE` o `NO FORCE ROW LEVEL SECURITY`) nunca se permite, ni con la marca (ADR-007).
 
+`ci/build-image.sh <api|web|worker|migrate> <etiqueta> [plataforma]` construye cada imagen igual en
+la integración continua, el ensayo y el despliegue (B07).
+
+## deploy/ — despliegue al ambiente de pruebas (B07)
+
+Guías: [`docs/runbooks/despliegue-y-reversion.md`](../../docs/runbooks/despliegue-y-reversion.md) y
+[`docs/runbooks/servidor-de-pruebas.md`](../../docs/runbooks/servidor-de-pruebas.md).
+
+| Archivo                   | Qué hace                                                                                                                       |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `deploy/deploy-main.ts`   | Punto de entrada (`pnpm --filter @arza/infra-scripts deploy:staging`). Lee los datos de las variables de entorno (`config.ts`) |
+| `deploy/deploy.ts`        | Los pasos del despliegue y la reversión automática                                                                             |
+| `deploy/release.ts`       | Carpetas de cada versión en el servidor, enlace `current` y el comando `docker compose` de cada una                            |
+| `deploy/smoke.ts`         | Pruebas de humo desde fuera, por internet, con TLS y la contraseña adicional                                                   |
+| `deploy/isolation.ts`     | Prueba de aislamiento entre empresas en la base desplegada (solo lee)                                                          |
+| `deploy/ports.ts`         | Revisión de puertos desde fuera (`check-ports.ts <servidor>`): solo 80, 443 y SSH                                              |
+| `deploy/remote.ts`        | Órdenes al servidor: comillas de bash y argumentos de SSH (solo con llave y huella conocida)                                   |
+| `deploy/deploy-runner.ts` | Conexión real con ssh, bash y tar                                                                                              |
+| `deploy/rehearsal.sh`     | Ensayo completo en un equipo Linux con Docker (tarea 11 de la integración continua)                                            |
+
+Igual que en `local/`, la lógica recibe el servidor como una función (`Remote`) y se prueba con un
+servidor simulado (`fake-server.ts`). Ningún secreto viaja desde GitHub al servidor: las llaves de
+Garage se leen allí mismo, y el token del registro y la contraseña adicional solo por la entrada
+estándar o las variables del proceso.
+
 ## Pruebas
 
 ```bash

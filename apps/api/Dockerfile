@@ -1,5 +1,7 @@
 # Imagen de la API (numerales 8.2 y 10.3). Se construye desde la raíz del repositorio:
 #   docker build -f apps/api/Dockerfile -t arza-one/api .
+# La etapa «migrate» es la imagen de migraciones del despliegue (B07):
+#   docker build -f apps/api/Dockerfile --target migrate -t arza-one/migrate .
 # La imagen base va fijada por su huella; Renovate propone las actualizaciones.
 ARG NODE_IMAGE=node:24-alpine@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1
 
@@ -14,6 +16,24 @@ RUN pnpm turbo run build --filter=@arza/api
 # Prisma ya quedó compilado dentro de dist.
 RUN pnpm --filter @arza/api deploy --prod --ignore-scripts /out \
   && cp -r apps/api/dist /out/dist
+
+# Imagen de migraciones (B07): solo la consola de Prisma, el esquema y las migraciones. Aquí sí
+# corren los scripts de instalación de Prisma (pnpm-workspace.yaml, allowBuilds): descargan el
+# motor de migraciones durante la construcción y no cada vez que se despliega.
+RUN pnpm --filter @arza/migrate deploy --prod /migrate \
+  && cp -r apps/api/prisma apps/api/prisma.config.ts /migrate/
+
+FROM ${NODE_IMAGE} AS migrate
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /opt/yarn-* \
+  /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /usr/local/bin/yarn /usr/local/bin/yarnpkg
+ENV NODE_ENV=production \
+  PRISMA_HIDE_UPDATE_MESSAGE=1
+WORKDIR /app
+COPY --from=build --chown=node:node /migrate ./
+# Usuario sin privilegios (numeral 10.3). Aplica las migraciones pendientes con migration_user
+# (DATABASE_MIGRATION_URL) y termina.
+USER node
+CMD ["node", "node_modules/prisma/build/index.js", "migrate", "deploy"]
 
 FROM ${NODE_IMAGE} AS runtime
 # La imagen final no lleva gestores de paquetes: no se usan y suman vulnerabilidades.

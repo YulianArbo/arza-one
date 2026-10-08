@@ -1,0 +1,9 @@
+{
+  "name": "@arza/migrate",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Imagen de migraciones (B07): solo la consola de Prisma, sin el código de la API.",
+  "dependencies": {
+    "prisma": "~7.10.0"
+  }
+}

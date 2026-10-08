@@ -1,0 +1,244 @@
+# Ambiente de pruebas de ARZA ONE (bloque B07, numerales 10.1, 10.3 y 10.4, ADR-017).
+# No se usa directamente: el despliegue (infra/scripts/deploy) copia este archivo al servidor en
+# /srv/arza-one/releases/<versión>/ y lo enciende con dos archivos de variables:
+#   - /srv/arza-one/.env: contraseñas del servidor, generadas allí (infra/server/generate-env.sh).
+#   - release.env: la versión desplegada (APP_VERSION) y el registro de imágenes.
+# Solo Caddy publica puertos (80 y 443). El resto vive en la red interna «backend», sin salida a
+# internet, con usuario sin privilegios, límite de memoria, reinicio automático y verificación de
+# salud. Las imágenes de terceros van fijadas a su huella (B05).
+name: arza-one-staging
+
+x-service: &service
+  restart: unless-stopped
+  security_opt: ['no-new-privileges:true']
+  networks: [backend]
+
+x-app-env: &app-env
+  NODE_ENV: production
+  APP_ENV: staging
+  LOG_LEVEL: info
+  DATABASE_URL: postgresql://app_user:${APP_DB_PASSWORD:?}@postgres:5432/arza_one
+  VALKEY_URL: redis://:${VALKEY_PASSWORD:?}@valkey:6379
+
+services:
+  caddy:
+    <<: *service
+    image: caddy:2.11.7-alpine@sha256:d8542f48d34a9cf4e4c11a478865229840e87e4c96ea3f439101f31a5d35f75f
+    user: '1000:1000'
+    depends_on:
+      volumes-init:
+        condition: service_completed_successfully
+    environment:
+      STAGING_DOMAIN: ${STAGING_DOMAIN:?Falta STAGING_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:?Falta ACME_EMAIL}
+      STAGING_AUTH_USER: ${STAGING_AUTH_USER:?Falta STAGING_AUTH_USER}
+      STAGING_AUTH_HASH: ${STAGING_AUTH_HASH:?Falta STAGING_AUTH_HASH}
+      CADDY_EXTRA_GLOBAL: ${CADDY_EXTRA_GLOBAL:-}
+    volumes:
+      - ../caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    # Los únicos puertos publicados del servidor. Solo TCP: el cortafuegos no abre UDP.
+    ports:
+      - '80:80'
+      - '443:443'
+    # Docker permite a un usuario sin privilegios abrir los puertos 80 y 443 dentro del contenedor.
+    sysctls:
+      net.ipv4.ip_unprivileged_port_start: 0
+    networks: [backend, edge]
+    mem_limit: 128m
+    healthcheck:
+      test: ['CMD', 'wget', '--quiet', '--spider', 'http://127.0.0.1:2019/config/']
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  web:
+    <<: *service
+    image: ${IMAGE_REGISTRY:?}/arza-one-web:${APP_VERSION:?Falta APP_VERSION}
+    environment:
+      APP_ENV: staging
+      API_URL: https://${STAGING_DOMAIN}/api
+    mem_limit: 768m
+
+  api:
+    <<: *service
+    image: ${IMAGE_REGISTRY:?}/arza-one-api:${APP_VERSION:?}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+      garage:
+        condition: service_healthy
+    environment:
+      <<: *app-env
+      APP_URL: https://${STAGING_DOMAIN}/app
+      PORTAL_URL: https://${STAGING_DOMAIN}/portal
+      PUBLIC_URL: https://${STAGING_DOMAIN}
+      API_URL: https://${STAGING_DOMAIN}/api
+      GIT_COMMIT: ${APP_VERSION}
+      S3_ENDPOINT: http://garage:3900
+      S3_REGION: garage
+      S3_BUCKET: arza-one-staging
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:?}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:?}
+      RATE_LIMIT_WINDOW_SECONDS: 60
+      RATE_LIMIT_MAX_REQUESTS: 100
+    mem_limit: 1g
+
+  worker:
+    <<: *service
+    image: ${IMAGE_REGISTRY:?}/arza-one-worker:${APP_VERSION:?}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+    environment:
+      <<: *app-env
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      MAIL_FROM: ARZA ONE pruebas <no-responder@${STAGING_DOMAIN}>
+    # Al apagarse, el worker espera hasta 25 s los trabajos en curso (B06): Docker le da 30 s.
+    stop_grace_period: 30s
+    mem_limit: 768m
+
+  # Un solo uso en cada despliegue: aplica las migraciones pendientes y termina (B07).
+  migrate:
+    image: ${IMAGE_REGISTRY:?}/arza-one-migrate:${APP_VERSION:?}
+    profiles: [tools]
+    restart: 'no'
+    security_opt: ['no-new-privileges:true']
+    networks: [backend]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_MIGRATION_URL: postgresql://migration_user:${MIGRATION_DB_PASSWORD:?}@postgres:5432/arza_one
+    mem_limit: 512m
+
+  postgres:
+    <<: *service
+    image: postgres:17@sha256:ae69c452f483507a6b99fb654cf93aad7fe156ffd2c56247707eef4e36d3c12b
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?}
+      MIGRATION_DB_PASSWORD: ${MIGRATION_DB_PASSWORD:?}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ../postgres/init:/docker-entrypoint-initdb.d:ro
+    mem_limit: 2g
+    healthcheck:
+      test: ['CMD', 'pg_isready', '--host', '127.0.0.1', '--dbname', 'arza_one']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  valkey:
+    <<: *service
+    image: valkey/valkey:8@sha256:640c5e62cea04b6d6f2084232651d0cc70362d31f4f805e7be94dbed6855e8f2
+    command: ['valkey-server', '--appendonly', 'yes', '--requirepass', '${VALKEY_PASSWORD:?}']
+    environment:
+      REDISCLI_AUTH: ${VALKEY_PASSWORD}
+    volumes:
+      - valkey-data:/data
+    mem_limit: 256m
+    healthcheck:
+      test: ['CMD', 'valkey-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  # Un solo uso: entrega las carpetas de datos de Garage y de Caddy al usuario sin privilegios con
+  # el que corren (sus imágenes no traen intérprete de comandos para hacerlo ellas mismas).
+  volumes-init:
+    image: valkey/valkey:8@sha256:640c5e62cea04b6d6f2084232651d0cc70362d31f4f805e7be94dbed6855e8f2
+    entrypoint:
+      [
+        'sh',
+        '-c',
+        'mkdir -p /var/lib/garage/meta /var/lib/garage/data && chown -R 1000:1000 /var/lib/garage /caddy/data /caddy/config',
+      ]
+    volumes:
+      - garage-data:/var/lib/garage
+      - caddy-data:/caddy/data
+      - caddy-config:/caddy/config
+    network_mode: none
+
+  garage:
+    <<: *service
+    image: dxflrs/garage:v2.1.0@sha256:4c9b34c113e61358466e83fd6e7d66e6d18657ede14b776eb78a93ee8da7cf6a
+    user: '1000:1000'
+    depends_on:
+      volumes-init:
+        condition: service_completed_successfully
+    environment:
+      GARAGE_RPC_SECRET: ${GARAGE_RPC_SECRET:?}
+      GARAGE_ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN:?}
+    # Misma configuración de un solo nodo que el entorno local (B06).
+    volumes:
+      - ../garage/garage.local.toml:/etc/garage.toml:ro
+      - garage-data:/var/lib/garage
+    mem_limit: 512m
+    healthcheck:
+      test: ['CMD', '/garage', 'status']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  gotenberg:
+    <<: *service
+    image: gotenberg/gotenberg:8.37.0@sha256:f29984bd1e226bf1b93ba90af06000afa8b315853e99d27b9aaa41b93f15c769
+    mem_limit: 768m
+    healthcheck:
+      test: ['CMD', 'curl', '--fail', '--silent', 'http://127.0.0.1:3000/health']
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  # Antivirus. Necesita internet para actualizar sus firmas. Nada lo usa hasta B14; en el
+  # servidor se enciende con COMPOSE_PROFILES=antivirus (el ensayo de GitHub lo omite).
+  clamav:
+    <<: *service
+    image: clamav/clamav:1.4.6@sha256:57deb108fc4c72778aa83eafbca7bb7153e28c3f57c005afd38d31f16da86f23
+    profiles: [antivirus]
+    networks: [backend, egress]
+    volumes:
+      - clamav-signatures:/var/lib/clamav
+    mem_limit: 1200m
+    healthcheck:
+      test: ['CMD', 'clamdcheck.sh']
+      interval: 30s
+      timeout: 10s
+      start_period: 15m
+      retries: 30
+
+  mailpit:
+    <<: *service
+    image: axllent/mailpit:v1.31.4@sha256:b68349e3a014b90c5610bfb26b2ae36f3892d7b8cf25ee140c6c71c98d2fcf48
+    user: '1000:1000'
+    environment:
+      MP_MAX_MESSAGES: 500
+    mem_limit: 128m
+    healthcheck:
+      test: ['CMD', '/mailpit', 'readyz']
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+networks:
+  # Red interna: sin salida a internet y sin puertos publicados.
+  backend:
+    internal: true
+  # Salida a internet: Caddy (certificados) y ClamAV (firmas).
+  edge:
+  egress:
+
+volumes:
+  postgres-data:
+  valkey-data:
+  garage-data:
+  caddy-data:
+  caddy-config:
+  clamav-signatures:
