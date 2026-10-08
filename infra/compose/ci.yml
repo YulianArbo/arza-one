@@ -1,0 +1,52 @@
+# Copia temporal de ARZA ONE para el análisis dinámico con OWASP ZAP (B05, numeral 11.4, paso 10).
+# Solo se usa dentro de GitHub Actions; el ambiente local completo llega en B06 y el de pruebas
+# en B07. Las contraseñas llegan por variables de entorno desechables, nunca del repositorio.
+name: arza-one-ci
+
+services:
+  postgres:
+    image: postgres:17@sha256:ae69c452f483507a6b99fb654cf93aad7fe156ffd2c56247707eef4e36d3c12b
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?}
+      MIGRATION_DB_PASSWORD: ${MIGRATION_DB_PASSWORD:?}
+    volumes:
+      - ../postgres/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - '127.0.0.1:${POSTGRES_PORT:-5432}:5432'
+    healthcheck:
+      test: ['CMD', 'pg_isready', '--host', '127.0.0.1', '--dbname', 'arza_one']
+      interval: 2s
+      retries: 30
+
+  valkey:
+    image: valkey/valkey:8@sha256:640c5e62cea04b6d6f2084232651d0cc70362d31f4f805e7be94dbed6855e8f2
+
+  api:
+    image: arza-one/api:ci
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      APP_ENV: local
+      APP_URL: http://web:3000/app
+      PORTAL_URL: http://web:3000/portal
+      PUBLIC_URL: http://web:3000
+      API_URL: http://api:4000
+      DATABASE_URL: postgresql://app_user:${APP_DB_PASSWORD}@postgres:5432/arza_one
+      VALKEY_URL: redis://valkey:6379
+      # Sin almacenamiento de archivos todavía (B14): /health lo reporta como caído.
+      S3_ENDPOINT: http://files.invalid:3900
+      S3_REGION: garage
+      S3_BUCKET: arza-one-ci
+      S3_ACCESS_KEY: ficticia
+      S3_SECRET_KEY: ficticia
+      RATE_LIMIT_WINDOW_SECONDS: 60
+      RATE_LIMIT_MAX_REQUESTS: 10000
+
+  web:
+    image: arza-one/web:ci
+    depends_on: [api]
+    environment:
+      APP_ENV: local
+      API_URL: http://api:4000
