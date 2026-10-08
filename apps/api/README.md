@@ -191,6 +191,19 @@ valida los datos antes de encolar. El worker procesa los trabajos ([`apps/worker
 configuración, `DatabaseService`, empresas semilla, datos que no se registran y colas. Agregar algo
 ahí es ampliar ese contrato.
 
+## Imágenes Docker (B05 y B07)
+
+[`Dockerfile`](Dockerfile) produce dos imágenes, sin gestores de paquetes y con usuario sin
+privilegios:
+
+| Imagen      | Cómo se construye                                               | Qué lleva                                                                                                                                                                              |
+| ----------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API         | `bash infra/scripts/ci/build-image.sh api arza-one/api`         | La API compilada y sus dependencias de producción                                                                                                                                      |
+| Migraciones | `bash infra/scripts/ci/build-image.sh migrate arza-one/migrate` | Solo la consola de Prisma ([`infra/migrate`](../../infra/migrate/package.json)), el esquema y las migraciones. El despliegue la ejecuta una vez con `DATABASE_MIGRATION_URL` y termina |
+
+En pruebas la API vive detrás de Caddy en `https://pruebas.[dominio]/api`; Caddy quita el prefijo
+`/api` antes de pasarle la petición ([`infra/caddy/Caddyfile`](../../infra/caddy/Caddyfile)).
+
 ## Pruebas
 
 - `src/**/*.test.ts`: unitarias (configuración, identificador, registros, revisiones de /health).
