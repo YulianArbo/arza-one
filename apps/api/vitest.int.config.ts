@@ -1,5 +1,7 @@
 import { defineConfig } from 'vitest/config';
 
+import { DATABASE_BOUND_FILES, ENTRY_POINTS } from './vitest.shared.js';
+
 // Pruebas de integración con PostgreSQL y Valkey reales (capítulo 11.4, paso 5). Requieren Docker.
 export default defineConfig({
   test: {
@@ -10,14 +12,9 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reportsDirectory: 'coverage/int',
-      // Lo que solo puede probarse contra la base de datos y Valkey reales. seed-main.ts solo
-      // arranca el proceso.
-      include: [
-        'src/platform/database/**/*.ts',
-        'src/platform/valkey/valkey-throttler-storage.ts',
-        'src/platform/queues/job-queue.ts',
-      ],
-      exclude: ['src/**/*.test.ts', 'src/platform/database/seed/seed-main.ts'],
+      // Lo que solo puede probarse contra la base de datos y Valkey reales (vitest.shared.ts).
+      include: DATABASE_BOUND_FILES,
+      exclude: ['src/**/*.test.ts', ...ENTRY_POINTS],
       // Umbral del capítulo 21.1.
       thresholds: { lines: 90, functions: 90, statements: 90, branches: 85 },
     },

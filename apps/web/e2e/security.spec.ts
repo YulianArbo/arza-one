@@ -1,6 +1,6 @@
 import { mockHealthyApi } from './support/api-mock';
 import { E2E_API_URL } from './support/environment';
-import { expect, test } from './support/fixtures';
+import { expect, test, waitForAppShell } from './support/fixtures';
 
 // Cabeceras de seguridad (15.6) y recursos solo propios (criterio de B04). Además, cada
 // prueba de esta carpeta falla si la página intenta conectarse a un dominio de terceros.
@@ -49,6 +49,7 @@ test('las tipografías se sirven desde el propio servidor', async ({ page }) => 
   });
   await mockHealthyApi(page);
   await page.goto('/app/sistema-de-diseno');
+  await waitForAppShell(page);
   await page.evaluate(() => document.fonts.ready);
   const loaded = await page.evaluate(() => ({
     inter: document.fonts.check('400 14px Inter'),

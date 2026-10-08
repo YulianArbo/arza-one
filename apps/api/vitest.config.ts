@@ -1,5 +1,7 @@
 import { defineConfig } from 'vitest/config';
 
+import { DATABASE_BOUND_FILES, ENTRY_POINTS } from './vitest.shared.js';
+
 export default defineConfig({
   test: {
     include: ['src/**/*.test.ts', 'test/**/*.test.ts'],
@@ -9,17 +11,15 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],
-      // main.ts solo arranca el proceso; test/startup.test.ts lo prueba como proceso real.
-      // Los datos semilla solo se prueban contra PostgreSQL real: su cobertura la mide
-      // vitest.int.config.ts con el mismo umbral, igual que el conteo en Valkey y las colas (B06).
-      // El cliente de Prisma es código generado. index.ts solo reexporta.
+      // Lo que trabaja contra PostgreSQL o Valkey se mide en vitest.int.config.ts con el mismo
+      // umbral (vitest.shared.ts). main.ts solo arranca el proceso; test/startup.test.ts lo prueba
+      // como proceso real. El cliente de Prisma es código generado. index.ts solo reexporta.
       exclude: [
         'src/**/*.test.ts',
-        'src/main.ts',
-        'src/platform/database/seed/**',
-        'src/platform/valkey/valkey-throttler-storage.ts',
-        'src/platform/queues/job-queue.ts',
+        ...ENTRY_POINTS,
+        ...DATABASE_BOUND_FILES,
         'src/platform/index.ts',
+        'src/modules/*/index.ts',
         'src/generated/**',
       ],
       // Umbral del capítulo 21.1.

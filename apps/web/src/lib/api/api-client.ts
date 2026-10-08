@@ -13,9 +13,21 @@ interface GetOptions<T> {
   signal?: AbortSignal;
 }
 
+interface PostOptions<T> {
+  /** Cuerpo de la petición; se envía como JSON. */
+  body: object;
+  /** Esquema de la respuesta; sin esquema se espera una respuesta vacía (204). */
+  schema?: z.ZodType<T>;
+  /** Código antifalsificación de la sesión (numeral 13.1, paso 5), si hay sesión. */
+  csrfToken?: string;
+}
+
 export interface ApiClient {
   get<T>(path: string, options: GetOptions<T>): Promise<T>;
+  post<T = void>(path: string, options: PostOptions<T>): Promise<T>;
 }
+
+const CSRF_HEADER = 'X-CSRF-Token';
 
 /**
  * Cliente de la API. Envía la cookie de sesión, revisa cada respuesta contra su esquema y
@@ -25,13 +37,30 @@ export interface ApiClient {
 export function createApiClient(baseUrl: string, fetchImpl: typeof fetch = fetch): ApiClient {
   return {
     async get<T>(path: string, options: GetOptions<T>): Promise<T> {
-      const response = await send(fetchImpl, apiEndpoint(baseUrl, path), options.signal);
+      const init = { method: 'GET', headers: { Accept: 'application/json' } };
+      const response = await send(fetchImpl, apiEndpoint(baseUrl, path), init, options.signal);
       const body = await readJson(response);
       const accepted = options.acceptedStatuses ?? [];
       if (!response.ok && !accepted.includes(response.status)) {
         throw toApiError(response, body);
       }
       return parseBody(response, body, options.schema);
+    },
+
+    async post<T = void>(path: string, options: PostOptions<T>): Promise<T> {
+      const headers: Record<string, string> = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      };
+      if (options.csrfToken !== undefined) headers[CSRF_HEADER] = options.csrfToken;
+      const init = { method: 'POST', headers, body: JSON.stringify(options.body) };
+      const response = await send(fetchImpl, apiEndpoint(baseUrl, path), init);
+      const body = await readJson(response);
+      if (!response.ok) throw toApiError(response, body);
+      // Sin esquema la respuesta no trae datos (204): no hay nada que devolver.
+      return options.schema === undefined
+        ? (undefined as T)
+        : parseBody(response, body, options.schema);
     },
   };
 }
@@ -45,14 +74,14 @@ export function apiEndpoint(baseUrl: string, path: string): URL {
   return new URL(path.replace(/^\/+/, ''), base);
 }
 
-async function send(fetchImpl: typeof fetch, url: URL, signal?: AbortSignal): Promise<Response> {
+async function send(
+  fetchImpl: typeof fetch,
+  url: URL,
+  init: RequestInit,
+  signal?: AbortSignal,
+): Promise<Response> {
   try {
-    return await fetchImpl(url, {
-      method: 'GET',
-      credentials: 'include',
-      headers: { Accept: 'application/json' },
-      ...(signal ? { signal } : {}),
-    });
+    return await fetchImpl(url, { ...init, credentials: 'include', ...(signal ? { signal } : {}) });
   } catch (error) {
     if (signal?.aborted) {
       throw error;

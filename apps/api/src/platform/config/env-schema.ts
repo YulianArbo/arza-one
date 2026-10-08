@@ -24,6 +24,8 @@ export const envSchema = z.object({
   RATE_LIMIT_WINDOW_SECONDS: positiveInteger,
   RATE_LIMIT_MAX_REQUESTS: positiveInteger,
   GIT_COMMIT: required.default('unknown'),
+  /** Firma de los códigos antifalsificación (anexo F). Al menos 32 caracteres al azar. */
+  CSRF_SECRET: z.string().min(32),
 });
 
 export type Env = z.infer<typeof envSchema>;

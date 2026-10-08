@@ -1,8 +1,11 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Post } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
 import { Authenticated, Public } from '../../src/platform/access/access.decorators.js';
+import { CurrentPrincipal, type Principal } from '../../src/platform/access/principal.js';
+import { AppError } from '../../src/platform/errors/app-error.js';
+import { Meta, type RequestMeta } from '../../src/platform/http/request-meta.js';
 
 export const INTERNAL_DETAIL = 'detalle interno que nunca debe salir';
 
@@ -32,6 +35,30 @@ export class SampleController {
   @Get('private')
   privateResource(): string {
     return 'nunca debe llegar aquí sin sesión';
+  }
+
+  @Public()
+  @Get('slow-down')
+  slowDown(): never {
+    throw new AppError(HttpStatus.TOO_MANY_REQUESTS, 'LOGIN_DELAYED', 'Espere 3 segundos.', 3);
+  }
+
+  @Authenticated()
+  @Get('whoami')
+  whoami(@CurrentPrincipal() principal: Principal, @Meta() meta: RequestMeta): object {
+    return { userId: principal.userId, ip: meta.ip, userAgent: meta.userAgent };
+  }
+
+  @Authenticated()
+  @Post('private-change')
+  privateChange(@CurrentPrincipal() principal: Principal): object {
+    return { userId: principal.userId };
+  }
+
+  @Public()
+  @Get('misused-principal')
+  misusedPrincipal(@CurrentPrincipal() principal: Principal): string {
+    return principal.userId;
   }
 
   @Get('undeclared')

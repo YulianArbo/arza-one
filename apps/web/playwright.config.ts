@@ -11,6 +11,9 @@ export default defineConfig({
   retries: 0,
   reporter: [['list']],
   timeout: 30_000,
+  // Desde B08 cada pantalla protegida primero consulta la sesión y, si no hay, redirige: con
+  // varios navegadores a la vez en un equipo lento eso puede pasar de los 5 s por defecto.
+  expect: { timeout: 10_000 },
   use: {
     baseURL: E2E_WEB_URL,
     locale: 'es-CO',

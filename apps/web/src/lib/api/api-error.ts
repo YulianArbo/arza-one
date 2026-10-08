@@ -29,6 +29,11 @@ export class ApiError extends Error {
     super(message);
   }
 
+  /** La sesión no existe o venció: hay que iniciar sesión de nuevo. */
+  get isUnauthenticated(): boolean {
+    return this.status === 401 && this.code === PLATFORM_ERROR_CODES.unauthenticated;
+  }
+
   get isForbidden(): boolean {
     return this.code === PLATFORM_ERROR_CODES.forbidden;
   }

@@ -7,6 +7,9 @@ export default defineConfig({
     environment: 'jsdom',
     include: ['src/**/*.test.{ts,tsx}'],
     setupFiles: ['src/test-setup.ts'],
+    // Mismo tiempo máximo que la API y el worker: las pantallas con formularios simulan la
+    // escritura y, en equipos lentos, la primera prueba de cada archivo carga los componentes.
+    testTimeout: 20_000,
     coverage: {
       provider: 'v8',
       include: [

@@ -8,7 +8,7 @@ import {
   type OnApplicationBootstrap,
   type OnApplicationShutdown,
 } from '@nestjs/common';
-import { DatabaseService } from '@arza/api/platform';
+import { DatabaseService, systemClock } from '@arza/api/platform';
 import { Redis } from 'ioredis';
 import type { Logger } from 'pino';
 
@@ -45,7 +45,12 @@ class WorkerRuntime implements OnApplicationBootstrap, OnApplicationShutdown {
   ) {}
 
   onApplicationBootstrap(): void {
-    const router = createJobRouter({ database: this.database, mailer: this.mailer });
+    const router = createJobRouter({
+      database: this.database,
+      mailer: this.mailer,
+      clock: systemClock,
+      appUrl: this.config.APP_URL,
+    });
     this.queueWorkers = startQueueWorkers(router, {
       // BullMQ exige conexiones sin límite de reintentos por comando para esperar trabajos.
       connection: { url: this.config.VALKEY_URL, maxRetriesPerRequest: null },

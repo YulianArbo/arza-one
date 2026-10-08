@@ -25,6 +25,7 @@
     "db:migrate": "pnpm --filter @arza/api db:migrate",
     "db:seed": "turbo run build --filter=@arza/api --output-logs=errors-only && pnpm --filter @arza/api db:seed",
     "db:seed:demo": "turbo run build --filter=@arza/api --output-logs=errors-only && pnpm --filter @arza/api db:seed:demo",
+    "iam:invitar": "turbo run build --filter=@arza/api --output-logs=errors-only && pnpm --filter @arza/api iam:invitar",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --max-warnings 0",

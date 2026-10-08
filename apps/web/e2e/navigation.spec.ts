@@ -1,5 +1,5 @@
 import { mockHealthyApi } from './support/api-mock';
-import { accessibilityViolations, expect, test } from './support/fixtures';
+import { accessibilityViolations, expect, test, waitForAppShell } from './support/fixtures';
 
 // El menú se adapta a escritorio, tableta y celular (criterio de B04, numeral 16.3).
 
@@ -21,6 +21,7 @@ test.describe('menú en escritorio', () => {
 
   test('se recorre con el teclado y lleva al módulo elegido', async ({ page }) => {
     await page.goto('/app');
+    await waitForAppShell(page);
     await page.keyboard.press('Tab');
     await expect(page.getByRole('link', { name: 'Saltar al contenido' })).toBeFocused();
     const contracts = page

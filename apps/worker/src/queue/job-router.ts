@@ -1,6 +1,7 @@
 import { JOBS } from '@arza/api/platform';
 import { UnrecoverableError } from 'bullmq';
 
+import { processAccountEmail, type AccountEmailJobDependencies } from '../jobs/account-email.js';
 import { processExampleEmail, type ExampleEmailDependencies } from '../jobs/example-email.js';
 
 /** Lo que un procesador necesita saber del trabajo. */
@@ -11,12 +12,18 @@ interface IncomingJob {
 
 export type JobHandler = (job: IncomingJob) => Promise<void>;
 
-export type JobDependencies = ExampleEmailDependencies;
+export type JobDependencies = ExampleEmailDependencies & AccountEmailJobDependencies;
 
 /** Procesadores de cada trabajo, por su nombre. Cada bloque agrega los suyos. */
 function handlers(deps: JobDependencies): ReadonlyMap<string, JobHandler> {
   return new Map<string, JobHandler>([
     [JOBS.exampleEmail.name, async (job) => processExampleEmail(job.data, deps)],
+    [
+      JOBS.accountEmail.name,
+      async (job) => {
+        await processAccountEmail(job.data, deps);
+      },
+    ],
   ]);
 }
 

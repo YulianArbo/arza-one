@@ -5,6 +5,13 @@ import type { NextConfig } from 'next';
 
 import { STATIC_SECURITY_HEADERS, noIndexHeaders } from './src/lib/security/security-headers';
 
+const ACCESS_PAGES = [
+  '/iniciar-sesion',
+  '/activar-cuenta',
+  '/recuperar-contrasena',
+  '/restablecer-contrasena',
+];
+
 const REPO_ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const ROOT_ENV_FILE = `${REPO_ROOT}.env`;
 
@@ -34,6 +41,8 @@ const nextConfig: NextConfig = {
       // Aplicación interna y portal: nunca indexables (numeral 15.6).
       { source: '/app/:path*', headers: noIndexHeaders() },
       { source: '/portal/:path*', headers: noIndexHeaders() },
+      // Pantallas de acceso (B08): tampoco se indexan.
+      ...ACCESS_PAGES.map((source) => ({ source, headers: noIndexHeaders() })),
     ]);
   },
 };

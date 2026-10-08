@@ -16,19 +16,25 @@ datasource db {
 
 /// Empresas inquilinas (M00). La fila de una empresa solo es visible dentro de su propio contexto.
 model Tenant {
-  id           String        @id @default(uuid(7)) @db.Uuid
-  legalName    String        @map("legal_name")
-  tradeName    String?       @map("trade_name")
-  taxId        String        @unique @map("tax_id")
-  status       String        @default("active")
-  settings     Json          @default("{}")
-  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
-  createdBy    String?       @map("created_by") @db.Uuid
-  updatedAt    DateTime      @default(now()) @map("updated_at") @db.Timestamptz(6)
-  updatedBy    String?       @map("updated_by") @db.Uuid
-  version      Int           @default(1)
-  deletedAt    DateTime?     @map("deleted_at") @db.Timestamptz(6)
-  outboxEvents OutboxEvent[]
+  id             String          @id @default(uuid(7)) @db.Uuid
+  legalName      String          @map("legal_name")
+  tradeName      String?         @map("trade_name")
+  taxId          String          @unique @map("tax_id")
+  status         String          @default("active")
+  settings       Json            @default("{}")
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy      String?         @map("created_by") @db.Uuid
+  updatedAt      DateTime        @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy      String?         @map("updated_by") @db.Uuid
+  version        Int             @default(1)
+  deletedAt      DateTime?       @map("deleted_at") @db.Timestamptz(6)
+  outboxEvents   OutboxEvent[]
+  users          User[]
+  sessions       Session[]
+  tokens         Token[]
+  loginAttempts  LoginAttempt[]
+  auditEvents    AuditEvent[]
+  securityEvents SecurityEvent[]
 
   @@map("core_tenants")
 }
@@ -54,4 +60,146 @@ model OutboxEvent {
 
   @@index([tenantId, occurredAt])
   @@map("core_outbox_events")
+}
+
+/// Cuentas de usuario (M01). El correo es único en toda la plataforma: con él se sabe a qué
+/// empresa pertenece la persona al iniciar sesión.
+model User {
+  id                String         @id @default(uuid(7)) @db.Uuid
+  tenantId          String         @map("tenant_id") @db.Uuid
+  email             String         @unique
+  displayName       String?        @map("display_name")
+  passwordHash      String?        @map("password_hash")
+  kind              String
+  status            String         @default("invited")
+  partyId           String?        @map("party_id") @db.Uuid
+  positionId        String?        @map("position_id") @db.Uuid
+  mfaRequired       Boolean        @default(true) @map("mfa_required")
+  lastLoginAt       DateTime?      @map("last_login_at") @db.Timestamptz(6)
+  lockedUntil       DateTime?      @map("locked_until") @db.Timestamptz(6)
+  passwordChangedAt DateTime?      @map("password_changed_at") @db.Timestamptz(6)
+  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy         String?        @map("created_by") @db.Uuid
+  updatedAt         DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy         String?        @map("updated_by") @db.Uuid
+  version           Int            @default(1)
+  deletedAt         DateTime?      @map("deleted_at") @db.Timestamptz(6)
+  tenant            Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  sessions          Session[]
+  tokens            Token[]
+  loginAttempts     LoginAttempt[]
+
+  @@unique([tenantId, id])
+  @@index([tenantId, status])
+  @@map("iam_users")
+}
+
+/// Sesiones (numeral 15.1). Solo se guarda la huella SHA-256 de la llave de la cookie.
+model Session {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  tenantId      String    @map("tenant_id") @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  tokenHash     String    @unique @map("token_hash")
+  ip            String?
+  userAgent     String?   @map("user_agent")
+  lastSeenAt    DateTime  @map("last_seen_at") @db.Timestamptz(6)
+  expiresAt     DateTime  @map("expires_at") @db.Timestamptz(6)
+  revokedAt     DateTime? @map("revoked_at") @db.Timestamptz(6)
+  revokedReason String?   @map("revoked_reason")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?   @map("created_by") @db.Uuid
+  updatedAt     DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?   @map("updated_by") @db.Uuid
+  version       Int       @default(1)
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  user          User      @relation(fields: [tenantId, userId], references: [tenantId, id], onDelete: Restrict)
+
+  @@index([tenantId, userId])
+  @@map("iam_sessions")
+}
+
+/// Enlaces de un solo uso: invitación y recuperación de contraseña. Solo se guarda su huella.
+model Token {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  tenantId  String    @map("tenant_id") @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  purpose   String
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(6)
+  usedAt    DateTime? @map("used_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy String?   @map("created_by") @db.Uuid
+  updatedAt DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy String?   @map("updated_by") @db.Uuid
+  version   Int       @default(1)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  user      User      @relation(fields: [tenantId, userId], references: [tenantId, id], onDelete: Restrict)
+
+  @@index([tenantId, userId, purpose])
+  @@map("iam_tokens")
+}
+
+/// Intentos de inicio de sesión. tenant_id queda vacío cuando el correo no tiene cuenta: esas
+/// filas solo las leen y escriben las funciones de inicio de sesión de la migración.
+model LoginAttempt {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  tenantId   String?   @map("tenant_id") @db.Uuid
+  userId     String?   @map("user_id") @db.Uuid
+  email      String
+  ip         String?
+  succeeded  Boolean
+  reason     String
+  occurredAt DateTime  @map("occurred_at") @db.Timestamptz(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?   @map("created_by") @db.Uuid
+  updatedAt  DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?   @map("updated_by") @db.Uuid
+  version    Int       @default(1)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant?   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  user       User?     @relation(fields: [tenantId, userId], references: [tenantId, id], onDelete: Restrict)
+
+  @@index([email, occurredAt])
+  @@index([tenantId, userId])
+  @@map("iam_login_attempts")
+}
+
+/// Auditoría de negocio (M19), solo inserción. B08 crea la versión mínima; B11 agrega la cadena
+/// de hash, la partición por mes, la consulta y la verificación (ADR-012).
+model AuditEvent {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  tenantId      String   @map("tenant_id") @db.Uuid
+  occurredAt    DateTime @map("occurred_at") @db.Timestamptz(6)
+  actorId       String?  @map("actor_id") @db.Uuid
+  actorKind     String   @map("actor_kind")
+  action        String
+  entityType    String   @map("entity_type")
+  entityId      String?  @map("entity_id") @db.Uuid
+  result        String
+  changes       Json     @default("{}")
+  ip            String?
+  correlationId String?  @map("correlation_id")
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, occurredAt])
+  @@index([tenantId, entityType, entityId])
+  @@map("aud_events")
+}
+
+/// Eventos de seguridad (M19), solo inserción: bloqueos de cuenta y alertas.
+model SecurityEvent {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  tenantId   String   @map("tenant_id") @db.Uuid
+  occurredAt DateTime @map("occurred_at") @db.Timestamptz(6)
+  type       String
+  userId     String?  @map("user_id") @db.Uuid
+  ip         String?
+  detail     Json     @default("{}")
+  severity   String
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, occurredAt])
+  @@map("aud_security_events")
 }

@@ -5,6 +5,7 @@ import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module.js';
 import type { Env } from './platform/config/env-schema.js';
 import { setupApiDocs } from './platform/openapi/openapi.js';
+import { allowedOrigins } from './platform/security/allowed-origins.js';
 import { securityHeaders } from './platform/security/security-headers.js';
 
 const MAX_BODY_SIZE = '1mb';
@@ -15,10 +16,9 @@ export function configureApp(app: NestExpressApplication, config: Env): void {
   app.set('trust proxy', 'loopback, linklocal, uniquelocal');
   app.use(securityHeaders());
   app.enableCors({
-    origin: [...new Set([config.APP_URL, config.PORTAL_URL, config.PUBLIC_URL])].map(
-      (url) => new URL(url).origin,
-    ),
+    origin: allowedOrigins(config),
     credentials: true,
+    allowedHeaders: ['Content-Type', 'X-Correlation-Id', 'X-CSRF-Token'],
   });
   app.useBodyParser('json', { limit: MAX_BODY_SIZE });
   setupApiDocs(app, config);
