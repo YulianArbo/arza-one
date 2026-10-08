@@ -9,3 +9,11 @@ playwright-report/
 # Cliente de Prisma: código generado.
 apps/api/src/generated/
 pnpm-lock.yaml
+# Pruebas: igual que la configuración por defecto de Semgrep. Usan direcciones locales y datos
+# ficticios a propósito; el análisis cubre todo el código que se despliega.
+test/
+tests/
+e2e/
+*.test.ts
+*.test.tsx
+*.spec.ts
