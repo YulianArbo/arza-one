@@ -7,7 +7,7 @@ import { assignCorrelationId } from '../correlation/correlation-id.js';
 
 // Datos que nunca se registran (capítulo 11.2): credenciales, cookies, tokens y códigos de
 // verificación. Los cuerpos de las peticiones no se registran nunca.
-const REDACTED_PATHS = [
+export const REDACTED_PATHS = [
   'req.headers.authorization',
   'req.headers.cookie',
   'req.headers["x-csrf-token"]',

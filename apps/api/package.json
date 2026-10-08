@@ -3,6 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "exports": {
+    "./platform": {
+      "types": "./dist/platform/index.d.ts",
+      "default": "./dist/platform/index.js"
+    }
+  },
   "scripts": {
     "postinstall": "prisma generate",
     "build": "prisma generate && tsc -p tsconfig.build.json",
