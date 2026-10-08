@@ -1,0 +1,11 @@
+# Excepciones del análisis de dependencias (numeral 11.4, paso 6). Cada una lleva motivo y
+# fecha de vencimiento: al vencer, la verificación vuelve a fallar y se revisa de nuevo.
+# Agregar una excepción exige la aprobación del Director General en el pull request.
+
+[[IgnoredVulns]]
+# braces 3.0.3: agotamiento de pila con patrones muy anidados. No hay versión corregida publicada.
+# Solo lo usa el analizador de código (@next/eslint-plugin-next → fast-glob → micromatch) con
+# patrones escritos por nosotros; no llega a las imágenes ni procesa datos de usuarios. (B05)
+id = "GHSA-vfj7-8cjw-p6xm"
+ignoreUntil = 2026-11-06T00:00:00Z
+reason = "Sin corrección publicada; solo herramienta de desarrollo con patrones propios (B05)"

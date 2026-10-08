@@ -1,0 +1,84 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Actualización controlada de dependencias (capítulos 9.3 y 22, B05). Nada se integra solo: cada propuesta pasa las verificaciones y la revisión del responsable técnico.",
+  "extends": [
+    "config:recommended",
+    ":semanticCommits",
+    ":semanticCommitTypeAll(chore)",
+    ":semanticCommitScope(deps)",
+    "helpers:pinGitHubActionDigests",
+    "docker:pinDigests"
+  ],
+  "timezone": "America/Bogota",
+  "schedule": ["before 6am on monday"],
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "minimumReleaseAge": "3 days",
+  "internalChecksFilter": "strict",
+  "automerge": false,
+  "labels": ["dependencias"],
+  "dependencyDashboard": true,
+  "dependencyDashboardTitle": "Panel de actualizaciones de dependencias (Renovate)",
+  "osvVulnerabilityAlerts": true,
+  "vulnerabilityAlerts": {
+    "labels": ["dependencias", "seguridad"],
+    "schedule": ["at any time"],
+    "minimumReleaseAge": null
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on the first day of the month"]
+  },
+  "packageRules": [
+    {
+      "description": "Versiones menores y parches de npm: una sola propuesta semanal.",
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "dependencias menores"
+    },
+    {
+      "description": "Acciones de GitHub e imágenes Docker: una propuesta semanal, fijadas por huella.",
+      "matchManagers": ["github-actions", "dockerfile", "docker-compose", "custom.regex"],
+      "groupName": "acciones e imágenes"
+    },
+    {
+      "description": "TypeScript 7 no es compatible todavía con typescript-eslint (B01).",
+      "matchPackageNames": ["typescript"],
+      "allowedVersions": "<7"
+    },
+    {
+      "description": "nestjs-zod aún no soporta NestJS 12 (B02).",
+      "matchPackageNames": ["@nestjs/**"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "Prisma 8 está en versión candidata; su migración será un cambio planeado (B03).",
+      "matchPackageNames": ["prisma", "@prisma/**"],
+      "allowedVersions": "<8"
+    },
+    {
+      "description": "Node.js: solo versiones LTS pares, igual que .nvmrc (24).",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["node"],
+      "allowedVersions": "/^24\\./"
+    },
+    {
+      "description": "PostgreSQL se mantiene en la versión 17 del manual (capítulo 8.2).",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["postgres"],
+      "allowedVersions": "/^17(\\.|$)/"
+    }
+  ],
+  "customManagers": [
+    {
+      "description": "Imágenes fijadas por huella dentro de flujos y guiones (Semgrep, ZAP, PostgreSQL).",
+      "customType": "regex",
+      "managerFilePatterns": ["/^\\.github/workflows/.+\\.ya?ml$/", "/^infra/scripts/ci/.+\\.sh$/"],
+      "matchStrings": [
+        "(?<depName>[a-z0-9][a-z0-9./_-]*):(?<currentValue>[0-9][\\w.-]*)@(?<currentDigest>sha256:[a-f0-9]{64})"
+      ],
+      "datasourceTemplate": "docker"
+    }
+  ]
+}

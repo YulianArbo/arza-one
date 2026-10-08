@@ -14,7 +14,15 @@ if (existsSync(ROOT_ENV_FILE)) {
   process.loadEnvFile(ROOT_ENV_FILE);
 }
 
+// La imagen Docker (B05) usa la salida autónoma: solo lo necesario para ejecutar la web.
+// En el equipo y en las pruebas en navegador se sigue usando `next start`.
+const standaloneOutput: Partial<NextConfig> =
+  process.env['NEXT_OUTPUT'] === 'standalone'
+    ? { output: 'standalone', outputFileTracingRoot: REPO_ROOT }
+    : {};
+
 const nextConfig: NextConfig = {
+  ...standaloneOutput,
   poweredByHeader: false,
   reactStrictMode: true,
   turbopack: { root: REPO_ROOT },
