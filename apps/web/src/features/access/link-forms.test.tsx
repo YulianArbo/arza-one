@@ -1,9 +1,11 @@
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import { StrictMode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { apiError, mockApi, noContent, renderWithApi } from '../../test-support/fake-api';
 import { ActivateAccount, ResetPassword } from './link-forms';
+import { forgetLinkToken } from './link-token';
 
 const navigation = vi.hoisted(() => ({ replace: vi.fn() }));
 
@@ -20,6 +22,7 @@ function openLink(path: string, hash: string): void {
 
 beforeEach(() => {
   navigation.replace.mockReset();
+  forgetLinkToken();
 });
 
 afterEach(() => {
@@ -48,6 +51,18 @@ describe('activar la cuenta', () => {
       expect(navigation.replace).toHaveBeenCalledWith('/iniciar-sesion?motivo=cuenta-activada');
     });
     expect(sent[0]?.body).toEqual({ token: TOKEN, display_name: 'Ana Pérez', password: PASSWORD });
+  });
+
+  it('funciona aunque React ejecute dos veces el arranque (modo estricto)', async () => {
+    openLink('/activar-cuenta', `#token=${TOKEN}`);
+    mockApi({});
+    renderWithApi(
+      <StrictMode>
+        <ActivateAccount />
+      </StrictMode>,
+    );
+    expect(await screen.findByLabelText('Su nombre')).toBeVisible();
+    expect(screen.queryByText('El enlace no está completo')).toBeNull();
   });
 
   it('quita la llave de la barra de direcciones al leerla', async () => {

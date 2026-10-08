@@ -11,7 +11,7 @@ import { AccessCard } from './access-card';
 import { AccessLink } from './access-links';
 import { FormError } from './form-alert';
 import { FormField } from './form-field';
-import { useLinkToken } from './link-token';
+import { forgetLinkToken, useLinkToken } from './link-token';
 import { NewPasswordFields, useNewPassword } from './new-password-fields';
 import { SubmitButton } from './submit-button';
 
@@ -52,6 +52,7 @@ function useLinkSubmit<Body extends object>(path: string, notice: LoginNotice) {
   return useMutation({
     mutationFn: (body: Body) => api.post(path, { body }),
     onSuccess: () => {
+      forgetLinkToken();
       router.replace(loginPath(notice));
     },
   });
