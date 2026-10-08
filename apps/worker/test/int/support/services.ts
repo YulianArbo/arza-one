@@ -28,6 +28,7 @@ export function workerConfig(valkeyDatabase: number): WorkerEnv {
     LOG_LEVEL: 'fatal',
     DATABASE_URL: inject('database').appUrl,
     VALKEY_URL: `${inject('valkeyUrl')}/${String(valkeyDatabase)}`,
+    APP_URL: 'http://localhost:3000/app',
     SMTP_HOST: mailpit.smtpHost,
     SMTP_PORT: String(mailpit.smtpPort),
     MAIL_FROM: 'ARZA ONE <no-responder@arza-one.test>',
@@ -54,6 +55,7 @@ export async function createTenant(database: DatabaseService, label: string): Pr
 const mailpitMessagesSchema = z.object({
   messages: z.array(
     z.object({
+      ID: z.string(),
       Subject: z.string(),
       To: z.array(z.object({ Address: z.string() })),
     }),
@@ -69,4 +71,15 @@ export async function mailsAbout(text: string): Promise<MailpitMessage[]> {
   return mailpitMessagesSchema
     .parse(body)
     .messages.filter((message) => message.Subject.includes(text));
+}
+
+/** Texto del correo con ese asunto que recibió la dirección dada. */
+export async function mailTextTo(subject: string, recipient: string): Promise<string> {
+  const mail = (await mailsAbout(subject)).find((message) =>
+    message.To.some((to) => to.Address === recipient),
+  );
+  if (mail === undefined) throw new Error(`No llegó el correo «${subject}».`);
+  const url = `${inject('mailpit').apiUrl}/api/v1/message/${mail.ID}`;
+  const body: unknown = await (await fetch(url)).json();
+  return z.object({ Text: z.string() }).parse(body).Text;
 }

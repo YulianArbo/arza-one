@@ -10,6 +10,8 @@ export const workerEnvSchema = z.object({
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
   VALKEY_URL: z.url({ protocol: /^rediss?$/ }),
+  /** Dirección de la aplicación interna: los enlaces de los correos van a su mismo dominio. */
+  APP_URL: z.url({ protocol: /^https?$/ }),
   SMTP_HOST: required,
   SMTP_PORT: positiveInteger.max(65_535),
   SMTP_USER: required.optional(),

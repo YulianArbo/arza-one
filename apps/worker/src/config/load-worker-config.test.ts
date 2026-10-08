@@ -9,6 +9,7 @@ const VALID = {
   APP_ENV: 'local',
   DATABASE_URL: 'postgresql://app_user:ficticia@127.0.0.1:1/arza_one',
   VALKEY_URL: 'redis://:ficticia@127.0.0.1:1',
+  APP_URL: 'http://localhost:3000/app',
   SMTP_HOST: 'localhost',
   SMTP_PORT: '1025',
   MAIL_FROM: 'ARZA ONE <no-responder@arza-one.test>',

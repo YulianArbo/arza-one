@@ -1,4 +1,11 @@
-import { DatabaseService, JOBS, JobQueue, QUEUES } from '@arza/api/platform';
+import {
+  DatabaseService,
+  JOBS,
+  JobQueue,
+  QUEUES,
+  systemClock,
+  type ExampleEmailJob,
+} from '@arza/api/platform';
 import { Queue, QueueEvents } from 'bullmq';
 import { pino } from 'pino';
 import { v7 as uuidv7 } from 'uuid';
@@ -42,7 +49,12 @@ beforeAll(async () => {
   queue = new Queue(QUEUES.platform, { connection });
   events = new QueueEvents(QUEUES.platform, { connection });
   await events.waitUntilReady();
-  const router = createJobRouter({ database, mailer: flakyMailer });
+  const router = createJobRouter({
+    database,
+    mailer: flakyMailer,
+    clock: systemClock,
+    appUrl: config.APP_URL,
+  });
   workers = startQueueWorkers(router, {
     connection: { ...connection, maxRetriesPerRequest: null },
     concurrency: 1,
@@ -55,7 +67,7 @@ afterAll(async () => {
   await Promise.all([jobs.close(), queue.close(), events.close(), database.onModuleDestroy()]);
 });
 
-function payload(): Parameters<JobQueue['add']>[1] {
+function payload(): ExampleEmailJob {
   return {
     tenantId: tenant.id,
     userId: null,
