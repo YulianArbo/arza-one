@@ -15,6 +15,8 @@ export interface IntegrationDatabase {
 declare module 'vitest' {
   export interface ProvidedContext {
     database: IntegrationDatabase;
+    /** Valkey desechable, con contraseña. */
+    valkeyUrl: string;
   }
 }
 

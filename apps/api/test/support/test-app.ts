@@ -1,6 +1,7 @@
 import type { Type } from '@nestjs/common';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { Test } from '@nestjs/testing';
+import { getStorageToken, ThrottlerStorageService } from '@nestjs/throttler';
 import type { HealthComponent } from '@arza/contracts';
 import { Logger } from 'nestjs-pino';
 
@@ -17,6 +18,11 @@ export interface TestAppOptions {
   readonly downComponents?: readonly HealthComponent[];
   /** Controladores de ensayo que solo existen en las pruebas. */
   readonly controllers?: Type[];
+  /**
+   * Con true, el límite de peticiones cuenta en el Valkey de VALKEY_URL, como en producción
+   * (pruebas de integración). Si no, cuenta en memoria: estas pruebas no tienen Valkey.
+   */
+  readonly realThrottlerStorage?: boolean;
 }
 
 function fakeProbe(component: HealthComponent, down: boolean): HealthProbe {
@@ -34,13 +40,16 @@ function fakeProbes(down: readonly HealthComponent[]): HealthProbe[] {
 /** Levanta la API completa en memoria, con la misma cadena de petición que en producción. */
 export async function createTestApp(options: TestAppOptions = {}): Promise<NestExpressApplication> {
   const config = loadConfig(testEnv(options.env));
-  const moduleRef = await Test.createTestingModule({
+  let builder = Test.createTestingModule({
     imports: [AppModule.forRoot(config)],
     controllers: options.controllers ?? [],
   })
     .overrideProvider(HEALTH_PROBES)
-    .useValue(fakeProbes(options.downComponents ?? []))
-    .compile();
+    .useValue(fakeProbes(options.downComponents ?? []));
+  if (options.realThrottlerStorage !== true) {
+    builder = builder.overrideProvider(getStorageToken()).useValue(new ThrottlerStorageService());
+  }
+  const moduleRef = await builder.compile();
   const app = moduleRef.createNestApplication<NestExpressApplication>({ bufferLogs: true });
   app.useLogger(app.get(Logger));
   configureApp(app, config);

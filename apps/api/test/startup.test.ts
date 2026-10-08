@@ -2,7 +2,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
 import { fileURLToPath } from 'node:url';
 
-import { versionResponseSchema } from '@arza/contracts';
+import { errorResponseSchema, healthResponseSchema } from '@arza/contracts';
 import { describe, expect, it } from 'vitest';
 
 import { testEnv } from './support/test-env.js';
@@ -19,13 +19,13 @@ function processEnv(overrides: Record<string, string | undefined>): NodeJS.Proce
   return { ...testEnv(overrides), PATH: process.env['PATH'] };
 }
 
-async function waitForVersion(attempts: number): Promise<Response> {
+async function waitForHealth(attempts: number): Promise<Response> {
   try {
-    return await fetch(`http://127.0.0.1:${PORT}/version`);
+    return await fetch(`http://127.0.0.1:${PORT}/health`);
   } catch (error) {
     if (attempts <= 1) throw error;
     await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
-    return waitForVersion(attempts - 1);
+    return waitForHealth(attempts - 1);
   }
 }
 
@@ -38,12 +38,17 @@ describe('arranque de la API', () => {
     expect(result.stderr).toContain('DATABASE_URL: falta; es obligatoria');
   });
 
-  it('arranca con la configuración completa y atiende peticiones', async () => {
+  // Las direcciones de prueba no llevan a ningún servicio: la API arranca igual y lo informa.
+  it('arranca sin las piezas externas, atiende /health y no deja pasar sin límite', async () => {
     const child = spawn(process.execPath, [MAIN], { env: processEnv({ API_PORT: PORT }) });
     try {
-      const response = await waitForVersion(STARTUP_ATTEMPTS);
-      expect(response.status).toBe(200);
-      expect(versionResponseSchema.parse(await response.json()).environment).toBe('local');
+      const health = await waitForHealth(STARTUP_ATTEMPTS);
+      expect(health.status).toBe(503);
+      expect(healthResponseSchema.parse(await health.json()).checks.queues).toBe('down');
+      // Sin Valkey no se puede contar el límite de peticiones: se rechaza, no se omite (B06).
+      const version = await fetch(`http://127.0.0.1:${PORT}/version`);
+      expect(version.status).toBe(500);
+      expect(errorResponseSchema.parse(await version.json()).error.code).toBe('INTERNAL_ERROR');
     } finally {
       child.kill();
       await once(child, 'exit');

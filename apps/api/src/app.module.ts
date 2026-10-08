@@ -1,6 +1,7 @@
 import { Module, type DynamicModule } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import type { Redis } from 'ioredis';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 
 import { AccessGuard } from './platform/access/access.guard.js';
@@ -10,6 +11,8 @@ import { DatabaseModule } from './platform/database/database.module.js';
 import { ApiExceptionFilter } from './platform/errors/api-exception.filter.js';
 import { HealthModule } from './platform/health/health.module.js';
 import { LoggingModule } from './platform/logging/logging.module.js';
+import { ValkeyThrottlerStorage } from './platform/valkey/valkey-throttler-storage.js';
+import { VALKEY, ValkeyModule } from './platform/valkey/valkey.module.js';
 import { VersionModule } from './platform/version/version.module.js';
 
 const MILLISECONDS_PER_SECOND = 1000;
@@ -31,7 +34,14 @@ export class AppModule {
         ConfigModule.forRoot(config),
         LoggingModule.forRoot(config),
         DatabaseModule,
-        ThrottlerModule.forRoot([throttle]),
+        ValkeyModule,
+        ThrottlerModule.forRootAsync({
+          inject: [VALKEY],
+          useFactory: (valkey: Redis) => ({
+            throttlers: [throttle],
+            storage: new ValkeyThrottlerStorage(valkey),
+          }),
+        }),
         HealthModule,
         VersionModule,
       ],
