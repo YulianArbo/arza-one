@@ -3,10 +3,10 @@
 const MINUTE_MS = 60 * 1000;
 const HOUR_MS = 60 * MINUTE_MS;
 
-export const SESSION_IDLE_MS = 8 * HOUR_MS;
-export const SESSION_ABSOLUTE_MS = 12 * HOUR_MS;
+const SESSION_IDLE_MS = 8 * HOUR_MS;
+const SESSION_ABSOLUTE_MS = 12 * HOUR_MS;
 /** La última actividad se guarda como mucho una vez por minuto, no en cada petición. */
-export const SESSION_TOUCH_INTERVAL_MS = MINUTE_MS;
+const SESSION_TOUCH_INTERVAL_MS = MINUTE_MS;
 
 export function sessionExpiresAt(createdAt: Date): Date {
   return new Date(createdAt.getTime() + SESSION_ABSOLUTE_MS);

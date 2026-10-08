@@ -70,12 +70,12 @@ export const INTERNAL_SESSION = {
 };
 
 /** Sesión de una persona del portal del cliente (ficticia). */
-export const PORTAL_SESSION = {
+const PORTAL_SESSION = {
   ...INTERNAL_SESSION,
   user: { ...INTERNAL_SESSION.user, email: 'cliente@cliente.test', kind: 'portal' },
 };
 
-export const NO_SESSION = {
+const NO_SESSION = {
   status: 401,
   body: apiError('UNAUTHENTICATED', 'Debe iniciar sesión para continuar.', 'corr-0001'),
 };

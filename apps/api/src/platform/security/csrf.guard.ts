@@ -17,7 +17,7 @@ import { AppError } from '../errors/app-error.js';
 import { allowedOrigins } from './allowed-origins.js';
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
-export const CSRF_HEADER = 'x-csrf-token';
+const CSRF_HEADER = 'x-csrf-token';
 
 const CSRF_MESSAGE = 'La petición no se pudo verificar. Recargue la página e intente de nuevo.';
 

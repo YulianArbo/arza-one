@@ -53,7 +53,7 @@ export const HOUR = 60 * MINUTE;
  * Valkey de estas pruebas: base lógica 1, aparte de la que usan las pruebas de la cola de B06,
  * que cuentan los trabajos y correrían en paralelo con estas.
  */
-export function iamValkeyUrl(): string {
+function iamValkeyUrl(): string {
   return `${inject('valkeyUrl')}/1`;
 }
 
@@ -136,7 +136,7 @@ export async function signIn(
   };
 }
 
-export function sessionCookieValue(header: string | string[] | undefined): string | null {
+function sessionCookieValue(header: string | string[] | undefined): string | null {
   const cookies = Array.isArray(header) ? header : header === undefined ? [] : [header];
   const cookie = cookies.find((value) => value.startsWith(`${SESSION_COOKIE}=`));
   if (cookie === undefined) return null;

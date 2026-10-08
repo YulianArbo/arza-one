@@ -12,7 +12,7 @@ export const ACCESS_PATHS = {
 export const PROFILE_PATH = '/app/perfil';
 
 /** Motivos por los que se llega a la pantalla de inicio de sesión, con su aviso. */
-export const LOGIN_NOTICES = {
+const LOGIN_NOTICES = {
   'cuenta-activada': 'Su cuenta quedó activa. Ya puede iniciar sesión con su correo y contraseña.',
   'contrasena-restablecida':
     'Su contraseña nueva quedó guardada. Por seguridad cerramos todas sus sesiones; inicie sesión de nuevo.',

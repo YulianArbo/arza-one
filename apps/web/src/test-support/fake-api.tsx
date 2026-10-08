@@ -6,7 +6,7 @@ import { ApiProvider } from '../lib/api/api-provider';
 
 // Apoyo de las pruebas de pantallas: una API simulada que registra lo que la web le envía.
 
-export const API_URL = 'http://api.test';
+const API_URL = 'http://api.test';
 
 export interface SentRequest {
   readonly method: string;

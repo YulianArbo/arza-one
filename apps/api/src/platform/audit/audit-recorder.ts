@@ -7,7 +7,7 @@ import type { RequestMeta } from '../http/request-meta.js';
 // hash y la verificación sin cambiar esta interfaz.
 
 /** Quién actúa: una persona con sesión, el sistema (comandos, worker) o alguien sin sesión. */
-export type AuditActor =
+type AuditActor =
   | { readonly kind: 'user'; readonly id: string }
   | { readonly kind: 'system' }
   | { readonly kind: 'anonymous' };

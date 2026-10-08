@@ -17,7 +17,7 @@ import { findSession, type SessionRef } from '../infrastructure/identity-lookup.
 import { csrfTokenFor, hashSecretToken } from '../infrastructure/secret-token.js';
 import { sessionTokenFrom } from './session-cookie.js';
 
-export interface SessionUserView {
+interface SessionUserView {
   readonly id: string;
   readonly email: string;
   readonly displayName: string | null;
