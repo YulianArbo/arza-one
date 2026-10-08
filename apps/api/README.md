@@ -1,34 +1,35 @@
 # @arza/api
 
 API del backend de ARZA ONE (NestJS 11). Es el único componente que escribe en la base de datos
-(capítulo 8.2). Este documento describe la plataforma transversal: la cadena de petición (B02)
-y la base de datos con contexto de empresa y seguridad por fila (B03). Los módulos de negocio se
-agregan en `src/modules/`.
+(capítulo 8.2). Este documento describe la plataforma transversal: la cadena de petición (B02),
+la base de datos con contexto de empresa y seguridad por fila (B03) y Valkey con las colas de
+trabajos (B06). Los módulos de negocio se agregan en `src/modules/`.
 
 ## Cómo se ejecuta
 
-| Comando                               | Qué hace                                                   |
-| ------------------------------------- | ---------------------------------------------------------- |
-| `pnpm --filter @arza/api dev`         | Compila y arranca la API en http://localhost:4000          |
-| `pnpm --filter @arza/api start`       | Arranca la versión ya compilada (`dist/`)                  |
-| `pnpm --filter @arza/api test`        | Pruebas unitarias y de la cadena de petición con cobertura |
-| `pnpm --filter @arza/api test -u`     | Regenera `openapi.json` después de cambiar un contrato     |
-| `pnpm test:int`                       | Pruebas con PostgreSQL real (requiere Docker abierto)      |
-| `pnpm db:migrate`                     | Aplica las migraciones pendientes, como `migration_user`   |
-| `pnpm db:seed`                        | Datos semilla (empresa de la plataforma); idempotente      |
-| `pnpm db:seed:demo`                   | Semilla más dos empresas ficticias; nunca en producción    |
-| `pnpm --filter @arza/api db:generate` | Regenera el cliente de Prisma tras cambiar el modelo       |
+| Comando                               | Qué hace                                                                                    |
+| ------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `pnpm --filter @arza/api dev`         | Arranca la API en http://localhost:4000; al guardar un cambio se recompila y reinicia sola  |
+| `pnpm --filter @arza/api start`       | Arranca la versión ya compilada (`dist/`)                                                   |
+| `pnpm --filter @arza/api test`        | Pruebas unitarias y de la cadena de petición con cobertura                                  |
+| `pnpm --filter @arza/api test -u`     | Regenera `openapi.json` después de cambiar un contrato                                      |
+| `pnpm test:int`                       | Pruebas con PostgreSQL y Valkey reales (requiere Docker)                                    |
+| `pnpm db:migrate`                     | Aplica las migraciones pendientes, como `migration_user`                                    |
+| `pnpm db:seed`                        | Datos semilla (empresa de la plataforma); idempotente                                       |
+| `pnpm db:seed:demo`                   | Semilla más dos empresas ficticias; nunca en producción (`pnpm infra:up` la carga en local) |
+| `pnpm --filter @arza/api db:generate` | Regenera el cliente de Prisma tras cambiar el modelo                                        |
 
 Las variables de entorno se leen del archivo `.env` de la raíz del proyecto (ver `.env.example`).
+Los servicios locales se encienden con `pnpm infra:up` ([guía](../../docs/runbooks/entorno-local.md)).
 
 ## Puntos de la API
 
-| Ruta                         | Acceso  | Respuesta                                                                     |
-| ---------------------------- | ------- | ----------------------------------------------------------------------------- |
-| `GET /health`                | Público | 200 si la base de datos, las colas y los archivos responden; 503 si alguno no |
-| `GET /version`               | Público | Versión, ambiente (`local`, `staging`, `production`) y commit                 |
-| `GET /api/docs`              | Público | Documentación interactiva. Solo en local y pruebas; no existe en producción   |
-| `GET /api/docs/openapi.json` | Público | El mismo documento en formato OpenAPI 3.1                                     |
+| Ruta                         | Acceso  | Respuesta                                                                                                                            |
+| ---------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET /health`                | Público | 200 si la base de datos, las colas y los archivos responden; 503 si alguno no. Sin límite de peticiones (ver «Límite de peticiones») |
+| `GET /version`               | Público | Versión, ambiente (`local`, `staging`, `production`) y commit                                                                        |
+| `GET /api/docs`              | Público | Documentación interactiva. Solo en local y pruebas; no existe en producción                                                          |
+| `GET /api/docs/openapi.json` | Público | El mismo documento en formato OpenAPI 3.1                                                                                            |
 
 `/health` y `/version` están fuera de `/api/v1` porque son de operación (los consultan Caddy y
 Docker). Los recursos de negocio irán bajo `/api/v1` (capítulo 14.1).
@@ -102,8 +103,15 @@ sesiones, así que toda ruta `@Authenticated()` responde 401.
 ### Límite de peticiones
 
 `RATE_LIMIT_MAX_REQUESTS` peticiones por dirección IP cada `RATE_LIMIT_WINDOW_SECONDS` segundos.
-Detrás de Caddy, la IP real se toma de `X-Forwarded-For` (solo de proxies de red local). El
-conteo vive en memoria; pasa a Valkey en B06 y se agrega el conteo por usuario en B08.
+Detrás de Caddy, la IP real se toma de `X-Forwarded-For` (solo de proxies de red local). El conteo
+por usuario llega en B08.
+
+Desde B06 el conteo vive en Valkey (`platform/valkey/valkey-throttler-storage.ts`): un guion de
+Valkey cuenta y bloquea en un solo paso, así que no se lo saltan peticiones simultáneas, se
+conserva si la API se reinicia y es el mismo para todas sus copias. Si Valkey no responde, toda
+petición con límite falla con 500: el límite es un control de seguridad y no se omite. `/health`
+no tiene límite (`@SkipThrottle`) para poder informar justamente esa caída; sus revisiones son
+baratas y tienen tiempo máximo, y en los servidores Caddy limita el tráfico antes (B07).
 
 ### Cabeceras de seguridad (numeral 15.6)
 
@@ -165,6 +173,24 @@ Las migraciones nuevas se escriben con `prisma migrate diff` y se completan a ma
 `migration_user` no puede crear la base auxiliar que usa `prisma migrate dev`. Una prueba falla si
 la base migrada no coincide con el modelo.
 
+## Valkey y colas de trabajos (B06)
+
+`platform/valkey/valkey.module.ts` abre **una sola conexión** a Valkey para toda la API (límite de
+peticiones y `/health`). Sin conexión, cada comando falla de inmediato en lugar de quedar en
+espera, y ioredis reintenta conectarse solo. La API arranca aunque Valkey no responda.
+
+`platform/queues/` define las colas y los trabajos (ADR-014): el nombre de cada trabajo, el
+esquema Zod de sus datos (todo trabajo lleva `tenantId`, `userId` y `correlationId`) y la
+política de reintentos (`DEFAULT_JOB_OPTIONS`: 6 intentos con espera creciente). `JobQueue`
+valida los datos antes de encolar. El worker procesa los trabajos ([`apps/worker`](../worker/README.md)).
+
+### Interfaz pública para el worker
+
+[`src/platform/index.ts`](src/platform/index.ts) se publica como `@arza/api/platform` (campo
+`exports` de `package.json`). Es lo único que el worker puede importar de la API (ADR-004):
+configuración, `DatabaseService`, empresas semilla, datos que no se registran y colas. Agregar algo
+ahí es ampliar ese contrato.
+
 ## Pruebas
 
 - `src/**/*.test.ts`: unitarias (configuración, identificador, registros, revisiones de /health).
@@ -172,12 +198,16 @@ la base migrada no coincide con el modelo.
   producción. Las piezas externas de `/health` se simulan; `test/support/sample.controller.ts`
   agrega rutas de ensayo que solo existen en las pruebas.
 - `test/startup.test.ts`: arranca el programa compilado real y comprueba que no arranca sin
-  una variable obligatoria.
-- `test/int/*.int.test.ts` (`pnpm test:int`): con PostgreSQL 17 real en Docker (Testcontainers).
-  `test/int/support/global-setup.ts` crea la base con el mismo guion de `infra/postgres/init`,
-  contraseñas desechables, y aplica las migraciones desde cero. Cubren aislamiento entre empresas,
-  permisos denegados a `app_user`, columnas de control, transacciones, migraciones y semillas.
+  una variable obligatoria; sin Valkey, atiende `/health` y rechaza el resto (no omite el límite).
+  Las demás pruebas en memoria cuentan el límite de peticiones en memoria.
+- `test/int/*.int.test.ts` (`pnpm test:int`): con PostgreSQL 17 y Valkey 8 reales en Docker
+  (Testcontainers). `test/int/support/global-setup.ts` crea la base con el mismo guion de
+  `infra/postgres/init`, contraseñas desechables, y aplica las migraciones desde cero; también
+  levanta Valkey con contraseña. Cubren aislamiento entre empresas, permisos denegados a
+  `app_user`, columnas de control, transacciones, migraciones, semillas, el límite de peticiones
+  en Valkey (429, conteo exacto con peticiones simultáneas, conteo compartido entre dos copias de
+  la API) y la cola de trabajos. El worker reutiliza la misma preparación.
 - Cobertura mínima: 90 % de líneas, funciones e instrucciones y 85 % de ramas (capítulo 21.1).
-  Los datos semilla se miden en `test:int`, con el mismo umbral, porque solo se prueban con
-  PostgreSQL real. `@prisma/client` figura como dependencia usada en `knip.json` porque solo lo
+  Los datos semilla, el conteo en Valkey y `JobQueue` se miden en `test:int`, con el mismo umbral,
+  porque solo se prueban con PostgreSQL y Valkey reales. `@prisma/client` figura como dependencia usada en `knip.json` porque solo lo
   importa el cliente generado, que no está en el repositorio.

@@ -30,57 +30,56 @@ pnpm install
 
 `pnpm install` también activa los controles que se ejecutan antes de cada commit (lefthook).
 
-### 3. Comprobar que todo funciona
+### 3. Encender el entorno local
+
+Abra Docker Desktop y espere a que diga «Engine running». Docker Desktop necesita unos 4 GB de
+memoria libres. Luego, desde la carpeta del proyecto:
 
 ```bash
-pnpm check
+pnpm env:local
 ```
 
-Debe terminar sin errores. Si falla, lea el mensaje: indica qué control falló y en qué archivo.
-Docker Desktop debe estar abierto: las pruebas de integración crean un PostgreSQL desechable.
-Las pruebas en navegador necesitan antes `pnpm e2e:install` (paso 7).
-
-### 4. Variables de entorno
-
-Copie `.env.example` como `.env` y reemplace los valores ficticios. Los valores reales nunca se
-guardan en el repositorio (anexo F del manual). La API no arranca si falta una variable
-obligatoria o tiene un formato inválido: el mensaje dice cuál es.
-
-### 5. Base de datos local
-
-Mientras llega el entorno local completo (B06), la base de datos se levanta con un solo
-contenedor. Complete en `.env` las contraseñas de `POSTGRES_PASSWORD`, `APP_DB_PASSWORD` y
-`MIGRATION_DB_PASSWORD` y úselas también en `DATABASE_URL` y `DATABASE_MIGRATION_URL`. Desde la
-raíz del proyecto, en PowerShell:
+Crea el archivo `.env` con contraseñas al azar que solo sirven en su equipo. Si un puerto está
+ocupado (por ejemplo, por un PostgreSQL instalado en Windows), escoge otro y se lo dice. Los
+valores reales de los servidores nunca se guardan en el repositorio (anexo F del manual).
 
 ```bash
-docker run --rm -d --name arza-postgres --env-file .env -p 5432:5432 -v "${PWD}/infra/postgres/init:/docker-entrypoint-initdb.d:ro" postgres:17
+pnpm infra:up
 ```
+
+Enciende la base de datos, las colas, el almacenamiento de archivos, el conversor a PDF, el
+antivirus y la bandeja de correo de prueba, y carga datos ficticios. La primera vez descarga las
+imágenes (unos 3,5 GB) y tarda varios minutos. Termina con la lista de servicios y sus direcciones.
+Detalles y solución de problemas: [`docs/runbooks/entorno-local.md`](docs/runbooks/entorno-local.md).
+
+### 4. Encender la aplicación
 
 ```bash
-pnpm db:migrate
+pnpm dev
 ```
+
+Enciende la API, el worker (trabajos en segundo plano) y la web. Deje esa terminal abierta. Al
+guardar un cambio en el código, la API y el worker se reinician solos. Abra:
+
+- http://localhost:3000 (sitio público), http://localhost:3000/app (aplicación interna) y
+  http://localhost:3000/portal (portal del cliente).
+- http://localhost:3000/app/estado-del-sistema: debe decir «Todo funciona».
+- http://localhost:4000/health (estado de la API) y http://localhost:4000/api/docs (documentación
+  de la API).
+- http://localhost:8025: bandeja de correo de prueba (Mailpit).
+
+### 5. Probar el trabajo de ejemplo
+
+En otra terminal, con `pnpm dev` encendido:
 
 ```bash
-pnpm db:seed
+pnpm job:ejemplo demo-uno
 ```
 
-Si el puerto 5432 ya está ocupado (por ejemplo, por un PostgreSQL instalado en Windows), use
-`-p 5433:5432` y cambie `5432` por `5433` en las dos direcciones de `.env`. El contenedor no guarda
-los datos al detenerlo (`docker stop arza-postgres`); al volver a crearlo, repita los tres pasos.
+En unos segundos llega a http://localhost:8025 el correo «Correo de prueba de ARZA ONE para Demo
+Uno». Si falla, el worker lo reintenta solo.
 
-### 6. Levantar la API
-
-```bash
-pnpm --filter @arza/api dev
-```
-
-Abra http://localhost:4000/health (estado), http://localhost:4000/version (versión) y
-http://localhost:4000/api/docs (documentación de la API). Con la base de datos del paso 5, /health
-la muestra `up`; las colas y los archivos siguen `down` hasta el entorno local completo (B06). Detalles
-en [`apps/api/README.md`](apps/api/README.md).
-
-### 7. Levantar la web
+### 6. Comprobar que todo funciona
 
 La primera vez descargue el navegador de las pruebas (unos 300 MB):
 
@@ -88,20 +87,22 @@ La primera vez descargue el navegador de las pruebas (unos 300 MB):
 pnpm e2e:install
 ```
 
-Para ver la web, compile los paquetes compartidos y arránquela:
-
 ```bash
-pnpm build
+pnpm check
 ```
 
-```bash
-pnpm --filter @arza/web dev
-```
+Debe terminar sin errores. Si falla, lea el mensaje: indica qué control falló y en qué archivo.
+Docker Desktop debe estar abierto: las pruebas de integración crean sus propias bases de datos,
+colas y bandejas de correo desechables.
 
-Abra http://localhost:3000 (sitio público), http://localhost:3000/app (aplicación interna) y
-http://localhost:3000/portal (portal del cliente). La pantalla «Estado del sistema» pide datos a la
-API del paso 6; si la API está apagada, muestra el mensaje de error con el botón «Reintentar».
-Detalles en [`apps/web/README.md`](apps/web/README.md) y [`packages/ui/README.md`](packages/ui/README.md).
+### 7. Apagar o empezar de cero
+
+`Ctrl + C` en la terminal de `pnpm dev` apaga la aplicación. `pnpm infra:down` apaga los servicios
+y conserva los datos; `pnpm infra:reset` borra los datos ficticios y vuelve a encender todo.
+
+Más detalles en [`apps/api/README.md`](apps/api/README.md),
+[`apps/worker/README.md`](apps/worker/README.md), [`apps/web/README.md`](apps/web/README.md) y
+[`packages/ui/README.md`](packages/ui/README.md).
 
 ## Comandos
 
@@ -116,12 +117,14 @@ Detalles en [`apps/web/README.md`](apps/web/README.md) y [`packages/ui/README.md
 | `pnpm test` · `pnpm test:int` · `pnpm test:e2e` | Pruebas unitarias · de integración (desde B03) · de extremo a extremo (desde B04) |
 | `pnpm e2e:install`                              | Descarga el navegador de las pruebas de extremo a extremo (una vez por equipo)    |
 | `pnpm build`                                    | Compila todas las aplicaciones y paquetes                                         |
+| `pnpm env:local`                                | Crea `.env` con contraseñas locales al azar y puertos libres (desde B06)          |
+| `pnpm infra:up` · `pnpm infra:down`             | Enciende los servicios locales en Docker · los apaga conservando los datos        |
+| `pnpm infra:reset`                              | Borra los datos locales ficticios y vuelve a encender todo                        |
+| `pnpm job:ejemplo [empresa]`                    | Encola el trabajo de ejemplo: un correo de prueba que llega a Mailpit             |
 | `pnpm db:migrate`                               | Aplica las migraciones pendientes de la base de datos                             |
 | `pnpm db:seed` · `pnpm db:seed:demo`            | Datos semilla · semilla más dos empresas ficticias (nunca en producción)          |
 | `pnpm secrets`                                  | Busca secretos en todo el historial de git (gitleaks)                             |
-| `pnpm dev`                                      | Levanta api y web (la API desde B02, la web desde B04; el worker llega en B06)    |
-
-Los comandos `pnpm infra:up` y `pnpm infra:reset` se agregan en el bloque B06.
+| `pnpm dev`                                      | Levanta la API, el worker y la web; la API y el worker se reinician al guardar    |
 
 ## Integración continua
 
@@ -129,7 +132,7 @@ Cada pull request pasa por las diez verificaciones del numeral 11.4 en GitHub Ac
 acepta cambios con la tarea «Verificaciones» en verde. Qué revisa cada una, qué hacer si falla y
 cómo funciona Renovate: [`docs/runbooks/integracion-continua.md`](docs/runbooks/integracion-continua.md).
 Las imágenes Docker se construyen con `docker build -f apps/api/Dockerfile -t arza-one/api .` (igual
-con `web`).
+con `web` y `worker`).
 
 ## Controles antes de cada commit
 
@@ -145,15 +148,16 @@ Al ejecutar `git commit` se revisa automáticamente:
 
 ```text
 apps/api         Backend NestJS (bloque B02)
-apps/worker      Trabajos en segundo plano (bloque B06)
+apps/worker      Trabajos en segundo plano con BullMQ (bloque B06)
 apps/web         Sitio, aplicación interna y portal en Next.js (bloque B04)
 packages/contracts  Esquemas, tipos y permisos compartidos entre api y web
 packages/ui         Sistema de diseño (bloque B04)
 packages/config     Configuración compartida de ESLint y pruebas de los controles
 packages/templates  Plantillas de correo y PDF (bloques B16 y B20)
 infra/postgres   Guion de preparación de la base de datos (bloque B03)
-infra/compose    Docker Compose; hoy solo la copia temporal para OWASP ZAP (bloque B05)
-infra/scripts    Guiones de operación y ayudantes de la integración continua (bloque B05)
+infra/compose    Docker Compose: entorno local (B06) y copia temporal para OWASP ZAP (B05)
+infra/garage     Configuración del almacenamiento de archivos local (bloque B06)
+infra/scripts    Guiones del entorno local (B06) y ayudantes de la integración continua (B05)
 .github          Flujos de GitHub Actions y plantilla de pull request (bloque B05)
 docs/manual      Manual Maestro por capítulos
 docs/adr         Decisiones de arquitectura
