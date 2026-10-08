@@ -7,7 +7,7 @@ describe('PLATFORM_DEFAULTS', () => {
     expect(PLATFORM_DEFAULTS).toEqual({
       timezone: 'America/Bogota',
       locale: 'es-CO',
-      currency: 'COP',
+      currency: 'USD',
     });
   });
 
