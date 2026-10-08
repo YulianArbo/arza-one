@@ -25,7 +25,7 @@ export interface ApiClient {
 export function createApiClient(baseUrl: string, fetchImpl: typeof fetch = fetch): ApiClient {
   return {
     async get<T>(path: string, options: GetOptions<T>): Promise<T> {
-      const response = await send(fetchImpl, new URL(path, baseUrl), options.signal);
+      const response = await send(fetchImpl, apiEndpoint(baseUrl, path), options.signal);
       const body = await readJson(response);
       const accepted = options.acceptedStatuses ?? [];
       if (!response.ok && !accepted.includes(response.status)) {
@@ -34,6 +34,15 @@ export function createApiClient(baseUrl: string, fetchImpl: typeof fetch = fetch
       return parseBody(response, body, options.schema);
     },
   };
+}
+
+/**
+ * Une la dirección de la API con la ruta pedida conservando su prefijo: en pruebas la API vive en
+ * https://pruebas.[dominio]/api (B07), y `new URL('/health', base)` descartaría ese /api.
+ */
+export function apiEndpoint(baseUrl: string, path: string): URL {
+  const base = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+  return new URL(path.replace(/^\/+/, ''), base);
 }
 
 async function send(fetchImpl: typeof fetch, url: URL, signal?: AbortSignal): Promise<Response> {
