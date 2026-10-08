@@ -39,6 +39,30 @@ Pantallas de la aplicación interna construidas en B04:
 | `/app/estado-del-sistema` | **Pantalla de ejemplo**: versión de la API y estado de sus piezas, con datos reales |
 | `/app/sistema-de-diseno`  | Muestrario de colores, tipografías, componentes y estados de pantalla               |
 | `/app/<módulo>`           | Módulos del menú aún no construidos: dice en qué bloque se construyen               |
+| `/app/perfil`             | Mi perfil (B08): datos propios y cambio de contraseña                               |
+
+## Acceso y sesión (B08)
+
+El grupo `app/(access)` tiene las pantallas de acceso del numeral 16.7, que no se indexan:
+
+| Dirección                 | Qué hace                                                                            |
+| ------------------------- | ----------------------------------------------------------------------------------- |
+| `/iniciar-sesion`         | Correo y contraseña. Muestra el aviso del motivo (`?motivo=`) y vuelve a `?volver=` |
+| `/activar-cuenta`         | Se abre desde el correo de invitación: nombre y contraseña                          |
+| `/recuperar-contrasena`   | Pide el enlace; muestra siempre el mismo mensaje de la API                          |
+| `/restablecer-contrasena` | Se abre desde el correo de recuperación: contraseña nueva                           |
+
+- `features/session/session-provider.tsx`: `RequireSession` envuelve la aplicación interna y el
+  portal. Consulta `GET /v1/auth/session`; sin sesión lleva a iniciar sesión recordando la pantalla,
+  y a quien es del portal (o de la aplicación) lo lleva a su superficie. `useSession()` entrega la
+  sesión, el código antifalsificación y la salida. La API sigue siendo la única barrera.
+- El cliente de la API envía el código en `X-CSRF-Token` en cada `post` con sesión.
+- La llave de los enlaces del correo viene después de `#` (el navegador no la envía al servidor);
+  `features/access/link-token.ts` la lee y la quita de la barra de direcciones.
+- Los botones de enviar esperan a que la página cargue su lógica (`lib/hydration/use-hydrated.ts`):
+  un clic anterior recargaría la página y se perdería lo escrito.
+- Las reglas de longitud de la contraseña son las mismas de la API (`packages/contracts`); la lista
+  de contraseñas filtradas solo la revisa la API.
 
 ## Estructura de pantalla (numeral 16.3)
 
@@ -53,9 +77,9 @@ Pantallas de la aplicación interna construidas en B04:
 
 `navigation.ts` define los módulos del menú, sus íconos y los permisos del anexo G que habilitan
 cada uno (basta uno). El menú solo muestra lo que el usuario puede usar, pero **la API es la única
-barrera**: ocultar un módulo no protege nada por sí solo. Mientras no existan el inicio de sesión
-(B08) ni los roles (B10), `lib/session/current-permissions.ts` concede los permisos del menú para
-poder recorrer todas las pantallas; B10 lo reemplaza por `GET /api/v1/me/permissions`.
+barrera**: ocultar un módulo no protege nada por sí solo. Mientras no existan los roles (B10),
+`lib/session/current-permissions.ts` concede los permisos del menú a toda persona con sesión;
+B10 lo reemplaza por `GET /api/v1/me/permissions`.
 
 ## Cliente de la API
 

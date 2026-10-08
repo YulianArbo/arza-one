@@ -10,7 +10,7 @@ actualiza en el mismo pull request que cambia el modelo (`apps/api/prisma/schema
   al crear, `version = 1` y el autor sale de `app.user_id`; al modificar, la versión sube en uno y se
   registra quién y cuándo. Los valores que envíe el código en esas columnas se ignoran y el `id` no
   se puede cambiar. `created_by` y `updated_by` quedan vacíos en procesos del sistema; su llave
-  foránea a `iam_users` se agrega en B08.
+  foránea a `iam_users` queda pendiente (ver el cierre de B08).
 - **Seguridad por fila**: activada y forzada. Solo se ven y se escriben las filas de la empresa
   fijada en `app.tenant_id` (función `core_current_tenant_id()`). Sin contexto, ninguna.
 - **Permisos de `app_user`**: `SELECT`, `INSERT` y `UPDATE`. Sin `DELETE`: el borrado es lógico.

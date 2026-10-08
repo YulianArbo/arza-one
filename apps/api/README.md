@@ -2,37 +2,47 @@
 
 API del backend de ARZA ONE (NestJS 11). Es el único componente que escribe en la base de datos
 (capítulo 8.2). Este documento describe la plataforma transversal: la cadena de petición (B02),
-la base de datos con contexto de empresa y seguridad por fila (B03) y Valkey con las colas de
-trabajos (B06). Los módulos de negocio se agregan en `src/modules/`.
+la base de datos con contexto de empresa y seguridad por fila (B03), Valkey con las colas de
+trabajos (B06) y la identidad (B08). Los módulos se agregan en `src/modules/`.
 
 ## Cómo se ejecuta
 
-| Comando                               | Qué hace                                                                                    |
-| ------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `pnpm --filter @arza/api dev`         | Arranca la API en http://localhost:4000; al guardar un cambio se recompila y reinicia sola  |
-| `pnpm --filter @arza/api start`       | Arranca la versión ya compilada (`dist/`)                                                   |
-| `pnpm --filter @arza/api test`        | Pruebas unitarias y de la cadena de petición con cobertura                                  |
-| `pnpm --filter @arza/api test -u`     | Regenera `openapi.json` después de cambiar un contrato                                      |
-| `pnpm test:int`                       | Pruebas con PostgreSQL y Valkey reales (requiere Docker)                                    |
-| `pnpm db:migrate`                     | Aplica las migraciones pendientes, como `migration_user`                                    |
-| `pnpm db:seed`                        | Datos semilla (empresa de la plataforma); idempotente                                       |
-| `pnpm db:seed:demo`                   | Semilla más dos empresas ficticias; nunca en producción (`pnpm infra:up` la carga en local) |
-| `pnpm --filter @arza/api db:generate` | Regenera el cliente de Prisma tras cambiar el modelo                                        |
+| Comando                                                          | Qué hace                                                                                    |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `pnpm --filter @arza/api dev`                                    | Arranca la API en http://localhost:4000; al guardar un cambio se recompila y reinicia sola  |
+| `pnpm --filter @arza/api start`                                  | Arranca la versión ya compilada (`dist/`)                                                   |
+| `pnpm --filter @arza/api test`                                   | Pruebas unitarias y de la cadena de petición con cobertura                                  |
+| `pnpm --filter @arza/api test -u`                                | Regenera `openapi.json` después de cambiar un contrato                                      |
+| `pnpm test:int`                                                  | Pruebas con PostgreSQL y Valkey reales (requiere Docker)                                    |
+| `pnpm db:migrate`                                                | Aplica las migraciones pendientes, como `migration_user`                                    |
+| `pnpm db:seed`                                                   | Datos semilla (empresa de la plataforma); idempotente                                       |
+| `pnpm db:seed:demo`                                              | Semilla más dos empresas ficticias; nunca en producción (`pnpm infra:up` la carga en local) |
+| `pnpm --filter @arza/api db:generate`                            | Regenera el cliente de Prisma tras cambiar el modelo                                        |
+| `pnpm iam:invitar --empresa demo-uno --correo ana@demo-uno.test` | Invita a una persona (B08); ver «Identidad»                                                 |
 
 Las variables de entorno se leen del archivo `.env` de la raíz del proyecto (ver `.env.example`).
 Los servicios locales se encienden con `pnpm infra:up` ([guía](../../docs/runbooks/entorno-local.md)).
 
 ## Puntos de la API
 
-| Ruta                         | Acceso  | Respuesta                                                                                                                            |
-| ---------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `GET /health`                | Público | 200 si la base de datos, las colas y los archivos responden; 503 si alguno no. Sin límite de peticiones (ver «Límite de peticiones») |
-| `GET /version`               | Público | Versión, ambiente (`local`, `staging`, `production`) y commit                                                                        |
-| `GET /api/docs`              | Público | Documentación interactiva. Solo en local y pruebas; no existe en producción                                                          |
-| `GET /api/docs/openapi.json` | Público | El mismo documento en formato OpenAPI 3.1                                                                                            |
+| Ruta                              | Acceso  | Respuesta                                                                                                                            |
+| --------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET /health`                     | Público | 200 si la base de datos, las colas y los archivos responden; 503 si alguno no. Sin límite de peticiones (ver «Límite de peticiones») |
+| `GET /version`                    | Público | Versión, ambiente (`local`, `staging`, `production`) y commit                                                                        |
+| `GET /api/docs`                   | Público | Documentación interactiva. Solo en local y pruebas; no existe en producción                                                          |
+| `GET /api/docs/openapi.json`      | Público | El mismo documento en formato OpenAPI 3.1                                                                                            |
+| `POST /v1/auth/login`             | Público | Inicia sesión; entrega la cookie y el código antifalsificación. Mismo mensaje exista o no el correo                                  |
+| `GET /v1/auth/session`            | Sesión  | Sesión actual y su código antifalsificación                                                                                          |
+| `POST /v1/auth/logout`            | Sesión  | Cierra la sesión actual                                                                                                              |
+| `POST /v1/auth/password/forgot`   | Público | Pide el enlace de recuperación; siempre responde 202 con el mismo mensaje                                                            |
+| `POST /v1/auth/password/reset`    | Público | Cambia la contraseña con el enlace y cierra todas las sesiones                                                                       |
+| `POST /v1/auth/invitation/accept` | Público | Activa la cuenta con el enlace de la invitación                                                                                      |
+| `GET /v1/me`                      | Sesión  | Perfil propio                                                                                                                        |
+| `POST /v1/me/password`            | Sesión  | Cambia la contraseña propia y cierra todas las sesiones, incluida la actual                                                          |
 
-`/health` y `/version` están fuera de `/api/v1` porque son de operación (los consultan Caddy y
-Docker). Los recursos de negocio irán bajo `/api/v1` (capítulo 14.1).
+`/health` y `/version` están fuera de `/v1` porque son de operación (los consultan Caddy y
+Docker). Los recursos de negocio van bajo `/v1`; en los servidores Caddy les antepone `/api`, así
+que desde el navegador son `/api/v1/...` (capítulo 14.1).
 
 El documento OpenAPI se genera desde los esquemas Zod de `packages/contracts` (ADR-010) y se
 guarda en [`openapi.json`](openapi.json). Una prueba falla si el archivo no coincide con el código.
@@ -46,14 +56,15 @@ Cada petición pasa por los mismos eslabones, definidos una sola vez en `src/pla
 | —    | Cabeceras de seguridad       | `platform/security/security-headers.ts`   | —                           |
 | 2    | Identificador de correlación | `platform/correlation/correlation-id.ts`  | —                           |
 | 3    | Límite de peticiones         | `ThrottlerGuard` en `app.module.ts`       | 429 `RATE_LIMITED`          |
-| 4    | Acceso (cerrado por defecto) | `platform/access/access.guard.ts`         | 401 `UNAUTHENTICATED`       |
+| 4    | Acceso y sesión              | `platform/access/access.guard.ts`         | 401 `UNAUTHENTICATED`       |
+| 5    | Antifalsificación (CSRF)     | `platform/security/csrf.guard.ts`         | 403 `CSRF_INVALID`          |
 | 7    | Validación con Zod           | `ZodValidationPipe` en `app.module.ts`    | 422 `VALIDATION_FAILED`     |
 | 12   | Respuesta validada con Zod   | `ZodSerializerInterceptor`                | 500 `INTERNAL_ERROR`        |
 | —    | Formato único de error       | `platform/errors/api-exception.filter.ts` | Siempre el formato del 14.2 |
 
-El paso 6 (contexto de empresa) ya existe en la base de datos (ver «Base de datos»); B08 lo
-conecta a la sesión del usuario. Los pasos 5 (CSRF), 8 (autorización), 9 (idempotencia) y 11
-(auditoría) llegan en B08, B10 y B11.
+El paso 6 (contexto de empresa) lo fija cada caso de uso con la empresa de la sesión. El paso 11
+(auditoría) existe en versión mínima desde B08 (`platform/audit/`); B11 lo completa. Los pasos 8
+(autorización) y 9 (idempotencia) llegan en B10 y en los módulos que la necesiten.
 
 ### Configuración
 
@@ -97,14 +108,16 @@ queda solo en el registro interno. Códigos de la plataforma: `BAD_REQUEST`, `UN
 
 Toda ruta debe declarar cómo se accede a ella con `@Public()` o `@Authenticated()`
 (`platform/access/access.decorators.ts`). Sin declaración, la ruta queda cerrada. Una prueba
-(`test/access.test.ts`) falla si alguna ruta de la API no lo declara. Hasta B08 no existen
-sesiones, así que toda ruta `@Authenticated()` responde 401.
+(`test/access.test.ts`) falla si alguna ruta de la API no lo declara. Las rutas `@Authenticated()`
+exigen una sesión válida (ver «Identidad»); la persona llega al controlador con `@CurrentPrincipal()`.
 
 ### Límite de peticiones
 
 `RATE_LIMIT_MAX_REQUESTS` peticiones por dirección IP cada `RATE_LIMIT_WINDOW_SECONDS` segundos.
-Detrás de Caddy, la IP real se toma de `X-Forwarded-For` (solo de proxies de red local). El conteo
-por usuario llega en B08.
+Detrás de Caddy, la IP real se toma de `X-Forwarded-For` (solo de proxies de red local). Las
+rutas de acceso (iniciar sesión, recuperar y restablecer la contraseña, activar la cuenta) tienen
+un límite más estricto: 10 por minuto por IP. Además, cada correo tiene su propia espera
+progresiva y su bloqueo (ver «Identidad»).
 
 Desde B06 el conteo vive en Valkey (`platform/valkey/valkey-throttler-storage.ts`): un guion de
 Valkey cuenta y bloquea en un solo paso, así que no se lo saltan peticiones simultáneas, se
@@ -186,10 +199,43 @@ valida los datos antes de encolar. El worker procesa los trabajos ([`apps/worker
 
 ### Interfaz pública para el worker
 
-[`src/platform/index.ts`](src/platform/index.ts) se publica como `@arza/api/platform` (campo
-`exports` de `package.json`). Es lo único que el worker puede importar de la API (ADR-004):
+[`src/platform/index.ts`](src/platform/index.ts) se publica como `@arza/api/platform` y el
+módulo de identidad como `@arza/api/iam` (campo `exports` de `package.json`). Es lo único que el worker puede importar de la API (ADR-004):
 configuración, `DatabaseService`, empresas semilla, datos que no se registran y colas. Agregar algo
 ahí es ampliar ese contrato.
+
+## Identidad (B08, módulo `src/modules/iam`)
+
+Cuentas, inicio de sesión, sesiones y contraseñas según el numeral 15.1 y la ADR-008. Las tablas
+están en [`docs/manual/datos/iam.md`](../../docs/manual/datos/iam.md).
+
+| Regla                        | Cómo se cumple                                                                                                                                                       |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Alta solo por invitación     | `pnpm iam:invitar` crea la cuenta invitada y encola el correo; el enlace vence en 72 horas y sirve una vez. B10 agrega la pantalla de usuarios con `iam.user.invite` |
+| Contraseñas                  | De 12 a 128 caracteres, sin reglas de composición, fuera de la lista de filtradas ([`data/`](data/README.md)). Argon2id de Node.js, parámetros de OWASP, sal propia  |
+| Sesión                       | 256 bits al azar en la cookie `__Host-arza_session` (HttpOnly, Secure, SameSite=Lax); en la base solo su huella. Vence a las 8 horas sin uso y a las 12 en total     |
+| Antifalsificación            | Código por sesión (HMAC con `CSRF_SECRET`) en la cabecera `X-CSRF-Token` y origen propio en toda operación que modifica datos                                        |
+| Espera y bloqueo             | 1, 2, 4 y 8 segundos tras cada fallo; al quinto, 15 minutos con evento de seguridad, alerta en la bandeja de salida y auditoría. Igual para correos sin cuenta       |
+| El error no revela el correo | Mismo código y mensaje para correo inexistente, contraseña equivocada o cuenta no activa; sin cuenta se calcula igual un hash para gastar el mismo tiempo            |
+| Recuperación                 | Enlace de 30 minutos; al usarlo se cierran todas las sesiones y se avisa por correo                                                                                  |
+| Cambio de contraseña         | Pide la actual; cierra todas las sesiones, incluida la actual, y avisa por correo                                                                                    |
+
+Los correos los envía el worker (trabajo `iam.account-email`). El trabajo solo lleva el usuario y
+el propósito: el enlace se crea al enviarlo, así su llave nunca queda guardada en la cola.
+
+**Cómo encuentra la empresa.** Al iniciar sesión todavía no se sabe la empresa. Unas funciones
+estrechas de la base de datos (`iam_find_login_user`, `iam_find_session`, `iam_find_token`) dicen
+a qué usuario y empresa pertenece un correo, una sesión o un enlace; todo lo demás ocurre dentro de
+la transacción de esa empresa. Por eso el correo es único en toda la plataforma.
+
+**Invitar a una persona** (con `pnpm infra:up` y `pnpm dev` encendidos):
+
+```bash
+pnpm iam:invitar --empresa demo-uno --correo ana@demo-uno.test --nombre "Ana Pérez" --tipo interno
+```
+
+`--empresa` acepta `plataforma`, `demo-uno`, `demo-dos` o el identificador de la empresa; `--tipo`,
+`interno` (aplicación) o `portal`. Si la invitación sigue pendiente, la reenvía.
 
 ## Imágenes Docker (B05 y B07)
 
@@ -220,7 +266,13 @@ En pruebas la API vive detrás de Caddy en `https://pruebas.[dominio]/api`; Cadd
   `app_user`, columnas de control, transacciones, migraciones, semillas, el límite de peticiones
   en Valkey (429, conteo exacto con peticiones simultáneas, conteo compartido entre dos copias de
   la API) y la cola de trabajos. El worker reutiliza la misma preparación.
+- `test/int/iam/`: identidad contra la base real, con un reloj de prueba para adelantar el
+  tiempo (bloqueo, inactividad, vencimiento de enlaces): inicio de sesión, sesiones, contraseñas,
+  invitación, aislamiento entre empresas y auditoría de solo inserción.
+- `test/session-chain.test.ts` y `test/csrf.test.ts`: pasos 4 y 5 de la cadena, sin base de datos.
 - Cobertura mínima: 90 % de líneas, funciones e instrucciones y 85 % de ramas (capítulo 21.1).
+  [`vitest.shared.ts`](vitest.shared.ts) dice qué se mide en `test:int` (lo que trabaja contra la
+  base de datos o Valkey); cada archivo se mide en un solo lado.
   Los datos semilla, el conteo en Valkey y `JobQueue` se miden en `test:int`, con el mismo umbral,
   porque solo se prueban con PostgreSQL y Valkey reales. `@prisma/client` figura como dependencia usada en `knip.json` porque solo lo
   importa el cliente generado, que no está en el repositorio.
