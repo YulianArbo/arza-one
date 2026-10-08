@@ -35,6 +35,15 @@ export class DatabaseService implements OnModuleDestroy {
     });
   }
 
+  /**
+   * Transacción sin empresa: la seguridad por fila no deja ver ni escribir ninguna fila. Solo
+   * sirve para las funciones de búsqueda de identidad (B08), que dicen a qué empresa pertenece
+   * un correo, una sesión o un enlace antes de abrir la transacción de esa empresa.
+   */
+  async withoutTenant<T>(work: (transaction: TenantTransaction) => Promise<T>): Promise<T> {
+    return this.client.$transaction(work);
+  }
+
   /** Comprueba que la base de datos responde. La usa /health. */
   async ping(): Promise<void> {
     await this.client.$queryRaw`SELECT 1`;

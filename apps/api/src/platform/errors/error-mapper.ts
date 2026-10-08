@@ -7,9 +7,13 @@ import {
 import { ZodValidationException } from 'nestjs-zod';
 import { z } from 'zod';
 
+import { AppError } from './app-error.js';
+
 export interface MappedError {
   readonly status: number;
   readonly body: ErrorResponse;
+  /** Segundos de espera para la cabecera Retry-After, si aplica. */
+  readonly retryAfterSeconds?: number;
 }
 
 interface KnownError {
@@ -85,6 +89,12 @@ function build(status: number, known: KnownError, details: ErrorDetail[], id: st
 
 /** Traduce cualquier excepción al formato único de error. Nunca expone trazas ni mensajes internos. */
 export function mapException(exception: unknown, correlationId: string): MappedError {
+  if (exception instanceof AppError) {
+    const known = { code: exception.code, message: exception.message };
+    const mapped = build(exception.status, known, [], correlationId);
+    const { retryAfterSeconds } = exception;
+    return retryAfterSeconds === undefined ? mapped : { ...mapped, retryAfterSeconds };
+  }
   if (exception instanceof ZodValidationException) {
     const status = HttpStatus.UNPROCESSABLE_ENTITY;
     return build(status, knownError(status), validationDetails(exception), correlationId);

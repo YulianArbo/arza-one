@@ -16,12 +16,15 @@ export class ApiExceptionFilter implements ExceptionFilter {
     const request = host.switchToHttp().getRequest<Request>();
     const response = host.switchToHttp().getResponse<Response>();
     const correlationId = correlationIdOf(request, response);
-    const { status, body } = mapException(exception, correlationId);
+    const { status, body, retryAfterSeconds } = mapException(exception, correlationId);
     if (status >= 500) {
       // La traza queda solo en el registro interno; la persona recibe un mensaje genérico.
       this.logger.error({ err: exception }, 'Error inesperado');
     }
-    if (!response.headersSent) response.status(status).json(body);
+    if (response.headersSent) return;
+    if (retryAfterSeconds !== undefined)
+      response.setHeader('Retry-After', String(retryAfterSeconds));
+    response.status(status).json(body);
   }
 }
 

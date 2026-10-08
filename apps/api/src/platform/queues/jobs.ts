@@ -23,8 +23,20 @@ const exampleEmailJobSchema = tenantJobSchema.extend({
   recipient: z.email(),
 });
 
+/**
+ * Correo de una cuenta (B08): invitación, recuperación de contraseña o aviso de cambio. Solo
+ * lleva el usuario y el propósito: el worker crea el enlace al enviarlo, así la llave nunca queda
+ * guardada en la cola.
+ */
+const accountEmailJobSchema = tenantJobSchema.extend({
+  accountUserId: z.uuid(),
+  purpose: z.enum(['invitation', 'password_reset', 'password_changed']),
+});
+
 export type TenantJob = z.infer<typeof tenantJobSchema>;
 export type ExampleEmailJob = z.infer<typeof exampleEmailJobSchema>;
+export type AccountEmailJob = z.infer<typeof accountEmailJobSchema>;
+export type AccountEmailPurpose = AccountEmailJob['purpose'];
 
 /** Cada trabajo: su cola, su nombre y el esquema de sus datos. */
 export const JOBS = {
@@ -32,6 +44,11 @@ export const JOBS = {
     queue: QUEUES.platform,
     name: 'platform.example-email',
     schema: exampleEmailJobSchema,
+  },
+  accountEmail: {
+    queue: QUEUES.platform,
+    name: 'iam.account-email',
+    schema: accountEmailJobSchema,
   },
 } as const;
 

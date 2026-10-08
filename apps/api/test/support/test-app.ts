@@ -7,6 +7,8 @@ import { Logger } from 'nestjs-pino';
 
 import { configureApp } from '../../src/app.js';
 import { AppModule } from '../../src/app.module.js';
+import { AUTHENTICATOR, type Authenticator } from '../../src/platform/access/principal.js';
+import { CLOCK, type Clock } from '../../src/platform/clock/clock.js';
 import { loadConfig } from '../../src/platform/config/load-config.js';
 import { HEALTH_PROBES, type HealthProbe } from '../../src/platform/health/health-probe.js';
 import { testEnv } from './test-env.js';
@@ -23,6 +25,10 @@ export interface TestAppOptions {
    * (pruebas de integración). Si no, cuenta en memoria: estas pruebas no tienen Valkey.
    */
   readonly realThrottlerStorage?: boolean;
+  /** Reloj que la API usa para los vencimientos, para adelantar el tiempo en las pruebas. */
+  readonly clock?: Clock;
+  /** Validación de sesiones simulada, para probar la cadena de petición sin base de datos. */
+  readonly authenticator?: Authenticator;
 }
 
 function fakeProbe(component: HealthComponent, down: boolean): HealthProbe {
@@ -46,6 +52,12 @@ export async function createTestApp(options: TestAppOptions = {}): Promise<NestE
   })
     .overrideProvider(HEALTH_PROBES)
     .useValue(fakeProbes(options.downComponents ?? []));
+  if (options.authenticator !== undefined) {
+    builder = builder.overrideProvider(AUTHENTICATOR).useValue(options.authenticator);
+  }
+  if (options.clock !== undefined) {
+    builder = builder.overrideProvider(CLOCK).useValue(options.clock);
+  }
   if (options.realThrottlerStorage !== true) {
     builder = builder.overrideProvider(getStorageToken()).useValue(new ThrottlerStorageService());
   }

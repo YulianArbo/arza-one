@@ -3,7 +3,7 @@ import { v7 as uuidv7 } from 'uuid';
 import { afterAll, describe, expect, inject, it } from 'vitest';
 
 import { JobQueue } from '../../src/platform/queues/job-queue.js';
-import { DEFAULT_JOB_OPTIONS, JOBS } from '../../src/platform/queues/jobs.js';
+import { DEFAULT_JOB_OPTIONS, JOBS, type ExampleEmailJob } from '../../src/platform/queues/jobs.js';
 
 // Encolar trabajos en Valkey real (ADR-014). El worker los procesa: ver apps/worker.
 
@@ -16,7 +16,7 @@ afterAll(async () => {
   await inspector.close();
 });
 
-function validPayload(): Parameters<JobQueue['add']>[1] {
+function validPayload(): ExampleEmailJob {
   return {
     tenantId: uuidv7(),
     userId: null,

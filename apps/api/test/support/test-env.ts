@@ -16,6 +16,7 @@ const TEST_ENV: Record<string, string> = {
   S3_SECRET_KEY: 'ficticia',
   RATE_LIMIT_WINDOW_SECONDS: '60',
   RATE_LIMIT_MAX_REQUESTS: '100',
+  CSRF_SECRET: 'ficticia-ficticia-ficticia-ficticia',
 };
 
 /** Entorno de prueba completo; cada prueba puede quitar (undefined) o cambiar variables. */
