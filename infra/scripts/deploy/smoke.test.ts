@@ -37,7 +37,10 @@ function server(overrides: Answers = {}): Fetch {
     const protectedUrl = url.startsWith('https://');
     if (protectedUrl && headers.get('authorization') !== AUTH) {
       return Promise.resolve(
-        new Response('', { status: 401, headers: { 'X-Robots-Tag': 'noindex, nofollow' } }),
+        new Response('', {
+          status: 401,
+          headers: { 'X-Robots-Tag': 'noindex, nofollow', 'WWW-Authenticate': 'Basic realm="x"' },
+        }),
       );
     }
     return Promise.resolve(answer());
@@ -123,7 +126,9 @@ describe('pruebas de humo: permiso denegado y protección del sitio', () => {
     const fetch: Fetch = (url, init) =>
       new Headers(init.headers).has('authorization') || url.startsWith('http:')
         ? server()(url, init)
-        : Promise.resolve(new Response('', { status: 401 }));
+        : Promise.resolve(
+            new Response('', { status: 401, headers: { 'WWW-Authenticate': 'Basic' } }),
+          );
     const failures = await runSmokeTests(SETTINGS, deps(fetch), 1);
     expect(failures).toEqual([
       'Sin la contraseña adicional se niega la entrada y no se indexa: falta la cabecera X-Robots-Tag noindex',
@@ -213,5 +218,20 @@ describe('pruebas de humo: errores de conexión', () => {
       1,
     );
     expect(plain[0]).toContain('DNS sin respuesta');
+  });
+});
+
+describe('pruebas de humo: la petición de contraseña', () => {
+  it('fallan si el 401 no le pide la contraseña al navegador', async () => {
+    const fetch: Fetch = (url, init) =>
+      new Headers(init.headers).has('authorization') || url.startsWith('http:')
+        ? server()(url, init)
+        : Promise.resolve(
+            new Response('', { status: 401, headers: { 'X-Robots-Tag': 'noindex, nofollow' } }),
+          );
+    const failures = await runSmokeTests(SETTINGS, deps(fetch), 1);
+    expect(failures).toEqual([
+      'Sin la contraseña adicional se niega la entrada y no se indexa: el navegador no recibe la petición de contraseña',
+    ]);
   });
 });

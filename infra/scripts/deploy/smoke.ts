@@ -67,6 +67,8 @@ const answered = (response: Response, expected: number): string =>
 async function deniesWithoutPassword({ site, get }: Client): Promise<string | undefined> {
   const response = await get(`${site}/healthz`, false);
   if (response.status !== 401) return answered(response, 401);
+  const challenge = response.headers.get('www-authenticate') ?? '';
+  if (!challenge.startsWith('Basic')) return 'el navegador no recibe la petición de contraseña';
   const robots = response.headers.get('x-robots-tag') ?? '';
   return robots.includes('noindex') ? undefined : 'falta la cabecera X-Robots-Tag noindex';
 }

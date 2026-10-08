@@ -11,17 +11,29 @@
 	# Vacío en el servidor. El ensayo de GitHub pone «local_certs»: certificados de una autoridad
 	# propia de Caddy, porque allí no hay dominio público para Let's Encrypt.
 	{$CADDY_EXTRA_GLOBAL}
+	# Caddy corre sin privilegios: no intenta instalar su autoridad local en el sistema.
+	skip_install_trust
 }
 
-# Ambiente de pruebas: autenticación adicional, no indexable (numeral 10.4) y TLS obligatorio.
-(protected) {
-	basic_auth {
-		{$STAGING_AUTH_USER} {$STAGING_AUTH_HASH}
-	}
+# No indexable (numeral 10.4), TLS obligatorio y sin anunciar el servidor.
+(staging_headers) {
 	header {
 		X-Robots-Tag "noindex, nofollow"
 		Strict-Transport-Security "max-age=31536000"
 		-Server
+	}
+}
+
+# Ambiente de pruebas: autenticación adicional. La respuesta 401 (y cualquier otro error) lleva
+# también las cabeceras: sin handle_errors, Caddy las omite en los errores.
+(protected) {
+	import staging_headers
+	basic_auth {
+		{$STAGING_AUTH_USER} {$STAGING_AUTH_HASH}
+	}
+	handle_errors {
+		import staging_headers
+		respond "{err.status_code} {err.status_text}"
 	}
 }
 

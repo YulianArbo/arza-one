@@ -20,6 +20,9 @@ check() {
   fi
 }
 
+# Con SSH por socket (Ubuntu 24.04), sshd -T necesita esta carpeta de ejecución; crearla no cambia
+# la configuración.
+install -d -m 755 /run/sshd
 sshd_option() { sshd -T 2>/dev/null | grep -qix "$1"; }
 # sshd -T escribe cada usuario de AllowUsers en su propia línea.
 only_admin_and_deploy() {

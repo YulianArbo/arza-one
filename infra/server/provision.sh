@@ -95,6 +95,8 @@ for file in /etc/ssh/sshd_config.d/*.conf; do
   [[ "$file" == */10-arza-one.conf ]] && continue
   if grep -qiE '^\s*PasswordAuthentication\s+yes' "$file"; then mv "$file" "$file.disabled"; fi
 done
+# Con SSH por socket (Ubuntu 24.04) esta carpeta no existe hasta la primera conexión.
+install -d -m 755 /run/sshd
 sshd -t
 # En Ubuntu 24.04 SSH arranca por socket: cada conexión nueva ya lee esta configuración.
 systemctl try-reload-or-restart ssh

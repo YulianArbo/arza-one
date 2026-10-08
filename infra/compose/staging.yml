@@ -100,6 +100,8 @@ services:
       SMTP_HOST: mailpit
       SMTP_PORT: 1025
       MAIL_FROM: ARZA ONE pruebas <no-responder@${STAGING_DOMAIN}>
+    # Al apagarse, el worker espera hasta 25 s los trabajos en curso (B06): Docker le da 30 s.
+    stop_grace_period: 30s
     mem_limit: 768m
 
   # Un solo uso en cada despliegue: aplica las migraciones pendientes y termina (B07).
