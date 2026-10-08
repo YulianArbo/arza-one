@@ -7,8 +7,8 @@ Un bloque a la vez, en orden. Actualice la columna Estado al cerrar cada uno.
 | B01 | F1 | Monorepo y herramientas de calidad | — | — | Terminado |
 | B02 | F1 | Esqueleto de la API | B01 | — | Terminado |
 | B03 | F1 | Base de datos, contexto de empresa y seguridad por fila | B02 | Sí | En revisión |
-| B04 | F1 | Esqueleto web y sistema de diseño | B01 | — | En revisión |
-| B05 | F1 | Integración continua | B02 · B03 · B04 | — | Pendiente |
+| B04 | F1 | Esqueleto web y sistema de diseño | B01 | — | Terminado |
+| B05 | F1 | Integración continua | B02 · B03 · B04 | — | En revisión |
 | B06 | F1 | Entorno local completo | B02 · B03 | — | Pendiente |
 | B07 | F1 | Servidor de pruebas y despliegue automático | B05 · B06 | Sí | Pendiente |
 | B08 | F2 | Identidad: cuentas, inicio de sesión y sesiones | B03 · B04 | Sí | Pendiente |

@@ -1,0 +1,101 @@
+# Integración continua
+
+Guía de las verificaciones automáticas de GitHub (numeral 11.4, ADR-018, bloque B05).
+
+## Qué pasa cuando se propone un cambio
+
+Cada pull request, y cada cambio que llega a `main`, pone a correr el flujo
+[`ci.yml`](../../.github/workflows/ci.yml). Las tareas van en paralelo y la última, **«Verificaciones»**,
+resume todas: solo queda en verde si todas pasaron. La protección de `main` exige esa tarea en
+verde para permitir integrar.
+
+| #   | Tarea en GitHub                                    | Qué revisa                                                                                                            | Falla si…                                                                           |
+| --- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| 1-3 | Formato, análisis, tipos y fronteras               | Mensajes de commit, Prettier, ESLint, TypeScript, dependency-cruiser y knip                                           | Hay una sola advertencia, un error de tipos o un módulo importa el interior de otro |
+| 4   | Pruebas unitarias con cobertura                    | Todas las pruebas unitarias                                                                                           | Falla una prueba o la cobertura baja de 90 % (capítulo 21)                          |
+| 5   | Integración con base de datos real                 | Pruebas contra PostgreSQL 17 desechable, incluidas aislamiento entre empresas y permisos; migraciones desde cero      | Falla una prueba                                                                    |
+| 6   | Secretos, seguridad y dependencias                 | gitleaks (todo el historial), Semgrep (patrones inseguros) y osv-scanner (dependencias)                               | Hay un secreto, un hallazgo de severidad alta o una vulnerabilidad alta o crítica   |
+| 7   | Migraciones desde cero y sobre la versión anterior | Que las migraciones nuevas no rompan la versión anterior; aplica las de `main` con datos ficticios y luego las nuevas | Una migración ya integrada cambió, una nueva borra o renombra algo, o no aplica     |
+| 8   | Imagen api / web y análisis con Trivy              | Construye las imágenes Docker y busca vulnerabilidades                                                                | Hay una vulnerabilidad crítica con corrección disponible                            |
+| 9   | Pruebas en navegador y accesibilidad               | Playwright y axe-core sobre la web compilada                                                                          | Falla un recorrido o hay una violación grave de accesibilidad                       |
+| 10  | OWASP ZAP (semanal)                                | [`zap-semanal.yml`](../../.github/workflows/zap-semanal.yml): ataca una copia temporal de la web y la API             | Hay una alerta de riesgo alto                                                       |
+
+La verificación 10 corre los lunes a la 1:00 a. m. (hora de Bogotá) y se puede lanzar a mano en
+GitHub: **Actions → Análisis dinámico semanal (OWASP ZAP) → Run workflow**. Hasta B07 analiza una
+copia levantada dentro de GitHub ([`infra/compose/ci.yml`](../../infra/compose/ci.yml)); desde B07
+analizará el servidor de pruebas.
+
+## Qué hacer cuando una verificación falla
+
+1. En el pull request, abra **Checks** y haga clic en la tarea en rojo. El paso que falló está
+   marcado; su texto dice qué y dónde.
+2. Reproduzca en el equipo con `pnpm check`. Los análisis que solo corren en GitHub tienen su guion:
+   - Migraciones: `node infra/scripts/ci/check-migrations.ts origin/main` y
+     `bash infra/scripts/ci/migrations-upgrade.sh origin/main` (requiere Docker).
+   - Imágenes: `docker build -f apps/api/Dockerfile -t arza-one/api .` (igual con `web`).
+3. Corrija la causa. **Nunca** se debilita una prueba ni un control para que pase (CLAUDE.md).
+
+### Excepciones de vulnerabilidades
+
+Si una vulnerabilidad alta no tiene corrección publicada, se puede registrar una excepción
+temporal en [`osv-scanner.toml`](../../osv-scanner.toml), con motivo y fecha de vencimiento (máximo
+30 días). Requiere la aprobación del Director General en el pull request. Al vencer, la verificación
+vuelve a fallar y se revisa de nuevo. Para Trivy, el equivalente es `.trivyignore` (hoy no existe:
+no hay excepciones).
+
+### Migraciones destructivas (fase de contraer)
+
+Ver [`infra/scripts/README.md`](../../infra/scripts/README.md#fase-de-contraer). La línea
+`-- arza:contract <motivo>` en la migración declara que la versión anterior ya no usa lo que se
+borra. Desactivar la seguridad por fila nunca se permite.
+
+## Protección de la rama principal
+
+Configuración aplicada a `main` (numeral 11.3):
+
+- Todo cambio entra por pull request; no se admiten cambios directos.
+- La tarea **Verificaciones** debe estar en verde y la rama al día con `main`.
+- No se permite forzar cambios (`force push`) ni borrar `main`.
+- La regla aplica también a los administradores.
+- No se exige aprobación de otra persona mientras el equipo sea de una sola persona (GitHub no
+  permite aprobar el propio pull request). En los bloques críticos la revisión externa se registra
+  en el pull request.
+
+Requiere GitHub Pro (o un repositorio público). Se aplica, y se vuelve a aplicar si alguien la
+cambia, con un solo comando desde la carpeta del proyecto:
+
+```bash
+bash infra/scripts/github/protect-main.sh
+```
+
+Para revisarla: **Settings → Branches** en GitHub.
+
+## Renovate (actualización de dependencias)
+
+La configuración está en [`renovate.json`](../../renovate.json). Cada lunes antes de las 6:00 a. m.
+Renovate propone, como pull requests, las versiones nuevas: una propuesta agrupada para versiones
+menores, otra para acciones e imágenes y una por cada versión mayor. Las vulnerabilidades se
+proponen de inmediato. Espera tres días desde la publicación de cada versión y **nunca integra
+solo**: el responsable técnico revisa cada propuesta con Claude Code (capítulo 22).
+El panel «Panel de actualizaciones de dependencias» (una incidencia en GitHub) resume lo pendiente.
+
+Instalación (una sola vez, la hace el dueño del repositorio):
+
+1. Abra https://github.com/apps/renovate y pulse **Install** (o **Configure** si ya existe).
+2. Elija **Only select repositories**, marque `arza-one` y confirme.
+3. Renovate lee `renovate.json` y crea el panel en las horas siguientes.
+
+## Herramientas fijadas
+
+Para evitar sorpresas (en 2026 hubo un ataque real a una acción de Trivy), cada acción de GitHub va
+fijada a un commit exacto, cada imagen a su huella `sha256` y cada programa descargado (gitleaks,
+osv-scanner, Trivy) a su versión y a la huella del archivo, que se verifica antes de usarlo.
+Renovate actualiza las acciones y las imágenes. Los tres programas se actualizan a mano cada
+trimestre: cambie la versión y la huella en `ci.yml`, tomándola del archivo de huellas
+(`checksums`) publicado con esa versión.
+
+## Tiempo y minutos
+
+La meta es que todas las verificaciones terminen en menos de 15 minutos (B05). Cada tarea tiene un
+límite de 15 minutos. Un cambio nuevo en el mismo pull request cancela la ejecución anterior para
+no gastar minutos de la cuota de GitHub Actions.

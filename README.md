@@ -123,6 +123,14 @@ Detalles en [`apps/web/README.md`](apps/web/README.md) y [`packages/ui/README.md
 
 Los comandos `pnpm infra:up` y `pnpm infra:reset` se agregan en el bloque B06.
 
+## Integración continua
+
+Cada pull request pasa por las diez verificaciones del numeral 11.4 en GitHub Actions; `main` solo
+acepta cambios con la tarea «Verificaciones» en verde. Qué revisa cada una, qué hacer si falla y
+cómo funciona Renovate: [`docs/runbooks/integracion-continua.md`](docs/runbooks/integracion-continua.md).
+Las imágenes Docker se construyen con `docker build -f apps/api/Dockerfile -t arza-one/api .` (igual
+con `web`).
+
 ## Controles antes de cada commit
 
 Al ejecutar `git commit` se revisa automáticamente:
@@ -143,6 +151,10 @@ packages/contracts  Esquemas, tipos y permisos compartidos entre api y web
 packages/ui         Sistema de diseño (bloque B04)
 packages/config     Configuración compartida de ESLint y pruebas de los controles
 packages/templates  Plantillas de correo y PDF (bloques B16 y B20)
+infra/postgres   Guion de preparación de la base de datos (bloque B03)
+infra/compose    Docker Compose; hoy solo la copia temporal para OWASP ZAP (bloque B05)
+infra/scripts    Guiones de operación y ayudantes de la integración continua (bloque B05)
+.github          Flujos de GitHub Actions y plantilla de pull request (bloque B05)
 docs/manual      Manual Maestro por capítulos
 docs/adr         Decisiones de arquitectura
 docs/bloques     Encargos de cada bloque y su cierre
