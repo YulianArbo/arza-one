@@ -45,8 +45,11 @@ function summary(env: StackDependencies['env']): string {
     `  Colas (Valkey)               localhost:${port(env, 'VALKEY_PORT', '6379')}`,
     `  Archivos (Garage, S3)        http://localhost:${port(env, 'GARAGE_S3_PORT', '3900')}`,
     `  PDF (Gotenberg)              http://localhost:${port(env, 'GOTENBERG_PORT', '3001')}`,
-    `  Antivirus (ClamAV)           localhost:${port(env, 'CLAMAV_PORT', '3310')}`,
+    `  Antivirus (ClamAV)           localhost:${port(env, 'CLAMAV_PORT', '3310')}  (*)`,
     `  Correo de prueba (Mailpit)   http://localhost:${port(env, 'MAILPIT_UI_PORT', '8025')}`,
+    '',
+    '(*) El antivirus termina de arrancar solo, en unos minutos (la primera vez, hasta 15).',
+    '    Para ver el estado de cada servicio: docker compose --file infra/compose/local.yml ps',
     '',
     'Siguiente paso: «pnpm dev» enciende la API, el worker y la web.',
     '',
@@ -56,7 +59,7 @@ function summary(env: StackDependencies['env']): string {
 export function infraUp(deps: StackDependencies): void {
   const settings = garageSettings(deps.env);
   ensureDocker(deps.run);
-  deps.print('Encendiendo los servicios. La primera vez puede tardar hasta 15 minutos.\n');
+  deps.print('Encendiendo los servicios. La primera vez descarga las imágenes y tarda más.\n');
   startServices(deps.run, deps.files);
   deps.print('Preparando el almacenamiento de archivos (Garage)…\n');
   setupGarage(deps.garage, settings);

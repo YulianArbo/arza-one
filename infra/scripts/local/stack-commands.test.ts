@@ -53,8 +53,10 @@ describe('infraUp', () => {
     infraUp(deps);
     expect(calls[0]).toBe('docker info --format {{.ServerVersion}}');
     expect(calls[1]).toBe(
-      'docker compose --file local.yml --env-file .env up --detach --wait --wait-timeout 900',
+      'docker compose --file local.yml --env-file .env up --detach --wait --wait-timeout 300 ' +
+        'postgres valkey garage gotenberg mailpit',
     );
+    expect(calls[2]).toBe('docker compose --file local.yml --env-file .env up --detach clamav');
     expect(calls.slice(-2)).toEqual(['node pnpm.cjs db:migrate', 'node pnpm.cjs db:seed']);
     expect(printed.join('')).toContain('localhost:5433');
     expect(printed.join('')).toContain('http://localhost:8025');

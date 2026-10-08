@@ -27,8 +27,14 @@ export interface StackFiles {
 /** Volúmenes con datos. Las firmas del antivirus se conservan: descargarlas tarda minutos. */
 const DATA_VOLUMES = ['postgres-data', 'valkey-data', 'garage-data'];
 const PROJECT = 'arza-one-local';
-/** La primera vez ClamAV descarga su base de firmas; se le dan hasta 15 minutos. */
-const START_TIMEOUT_SECONDS = 900;
+/** Servicios que deben quedar listos antes de preparar Garage y la base de datos. */
+const WAITED_SERVICES = ['postgres', 'valkey', 'garage', 'gotenberg', 'mailpit'];
+/**
+ * ClamAV carga su base de firmas en varios minutos (la primera vez, además, la descarga). Nada lo
+ * usa hasta B14, así que se enciende sin esperarlo y termina de arrancar en segundo plano.
+ */
+const BACKGROUND_SERVICES = ['clamav'];
+const START_TIMEOUT_SECONDS = 300;
 
 export function composeArgs(files: StackFiles, ...rest: readonly string[]): string[] {
   return ['compose', '--file', files.composeFile, '--env-file', files.envFile, ...rest];
@@ -43,8 +49,15 @@ export function ensureDocker(run: RunCommand): void {
 }
 
 export function startServices(run: RunCommand, files: StackFiles): void {
-  const args = ['up', '--detach', '--wait', '--wait-timeout', String(START_TIMEOUT_SECONDS)];
-  if (run('docker', composeArgs(files, ...args), { show: true }).status !== 0) {
+  const wait = ['--wait', '--wait-timeout', String(START_TIMEOUT_SECONDS), ...WAITED_SERVICES];
+  const steps = [
+    ['up', '--detach', ...wait],
+    ['up', '--detach', ...BACKGROUND_SERVICES],
+  ];
+  const failed = steps.some(
+    (step) => run('docker', composeArgs(files, ...step), { show: true }).status !== 0,
+  );
+  if (failed) {
     throw new LocalStackError(
       [
         'Los servicios no quedaron listos. Lea el mensaje de Docker de arriba.',

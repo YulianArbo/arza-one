@@ -23,15 +23,16 @@ export const runCommand: RunCommand = (command, args, options) => {
 };
 
 /**
- * Cómo invocar pnpm. Dentro de `pnpm infra:up`, npm_execpath apunta al pnpm que lo lanzó y se
- * ejecuta con el mismo Node, sin pasar por la consola del sistema.
+ * Cómo invocar pnpm. Dentro de `pnpm infra:up`, npm_execpath apunta al pnpm que lo lanzó: un
+ * programa (pnpm.exe) o un archivo JavaScript, que se ejecuta con el mismo Node. Así no se pasa
+ * por la consola del sistema.
  */
 export function pnpmCommand(): string[] {
   const execPath = process.env['npm_execpath'];
   if (execPath === undefined || execPath === '') {
     throw new LocalStackError('Ejecute este guion con pnpm (por ejemplo, pnpm infra:up).');
   }
-  return [process.execPath, execPath];
+  return /\.[cm]?js$/.test(execPath) ? [process.execPath, execPath] : [execPath];
 }
 
 export function readEnvFile(): Readonly<Record<string, string | undefined>> {
