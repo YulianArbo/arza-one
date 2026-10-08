@@ -21,7 +21,8 @@ concurrency:
 
 env:
   # Commit de la versión anterior: la rama base del pull request o el commit previo de main.
-  BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+  # Lanzada a mano (workflow_dispatch) no hay ninguno de los dos: se compara con main (B07).
+  BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || 'origin/main' }}
   HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
   NEXT_TELEMETRY_DISABLED: '1'
   TURBO_TELEMETRY_DISABLED: '1'
