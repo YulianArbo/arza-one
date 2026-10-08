@@ -1,9 +1,10 @@
-import { expect, test } from './support/fixtures';
+import { expect, test, waitForAppShell } from './support/fixtures';
 
 // Barra superior (zona 2 de la figura 16.3) y preferencia de modo claro u oscuro.
 
 test('Ctrl K abre la búsqueda global desde cualquier pantalla', async ({ page }) => {
   await page.goto('/app');
+  await waitForAppShell(page);
   await page.keyboard.press('Control+k');
   const search = page.getByRole('dialog', { name: 'Buscar en todo' });
   await expect(search).toBeVisible();

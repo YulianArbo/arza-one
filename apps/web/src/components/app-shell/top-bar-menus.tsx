@@ -10,7 +10,11 @@ import {
   DropdownMenuTrigger,
 } from '@arza/ui';
 import { Bell, CircleHelp, CircleUser, LogOut, UserRound } from 'lucide-react';
-import type { JSX } from 'react';
+import Link from 'next/link';
+import { useState, type JSX } from 'react';
+
+import { PROFILE_PATH } from '../../features/session/access-routes';
+import { useSession } from '../../features/session/session-provider';
 
 /** Avisos de la zona 2. Se llenan con el módulo de notificaciones (B16). */
 export function NotificationsMenu(): JSX.Element {
@@ -50,8 +54,11 @@ export function HelpMenu(): JSX.Element {
   );
 }
 
-/** Menú del usuario. Mi perfil y Cerrar sesión llegan con el inicio de sesión (B08). */
+/** Menú del usuario: quién inició sesión, Mi perfil y Cerrar sesión (B08). */
 export function UserMenu(): JSX.Element {
+  const { session, logout } = useSession();
+  const [failed, setFailed] = useState(false);
+  const { user } = session;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -59,16 +66,29 @@ export function UserMenu(): JSX.Element {
           <CircleUser aria-hidden="true" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel>Vista previa local</DropdownMenuLabel>
+      <DropdownMenuContent align="end" className="max-w-72">
+        <DropdownMenuLabel className="flex flex-col">
+          <span>{user.display_name ?? 'Su cuenta'}</span>
+          <span className="truncate text-xs font-normal text-muted-foreground">{user.email}</span>
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem disabled>
-          <UserRound aria-hidden="true" />
-          Mi perfil
-        </DropdownMenuItem>
-        <DropdownMenuItem disabled>
+        {user.kind === 'internal' ? (
+          <DropdownMenuItem asChild>
+            <Link href={PROFILE_PATH}>
+              <UserRound aria-hidden="true" />
+              Mi perfil
+            </Link>
+          </DropdownMenuItem>
+        ) : null}
+        <DropdownMenuItem
+          onSelect={() => {
+            logout().catch(() => {
+              setFailed(true);
+            });
+          }}
+        >
           <LogOut aria-hidden="true" />
-          Cerrar sesión
+          {failed ? 'No se pudo cerrar la sesión. Intente de nuevo' : 'Cerrar sesión'}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import type { JSX, ReactNode } from 'react';
 
 import { AppShell } from '../../../components/app-shell/app-shell';
+import { RequireSession } from '../../../features/session/session-provider';
 
 // Aplicación interna: nunca indexable (numeral 15.6).
 export const metadata: Metadata = {
@@ -10,5 +11,9 @@ export const metadata: Metadata = {
 };
 
 export default function InternalAppLayout({ children }: { children: ReactNode }): JSX.Element {
-  return <AppShell>{children}</AppShell>;
+  return (
+    <RequireSession kind="internal">
+      <AppShell>{children}</AppShell>
+    </RequireSession>
+  );
 }
