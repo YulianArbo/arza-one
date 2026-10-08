@@ -3,6 +3,19 @@
 Guiones de operación del repositorio. Node los ejecuta directamente (sin compilar), por eso solo
 usan sintaxis de TypeScript que se puede borrar.
 
+## local/ — entorno local (B06)
+
+Guía de uso: [`docs/runbooks/entorno-local.md`](../../docs/runbooks/entorno-local.md).
+
+| Guion                | Comando                                                         | Qué hace                                                                                                                                                                      |
+| -------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `local/env-local.ts` | `pnpm env:local`                                                | Crea `.env` desde `.env.example`: cada `REEMPLAZAR` recibe un secreto al azar con el formato que exige su pieza (`env-file.ts`) y cada puerto ocupado, uno libre (`ports.ts`) |
+| `local/infra.ts`     | `pnpm infra:up` · `infra:down` · `infra:reset` · `infra:status` | Enciende o apaga [`infra/compose/local.yml`](../compose/local.yml), prepara Garage (`garage-setup.ts`), migra y carga la semilla (`stack-commands.ts`)                        |
+| `local/dev-watch.ts` | `pnpm dev` (API y worker)                                       | Compila, arranca el programa y lo reinicia al guardar un cambio                                                                                                               |
+
+La lógica recibe los comandos externos (docker, pnpm) como una función, así que se prueba sin
+Docker. `node-runner.ts` es la única conexión real con el sistema.
+
 ## ci/ — ayudantes de la integración continua (B05)
 
 | Guion                                                | Verificación (numeral 11.4) | Qué hace                                                                                                                                                                                       |

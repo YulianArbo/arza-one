@@ -1,0 +1,141 @@
+# Entorno local de ARZA ONE (bloque B06, numeral 10.3, ADR-017).
+# No se usa directamente: `pnpm infra:up` lo enciende y `pnpm infra:reset` borra sus datos.
+# Todas las contraseñas llegan del archivo .env de la raíz (`pnpm env:local` lo crea).
+# Cada servicio escucha solo en este equipo (127.0.0.1), con límite de memoria, reinicio
+# automático y verificación de salud. Las imágenes van fijadas a su huella (B05).
+name: arza-one-local
+
+x-service: &service
+  restart: unless-stopped
+  security_opt: ['no-new-privileges:true']
+
+services:
+  postgres:
+    <<: *service
+    image: postgres:17@sha256:ae69c452f483507a6b99fb654cf93aad7fe156ffd2c56247707eef4e36d3c12b
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD en .env}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?Falta APP_DB_PASSWORD en .env}
+      MIGRATION_DB_PASSWORD: ${MIGRATION_DB_PASSWORD:?Falta MIGRATION_DB_PASSWORD en .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ../postgres/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - '127.0.0.1:${POSTGRES_PORT:-5432}:5432'
+    mem_limit: 2g
+    healthcheck:
+      test: ['CMD', 'pg_isready', '--host', '127.0.0.1', '--dbname', 'arza_one']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  valkey:
+    <<: *service
+    image: valkey/valkey:8@sha256:640c5e62cea04b6d6f2084232651d0cc70362d31f4f805e7be94dbed6855e8f2
+    # Persistencia en disco (numeral 10.3): los trabajos pendientes sobreviven a un reinicio.
+    command:
+      [
+        'valkey-server',
+        '--appendonly',
+        'yes',
+        '--requirepass',
+        '${VALKEY_PASSWORD:?Falta VALKEY_PASSWORD en .env}',
+      ]
+    environment:
+      REDISCLI_AUTH: ${VALKEY_PASSWORD}
+    volumes:
+      - valkey-data:/data
+    ports:
+      - '127.0.0.1:${VALKEY_PORT:-6379}:6379'
+    mem_limit: 256m
+    healthcheck:
+      test: ['CMD', 'valkey-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  # La imagen de Garage no trae intérprete de comandos: este paso de un solo uso entrega la
+  # carpeta de datos al usuario sin privilegios con el que corre Garage.
+  garage-volume:
+    image: valkey/valkey:8@sha256:640c5e62cea04b6d6f2084232651d0cc70362d31f4f805e7be94dbed6855e8f2
+    entrypoint:
+      [
+        'sh',
+        '-c',
+        'mkdir -p /var/lib/garage/meta /var/lib/garage/data && chown -R 1000:1000 /var/lib/garage',
+      ]
+    volumes:
+      - garage-data:/var/lib/garage
+    network_mode: none
+
+  garage:
+    <<: *service
+    image: dxflrs/garage:v2.1.0@sha256:4c9b34c113e61358466e83fd6e7d66e6d18657ede14b776eb78a93ee8da7cf6a
+    user: '1000:1000'
+    depends_on:
+      garage-volume:
+        condition: service_completed_successfully
+    environment:
+      GARAGE_RPC_SECRET: ${GARAGE_RPC_SECRET:?Falta GARAGE_RPC_SECRET en .env}
+      GARAGE_ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN:?Falta GARAGE_ADMIN_TOKEN en .env}
+    volumes:
+      - ../garage/garage.local.toml:/etc/garage.toml:ro
+      - garage-data:/var/lib/garage
+    ports:
+      - '127.0.0.1:${GARAGE_S3_PORT:-3900}:3900'
+    mem_limit: 512m
+    healthcheck:
+      test: ['CMD', '/garage', 'status']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  gotenberg:
+    <<: *service
+    image: gotenberg/gotenberg:8.37.0@sha256:f29984bd1e226bf1b93ba90af06000afa8b315853e99d27b9aaa41b93f15c769
+    ports:
+      - '127.0.0.1:${GOTENBERG_PORT:-3001}:3000'
+    mem_limit: 768m
+    healthcheck:
+      test: ['CMD', 'curl', '--fail', '--silent', 'http://127.0.0.1:3000/health']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  clamav:
+    <<: *service
+    image: clamav/clamav:1.4.6@sha256:57deb108fc4c72778aa83eafbca7bb7153e28c3f57c005afd38d31f16da86f23
+    volumes:
+      - clamav-signatures:/var/lib/clamav
+    ports:
+      - '127.0.0.1:${CLAMAV_PORT:-3310}:3310'
+    mem_limit: 1200m
+    # La primera vez descarga la base de firmas de virus: puede tardar varios minutos.
+    healthcheck:
+      test: ['CMD', 'clamdcheck.sh']
+      interval: 10s
+      timeout: 10s
+      start_period: 10m
+      retries: 30
+
+  mailpit:
+    <<: *service
+    image: axllent/mailpit:v1.31.4@sha256:b68349e3a014b90c5610bfb26b2ae36f3892d7b8cf25ee140c6c71c98d2fcf48
+    user: '1000:1000'
+    environment:
+      MP_MAX_MESSAGES: 500
+    ports:
+      - '127.0.0.1:${SMTP_PORT:-1025}:1025'
+      - '127.0.0.1:${MAILPIT_UI_PORT:-8025}:8025'
+    mem_limit: 128m
+    healthcheck:
+      test: ['CMD', '/mailpit', 'readyz']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+volumes:
+  postgres-data:
+  valkey-data:
+  garage-data:
+  clamav-signatures:
