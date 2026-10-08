@@ -55,7 +55,13 @@ enlaces de los correos.
   se mantiene al recargar → Mi perfil con fechas en formato colombiano → cambiar la contraseña →
   se cerró la sesión → la contraseña anterior ya no sirve → llega el correo de aviso → entrar con
   la nueva lleva de vuelta a Mi perfil.
-- `pnpm check` en verde (ver el resultado en el pull request).
+- `pnpm check` en este equipo: formato, análisis, tipos, fronteras y código sin uso en verde;
+  **102 pruebas unitarias de la API**, 80 de la web, 34+ del worker y las de los paquetes;
+  **115 pruebas con base de datos real de la API** y 13 del worker; compilación; **50 pruebas en
+  navegador**; sin secretos. Una sola prueba, `apps/api/test/startup.test.ts` (de B02), falló por
+  tiempo dos veces cuando corren todas a la vez; sola pasó 2 de 2. Es la misma lentitud de este
+  equipo anotada desde B03; **no se modificó**. La integración continua de GitHub es la que decide
+  (ver el pull request).
 - Cobertura: API 96 % de líneas en pruebas unitarias y 98 % en pruebas con base de datos real; web 99 %.
 - **Reloj de prueba:** las pruebas adelantan el tiempo para comprobar el bloqueo de 15 minutos, la
   inactividad de 8 horas, el total de 12 horas y el vencimiento de los enlaces, sin esperar.
