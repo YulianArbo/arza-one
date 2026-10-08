@@ -9,7 +9,7 @@
 # sin root, fail2ban, cortafuegos con 80, 443 y SSH, actualizaciones de seguridad automáticas con
 # reinicio semanal, reloj por NTP en UTC, Docker con registros rotados y la carpeta /srv/arza-one
 # con sus contraseñas. Se puede repetir: cada paso revisa si ya está hecho.
-set -euo pipefail
+set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BASE_DIR=/srv/arza-one
@@ -29,6 +29,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 fail() { echo "ERROR: $*" >&2; exit 1; }
+trap 'echo "ERROR en la línea $LINENO: $BASH_COMMAND" >&2' ERR
 step() { printf '\n==> %s\n' "$*"; }
 
 [[ $EUID -eq 0 ]] || fail "Ejecute con sudo (como root)."
@@ -70,7 +71,7 @@ usermod -aG sudo "$admin"
 # El administrador entra solo con llave: sudo sin contraseña (no tiene contraseña).
 echo "$admin ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/90-$admin"
 chmod 440 "/etc/sudoers.d/90-$admin"
-visudo -cq
+visudo -cqf "/etc/sudoers.d/90-$admin"
 # deploy: sin sudo, sin terminal interactiva ni reenvío de puertos (restrict). Usa Docker.
 add_user "$DEPLOY_USER" "$deploy_key" "restrict "
 passwd -l root >/dev/null

@@ -8,9 +8,9 @@ import { compose, BUNDLE_PATHS } from './release.ts';
 import { DeployError, sshArgs, type CommandResult, type Remote, type SshTarget } from './remote.ts';
 
 function spawn(command: string, args: readonly string[], input?: string | Buffer): CommandResult {
+  // Sin «encoding»: la entrada (texto o el paquete tar) y la salida viajan como bytes.
   const result = spawnSync(command, args, {
-    input,
-    encoding: 'buffer',
+    input: typeof input === 'string' ? Buffer.from(input, 'utf8') : input,
     maxBuffer: 64 * 1024 * 1024,
   });
   return {

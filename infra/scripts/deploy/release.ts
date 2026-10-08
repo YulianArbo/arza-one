@@ -12,6 +12,8 @@ export const BUNDLE_PATHS = [
   'infra/caddy/Caddyfile',
   'infra/postgres/init',
   'infra/garage/garage.local.toml',
+  // Para revisar el servidor en cualquier momento (sudo bash current/infra/server/verify.sh).
+  'infra/server/verify.sh',
 ];
 
 /** Commit (7 a 40 caracteres hexadecimales) o etiqueta vX.Y.Z. Nada más llega a bash. */
