@@ -43,9 +43,10 @@ jobs:
         run: pnpm exec commitlint --from "$BASE_SHA" --to "$HEAD_SHA" --verbose
       - name: 1. Formato (Prettier)
         run: pnpm format:check
-      # El análisis con tipos necesita los tipos compilados de los paquetes compartidos.
-      - name: Compilar los paquetes compartidos
-        run: pnpm exec turbo run build --filter="./packages/*"
+      # El análisis con tipos necesita los tipos compilados de los paquetes compartidos y de la
+      # plataforma de la API, que el worker reutiliza (B06).
+      - name: Compilar los paquetes compartidos y la API
+        run: pnpm exec turbo run build --filter="./packages/*" --filter=@arza/api
       - name: 1. Análisis estático (ESLint, cero advertencias)
         run: pnpm lint
       - name: 2. Tipos
@@ -70,7 +71,7 @@ jobs:
         run: pnpm test
 
   integration:
-    name: 5. Integración con base de datos real
+    name: 5. Integración con base de datos, colas y correo reales
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -78,7 +79,7 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup
-      - name: Pruebas con PostgreSQL 17 (incluye aislamiento entre empresas)
+      - name: Pruebas con PostgreSQL 17, Valkey y Mailpit (aislamiento entre empresas y reintentos)
         run: pnpm test:int
 
   security:
@@ -146,7 +147,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [api, web]
+        app: [api, web, worker]
     env:
       TRIVY_VERSION: 0.74.0
       TRIVY_SHA256: 2ae6fe3ee734b7fdf11335663e18c75ea12dccc76062f09f164a3b0f8be4371a

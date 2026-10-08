@@ -10,6 +10,7 @@
     "prepare": "lefthook install",
     "dev": "turbo run dev",
     "build": "turbo run build",
+    "build:types": "turbo run build --filter=./packages/* --filter=@arza/api --output-logs=errors-only",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "test:int": "turbo run test:int",
@@ -29,7 +30,7 @@
     "boundaries": "depcruise apps packages --config .dependency-cruiser.cjs",
     "unused": "knip",
     "secrets": "gitleaks git --no-banner --redact",
-    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm boundaries && pnpm unused && pnpm test && pnpm test:int && pnpm build && pnpm test:e2e && pnpm secrets"
+    "check": "pnpm format:check && pnpm build:types && pnpm lint && pnpm typecheck && pnpm boundaries && pnpm unused && pnpm test && pnpm test:int && pnpm build && pnpm test:e2e && pnpm secrets"
   },
   "devDependencies": {
     "@arza/config": "workspace:*",
