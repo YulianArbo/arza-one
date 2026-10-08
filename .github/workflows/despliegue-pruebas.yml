@@ -1,0 +1,125 @@
+# Despliegue automático al ambiente de pruebas (numeral 10.6, ADR-017 y ADR-018, bloque B07).
+# Cuando la integración continua termina en verde sobre main, construye las imágenes de ese commit,
+# las publica en el registro privado de GitHub (GHCR) y las despliega en el servidor de pruebas:
+# copia de la base, migraciones, pruebas de humo y reversión automática si algo falla.
+#
+# Mientras el servidor no exista (variable STAGING_HOST vacía), solo deja un aviso y no hace nada.
+# Configuración: docs/runbooks/servidor-de-pruebas.md, paso «Conectar GitHub».
+name: Despliegue a pruebas
+
+on:
+  workflow_run:
+    workflows: ['Integración continua']
+    types: [completed]
+    branches: [main]
+  # Volver a desplegar a mano el último commit de main (por ejemplo, después de preparar el servidor).
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Un despliegue a la vez; uno nuevo espera a que termine el anterior (nunca lo interrumpe).
+concurrency:
+  group: despliegue-pruebas
+  cancel-in-progress: false
+
+env:
+  # El commit que la integración continua verificó (o el de main si se lanzó a mano).
+  APP_VERSION: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+jobs:
+  pending:
+    name: Servidor de pruebas sin configurar
+    if: vars.STAGING_HOST == ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Aviso
+        run: |
+          echo "::notice title=Despliegue a pruebas::El servidor de pruebas aún no está configurado (falta la variable STAGING_HOST). No se desplegó nada. Guía: docs/runbooks/servidor-de-pruebas.md"
+
+  images:
+    name: Imagen ${{ matrix.app }} para pruebas
+    # Solo commits de main que pasaron todas las verificaciones.
+    if: >-
+      vars.STAGING_HOST != '' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'))
+    # Oracle Cloud (ARM): STAGING_PLATFORM=linux/arm64 construye en una máquina ARM de GitHub.
+    runs-on: ${{ vars.STAGING_PLATFORM == 'linux/arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: true
+      matrix:
+        app: [api, web, worker, migrate]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.APP_VERSION }}
+          persist-credentials: false
+      - name: Construir
+        run: |
+          bash infra/scripts/ci/build-image.sh "${{ matrix.app }}" "arza-one/${{ matrix.app }}:deploy" \
+            "${{ vars.STAGING_PLATFORM || 'linux/amd64' }}"
+      # Las mismas imágenes de este commit ya pasaron Trivy en la integración continua (tarea 8).
+      - name: Publicar en el registro privado de GitHub
+        env:
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/arza-one-${{ matrix.app }}:${APP_VERSION}"
+          echo "$REGISTRY_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          docker tag "arza-one/${{ matrix.app }}:deploy" "$image"
+          docker push --quiet "$image"
+          docker logout ghcr.io
+
+  deploy:
+    name: Desplegar en pruebas
+    needs: images
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: read
+    # Ambiente de GitHub «pruebas»: guarda los secretos y el historial de despliegues (auditoría).
+    environment:
+      name: pruebas
+      url: https://${{ vars.STAGING_DOMAIN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.APP_VERSION }}
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - name: Llave SSH y huella conocida del servidor
+        env:
+          SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.STAGING_SSH_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+      - name: Desplegar con pruebas de humo y reversión automática
+        env:
+          STAGING_HOST: ${{ vars.STAGING_HOST }}
+          STAGING_SSH_PORT: ${{ vars.STAGING_SSH_PORT }}
+          STAGING_DOMAIN: ${{ vars.STAGING_DOMAIN }}
+          STAGING_AUTH_USER: ${{ vars.STAGING_AUTH_USER }}
+          STAGING_AUTH_PASSWORD: ${{ secrets.STAGING_AUTH_PASSWORD }}
+          REGISTRY_USER: ${{ github.actor }}
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          export IMAGE_REGISTRY="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}"
+          node infra/scripts/deploy/deploy-main.ts
+      - name: Solo 80, 443 y SSH abiertos (numeral 10.2)
+        if: always()
+        env:
+          STAGING_HOST: ${{ vars.STAGING_HOST }}
+          STAGING_SSH_PORT: ${{ vars.STAGING_SSH_PORT || '22' }}
+        run: node infra/scripts/deploy/check-ports.ts "$STAGING_HOST" "$STAGING_SSH_PORT"
+      - name: Borrar la llave SSH
+        if: always()
+        run: rm -f ~/.ssh/id_ed25519

@@ -147,7 +147,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [api, web, worker]
+        # migrate: imagen de migraciones del despliegue (B07), etapa del Dockerfile de la API.
+        app: [api, web, worker, migrate]
     env:
       TRIVY_VERSION: 0.74.0
       TRIVY_SHA256: 2ae6fe3ee734b7fdf11335663e18c75ea12dccc76062f09f164a3b0f8be4371a
@@ -156,7 +157,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Construir la imagen
-        run: docker build --file "apps/${{ matrix.app }}/Dockerfile" --tag "arza-one/${{ matrix.app }}:ci" .
+        run: bash infra/scripts/ci/build-image.sh "${{ matrix.app }}" "arza-one/${{ matrix.app }}:ci"
       - name: Instalar Trivy (versión fija y huella verificada)
         run: |
           mkdir -p "$RUNNER_TEMP/bin"
@@ -193,10 +194,51 @@ jobs:
           path: apps/web/test-results
           retention-days: 7
 
+  deploy-rehearsal:
+    name: 11. Ensayo de despliegue y reversión automática
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      # Este mismo equipo hace de servidor: publica una versión buena y luego una dañada, que
+      # debe revertirse sola (criterios de B07).
+      - name: Publicar una versión buena y revertir una dañada
+        run: bash infra/scripts/deploy/rehearsal.sh
+
+  server-rehearsal:
+    name: 12. Preparación y endurecimiento del servidor (Ubuntu 24.04)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - name: Análisis de los guiones de bash (ShellCheck)
+        run: shellcheck --external-sources infra/server/*.sh infra/scripts/ci/*.sh infra/scripts/deploy/*.sh infra/postgres/init/*.sh
+      # La máquina de GitHub es un Ubuntu 24.04 desechable: se prepara con provision.sh y se
+      # comprueba desde fuera (SSH, root, contraseñas, puertos).
+      - name: Preparar este equipo como servidor y comprobarlo
+        run: bash infra/server/rehearsal.sh
+
   verifications:
     name: Verificaciones
     if: always()
-    needs: [quality, unit, integration, security, migrations, images, e2e]
+    needs:
+      [
+        quality,
+        unit,
+        integration,
+        security,
+        migrations,
+        images,
+        e2e,
+        deploy-rehearsal,
+        server-rehearsal,
+      ]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
