@@ -16,7 +16,7 @@
     "test": "vitest run --coverage",
     "test:int": "prisma generate && vitest run --config vitest.int.config.ts --coverage",
     "start": "node --env-file-if-exists=../../.env dist/main.js",
-    "dev": "tsc -p tsconfig.build.json && node --env-file-if-exists=../../.env dist/main.js",
+    "dev": "node ../../infra/scripts/local/dev-watch.ts dist/main.js",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:seed": "node --env-file-if-exists=../../.env dist/platform/database/seed/seed-main.js",

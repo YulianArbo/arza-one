@@ -57,7 +57,7 @@ describe('infraUp', () => {
         'postgres valkey garage gotenberg mailpit',
     );
     expect(calls[2]).toBe('docker compose --file local.yml --env-file .env up --detach clamav');
-    expect(calls.slice(-2)).toEqual(['node pnpm.cjs db:migrate', 'node pnpm.cjs db:seed']);
+    expect(calls.slice(-2)).toEqual(['node pnpm.cjs db:migrate', 'node pnpm.cjs db:seed:demo']);
     expect(printed.join('')).toContain('localhost:5433');
     expect(printed.join('')).toContain('http://localhost:8025');
   });
@@ -87,7 +87,7 @@ describe('infraUp: fallas', () => {
     expect(() => {
       infraUp(deps);
     }).toThrow('Falló «pnpm db:migrate»');
-    expect(calls).not.toContain('node pnpm.cjs db:seed');
+    expect(calls).not.toContain('node pnpm.cjs db:seed:demo');
   });
 
   it('exige las variables del almacenamiento antes de encender nada', () => {
@@ -129,7 +129,7 @@ describe('infraReset', () => {
     infraReset(deps);
     expect(calls).toContain('docker volume rm arza-one-local_postgres-data');
     expect(calls.join('\n')).not.toContain('volume rm arza-one-local_clamav-signatures');
-    expect(calls.at(-1)).toBe('node pnpm.cjs db:seed');
+    expect(calls.at(-1)).toBe('node pnpm.cjs db:seed:demo');
   });
 
   it('no intenta borrar si no hay volúmenes de datos', () => {

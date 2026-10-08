@@ -11,7 +11,7 @@ export const QUEUES = { platform: 'platform' } as const;
  * Todo trabajo lleva la empresa en cuyo nombre se ejecuta, que el worker fija en la transacción
  * igual que la API (numeral 13.2), y el identificador de correlación para seguirlo en los registros.
  */
-export const tenantJobSchema = z.object({
+const tenantJobSchema = z.object({
   tenantId: z.uuid(),
   /** null en trabajos del sistema, sin usuario. */
   userId: z.uuid().nullable(),
@@ -19,7 +19,7 @@ export const tenantJobSchema = z.object({
 });
 
 /** Trabajo de ejemplo (B06): envía un correo de prueba con el nombre de la empresa. */
-export const exampleEmailJobSchema = tenantJobSchema.extend({
+const exampleEmailJobSchema = tenantJobSchema.extend({
   recipient: z.email(),
 });
 

@@ -394,9 +394,6 @@ importers:
       '@arza/api':
         specifier: workspace:*
         version: link:../api
-      '@arza/contracts':
-        specifier: workspace:*
-        version: link:../../packages/contracts
       '@nestjs/common':
         specifier: ~11.2.7
         version: 11.2.7(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@7.2.0)
@@ -406,6 +403,9 @@ importers:
       bullmq:
         specifier: ^6.3.11
         version: 6.3.11(ioredis@6.0.0(supports-color@7.2.0))(pg@8.23.1)
+      ioredis:
+        specifier: ^6.0.0
+        version: 6.0.0(supports-color@7.2.0)
       nodemailer:
         specifier: ~10.0.15
         version: 10.0.15
@@ -418,19 +418,25 @@ importers:
       rxjs:
         specifier: ^7.8.2
         version: 7.8.2
+      uuid:
+        specifier: ^14.0.2
+        version: 14.0.2
       zod:
         specifier: ^4.6.5
         version: 4.6.5
     devDependencies:
-      '@testcontainers/postgresql':
-        specifier: ^12.2.0
-        version: 12.2.0(supports-color@7.2.0)
       '@types/node':
         specifier: ^24.19.1
         version: 24.19.1
+      '@types/pg':
+        specifier: ^8.23.1
+        version: 8.23.1
       '@vitest/coverage-v8':
         specifier: ^5.0.3
         version: 5.0.3(vitest@5.0.3)
+      pg:
+        specifier: ^8.23.1
+        version: 8.23.1
       testcontainers:
         specifier: ^12.2.0
         version: 12.2.0(supports-color@7.2.0)

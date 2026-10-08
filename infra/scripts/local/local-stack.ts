@@ -88,10 +88,13 @@ export function deleteData(run: RunCommand, files: StackFiles): void {
   }
 }
 
-/** Aplica las migraciones y carga los datos semilla (idempotentes). */
+/**
+ * Aplica las migraciones y carga los datos semilla con las dos empresas ficticias de demostración
+ * (idempotentes). Solo en el entorno local: la semilla de demostración nunca va a producción.
+ */
 export function prepareDatabase(run: RunCommand, pnpm: readonly string[]): void {
   const [command = 'pnpm', ...prefix] = pnpm;
-  for (const script of ['db:migrate', 'db:seed']) {
+  for (const script of ['db:migrate', 'db:seed:demo']) {
     if (run(command, [...prefix, script], { show: true }).status !== 0) {
       throw new LocalStackError(`Falló «pnpm ${script}». Lea el mensaje de arriba.`);
     }

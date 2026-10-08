@@ -1,0 +1,29 @@
+import { JOBS } from '@arza/api/platform';
+import { UnrecoverableError } from 'bullmq';
+import { describe, expect, it } from 'vitest';
+
+import { createJobRouter, type JobDependencies } from './job-router.js';
+
+const unusedDeps: JobDependencies = {
+  database: { withTenant: async () => Promise.reject(new Error('no se usa')) },
+  mailer: { send: async () => Promise.reject(new Error('no se usa')) },
+};
+
+describe('enrutador de trabajos', () => {
+  it('envía el trabajo de ejemplo a su procesador', async () => {
+    const route = createJobRouter(unusedDeps);
+    // El procesador de ejemplo rechaza estos datos: prueba de que el trabajo llegó a él.
+    await expect(route({ name: JOBS.exampleEmail.name, data: {} })).rejects.toThrow(
+      'Los datos del trabajo no son válidos',
+    );
+  });
+
+  it('rechaza sin reintento un trabajo sin procesador', async () => {
+    const route = createJobRouter(unusedDeps);
+    const failure = route({ name: 'desconocido.trabajo', data: {} });
+    await expect(failure).rejects.toBeInstanceOf(UnrecoverableError);
+    await expect(failure).rejects.toThrow(
+      'No hay procesador para el trabajo «desconocido.trabajo».',
+    );
+  });
+});

@@ -3,8 +3,11 @@
   "ignoreBinaries": ["gitleaks"],
   "workspaces": {
     "apps/api": {
-      "entry": ["src/main.ts", "src/platform/database/seed/seed-main.ts"],
+      "entry": ["src/main.ts", "src/platform/database/seed/seed-main.ts", "src/platform/index.ts"],
       "ignoreDependencies": ["@prisma/client"]
+    },
+    "apps/worker": {
+      "entry": ["src/main.ts", "src/healthcheck.ts", "src/cli/enqueue-example.ts"]
     }
   }
 }

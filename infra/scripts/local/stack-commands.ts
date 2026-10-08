@@ -20,7 +20,7 @@ export interface StackDependencies {
   readonly print: (message: string) => void;
 }
 
-export function garageSettings(env: StackDependencies['env']): GarageSettings {
+function garageSettings(env: StackDependencies['env']): GarageSettings {
   const bucket = env['S3_BUCKET'];
   const accessKeyId = env['S3_ACCESS_KEY'];
   const secretAccessKey = env['S3_SECRET_KEY'];
