@@ -1,6 +1,7 @@
 // Los tres comandos del entorno local (B06): encender, apagar y reiniciar los datos.
 import { setupGarage, type GarageCli, type GarageSettings } from './garage-setup.ts';
 import {
+  composeArgs,
   deleteData,
   ensureDocker,
   LocalStackError,
@@ -49,7 +50,7 @@ function summary(env: StackDependencies['env']): string {
     `  Correo de prueba (Mailpit)   http://localhost:${port(env, 'MAILPIT_UI_PORT', '8025')}`,
     '',
     '(*) El antivirus termina de arrancar solo, en unos minutos (la primera vez, hasta 15).',
-    '    Para ver el estado de cada servicio: docker compose --file infra/compose/local.yml ps',
+    '    Para ver el estado de cada servicio: pnpm infra:status',
     '',
     'Siguiente paso: «pnpm dev» enciende la API, el worker y la web.',
     '',
@@ -72,6 +73,12 @@ export function infraDown(deps: Pick<StackDependencies, 'run' | 'files' | 'print
   ensureDocker(deps.run);
   stopServices(deps.run, deps.files);
   deps.print('Servicios detenidos. Los datos se conservan; «pnpm infra:up» los enciende.\n');
+}
+
+/** Estado de cada servicio: la columna STATUS debe decir «healthy». */
+export function infraStatus(deps: Pick<StackDependencies, 'run' | 'files'>): void {
+  ensureDocker(deps.run);
+  deps.run('docker', composeArgs(deps.files, 'ps', '--all'), { show: true });
 }
 
 export function infraReset(deps: StackDependencies): void {

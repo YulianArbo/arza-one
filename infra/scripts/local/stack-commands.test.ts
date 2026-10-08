@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import type { CommandResult, RunCommand } from './local-stack.ts';
-import { infraDown, infraReset, infraUp, type StackDependencies } from './stack-commands.ts';
+import {
+  infraDown,
+  infraReset,
+  infraStatus,
+  infraUp,
+  type StackDependencies,
+} from './stack-commands.ts';
 
 const ok = (stdout = ''): CommandResult => ({ status: 0, stdout, stderr: '' });
 const failed = (stderr = 'falló'): CommandResult => ({ status: 1, stdout: '', stderr });
@@ -115,6 +121,14 @@ describe('infraDown', () => {
     expect(() => {
       infraDown(deps);
     }).toThrow('No se pudieron detener');
+  });
+});
+
+describe('infraStatus', () => {
+  it('muestra el estado de todos los servicios, también los detenidos', () => {
+    const { calls, deps } = recorder();
+    infraStatus(deps);
+    expect(calls.at(-1)).toBe('docker compose --file local.yml --env-file .env ps --all');
   });
 });
 

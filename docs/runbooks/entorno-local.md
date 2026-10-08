@@ -26,14 +26,15 @@ producción (B07).
 
 ## Comandos
 
-| Comando            | Qué hace                                                                                                                  |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm env:local`   | Crea `.env` con contraseñas locales al azar y puertos libres. Nunca sobrescribe un `.env` existente                       |
-| `pnpm infra:up`    | Enciende los servicios, prepara Garage, aplica las migraciones y carga la semilla con las dos empresas ficticias          |
-| `pnpm infra:down`  | Apaga los servicios y conserva los datos                                                                                  |
-| `pnpm infra:reset` | Borra los datos (base, colas y archivos) y vuelve a encender todo. Conserva la base de firmas del antivirus               |
-| `pnpm dev`         | Enciende la API, el worker y la web. Al guardar un cambio en la API o el worker, se recompilan y reinician solos          |
-| `pnpm job:ejemplo` | Encola el trabajo de ejemplo: el worker envía un correo de prueba a Mailpit. Acepta `demo-uno`, `demo-dos` o `plataforma` |
+| Comando             | Qué hace                                                                                                                  |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm env:local`    | Crea `.env` con contraseñas locales al azar y puertos libres. Nunca sobrescribe un `.env` existente                       |
+| `pnpm infra:up`     | Enciende los servicios, prepara Garage, aplica las migraciones y carga la semilla con las dos empresas ficticias          |
+| `pnpm infra:down`   | Apaga los servicios y conserva los datos                                                                                  |
+| `pnpm infra:status` | Muestra el estado de cada servicio: la columna `STATUS` debe decir `healthy`                                              |
+| `pnpm infra:reset`  | Borra los datos (base, colas y archivos) y vuelve a encender todo. Conserva la base de firmas del antivirus               |
+| `pnpm dev`          | Enciende la API, el worker y la web. Al guardar un cambio en la API o el worker, se recompilan y reinician solos          |
+| `pnpm job:ejemplo`  | Encola el trabajo de ejemplo: el worker envía un correo de prueba a Mailpit. Acepta `demo-uno`, `demo-dos` o `plataforma` |
 
 `infra:up` se puede repetir cuantas veces quiera: lo que ya está hecho no se vuelve a hacer. El
 antivirus termina de arrancar solo, en segundo plano: tarda unos minutos y la primera vez, mientras
@@ -42,7 +43,7 @@ descarga su base de virus, hasta 15.
 ## Estado de los servicios
 
 ```bash
-docker compose --file infra/compose/local.yml ps
+pnpm infra:status
 ```
 
 La columna `STATUS` debe decir `healthy` en cada servicio. Desde el navegador:

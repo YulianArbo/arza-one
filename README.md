@@ -120,6 +120,7 @@ Más detalles en [`apps/api/README.md`](apps/api/README.md),
 | `pnpm env:local`                                | Crea `.env` con contraseñas locales al azar y puertos libres (desde B06)          |
 | `pnpm infra:up` · `pnpm infra:down`             | Enciende los servicios locales en Docker · los apaga conservando los datos        |
 | `pnpm infra:reset`                              | Borra los datos locales ficticios y vuelve a encender todo                        |
+| `pnpm infra:status`                             | Estado de cada servicio local (debe decir `healthy`)                              |
 | `pnpm job:ejemplo [empresa]`                    | Encola el trabajo de ejemplo: un correo de prueba que llega a Mailpit             |
 | `pnpm db:migrate`                               | Aplica las migraciones pendientes de la base de datos                             |
 | `pnpm db:seed` · `pnpm db:seed:demo`            | Datos semilla · semilla más dos empresas ficticias (nunca en producción)          |

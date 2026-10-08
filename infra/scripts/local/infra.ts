@@ -1,4 +1,4 @@
-// Uso: pnpm infra:up | pnpm infra:down | pnpm infra:reset   (bloque B06)
+// Uso: pnpm infra:up | infra:down | infra:reset | infra:status   (bloque B06)
 import {
   garageCli,
   main,
@@ -7,7 +7,7 @@ import {
   runCommand,
   STACK_FILES,
 } from './node-runner.ts';
-import { infraDown, infraReset, infraUp } from './stack-commands.ts';
+import { infraDown, infraReset, infraStatus, infraUp } from './stack-commands.ts';
 
 const print = (message: string): void => {
   process.stdout.write(message);
@@ -15,6 +15,10 @@ const print = (message: string): void => {
 
 main(() => {
   const action = process.argv[2];
+  if (action === 'status') {
+    infraStatus({ run: runCommand, files: STACK_FILES });
+    return;
+  }
   if (action === 'down') {
     infraDown({ run: runCommand, files: STACK_FILES, print });
     return;
