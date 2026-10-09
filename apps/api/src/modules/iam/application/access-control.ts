@@ -24,7 +24,7 @@ function toGrant(stored: StoredGrant): PermissionGrant | null {
   return ownField === null ? null : { code: stored.code, ownField };
 }
 
-export function grantsOf(stored: readonly StoredGrant[]): PermissionGrant[] {
+function grantsOf(stored: readonly StoredGrant[]): PermissionGrant[] {
   return stored.flatMap((item) => {
     const grant = toGrant(item);
     return grant === null ? [] : [grant];

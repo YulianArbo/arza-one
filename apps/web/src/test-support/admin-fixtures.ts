@@ -8,7 +8,7 @@ export const ME_ID = SESSION.user.id;
 export const LUIS_ID = '01999a00-0000-7000-8000-00000000a002';
 export const ROLE_COMERCIAL = '01999a00-0000-7000-8000-00000000c001';
 export const ROLE_CUSTOM = '01999a00-0000-7000-8000-00000000c002';
-export const ROLE_CLIENT = '01999a00-0000-7000-8000-00000000c003';
+const ROLE_CLIENT = '01999a00-0000-7000-8000-00000000c003';
 export const ASSIGNMENT_ID = '01999a00-0000-7000-8000-00000000d001';
 
 function grants(codes: readonly PermissionCode[], scope: 'all' | 'own' = 'all') {

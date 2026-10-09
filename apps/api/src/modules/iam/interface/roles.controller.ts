@@ -42,7 +42,7 @@ class RoleCreatedResponse extends createZodDto(createdResponseSchema) {}
 class ErrorResponse extends createZodDto(errorResponseSchema) {}
 
 /** Versión del registro en la cabecera If-Match (numeral 14.1): «3» o «"3"». */
-export function versionFromIfMatch(header: string | undefined): number {
+function versionFromIfMatch(header: string | undefined): number {
   const value = header
     ?.trim()
     .replace(/^W\//, '')
