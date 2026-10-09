@@ -87,7 +87,11 @@ describe('invitar a una persona', () => {
     const user = await inTenant((tx) => tx.user.findUniqueOrThrow({ where: { id: userId } }));
     expect(user).toMatchObject({ status: 'invited', passwordHash: null, kind: 'internal' });
     expect(await accountEmailJobs(userId, 'invitation')).toHaveLength(1);
-    expect(await auditActions(database, tenant.id, userId)).toEqual(['iam.user.invite:success']);
+    // Desde B10, toda persona interna recibe el rol COLABORADOR al ser invitada.
+    expect(await auditActions(database, tenant.id, userId)).toEqual([
+      'iam.user.invite:success',
+      'iam.role.assign:success',
+    ]);
   });
 
   it('el correo lleva a la página de activación con la llave después de #', async () => {
@@ -104,7 +108,7 @@ describe('invitar a una persona', () => {
   it('volver a invitar reenvía la invitación pendiente', async () => {
     const email = uniqueEmail('reenvio');
     const userId = await invite(email);
-    await expect(inviteInto(tenant.id, email)).resolves.toBe('resent');
+    await expect(inviteInto(tenant.id, email)).resolves.toEqual({ userId, outcome: 'resent' });
     expect(await accountEmailJobs(userId, 'invitation')).toHaveLength(2);
   });
 });

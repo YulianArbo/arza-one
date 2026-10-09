@@ -11,8 +11,8 @@ import { SecondFactorResetUseCase } from '../../application/second-factor-reset.
 
 // `pnpm iam:reiniciar-segundo-factor`: el responsable técnico reinicia el segundo factor de una
 // persona que perdió el celular y los códigos de recuperación (B09). Antes de hacerlo, confirme la
-// identidad de la persona por otro medio (en persona o por videollamada). La pantalla de usuarios
-// con el permiso iam.user.reset_mfa llega en B10.
+// identidad de la persona por otro medio (en persona o por videollamada). Desde B10 también se
+// hace en la pantalla de usuarios, con el permiso iam.user.reset_mfa.
 
 const USAGE = 'Uso: pnpm iam:reiniciar-segundo-factor --correo <correo>';
 

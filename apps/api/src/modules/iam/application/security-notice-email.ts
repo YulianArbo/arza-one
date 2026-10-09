@@ -7,7 +7,7 @@ import { latestDevice, remainingRecoveryCodes } from '../infrastructure/second-f
 import { bogotaDateTime, greeting, SIGNATURE, type AccountEmail } from './email-format.js';
 
 // Avisos de seguridad a la persona (B09, «Eventos y alertas de seguridad»): cada cambio de su
-// segundo factor y cada entrada desde un equipo nuevo. Nunca llevan códigos ni secretos.
+// segundo factor, cada entrada desde un equipo nuevo y cada cambio de sus roles (B10). Nunca llevan códigos ni secretos.
 
 const NOTICES = [
   'mfa_enabled',
@@ -17,6 +17,7 @@ const NOTICES = [
   'recovery_codes_regenerated',
   'recovery_code_used',
   'new_device',
+  'permissions_changed',
 ] as const satisfies readonly AccountEmailPurpose[];
 
 export type SecurityNotice = (typeof NOTICES)[number];
@@ -55,6 +56,11 @@ const TEXTS: Readonly<
     subject: 'Se reinició el segundo factor de su cuenta de ARZA ONE',
     body: (when) =>
       `El ${when} (hora de Colombia) el responsable técnico reinició el segundo factor de su cuenta y cerró todas sus sesiones. La próxima vez que entre deberá configurarlo de nuevo con su celular.`,
+  },
+  permissions_changed: {
+    subject: 'Cambiaron sus roles en ARZA ONE',
+    body: (when) =>
+      `El ${when} (hora de Colombia) un administrador cambió los roles de su cuenta. Puede ver los que tiene ahora en «Mi perfil».`,
   },
   recovery_codes_regenerated: {
     subject: 'Generó códigos de recuperación nuevos en ARZA ONE',
