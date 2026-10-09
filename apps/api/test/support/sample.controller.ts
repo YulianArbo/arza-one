@@ -2,7 +2,12 @@ import { Body, Controller, Get, HttpStatus, Post } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-import { Authenticated, Public } from '../../src/platform/access/access.decorators.js';
+import {
+  Authenticated,
+  Public,
+  RecentAuthentication,
+  SigningIn,
+} from '../../src/platform/access/access.decorators.js';
 import { CurrentPrincipal, type Principal } from '../../src/platform/access/principal.js';
 import { AppError } from '../../src/platform/errors/app-error.js';
 import { Meta, type RequestMeta } from '../../src/platform/http/request-meta.js';
@@ -53,6 +58,19 @@ export class SampleController {
   @Post('private-change')
   privateChange(@CurrentPrincipal() principal: Principal): object {
     return { userId: principal.userId };
+  }
+
+  @SigningIn()
+  @Get('signing-in')
+  signingIn(@CurrentPrincipal() principal: Principal): object {
+    return { signInComplete: principal.signInComplete };
+  }
+
+  @Authenticated()
+  @RecentAuthentication()
+  @Get('high-risk')
+  highRisk(): string {
+    return 'acción de alto riesgo';
   }
 
   @Public()

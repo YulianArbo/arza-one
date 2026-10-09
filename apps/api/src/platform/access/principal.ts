@@ -8,6 +8,10 @@ export interface Principal {
   readonly sessionId: string;
   /** Código antifalsificación que la petición debe traer en X-CSRF-Token (paso 5). */
   readonly csrfToken: string;
+  /** El inicio de sesión está completo: pasó el segundo factor si le corresponde (B09). */
+  readonly signInComplete: boolean;
+  /** Confirmó su identidad hace poco, como exigen las acciones de alto riesgo (numeral 15.1). */
+  readonly recentlyVerified: boolean;
 }
 
 /** Valida la sesión de la petición. Lo implementa el módulo de identidad (M01). */
