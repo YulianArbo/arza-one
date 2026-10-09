@@ -123,15 +123,19 @@ function ReauthActions({
   );
 }
 
+/** Por qué se pide: por defecto, porque la acción cambia la seguridad de la cuenta propia. */
+const OWN_ACCOUNT_REASON = 'Esta acción cambia la seguridad de su cuenta.';
+
 interface ReauthDialogProps {
   readonly session: SessionResponse;
+  readonly reason: string;
   readonly open: boolean;
   readonly onDone: () => void;
   readonly onCancel: () => void;
 }
 
 /** «Confirme que es usted»: contraseña y, si tiene segundo factor, su código. Vale 30 minutos. */
-function ReauthDialog({ session, open, onDone, onCancel }: ReauthDialogProps): JSX.Element {
+function ReauthDialog({ session, reason, open, onDone, onCancel }: ReauthDialogProps): JSX.Element {
   const withCode = useHasSecondFactor(open);
   return (
     <Dialog
@@ -144,7 +148,7 @@ function ReauthDialog({ session, open, onDone, onCancel }: ReauthDialogProps): J
         <DialogHeader>
           <DialogTitle>Confirme que es usted</DialogTitle>
           <DialogDescription>
-            Esta acción cambia la seguridad de su cuenta. Escriba su contraseña
+            {reason} Escriba su contraseña
             {withCode ? ' y el código de su aplicación' : ''} para continuar.
           </DialogDescription>
         </DialogHeader>
@@ -166,7 +170,10 @@ export interface Reauthentication {
 }
 
 /** Confirmación de identidad para las acciones de alto riesgo de una pantalla. */
-export function useReauthentication(session: SessionResponse): Reauthentication {
+export function useReauthentication(
+  session: SessionResponse,
+  reason: string = OWN_ACCOUNT_REASON,
+): Reauthentication {
   const [retry, setRetry] = useState<(() => void) | null>(null);
   const handle = useCallback((error: unknown, action: () => void): boolean => {
     if (!needsReauthentication(error)) return false;
@@ -181,6 +188,7 @@ export function useReauthentication(session: SessionResponse): Reauthentication 
   const dialog = (
     <ReauthDialog
       session={session}
+      reason={reason}
       open={retry !== null}
       onDone={done}
       onCancel={() => {

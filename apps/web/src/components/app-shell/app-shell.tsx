@@ -1,12 +1,15 @@
+'use client';
+
 import type { JSX, ReactNode } from 'react';
 
-import { currentPermissions } from '../../lib/session/current-permissions';
+import { usePermissions } from '../../features/session/permissions';
 import { Sidebar } from './sidebar';
 import { TopBar } from './top-bar';
 
 /** Estructura de pantalla de la aplicación interna (numeral 16.3). Texto base de 14 px. */
 export function AppShell({ children }: { children: ReactNode }): JSX.Element {
-  const permissions = [...currentPermissions()];
+  // Mientras llegan los permisos, el menú muestra solo lo que no los necesita.
+  const permissions = [...usePermissions().granted];
   return (
     <div className="flex min-h-dvh text-sm">
       <a

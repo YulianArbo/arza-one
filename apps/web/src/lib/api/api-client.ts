@@ -22,9 +22,15 @@ interface PostOptions<T> {
   csrfToken?: string;
 }
 
+interface PatchOptions<T> extends PostOptions<T> {
+  /** Versión del registro que se editó (cabecera If-Match, numeral 14.1). */
+  version: number;
+}
+
 export interface ApiClient {
   get<T>(path: string, options: GetOptions<T>): Promise<T>;
   post<T = void>(path: string, options: PostOptions<T>): Promise<T>;
+  patch<T = void>(path: string, options: PatchOptions<T>): Promise<T>;
 }
 
 const CSRF_HEADER = 'X-CSRF-Token';
@@ -48,21 +54,38 @@ export function createApiClient(baseUrl: string, fetchImpl: typeof fetch = fetch
     },
 
     async post<T = void>(path: string, options: PostOptions<T>): Promise<T> {
-      const headers: Record<string, string> = {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      };
-      if (options.csrfToken !== undefined) headers[CSRF_HEADER] = options.csrfToken;
-      const init = { method: 'POST', headers, body: JSON.stringify(options.body) };
-      const response = await send(fetchImpl, apiEndpoint(baseUrl, path), init);
-      const body = await readJson(response);
-      if (!response.ok) throw toApiError(response, body);
-      // Sin esquema la respuesta no trae datos (204): no hay nada que devolver.
-      return options.schema === undefined
-        ? (undefined as T)
-        : parseBody(response, body, options.schema);
+      return sendWithBody(fetchImpl, apiEndpoint(baseUrl, path), 'POST', options);
+    },
+
+    async patch<T = void>(path: string, options: PatchOptions<T>): Promise<T> {
+      const ifMatch = { 'If-Match': `"${String(options.version)}"` };
+      return sendWithBody(fetchImpl, apiEndpoint(baseUrl, path), 'PATCH', options, ifMatch);
     },
   };
+}
+
+/** POST o PATCH con cuerpo JSON y, si hay sesión, el código antifalsificación. */
+async function sendWithBody<T>(
+  fetchImpl: typeof fetch,
+  url: URL,
+  method: 'POST' | 'PATCH',
+  options: PostOptions<T>,
+  extra: Record<string, string> = {},
+): Promise<T> {
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+    ...extra,
+  };
+  if (options.csrfToken !== undefined) headers[CSRF_HEADER] = options.csrfToken;
+  const init = { method, headers, body: JSON.stringify(options.body) };
+  const response = await send(fetchImpl, url, init);
+  const body = await readJson(response);
+  if (!response.ok) throw toApiError(response, body);
+  // Sin esquema la respuesta no trae datos (204): no hay nada que devolver.
+  return options.schema === undefined
+    ? (undefined as T)
+    : parseBody(response, body, options.schema);
 }
 
 /**

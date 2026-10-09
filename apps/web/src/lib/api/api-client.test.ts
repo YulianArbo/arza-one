@@ -128,3 +128,20 @@ describe('cliente de la API: dirección con prefijo', () => {
     expect(apiEndpoint(BASE_URL, '/version').href).toBe('http://api.test:4000/version');
   });
 });
+
+describe('cliente de la API: edición con versión (B10)', () => {
+  it('PATCH envía la versión en If-Match y el código antifalsificación', async () => {
+    const fetchImpl = vi.fn<typeof fetch>(() => Promise.resolve(jsonResponse(VERSION)));
+    const client = createApiClient(BASE_URL, fetchImpl);
+    await client.patch('/v1/roles/x', {
+      body: { name: 'Nuevo' },
+      version: 3,
+      schema: versionResponseSchema,
+      csrfToken: 'codigo',
+    });
+    const init = fetchImpl.mock.calls[0]?.[1];
+    expect(init?.method).toBe('PATCH');
+    expect(init?.headers).toMatchObject({ 'If-Match': '"3"', 'X-CSRF-Token': 'codigo' });
+    expect(init?.body).toBe(JSON.stringify({ name: 'Nuevo' }));
+  });
+});

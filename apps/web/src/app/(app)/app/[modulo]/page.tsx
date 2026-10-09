@@ -3,8 +3,7 @@ import { notFound } from 'next/navigation';
 import type { JSX } from 'react';
 
 import { findNavigationItem } from '../../../../components/app-shell/navigation';
-import { ModulePlaceholder } from '../../../../features/modules/module-placeholder';
-import { currentPermissions } from '../../../../lib/session/current-permissions';
+import { ModulePage as ModuleScreen } from '../../../../features/modules/module-page';
 
 interface ModulePageProps {
   params: Promise<{ modulo: string }>;
@@ -21,5 +20,5 @@ export default async function ModulePage({ params }: ModulePageProps): Promise<J
   if (!item?.block) {
     notFound();
   }
-  return <ModulePlaceholder item={item} granted={currentPermissions()} />;
+  return <ModuleScreen slug={item.slug} />;
 }

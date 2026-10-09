@@ -24,6 +24,7 @@ import { NewPasswordFields, useNewPassword } from '../access/new-password-fields
 import { SubmitButton } from '../access/submit-button';
 import { SESSIONS_PATH } from '../session/access-routes';
 import { useSession } from '../session/session-provider';
+import { MyRolesCard } from './my-roles-card';
 import { SecondFactorCard } from './second-factor-card';
 
 function useProfile() {
@@ -139,7 +140,7 @@ function SessionsCard(): JSX.Element {
   );
 }
 
-/** Mi perfil y seguridad (16.7): datos, contraseña, segundo factor y sesiones activas. */
+/** Mi perfil y seguridad (16.7): datos, contraseña, segundo factor, sesiones activas y roles. */
 export function ProfilePanel(): JSX.Element {
   return (
     <div className="grid gap-6 lg:grid-cols-2">
@@ -161,6 +162,7 @@ export function ProfilePanel(): JSX.Element {
       </Card>
       <SecondFactorCard />
       <SessionsCard />
+      <MyRolesCard />
     </div>
   );
 }

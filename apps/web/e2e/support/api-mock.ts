@@ -1,3 +1,4 @@
+import { PERMISSIONS } from '@arza/contracts';
 import type { Page, Route } from '@playwright/test';
 
 import { E2E_API_URL, E2E_WEB_URL } from './environment';
@@ -109,5 +110,21 @@ export async function mockSession(page: Page, kind: SessionKind): Promise<void> 
   await page.route(`${E2E_API_URL}/v1/auth/session`, async (route) => {
     if (kind === 'none') await fulfillJson(route, NO_SESSION.status, NO_SESSION.body);
     else await fulfillJson(route, 200, sessionBody(kind));
+  });
+}
+
+/** Todos los permisos del catálogo: el menú muestra todos los módulos (B10). */
+export const ALL_PERMISSIONS = {
+  roles: [{ id: '01999a00-0000-7000-8000-00000000c010', code: 'DIRECCION', name: 'Dirección' }],
+  permissions: PERMISSIONS.map((permission) => ({ code: permission.code, scope: 'all' })),
+};
+
+/** Sin roles: solo lo que no exige permiso. */
+export const NO_PERMISSIONS = { roles: [], permissions: [] };
+
+/** Cambia los permisos que la API dice que tiene la persona (GET /v1/me/permissions). */
+export async function mockPermissions(page: Page, body: unknown): Promise<void> {
+  await page.route(`${E2E_API_URL}/v1/me/permissions`, async (route) => {
+    await fulfillJson(route, 200, body);
   });
 }

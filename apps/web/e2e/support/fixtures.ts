@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { test as base, expect, type Page } from '@playwright/test';
 
-import { INTERNAL_SESSION, fulfillJson } from './api-mock';
+import { ALL_PERMISSIONS, INTERNAL_SESSION, fulfillJson } from './api-mock';
 import { E2E_API_URL, E2E_WEB_URL } from './environment';
 
 export { expect };
@@ -16,7 +16,10 @@ interface Fixtures {
   thirdPartyRequests: string[];
   /** Errores de la consola del navegador y excepciones de la página. */
   consoleErrors: string[];
-  /** Simulación base de la API: sesión interna iniciada; lo demás, sin conexión. */
+  /**
+   * Simulación base de la API: sesión interna iniciada con todos los permisos (B10); lo demás,
+   * sin conexión.
+   */
   baseApi: undefined;
 }
 
@@ -30,8 +33,11 @@ export const test = base.extend<Fixtures>({
   baseApi: [
     async ({ page }, use) => {
       await page.route(`${E2E_API_URL}/**`, async (route) => {
-        if (new URL(route.request().url()).pathname === '/v1/auth/session') {
+        const path = new URL(route.request().url()).pathname;
+        if (path === '/v1/auth/session') {
           await fulfillJson(route, 200, INTERNAL_SESSION);
+        } else if (path === '/v1/me/permissions') {
+          await fulfillJson(route, 200, ALL_PERMISSIONS);
         } else {
           await route.abort('connectionrefused');
         }

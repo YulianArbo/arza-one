@@ -11,11 +11,14 @@ const API_URL = 'http://api.test';
 export interface SentRequest {
   readonly method: string;
   readonly path: string;
+  /** Parámetros de la dirección, por ejemplo «?q=luis&limit=25». */
+  readonly search: string;
   readonly headers: Record<string, string>;
   readonly body: unknown;
 }
 
-type Handler = () => Response;
+/** Respuesta simulada; recibe la petición por si depende de sus parámetros. */
+type Handler = (request: SentRequest) => Response;
 
 export function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status });
@@ -37,14 +40,18 @@ export function mockApi(routes: Record<string, Handler>): SentRequest[] {
     vi.fn((url: URL, init: RequestInit) => {
       const method = init.method ?? 'GET';
       const body = typeof init.body === 'string' ? (JSON.parse(init.body) as unknown) : undefined;
-      sent.push({
+      const request: SentRequest = {
         method,
         path: url.pathname,
+        search: url.search,
         headers: init.headers as Record<string, string>,
         body,
-      });
+      };
+      sent.push(request);
       const handler = routes[`${method} ${url.pathname}`];
-      return handler ? Promise.resolve(handler()) : Promise.reject(new TypeError('sin conexión'));
+      return handler
+        ? Promise.resolve(handler(request))
+        : Promise.reject(new TypeError('sin conexión'));
     }),
   );
   return sent;
