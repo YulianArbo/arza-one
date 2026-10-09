@@ -58,11 +58,15 @@ function viewOf(delegation: DelegationWithPeople, now: Date): DelegationView {
 }
 
 /** Quien delega es usted, salvo que el administrador registre la de otra persona. */
-function draftOf(principal: Principal, input: CreateDelegationRequest): DelegationDraft {
+function draftOf(
+  principal: Principal,
+  input: CreateDelegationRequest,
+  toUserId: string,
+): DelegationDraft {
   return {
     actorId: principal.userId,
     fromUserId: input.from_user_id ?? principal.userId,
-    toUserId: input.to_user_id,
+    toUserId,
     startsAt: new Date(input.starts_at),
     endsAt: new Date(input.ends_at),
   };
@@ -107,13 +111,14 @@ export class DelegationsUseCase {
     meta: RequestMeta,
   ): Promise<string> {
     const now = this.clock.now();
-    const draft = draftOf(principal, input);
-    if (!canOnRecord(ability, 'iam.delegation.manage', { from_user_id: draft.fromUserId })) {
+    const fromUserId = input.from_user_id ?? principal.userId;
+    if (!canOnRecord(ability, 'iam.delegation.manage', { from_user_id: fromUserId })) {
       throw permissionDenied();
     }
-    const problem = delegationProblem(draft, now);
-    if (problem !== null) throw delegationInvalid(problem);
     return this.database.withTenant(principal, async (tx) => {
+      const draft = draftOf(principal, input, await this.delegateId(tx, input));
+      const problem = delegationProblem(draft, now);
+      if (problem !== null) throw delegationInvalid(problem);
       await this.assertPeople(tx, draft.fromUserId, draft.toUserId);
       await this.assertHeld(tx, draft.fromUserId, input.permissions, now);
       const created = await tx.delegation.create({
@@ -169,6 +174,17 @@ export class DelegationsUseCase {
         },
       );
     });
+  }
+
+  /** Quien recibe, por identificador o por correo (quien no ve la lista de usuarios). */
+  private async delegateId(tx: TenantTransaction, input: CreateDelegationRequest): Promise<string> {
+    if (input.to_user_id !== undefined) return input.to_user_id;
+    const user = await tx.user.findFirst({
+      where: { email: input.to_email ?? '', deletedAt: null },
+      select: { id: true },
+    });
+    if (user === null) throw delegationInvalid('person');
+    return user.id;
   }
 
   private async assertPeople(tx: TenantTransaction, fromUserId: string, toUserId: string) {

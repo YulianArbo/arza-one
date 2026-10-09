@@ -114,3 +114,25 @@ describe('delegaciones de otras personas', () => {
     expect(list.data.every((item) => item.from_user.id !== lead.id)).toBe(true);
   });
 });
+
+describe('delegar por correo', () => {
+  it('quien no ve la lista de usuarios delega escribiendo el correo', async () => {
+    const lead = await financeLead('por-correo');
+    const backup = await scenario.person('recibe-por-correo', ['COLABORADOR']);
+    const response = await delegate(lead, { to_email: backup.email });
+    expect(response.status).toBe(201);
+    const list = delegationListResponseSchema.parse(
+      (await scenario.get('/v1/delegations', backup.session)).body,
+    );
+    expect(list.data.some((item) => item.to_user.id === backup.id)).toBe(true);
+  });
+
+  it('el correo de alguien de otra empresa no sirve, igual que uno que no existe', async () => {
+    const lead = await financeLead('correo-ajeno');
+    const foreign = await scenario.person('correo-b', [], { tenantId: scenario.otherTenant.id });
+    expect(errorCode(await delegate(lead, { to_email: foreign.email }))).toBe('DELEGATION_INVALID');
+    expect(errorCode(await delegate(lead, { to_email: 'nadie@pruebas.test' }))).toBe(
+      'DELEGATION_INVALID',
+    );
+  });
+});

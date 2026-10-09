@@ -103,14 +103,19 @@ export const delegationSchema = z.object({
 
 export const delegationListResponseSchema = z.object({ data: z.array(delegationSchema) });
 
-export const createDelegationRequestSchema = z.strictObject({
-  from_user_id: z.uuid().optional().describe('Quien delega; si falta, usted'),
-  to_user_id: z.uuid(),
-  starts_at: dateTime,
-  ends_at: dateTime,
-  permissions: z.array(permissionCodeSchema).min(1).max(100),
-  reason: z.string().trim().min(5).max(300).describe('Motivo, por ejemplo vacaciones'),
-});
+export const createDelegationRequestSchema = z
+  .strictObject({
+    from_user_id: z.uuid().optional().describe('Quien delega; si falta, usted'),
+    to_user_id: z.uuid().optional().describe('Quien recibe'),
+    to_email: emailSchema.optional().describe('O su correo, para quien no ve la lista de usuarios'),
+    starts_at: dateTime,
+    ends_at: dateTime,
+    permissions: z.array(permissionCodeSchema).min(1).max(100),
+    reason: z.string().trim().min(5).max(300).describe('Motivo, por ejemplo vacaciones'),
+  })
+  .refine((value) => (value.to_user_id === undefined) !== (value.to_email === undefined), {
+    message: 'Indique quién recibe: su identificador o su correo, no los dos.',
+  });
 
 export const accessReviewResponseSchema = z.object({
   generated_at: dateTime,
