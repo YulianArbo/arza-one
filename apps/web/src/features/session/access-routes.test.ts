@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { homeFor, loginNoticeOf, loginPath, safeReturnPath } from './access-routes';
+import {
+  homeFor,
+  loginNoticeOf,
+  loginPath,
+  safeReturnPath,
+  secondFactorPath,
+} from './access-routes';
 
 describe('a dónde va cada persona', () => {
   it('la aplicación interna o el portal según el tipo de cuenta', () => {
@@ -35,5 +41,15 @@ describe('dirección de inicio de sesión', () => {
     expect(loginNoticeOf('inventado')).toBeNull();
     expect(loginNoticeOf('toString')).toBeNull();
     expect(loginNoticeOf(null)).toBeNull();
+  });
+});
+
+describe('pantalla del segundo paso (B09)', () => {
+  it('lleva a escribir el código o a configurarlo, con la pantalla a la que se vuelve', () => {
+    expect(secondFactorPath('second_factor')).toBe('/segundo-factor');
+    expect(secondFactorPath('second_factor_setup', null)).toBe('/segundo-factor/configurar');
+    expect(secondFactorPath('second_factor', '/app/perfil')).toBe(
+      '/segundo-factor?volver=%2Fapp%2Fperfil',
+    );
   });
 });

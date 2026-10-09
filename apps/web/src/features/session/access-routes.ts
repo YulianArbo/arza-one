@@ -1,4 +1,4 @@
-import type { UserKind } from '@arza/contracts';
+import type { SignInStage, UserKind } from '@arza/contracts';
 
 // Direcciones de las pantallas de acceso (numeral 16.7) y a dónde va cada persona al entrar.
 
@@ -7,9 +7,12 @@ export const ACCESS_PATHS = {
   activate: '/activar-cuenta',
   forgot: '/recuperar-contrasena',
   reset: '/restablecer-contrasena',
+  secondFactor: '/segundo-factor',
+  secondFactorSetup: '/segundo-factor/configurar',
 } as const;
 
 export const PROFILE_PATH = '/app/perfil';
+export const SESSIONS_PATH = '/app/perfil/sesiones';
 
 /** Motivos por los que se llega a la pantalla de inicio de sesión, con su aviso. */
 const LOGIN_NOTICES = {
@@ -44,6 +47,20 @@ export function loginPath(notice?: LoginNotice, returnTo?: string): string {
   if (returnTo !== undefined) params.set('volver', returnTo);
   const query = params.toString();
   return query === '' ? ACCESS_PATHS.login : `${ACCESS_PATHS.login}?${query}`;
+}
+
+/**
+ * Pantalla del segundo paso que le falta a una sesión a medias (B09): escribir el código o
+ * configurar el segundo factor. Lleva la pantalla a la que se vuelve al terminar.
+ */
+export function secondFactorPath(
+  stage: Exclude<SignInStage, 'complete'>,
+  returnTo?: string | null,
+): string {
+  const path =
+    stage === 'second_factor' ? ACCESS_PATHS.secondFactor : ACCESS_PATHS.secondFactorSetup;
+  if (returnTo === undefined || returnTo === null) return path;
+  return `${path}?${new URLSearchParams({ volver: returnTo }).toString()}`;
 }
 
 function isLoginNotice(value: string): value is LoginNotice {

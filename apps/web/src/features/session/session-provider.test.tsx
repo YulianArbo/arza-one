@@ -66,6 +66,19 @@ describe('pantallas que exigen sesión', () => {
     });
     expect(screen.queryByRole('button')).toBeNull();
   });
+});
+
+describe('pantallas que exigen sesión: etapas y superficies', () => {
+  it('a una sesión que le falta el segundo factor la lleva a ese paso (B09)', async () => {
+    mockApi({ 'GET /v1/auth/session': () => json({ ...SESSION, stage: 'second_factor' }) });
+    renderGuarded();
+    await vi.waitFor(() => {
+      expect(navigation.replace).toHaveBeenCalledWith(
+        '/segundo-factor?volver=%2Fapp%2Festado-del-sistema',
+      );
+    });
+    expect(screen.queryByRole('button', { name: /Salir/ })).toBeNull();
+  });
 
   it('una persona de la aplicación interna que entra al portal va a su aplicación', async () => {
     mockApi({ 'GET /v1/auth/session': () => json(SESSION) });

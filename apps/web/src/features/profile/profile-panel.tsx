@@ -1,8 +1,18 @@
 'use client';
 
 import { meResponseSchema, type ChangePasswordRequest } from '@arza/contracts';
-import { Card, CardContent, CardHeader, CardTitle, ErrorState, LoadingState } from '@arza/ui';
+import {
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  ErrorState,
+  LoadingState,
+} from '@arza/ui';
 import { useMutation, useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
 import { useState, type SubmitEvent, type JSX } from 'react';
 
 import { ApiError, CLIENT_ERROR_MESSAGES } from '../../lib/api/api-error';
@@ -12,7 +22,9 @@ import { FormError } from '../access/form-alert';
 import { CurrentPasswordField } from '../access/current-password-field';
 import { NewPasswordFields, useNewPassword } from '../access/new-password-fields';
 import { SubmitButton } from '../access/submit-button';
+import { SESSIONS_PATH } from '../session/access-routes';
 import { useSession } from '../session/session-provider';
+import { SecondFactorCard } from './second-factor-card';
 
 function useProfile() {
   const api = useApiClient();
@@ -108,7 +120,26 @@ function ChangePasswordForm(): JSX.Element {
   );
 }
 
-/** Mi perfil y seguridad (16.7): datos propios y cambio de contraseña. */
+/** Enlace a «Sesiones activas» (B09). */
+function SessionsCard(): JSX.Element {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Sesiones activas</CardTitle>
+        <CardDescription>
+          Vea en qué equipos tiene abierta su cuenta y cierre las que no reconozca.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Button asChild variant="outline">
+          <Link href={SESSIONS_PATH}>Ver sesiones activas</Link>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+/** Mi perfil y seguridad (16.7): datos, contraseña, segundo factor y sesiones activas. */
 export function ProfilePanel(): JSX.Element {
   return (
     <div className="grid gap-6 lg:grid-cols-2">
@@ -128,6 +159,8 @@ export function ProfilePanel(): JSX.Element {
           <ChangePasswordForm />
         </CardContent>
       </Card>
+      <SecondFactorCard />
+      <SessionsCard />
     </div>
   );
 }

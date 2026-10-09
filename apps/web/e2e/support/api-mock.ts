@@ -65,6 +65,7 @@ export const INTERNAL_SESSION = {
     display_name: 'Ana Pérez',
     kind: 'internal',
   },
+  stage: 'complete',
   csrf_token: 'codigo-de-prueba',
   expires_at: '2026-10-10T03:00:00.000Z',
 };
