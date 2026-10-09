@@ -125,7 +125,7 @@ export class ReauthenticationUseCase {
   ): Promise<void> {
     await tx.session.update({
       where: { id: session.id },
-      data: { reauthenticatedAt: now, mfaFailures: 0 },
+      data: { reauthenticatedAt: now },
     });
     await recordAuditEvent(tx, {
       tenantId: session.tenantId,

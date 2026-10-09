@@ -112,7 +112,6 @@ model Session {
   deviceId          String?      @map("device_id") @db.Uuid
   authenticatedAt   DateTime?    @map("authenticated_at") @db.Timestamptz(6)
   reauthenticatedAt DateTime?    @map("reauthenticated_at") @db.Timestamptz(6)
-  mfaFailures       Int          @default(0) @map("mfa_failures")
   lastSeenAt        DateTime     @map("last_seen_at") @db.Timestamptz(6)
   expiresAt         DateTime     @map("expires_at") @db.Timestamptz(6)
   revokedAt         DateTime?    @map("revoked_at") @db.Timestamptz(6)

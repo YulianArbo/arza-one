@@ -54,7 +54,6 @@ export class SignInCompletion {
       data: {
         authenticatedAt: now,
         reauthenticatedAt: now,
-        mfaFailures: 0,
         deviceId: sighting.device.id,
         expiresAt: sessionExpiresAt(now),
         ...(rotated === null ? {} : { tokenHash: rotated.hash }),

@@ -5,7 +5,6 @@
 -- AlterTable
 ALTER TABLE "iam_sessions" ADD COLUMN     "authenticated_at" TIMESTAMPTZ(6),
 ADD COLUMN     "device_id" UUID,
-ADD COLUMN     "mfa_failures" INTEGER NOT NULL DEFAULT 0,
 ADD COLUMN     "reauthenticated_at" TIMESTAMPTZ(6);
 
 -- CreateTable
@@ -86,10 +85,9 @@ CREATE TABLE "iam_known_devices" (
 
 -- Reglas nuevas de las sesiones ----------------------------------------------------------------
 
--- Una confirmación de identidad solo existe en una sesión completa; los fallos no son negativos.
+-- Una confirmación de identidad solo existe en una sesión completa.
 ALTER TABLE "iam_sessions" ADD CONSTRAINT "iam_sessions_reauthenticated_check"
     CHECK ("reauthenticated_at" IS NULL OR "authenticated_at" IS NOT NULL);
-ALTER TABLE "iam_sessions" ADD CONSTRAINT "iam_sessions_mfa_failures_check" CHECK ("mfa_failures" >= 0);
 
 -- Motivos nuevos de cierre: desde otro dispositivo, por códigos equivocados y por cambio o
 -- reinicio del segundo factor.

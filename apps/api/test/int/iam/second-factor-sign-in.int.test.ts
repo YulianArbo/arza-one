@@ -216,3 +216,28 @@ describe('inicio de sesión desde un dispositivo nuevo (numeral 15.5)', () => {
     expect(devices).toBe(2);
   });
 });
+
+describe('los códigos equivocados se cuentan por persona, no por sesión', () => {
+  it('abrir otra sesión con la contraseña no reinicia la cuenta', async () => {
+    const { email } = await scenario.newUser('otra-sesion');
+    const first = await signInWithPassword(scenario.app, email);
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      expect((await verify(first, { code: '000000' })).status).toBe(422);
+    }
+    const second = await signInWithPassword(scenario.app, email);
+    const fifth = await verify(second, { code: '000000' });
+    expect(errorCode(fifth)).toBe('ACCOUNT_LOCKED');
+    expect((await scenario.get('/v1/auth/session', first)).status).toBe(401);
+    expect((await scenario.get('/v1/auth/session', second)).status).toBe(401);
+  });
+
+  it('un acierto vuelve a empezar la cuenta', async () => {
+    const { email } = await scenario.newUser('acierto');
+    const first = await signInWithPassword(scenario.app, email);
+    for (let attempt = 0; attempt < 4; attempt += 1) await verify(first, { code: '000000' });
+    scenario.nextCodePeriod();
+    expect((await verify(first, { code: currentCode(email, scenario.clock) })).status).toBe(200);
+    const second = await signInWithPassword(scenario.app, email);
+    expect((await verify(second, { code: '000000' })).status).toBe(422);
+  });
+});

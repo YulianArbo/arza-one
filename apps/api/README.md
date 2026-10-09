@@ -19,26 +19,42 @@ trabajos (B06) y la identidad (B08). Los módulos se agregan en `src/modules/`.
 | `pnpm db:seed:demo`                                              | Semilla más dos empresas ficticias; nunca en producción (`pnpm infra:up` la carga en local) |
 | `pnpm --filter @arza/api db:generate`                            | Regenera el cliente de Prisma tras cambiar el modelo                                        |
 | `pnpm iam:invitar --empresa demo-uno --correo ana@demo-uno.test` | Invita a una persona (B08); ver «Identidad»                                                 |
+| `pnpm iam:reiniciar-segundo-factor --correo ana@demo-uno.test`   | Reinicia el segundo factor de quien perdió el celular y los códigos (B09)                   |
 
 Las variables de entorno se leen del archivo `.env` de la raíz del proyecto (ver `.env.example`).
 Los servicios locales se encienden con `pnpm infra:up` ([guía](../../docs/runbooks/entorno-local.md)).
 
 ## Puntos de la API
 
-| Ruta                              | Acceso  | Respuesta                                                                                                                            |
-| --------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `GET /health`                     | Público | 200 si la base de datos, las colas y los archivos responden; 503 si alguno no. Sin límite de peticiones (ver «Límite de peticiones») |
-| `GET /version`                    | Público | Versión, ambiente (`local`, `staging`, `production`) y commit                                                                        |
-| `GET /api/docs`                   | Público | Documentación interactiva. Solo en local y pruebas; no existe en producción                                                          |
-| `GET /api/docs/openapi.json`      | Público | El mismo documento en formato OpenAPI 3.1                                                                                            |
-| `POST /v1/auth/login`             | Público | Inicia sesión; entrega la cookie y el código antifalsificación. Mismo mensaje exista o no el correo                                  |
-| `GET /v1/auth/session`            | Sesión  | Sesión actual y su código antifalsificación                                                                                          |
-| `POST /v1/auth/logout`            | Sesión  | Cierra la sesión actual                                                                                                              |
-| `POST /v1/auth/password/forgot`   | Público | Pide el enlace de recuperación; siempre responde 202 con el mismo mensaje                                                            |
-| `POST /v1/auth/password/reset`    | Público | Cambia la contraseña con el enlace y cierra todas las sesiones                                                                       |
-| `POST /v1/auth/invitation/accept` | Público | Activa la cuenta con el enlace de la invitación                                                                                      |
-| `GET /v1/me`                      | Sesión  | Perfil propio                                                                                                                        |
-| `POST /v1/me/password`            | Sesión  | Cambia la contraseña propia y cierra todas las sesiones, incluida la actual                                                          |
+| Ruta                                 | Acceso                | Respuesta                                                                                                                            |
+| ------------------------------------ | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET /health`                        | Público               | 200 si la base de datos, las colas y los archivos responden; 503 si alguno no. Sin límite de peticiones (ver «Límite de peticiones») |
+| `GET /version`                       | Público               | Versión, ambiente (`local`, `staging`, `production`) y commit                                                                        |
+| `GET /api/docs`                      | Público               | Documentación interactiva. Solo en local y pruebas; no existe en producción                                                          |
+| `GET /api/docs/openapi.json`         | Público               | El mismo documento en formato OpenAPI 3.1                                                                                            |
+| `POST /v1/auth/login`                | Público               | Inicia sesión; entrega la cookie y el código antifalsificación. Mismo mensaje exista o no el correo                                  |
+| `POST /v1/auth/mfa/verify`           | A medias              | Segundo paso: código de la aplicación o de recuperación. Completa la sesión con una llave nueva                                      |
+| `POST /v1/auth/mfa/setup`            | A medias              | Empieza a configurar el segundo factor: secreto y dirección para el QR (15 minutos para confirmar)                                   |
+| `POST /v1/auth/mfa/setup/confirm`    | A medias              | Confirma con el primer código y entrega los diez códigos de recuperación (una sola vez)                                              |
+| `POST /v1/auth/reauthenticate`       | Sesión                | «Confirme que es usted»: contraseña y código. Vale 30 minutos para las acciones de alto riesgo                                       |
+| `GET /v1/auth/session`               | A medias              | Sesión actual, su etapa (`stage`) y su código antifalsificación                                                                      |
+| `POST /v1/auth/logout`               | A medias              | Cierra la sesión actual                                                                                                              |
+| `POST /v1/auth/password/forgot`      | Público               | Pide el enlace de recuperación; siempre responde 202 con el mismo mensaje                                                            |
+| `POST /v1/auth/password/reset`       | Público               | Cambia la contraseña con el enlace y cierra todas las sesiones                                                                       |
+| `POST /v1/auth/invitation/accept`    | Público               | Activa la cuenta con el enlace de la invitación                                                                                      |
+| `GET /v1/me`                         | Sesión                | Perfil propio                                                                                                                        |
+| `POST /v1/me/password`               | Sesión                | Cambia la contraseña propia y cierra todas las sesiones, incluida la actual                                                          |
+| `GET /v1/me/mfa`                     | Sesión                | Estado del segundo factor propio: obligatorio, activo, desde cuándo y cuántos códigos quedan                                         |
+| `POST /v1/me/mfa/recovery-codes`     | Sesión + confirmación | Diez códigos de recuperación nuevos; los anteriores dejan de servir                                                                  |
+| `POST /v1/me/mfa/disable`            | Sesión + confirmación | Desactiva el segundo factor, solo si es opcional; cierra las demás sesiones                                                          |
+| `GET /v1/me/sessions`                | Sesión                | Sesiones abiertas propias, con navegador, sistema, IP y cuál es la actual                                                            |
+| `POST /v1/me/sessions/{id}/revoke`   | Sesión                | Cierra una sesión propia; surte efecto en la siguiente petición de ese equipo. La de otra persona responde 404                       |
+| `POST /v1/me/sessions/revoke-others` | Sesión                | Cierra todas las demás sesiones propias                                                                                              |
+
+«A medias» quiere decir que también la atiende una sesión que solo verificó la contraseña
+(`@SigningIn()`); cualquier otra ruta le responde 403 `SECOND_FACTOR_REQUIRED`. «Confirmación» es
+`@RecentAuthentication()`: sin una confirmación de identidad de los últimos 30 minutos responde
+403 `REAUTHENTICATION_REQUIRED`.
 
 `/health` y `/version` están fuera de `/v1` porque son de operación (los consultan Caddy y
 Docker). Los recursos de negocio van bajo `/v1`; en los servidores Caddy les antepone `/api`, así
@@ -228,6 +244,32 @@ estrechas de la base de datos (`iam_find_login_user`, `iam_find_session`, `iam_f
 a qué usuario y empresa pertenece un correo, una sesión o un enlace; todo lo demás ocurre dentro de
 la transacción de esa empresa. Por eso el correo es único en toda la plataforma.
 
+## Segundo factor y seguridad de sesión (B09)
+
+| Regla                           | Cómo se cumple                                                                                                                                                                 |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Obligatorio por tipo de usuario | Siempre para los internos (no se puede desactivar). En el portal, para quien tenga `mfa_required` (administradores de cliente; B10 lo pondrá por rol); opcional para los demás |
+| Dos pasos                       | La contraseña correcta abre una sesión a medias de 10 minutos que solo atiende el segundo paso; al completarlo la sesión recibe una llave nueva y sus 12 horas                 |
+| TOTP                            | `otpauth` (MIT): seis dígitos cada 30 segundos, se acepta el anterior y el siguiente, y cada código sirve una sola vez (se guarda el último paso usado)                        |
+| Secreto cifrado                 | AES-256-GCM con `FIELD_ENCRYPTION_KEY` (`src/platform/crypto/field-cipher.ts`), atado a la empresa y la persona; la base rechaza un secreto sin cifrar                         |
+| Códigos de recuperación         | Diez de 16 caracteres, de un solo uso; solo su huella SHA-256. Usar uno deja evento de seguridad y aviso por correo                                                            |
+| Cinco códigos equivocados       | Cierran la sesión y bloquean la cuenta 15 minutos, con evento de seguridad grave, alerta en la bandeja de salida y auditoría (también al confirmar la identidad)               |
+| Confirmar la identidad          | `POST /v1/auth/reauthenticate`; vale 30 minutos. Lo exigen: códigos nuevos, cambiar de celular y desactivar                                                                    |
+| Sesiones activas                | La lista y el cierre remoto; como cada petición valida la sesión en la base, el cierre surte efecto en la siguiente petición                                                   |
+| Dispositivo nuevo (15.5)        | Marca aleatoria en la cookie `__Host-arza_device` (400 días; solo su huella en `iam_known_devices`). El primer equipo no avisa; los siguientes dejan evento y correo           |
+| Avisos por correo               | Activó, cambió, desactivó o reiniciaron el segundo factor; códigos nuevos; código usado; equipo nuevo. Nunca llevan códigos ni secretos                                        |
+
+**Reiniciar el segundo factor de alguien** que perdió el celular y los códigos (hasta que B10
+traiga la pantalla con el permiso `iam.user.reset_mfa`). Antes, confirme la identidad de la persona
+por otro medio:
+
+```bash
+pnpm iam:reiniciar-segundo-factor --correo ana@demo-uno.test
+```
+
+Cierra todas sus sesiones, deja auditoría y evento de seguridad, y le avisa por correo. Al volver a
+entrar, la persona configura el segundo factor de nuevo.
+
 **Invitar a una persona** (con `pnpm infra:up` y `pnpm dev` encendidos):
 
 ```bash
@@ -235,7 +277,8 @@ pnpm iam:invitar --empresa demo-uno --correo ana@demo-uno.test --nombre "Ana Pé
 ```
 
 `--empresa` acepta `plataforma`, `demo-uno`, `demo-dos` o el identificador de la empresa; `--tipo`,
-`interno` (aplicación) o `portal`. Si la invitación sigue pendiente, la reenvía.
+`interno` (aplicación) o `portal`. Si la invitación sigue pendiente, la reenvía. Para un
+administrador de cliente agregue `--exige-segundo-factor`.
 
 ## Imágenes Docker (B05 y B07)
 

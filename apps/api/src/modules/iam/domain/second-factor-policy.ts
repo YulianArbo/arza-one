@@ -8,7 +8,7 @@ export const PENDING_SIGN_IN_MS = 10 * MINUTE_MS;
 export const SETUP_MS = 15 * MINUTE_MS;
 /** Las acciones de alto riesgo exigen haber confirmado la identidad en los últimos 30 minutos. */
 export const REAUTHENTICATION_WINDOW_MS = 30 * MINUTE_MS;
-/** Códigos equivocados seguidos en una sesión antes de cerrarla y bloquear la cuenta. */
+/** Códigos equivocados de una persona en 15 minutos antes de bloquear la cuenta. */
 export const VERIFICATION_FAILURES_TO_LOCK = 5;
 export const RECOVERY_CODE_COUNT = 10;
 /** Quedan pocos códigos de recuperación: el aviso por correo lo recuerda. */
