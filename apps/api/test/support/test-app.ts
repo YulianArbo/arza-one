@@ -7,6 +7,7 @@ import { Logger } from 'nestjs-pino';
 
 import { configureApp } from '../../src/app.js';
 import { AppModule } from '../../src/app.module.js';
+import { AUTHORIZER, type Authorizer } from '../../src/platform/access/authorizer.js';
 import { AUTHENTICATOR, type Authenticator } from '../../src/platform/access/principal.js';
 import { CLOCK, type Clock } from '../../src/platform/clock/clock.js';
 import { loadConfig } from '../../src/platform/config/load-config.js';
@@ -29,6 +30,8 @@ export interface TestAppOptions {
   readonly clock?: Clock;
   /** Validación de sesiones simulada, para probar la cadena de petición sin base de datos. */
   readonly authenticator?: Authenticator;
+  /** Permisos simulados, para probar la autorización sin base de datos. */
+  readonly authorizer?: Authorizer;
 }
 
 function fakeProbe(component: HealthComponent, down: boolean): HealthProbe {
@@ -54,6 +57,9 @@ export async function createTestApp(options: TestAppOptions = {}): Promise<NestE
     .useValue(fakeProbes(options.downComponents ?? []));
   if (options.authenticator !== undefined) {
     builder = builder.overrideProvider(AUTHENTICATOR).useValue(options.authenticator);
+  }
+  if (options.authorizer !== undefined) {
+    builder = builder.overrideProvider(AUTHORIZER).useValue(options.authorizer);
   }
   if (options.clock !== undefined) {
     builder = builder.overrideProvider(CLOCK).useValue(options.clock);

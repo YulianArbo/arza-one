@@ -30,6 +30,7 @@
     "db:seed": "node --env-file-if-exists=../../.env dist/platform/database/seed/seed-main.js",
     "db:seed:demo": "node --env-file-if-exists=../../.env dist/platform/database/seed/seed-main.js --demo",
     "iam:invitar": "node --env-file-if-exists=../../.env dist/modules/iam/interface/cli/invite-main.js",
+    "iam:asignar-rol": "node --env-file-if-exists=../../.env dist/modules/iam/interface/cli/assign-role-main.js",
     "iam:reiniciar-segundo-factor": "node --env-file-if-exists=../../.env dist/modules/iam/interface/cli/reset-second-factor-main.js"
   },
   "devDependencies": {

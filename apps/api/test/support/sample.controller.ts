@@ -1,13 +1,16 @@
-import { Body, Controller, Get, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Param, Post } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
 import {
-  Authenticated,
+  OwnAccount,
   Public,
   RecentAuthentication,
+  RequirePermission,
   SigningIn,
 } from '../../src/platform/access/access.decorators.js';
+import { canOnRecord, type AppAbility } from '../../src/platform/access/ability.js';
+import { CurrentAbility } from '../../src/platform/access/authorizer.js';
 import { CurrentPrincipal, type Principal } from '../../src/platform/access/principal.js';
 import { AppError } from '../../src/platform/errors/app-error.js';
 import { Meta, type RequestMeta } from '../../src/platform/http/request-meta.js';
@@ -36,7 +39,7 @@ export class SampleController {
     return body;
   }
 
-  @Authenticated()
+  @OwnAccount()
   @Get('private')
   privateResource(): string {
     return 'nunca debe llegar aquí sin sesión';
@@ -48,13 +51,13 @@ export class SampleController {
     throw new AppError(HttpStatus.TOO_MANY_REQUESTS, 'LOGIN_DELAYED', 'Espere 3 segundos.', 3);
   }
 
-  @Authenticated()
+  @OwnAccount()
   @Get('whoami')
   whoami(@CurrentPrincipal() principal: Principal, @Meta() meta: RequestMeta): object {
     return { userId: principal.userId, ip: meta.ip, userAgent: meta.userAgent };
   }
 
-  @Authenticated()
+  @OwnAccount()
   @Post('private-change')
   privateChange(@CurrentPrincipal() principal: Principal): object {
     return { userId: principal.userId };
@@ -66,7 +69,7 @@ export class SampleController {
     return { signInComplete: principal.signInComplete };
   }
 
-  @Authenticated()
+  @OwnAccount()
   @RecentAuthentication()
   @Get('high-risk')
   highRisk(): string {
@@ -77,6 +80,32 @@ export class SampleController {
   @Get('misused-principal')
   misusedPrincipal(@CurrentPrincipal() principal: Principal): string {
     return principal.userId;
+  }
+
+  @RequirePermission('iam.user.read')
+  @Get('users')
+  users(): string {
+    return 'lista de usuarios';
+  }
+
+  @RequirePermission('iam.role.assign')
+  @RecentAuthentication()
+  @Post('assign')
+  assign(): string {
+    return 'rol asignado';
+  }
+
+  /** Autorización por registro: un permiso «solo lo propio» exige que el registro sea suyo. */
+  @RequirePermission('iam.delegation.manage')
+  @Get('delegations/:owner')
+  delegation(@CurrentAbility() ability: AppAbility, @Param('owner') owner: string): object {
+    return { allowed: canOnRecord(ability, 'iam.delegation.manage', { from_user_id: owner }) };
+  }
+
+  @OwnAccount()
+  @Get('misused-ability')
+  misusedAbility(@CurrentAbility() ability: AppAbility): boolean {
+    return ability.rules.length > 0;
   }
 
   @Get('undeclared')
