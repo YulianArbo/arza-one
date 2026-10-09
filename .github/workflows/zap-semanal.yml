@@ -33,7 +33,7 @@ jobs:
           docker build --file apps/web/Dockerfile --tag arza-one/web:ci .
       - name: Contraseñas desechables
         run: |
-          for name in POSTGRES_PASSWORD APP_DB_PASSWORD MIGRATION_DB_PASSWORD CSRF_SECRET; do
+          for name in POSTGRES_PASSWORD APP_DB_PASSWORD MIGRATION_DB_PASSWORD CSRF_SECRET FIELD_ENCRYPTION_KEY; do
             value="$(openssl rand -hex 18)"
             echo "::add-mask::$value"
             echo "$name=$value" >> "$GITHUB_ENV"

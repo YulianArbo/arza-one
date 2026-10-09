@@ -86,6 +86,7 @@ services:
       RATE_LIMIT_WINDOW_SECONDS: 60
       RATE_LIMIT_MAX_REQUESTS: 100
       CSRF_SECRET: ${CSRF_SECRET:?}
+      FIELD_ENCRYPTION_KEY: ${FIELD_ENCRYPTION_KEY:?}
     mem_limit: 1g
 
   worker:

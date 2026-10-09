@@ -26,6 +26,8 @@ export const envSchema = z.object({
   GIT_COMMIT: required.default('unknown'),
   /** Firma de los códigos antifalsificación (anexo F). Al menos 32 caracteres al azar. */
   CSRF_SECRET: z.string().min(32),
+  /** Llave del cifrado de campos sensibles, como los secretos del segundo factor (anexo F). */
+  FIELD_ENCRYPTION_KEY: z.string().min(32),
 });
 
 export type Env = z.infer<typeof envSchema>;

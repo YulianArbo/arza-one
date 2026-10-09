@@ -44,6 +44,7 @@ services:
       RATE_LIMIT_WINDOW_SECONDS: 60
       RATE_LIMIT_MAX_REQUESTS: 10000
       CSRF_SECRET: ${CSRF_SECRET:?}
+      FIELD_ENCRYPTION_KEY: ${FIELD_ENCRYPTION_KEY:?}
 
   web:
     image: arza-one/web:ci
