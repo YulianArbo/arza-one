@@ -31,6 +31,23 @@ export const DATABASE_BOUND_FILES = [
   'src/modules/iam/application/verification-failures.ts',
   'src/modules/iam/infrastructure/second-factor-store.ts',
   'src/modules/iam/infrastructure/verification-attempts.ts',
+  // Roles, permisos y autorización (B10).
+  'src/modules/iam/application/access-control.ts',
+  'src/modules/iam/application/access-messages.ts',
+  'src/modules/iam/application/access-review.ts',
+  'src/modules/iam/application/access-seed.ts',
+  'src/modules/iam/application/cli-role-assignment.ts',
+  'src/modules/iam/application/delegations.ts',
+  'src/modules/iam/application/permission-change.ts',
+  'src/modules/iam/application/role-admin.ts',
+  'src/modules/iam/application/role-assignment.ts',
+  'src/modules/iam/application/user-admin.ts',
+  'src/modules/iam/application/user-directory.ts',
+  'src/modules/iam/infrastructure/access-catalog.ts',
+  'src/modules/iam/infrastructure/access-store.ts',
+  'src/modules/iam/infrastructure/assignment-store.ts',
+  'src/modules/iam/infrastructure/role-store.ts',
+  'src/modules/iam/infrastructure/user-directory-store.ts',
 ];
 
 /** Procesos que solo arrancan algo; se prueban a mano o como proceso real. */
