@@ -107,3 +107,30 @@ describe('segundo paso: a dónde lleva cada sesión', () => {
     });
   });
 });
+
+describe('segundo paso: fallas al cargar', () => {
+  it('si la sesión no carga por una falla, explica el problema', async () => {
+    mockApi({
+      'GET /v1/auth/session': () => apiError(500, 'INTERNAL_ERROR', 'Ocurrió un error inesperado.'),
+    });
+    renderWithApi(<SecondFactorForm />);
+    expect(await screen.findByText('Ocurrió un error inesperado.')).toBeVisible();
+  });
+
+  it('se puede volver del código de recuperación al de la aplicación', async () => {
+    mockApi({ 'GET /v1/auth/session': () => json(PENDING) });
+    renderWithApi(<SecondFactorForm />);
+    const user = userEvent.setup({ delay: null });
+    await user.click(await screen.findByRole('button', { name: /usar un código de recuperación/ }));
+    await user.click(screen.getByRole('button', { name: 'Usar el código de la aplicación' }));
+    expect(screen.getByLabelText('Código de seis dígitos')).toBeVisible();
+  });
+
+  it('una sesión ya completa vuelve a la aplicación', async () => {
+    mockApi({ 'GET /v1/auth/session': () => json(SESSION) });
+    renderWithApi(<SecondFactorForm />);
+    await vi.waitFor(() => {
+      expect(navigation.replace).toHaveBeenCalledWith('/app');
+    });
+  });
+});

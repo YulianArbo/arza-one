@@ -3,7 +3,14 @@ import { userEvent } from '@testing-library/user-event';
 import type { JSX } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { SESSION, json, mockApi, noContent, renderWithApi } from '../../test-support/fake-api';
+import {
+  SESSION,
+  apiError,
+  json,
+  mockApi,
+  noContent,
+  renderWithApi,
+} from '../../test-support/fake-api';
 import { RequireSession } from '../session/session-provider';
 import { ActiveSessionsPanel } from './active-sessions-panel';
 
@@ -109,5 +116,36 @@ describe('con una sola sesión', () => {
     renderWithApi(<Screen />);
     expect(await screen.findByText('Solo tiene abierta esta sesión.')).toBeVisible();
     expect(screen.queryByRole('button', { name: /Cerrar/ })).toBeNull();
+  });
+});
+
+describe('sesiones activas: errores', () => {
+  it('si la lista no carga, explica el problema con el código para soporte', async () => {
+    mockApi({
+      'GET /v1/auth/session': () => json(SESSION),
+      'GET /v1/me/sessions': () => apiError(500, 'INTERNAL_ERROR', 'Ocurrió un error inesperado.'),
+    });
+    renderWithApi(<Screen />);
+    expect(await screen.findByText('Ocurrió un error inesperado.')).toBeVisible();
+  });
+
+  it('si cerrar falla, muestra el mensaje y no dice que cerró', async () => {
+    const pending = { ...PHONE, browser: null, os: null, pending_second_factor: true };
+    mockApi({
+      'GET /v1/auth/session': () => json(SESSION),
+      'GET /v1/me/sessions': () => json({ data: [CURRENT, pending] }),
+      [`POST /v1/me/sessions/${PHONE.id}/revoke`]: () =>
+        apiError(404, 'SESSION_NOT_FOUND', 'La sesión no existe o ya está cerrada.'),
+    });
+    renderWithApi(<Screen />);
+    expect(await screen.findByText('Navegador desconocido en sistema desconocido')).toBeVisible();
+    expect(screen.getByText('Sin segundo factor todavía')).toBeVisible();
+    const user = userEvent.setup({ delay: null });
+    await user.click(screen.getByRole('button', { name: 'Cerrar sesión' }));
+    await user.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Sí, cerrar' }),
+    );
+    expect(await screen.findByRole('alert')).toHaveTextContent('ya está cerrada');
+    expect(screen.queryByText(/Cerramos/)).toBeNull();
   });
 });

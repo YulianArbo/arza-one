@@ -125,3 +125,45 @@ describe('cambiar de celular desde el perfil', () => {
     expect(reauth?.body).toEqual({ password: 'una frase propia', code: '654321' });
   });
 });
+
+describe('configurar el segundo factor: fallas', () => {
+  it('si la sesión no carga por una falla, explica el problema', async () => {
+    mockApi({
+      'GET /v1/auth/session': () => apiError(500, 'INTERNAL_ERROR', 'Ocurrió un error inesperado.'),
+    });
+    renderWithApi(<SecondFactorSetup />);
+    expect(await screen.findByText('Ocurrió un error inesperado.')).toBeVisible();
+  });
+
+  it('si no se puede empezar, lo dice; y pide el código vacío sin llamar a la API', async () => {
+    let attempts = 0;
+    const sent = mockApi({
+      'GET /v1/auth/session': () => json(PENDING),
+      'POST /v1/auth/mfa/setup': () => {
+        attempts += 1;
+        return attempts === 1
+          ? apiError(409, 'SECOND_FACTOR_ALREADY_CONFIGURED', 'Su cuenta ya tiene segundo factor.')
+          : json(SETUP);
+      },
+    });
+    renderWithApi(<SecondFactorSetup />);
+    const user = await showQr();
+    expect(await screen.findByRole('alert')).toHaveTextContent('ya tiene segundo factor');
+    await user.click(screen.getByRole('button', { name: 'Mostrar el código QR' }));
+    await user.click(await screen.findByRole('button', { name: 'Confirmar' }));
+    expect(screen.getByText('Escriba el código que muestra la aplicación.')).toBeVisible();
+    expect(sent.filter((request) => request.path.endsWith('/confirm'))).toEqual([]);
+  });
+
+  it('si la sesión a medias venció, lleva a iniciar sesión', async () => {
+    mockApi({
+      'GET /v1/auth/session': () => json(PENDING),
+      'POST /v1/auth/mfa/setup': () => apiError(401, 'UNAUTHENTICATED', 'Debe iniciar sesión.'),
+    });
+    renderWithApi(<SecondFactorSetup />);
+    await showQr();
+    await vi.waitFor(() => {
+      expect(navigation.replace).toHaveBeenCalledWith('/iniciar-sesion?motivo=sesion-vencida');
+    });
+  });
+});
