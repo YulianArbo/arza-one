@@ -1,6 +1,5 @@
 import {
   PERMISSIONS,
-  SYSTEM_ROLES,
   splitPermission,
   systemRoleGrants,
   type PermissionDefinition,
@@ -148,18 +147,15 @@ async function syncRolePermissions(
   return { added: created.length, changed, removed: stale.length };
 }
 
-/** Crea o corrige los 16 roles del sistema de una empresa. */
-export async function syncSystemRoles(
+/** Crea o corrige un rol del sistema de una empresa con los permisos de la matriz. */
+export async function syncSystemRole(
   tx: TenantTransaction,
-  tenantId: string,
+  target: { readonly tenantId: string; readonly role: SystemRoleDefinition },
   permissionIds: ReadonlyMap<string, string>,
   now: Date,
-): Promise<RoleSyncResult[]> {
-  const results: RoleSyncResult[] = [];
-  for (const role of SYSTEM_ROLES) {
-    const roleId = await upsertSystemRole(tx, tenantId, role);
-    const counts = await syncRolePermissions(tx, { tenantId, roleId, role, now }, permissionIds);
-    results.push({ roleId, ...counts });
-  }
-  return results;
+): Promise<RoleSyncResult> {
+  const { tenantId, role } = target;
+  const roleId = await upsertSystemRole(tx, tenantId, role);
+  const counts = await syncRolePermissions(tx, { tenantId, roleId, role, now }, permissionIds);
+  return { roleId, ...counts };
 }
