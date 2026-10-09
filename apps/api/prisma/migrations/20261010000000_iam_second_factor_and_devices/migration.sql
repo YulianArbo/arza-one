@@ -100,14 +100,8 @@ ALTER TABLE "iam_sessions" ADD CONSTRAINT "iam_sessions_revoked_reason_check" CH
     )
 );
 
--- Las sesiones abiertas antes de B09 iniciaron con las reglas de entonces. Al entrar en vigor el
--- segundo factor se cierran: quien deba tenerlo lo configura al volver a entrar. La seguridad por
--- fila no deja ver las sesiones sin empresa; se suspende solo durante esta instrucción.
-ALTER TABLE "iam_sessions" NO FORCE ROW LEVEL SECURITY;
-UPDATE "iam_sessions"
-   SET "revoked_at" = CURRENT_TIMESTAMP, "revoked_reason" = 'mfa_changed'
- WHERE "revoked_at" IS NULL;
-ALTER TABLE "iam_sessions" FORCE ROW LEVEL SECURITY;
+-- Las sesiones abiertas antes de B09 quedan sin authenticated_at: la API las trata como sesiones
+-- a medias, que solo atienden el segundo paso, así que nadie sigue dentro sin segundo factor.
 
 -- CreateIndex
 CREATE UNIQUE INDEX "iam_mfa_factors_tenant_id_user_id_type_key" ON "iam_mfa_factors"("tenant_id", "user_id", "type");
