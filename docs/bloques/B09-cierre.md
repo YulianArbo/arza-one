@@ -61,6 +61,10 @@ mano** (ver «Pendientes»).
    de un código usado, donde no encaja. Ahora dice «Si no fue usted».
 4. **«Copiar» fallaba sin avisar** si el navegador niega el portapapeles. Ahora lo dice y sugiere
    descargar o imprimir.
+5. **Cobertura por debajo del mínimo** (lo detectó `pnpm check`): los casos de uso nuevos que solo
+   funcionan contra la base de datos se miden ahora con las pruebas de base real, como hizo B08 con
+   los suyos (mismo umbral del 90 %), y agregué pruebas de los caminos de error de la web hasta
+   pasar el 85 % de ramas. No se bajó ningún umbral.
 
 ## Cómo se probó
 
@@ -74,7 +78,15 @@ mano** (ver «Pendientes»).
   siguiente petición** → salir y entrar con un código de recuperación escrito en minúsculas y con
   espacios → llegaron los correos «Activó el segundo factor», «Nuevo inicio de sesión» y «Usó un
   código de recuperación (le quedan 9)».
-- `pnpm check` en este equipo: ver la sección siguiente y el pull request.
+- `pnpm check` en este equipo, **en verde en una sola corrida completa**: formato, análisis, tipos,
+  fronteras y código sin uso; **151 pruebas unitarias de la API**, 120 de la web, 34 del worker y
+  las de los paquetes; **178 pruebas con base de datos real de la API** y 13 del worker;
+  compilación; **62 pruebas en navegador** (con accesibilidad WCAG 2.2 AA en modo claro y oscuro de
+  las pantallas nuevas); sin secretos. En corridas anteriores falló una vez la prueba de arranque
+  de B02 por tiempo (la lentitud de este equipo anotada desde B03; sola pasó 2 de 2) y otra vez la
+  condición de carrera de «Pendientes»; ninguna se modificó.
+- Cobertura: API 97 % de líneas en pruebas unitarias y 99 % en pruebas con base de datos real;
+  web 98 % de líneas y 90 % de ramas; worker 100 %.
 - **Reloj de prueba:** las pruebas adelantan el tiempo para comprobar los 10 minutos del segundo
   paso, los 15 de la configuración, los 30 de la confirmación de identidad y los 15 del bloqueo.
 - **Vectores oficiales:** el cálculo de los códigos se comprueba con los ejemplos del estándar
