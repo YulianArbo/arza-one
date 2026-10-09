@@ -18,6 +18,19 @@ export const DATABASE_BOUND_FILES = [
   'src/modules/iam/infrastructure/accounts-store.ts',
   'src/modules/iam/infrastructure/identity-lookup.ts',
   'src/modules/iam/interface/**/*.ts',
+  // Segundo factor y seguridad de sesión (B09).
+  'src/modules/iam/application/active-sessions.ts',
+  'src/modules/iam/application/reauthentication.ts',
+  'src/modules/iam/application/second-factor-reset.ts',
+  'src/modules/iam/application/second-factor-settings.ts',
+  'src/modules/iam/application/second-factor-setup.ts',
+  'src/modules/iam/application/second-factor-sign-in.ts',
+  'src/modules/iam/application/second-factor-verifier.ts',
+  'src/modules/iam/application/security-notice-email.ts',
+  'src/modules/iam/application/sign-in-completion.ts',
+  'src/modules/iam/application/verification-failures.ts',
+  'src/modules/iam/infrastructure/second-factor-store.ts',
+  'src/modules/iam/infrastructure/verification-attempts.ts',
 ];
 
 /** Procesos que solo arrancan algo; se prueban a mano o como proceso real. */

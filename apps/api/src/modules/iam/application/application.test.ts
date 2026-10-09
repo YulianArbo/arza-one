@@ -2,7 +2,20 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { JobQueue } from '../../../platform/queues/job-queue.js';
 import { AccountNotifier } from './account-notifier.js';
-import { accountLocked, loginDelayed } from './iam-messages.js';
+import { bogotaDateTime, greeting } from './email-format.js';
+import {
+  accountLocked,
+  loginDelayed,
+  reauthenticationFailed,
+  reauthenticationRequired,
+  secondFactorAlreadyConfigured,
+  secondFactorCodeInvalid,
+  secondFactorMandatory,
+  secondFactorNotConfigured,
+  secondFactorSetupExpired,
+  sessionNotFound,
+  signInAlreadyComplete,
+} from './iam-messages.js';
 import { PasswordSetter } from './password-setter.js';
 
 const REQUEST = {
@@ -64,5 +77,36 @@ describe('contraseña nueva', () => {
       code: 'PASSWORD_BREACHED',
       status: 422,
     });
+  });
+});
+
+describe('mensajes del segundo factor (B09)', () => {
+  it.each([
+    [secondFactorCodeInvalid, 422, 'SECOND_FACTOR_CODE_INVALID'],
+    [reauthenticationFailed, 422, 'REAUTHENTICATION_FAILED'],
+    [signInAlreadyComplete, 409, 'SIGN_IN_ALREADY_COMPLETE'],
+    [secondFactorNotConfigured, 409, 'SECOND_FACTOR_NOT_CONFIGURED'],
+    [secondFactorAlreadyConfigured, 409, 'SECOND_FACTOR_ALREADY_CONFIGURED'],
+    [secondFactorSetupExpired, 422, 'SECOND_FACTOR_SETUP_EXPIRED'],
+    [secondFactorMandatory, 422, 'SECOND_FACTOR_MANDATORY'],
+    [sessionNotFound, 404, 'SESSION_NOT_FOUND'],
+    [reauthenticationRequired, 403, 'REAUTHENTICATION_REQUIRED'],
+  ])('%o responde con su estado y código estable, en español', (build, status, code) => {
+    const error = build();
+    expect({ status: error.status, code: error.code }).toEqual({ status, code });
+    expect(error.message).toMatch(/^[A-ZÁÉÍÓÚÑ¿]/);
+  });
+});
+
+describe('formato de los correos', () => {
+  const user = { displayName: 'Ana Pérez' } as Parameters<typeof greeting>[0];
+
+  it('saluda por el nombre, o sin nombre si no lo tiene', () => {
+    expect(greeting(user)).toBe('Hola, Ana Pérez:');
+    expect(greeting({ ...user, displayName: null })).toBe('Hola:');
+  });
+
+  it('muestra fechas dd/mm/aaaa en hora de Colombia', () => {
+    expect(bogotaDateTime(new Date('2026-10-09T20:30:00Z'))).toBe('09/10/2026, 3:30 p. m.');
   });
 });
