@@ -106,12 +106,12 @@ describe('sesión iniciada', () => {
     expect(profile?.last_login_at).not.toBeNull();
   });
 
-  it('deja auditoría del inicio de sesión', async () => {
+  it('deja auditoría de los dos pasos del inicio de sesión', async () => {
     const { email, id } = await newUser('auditoria');
     await signIn(app, email);
     const sessions = await inTenant((tx) => tx.session.findMany({ where: { userId: id } }));
     const actions = await auditActions(database, tenant.id, sessions[0]?.id ?? '');
-    expect(actions).toEqual(['iam.session.create:success']);
+    expect(actions).toEqual(['iam.session.create:success', 'iam.mfa.verify:success']);
   });
 
   it('una persona del portal inicia sesión y se identifica como tal', async () => {

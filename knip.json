@@ -8,7 +8,8 @@
         "src/platform/database/seed/seed-main.ts",
         "src/platform/index.ts",
         "src/modules/iam/index.ts",
-        "src/modules/iam/interface/cli/invite-main.ts"
+        "src/modules/iam/interface/cli/invite-main.ts",
+        "src/modules/iam/interface/cli/reset-second-factor-main.ts"
       ],
       "ignoreDependencies": ["@prisma/client"]
     },

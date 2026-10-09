@@ -11,6 +11,8 @@ export interface AccountEmailRequest {
   readonly accountUserId: string;
   readonly purpose: AccountEmailPurpose;
   readonly correlationId: string | null;
+  /** Momento del hecho que se avisa (avisos de seguridad, B09). */
+  readonly occurredAt?: Date;
 }
 
 const logger = new Logger('AccountNotifier');
@@ -32,6 +34,7 @@ export class AccountNotifier {
         accountUserId: email.accountUserId,
         purpose: email.purpose,
         correlationId: email.correlationId ?? uuidv7(),
+        ...(email.occurredAt === undefined ? {} : { occurredAt: email.occurredAt.toISOString() }),
       });
       return true;
     } catch (error) {

@@ -58,6 +58,9 @@ const IAM_TABLES = [
   'iam_sessions',
   'iam_tokens',
   'iam_login_attempts',
+  'iam_mfa_factors',
+  'iam_recovery_codes',
+  'iam_known_devices',
   'aud_events',
   'aud_security_events',
 ];
@@ -71,8 +74,20 @@ describe('aislamiento entre empresas', () => {
       sessions: await tx.session.findMany({ where: { userId: userB } }),
       attempts: await tx.loginAttempt.findMany({ where: { userId: userB } }),
       audit: await tx.auditEvent.findMany({ where: { tenantId: tenantB.id } }),
+      factors: await tx.mfaFactor.findMany({ where: { userId: userB } }),
+      devices: await tx.knownDevice.findMany({ where: { userId: userB } }),
+      security: await tx.securityEvent.findMany({ where: { tenantId: tenantB.id } }),
     }));
-    expect(seen).toEqual({ users: [], byId: null, sessions: [], attempts: [], audit: [] });
+    expect(seen).toEqual({
+      users: [],
+      byId: null,
+      sessions: [],
+      attempts: [],
+      audit: [],
+      factors: [],
+      devices: [],
+      security: [],
+    });
   });
 });
 
@@ -150,6 +165,9 @@ describe('permisos de app_user sobre identidad y auditoría', () => {
     ['borrar eventos de seguridad', 'DELETE FROM aud_security_events'],
     ['borrar cuentas (el borrado es lógico)', 'DELETE FROM iam_users'],
     ['borrar sesiones', 'DELETE FROM iam_sessions'],
+    ['borrar segundos factores (se desactivan, no se borran)', 'DELETE FROM iam_mfa_factors'],
+    ['borrar códigos de recuperación', 'DELETE FROM iam_recovery_codes'],
+    ['borrar dispositivos conocidos', 'DELETE FROM iam_known_devices'],
     [
       'escribir intentos sin la función',
       `INSERT INTO iam_login_attempts (id, email, succeeded, reason, occurred_at)

@@ -8,16 +8,14 @@ import { canSignIn } from '../domain/user.js';
 import type { User } from '../../../generated/prisma/client.js';
 import { expirePendingLinks, loadUser } from '../infrastructure/accounts-store.js';
 import { newSecretToken } from '../infrastructure/secret-token.js';
+import { bogotaDateTime, greeting, SIGNATURE, type AccountEmail } from './email-format.js';
+import { isSecurityNotice, securityNoticeEmail } from './security-notice-email.js';
+
+export type { AccountEmail } from './email-format.js';
 
 // Correos de la cuenta (B08). Los arma el worker al procesar el trabajo: el enlace se crea en ese
 // momento y su llave solo existe dentro del correo; la base de datos guarda su huella. Si el envío
 // falla y el trabajo se reintenta, se crea un enlace nuevo y el anterior vence.
-
-export interface AccountEmail {
-  readonly to: string;
-  readonly subject: string;
-  readonly text: string;
-}
 
 export interface AccountEmailDependencies {
   readonly database: Pick<DatabaseService, 'withTenant'>;
@@ -30,22 +28,6 @@ const LINK_PAGES: Readonly<Record<LinkPurpose, string>> = {
   invitation: '/activar-cuenta',
   password_reset: '/restablecer-contrasena',
 };
-
-const BOGOTA_DATE_TIME = new Intl.DateTimeFormat('es-CO', {
-  timeZone: 'America/Bogota',
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-  hour: 'numeric',
-  minute: '2-digit',
-  hour12: true,
-});
-
-const SIGNATURE = 'ARZA ONE · ARZA TECH S.A.S.\nEste es un correo automático; no lo responda.';
-
-function greeting(user: User): string {
-  return user.displayName === null ? 'Hola:' : `Hola, ${user.displayName}:`;
-}
 
 /**
  * La llave va después de «#»: los navegadores no envían esa parte al servidor, así que no queda
@@ -65,7 +47,7 @@ function invitationEmail(user: User, link: string, expiresAt: Date): AccountEmai
       greeting(user),
       'Lo invitaron a ARZA ONE, la plataforma de ARZA TECH. Para activar su cuenta y crear su contraseña, abra este enlace:',
       link,
-      `El enlace sirve una sola vez y vence el ${BOGOTA_DATE_TIME.format(expiresAt)} (hora de Colombia).`,
+      `El enlace sirve una sola vez y vence el ${bogotaDateTime(expiresAt)} (hora de Colombia).`,
       'Si no esperaba esta invitación, ignore este correo.',
       SIGNATURE,
     ].join('\n\n'),
@@ -80,7 +62,7 @@ function passwordResetEmail(user: User, link: string, expiresAt: Date): AccountE
       greeting(user),
       'Recibimos una solicitud para crear una contraseña nueva para su cuenta. Para hacerlo, abra este enlace:',
       link,
-      `El enlace sirve una sola vez y vence el ${BOGOTA_DATE_TIME.format(expiresAt)} (hora de Colombia).`,
+      `El enlace sirve una sola vez y vence el ${bogotaDateTime(expiresAt)} (hora de Colombia).`,
       'Si usted no lo pidió, ignore este correo: su contraseña actual sigue funcionando.',
       SIGNATURE,
     ].join('\n\n'),
@@ -93,7 +75,7 @@ function passwordChangedEmail(user: User, changedAt: Date): AccountEmail {
     subject: 'Su contraseña de ARZA ONE cambió',
     text: [
       greeting(user),
-      `La contraseña de su cuenta cambió el ${BOGOTA_DATE_TIME.format(changedAt)} (hora de Colombia). Por seguridad, se cerraron todas sus sesiones.`,
+      `La contraseña de su cuenta cambió el ${bogotaDateTime(changedAt)} (hora de Colombia). Por seguridad, se cerraron todas sus sesiones.`,
       'Si usted no hizo este cambio, pida una contraseña nueva desde «¿Olvidó su contraseña?» y avise de inmediato al responsable técnico de su empresa.',
       SIGNATURE,
     ].join('\n\n'),
@@ -151,6 +133,10 @@ export async function prepareAccountEmail(
       return user.passwordChangedAt === null
         ? null
         : passwordChangedEmail(user, user.passwordChangedAt);
+    }
+    if (isSecurityNotice(job.purpose)) {
+      const occurredAt = job.occurredAt === undefined ? deps.clock.now() : new Date(job.occurredAt);
+      return canSignIn(user) ? securityNoticeEmail(tx, user, job.purpose, occurredAt) : null;
     }
     return eligible(user, job.purpose) ? issueLink(tx, user, job.purpose, deps) : null;
   });
