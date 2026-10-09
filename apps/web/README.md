@@ -89,9 +89,31 @@ El grupo `app/(access)` tiene las pantallas de acceso del numeral 16.7, que no s
 
 `navigation.ts` define los módulos del menú, sus íconos y los permisos del anexo G que habilitan
 cada uno (basta uno). El menú solo muestra lo que el usuario puede usar, pero **la API es la única
-barrera**: ocultar un módulo no protege nada por sí solo. Mientras no existan los roles (B10),
-`lib/session/current-permissions.ts` concede los permisos del menú a toda persona con sesión;
-B10 lo reemplaza por `GET /api/v1/me/permissions`.
+barrera**: ocultar un módulo no protege nada por sí solo. Desde B10 los permisos vienen de
+`GET /api/v1/me/permissions` (`features/session/permissions.tsx`): `usePermissions()` dice si la
+persona tiene un permiso (`can`) o si lo tiene para todo y no solo para lo propio (`canAll`).
+Mientras llegan, nada se muestra como permitido.
+
+## Administración (B10)
+
+Pantallas en `/app/administracion` (`features/administration/`). Cada una se envuelve en
+`<RequirePermission anyOf={[...]}>`: sin el permiso muestra «Sin permiso» (numeral 16.5) y no pide
+datos; si alguien escribe la dirección, la API se los niega igual.
+
+| Pantalla                                  | Permiso                    | Qué hace                                                                                                                  |
+| ----------------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `/app/administracion`                     | Cualquiera de las de abajo | Entrada con las secciones que la persona puede usar                                                                       |
+| `/app/administracion/usuarios`            | `iam.user.read`            | Lista por páginas con búsqueda y estado; «Invitar a una persona» con `iam.user.invite`                                    |
+| `/app/administracion/usuarios/[id]`       | `iam.user.read`            | Ficha, roles vigentes (asignar y retirar con `iam.role.assign`) y acciones según el permiso. En la propia, nada se cambia |
+| `/app/administracion/roles`               | `iam.role.read`            | Roles del sistema y personalizados; «Crear» con `iam.role.manage`                                                         |
+| `/app/administracion/roles/[id]`          | `iam.role.read`            | Permisos por módulo; los personalizados se editan (con la versión en `If-Match`)                                          |
+| `/app/administracion/roles/nuevo`         | `iam.role.manage`          | Rol personalizado: nombre, para quién y permisos con «todo» o «solo lo propio»                                            |
+| `/app/administracion/delegaciones`        | `iam.delegation.manage`    | Delegar aprobaciones hasta 60 días. Quien no ve la lista de usuarios escribe el correo de quien recibe                    |
+| `/app/administracion/revision-de-accesos` | `iam.access_review.read`   | Informe para la Dirección, con «Imprimir o guardar en PDF»                                                                |
+
+Las acciones de alto riesgo usan `useAdminAction()` (`admin-action.ts`): si la API pide confirmar
+la identidad, abre «Confirme que es usted» y repite la acción al confirmar. Mi perfil muestra
+además «Sus roles».
 
 ## Cliente de la API
 

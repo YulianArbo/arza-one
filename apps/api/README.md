@@ -26,34 +26,57 @@ Los servicios locales se encienden con `pnpm infra:up` ([guía](../../docs/runbo
 
 ## Puntos de la API
 
-| Ruta                                 | Acceso                | Respuesta                                                                                                                            |
-| ------------------------------------ | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `GET /health`                        | Público               | 200 si la base de datos, las colas y los archivos responden; 503 si alguno no. Sin límite de peticiones (ver «Límite de peticiones») |
-| `GET /version`                       | Público               | Versión, ambiente (`local`, `staging`, `production`) y commit                                                                        |
-| `GET /api/docs`                      | Público               | Documentación interactiva. Solo en local y pruebas; no existe en producción                                                          |
-| `GET /api/docs/openapi.json`         | Público               | El mismo documento en formato OpenAPI 3.1                                                                                            |
-| `POST /v1/auth/login`                | Público               | Inicia sesión; entrega la cookie y el código antifalsificación. Mismo mensaje exista o no el correo                                  |
-| `POST /v1/auth/mfa/verify`           | A medias              | Segundo paso: código de la aplicación o de recuperación. Completa la sesión con una llave nueva                                      |
-| `POST /v1/auth/mfa/setup`            | A medias              | Empieza a configurar el segundo factor: secreto y dirección para el QR (15 minutos para confirmar)                                   |
-| `POST /v1/auth/mfa/setup/confirm`    | A medias              | Confirma con el primer código y entrega los diez códigos de recuperación (una sola vez)                                              |
-| `POST /v1/auth/reauthenticate`       | Sesión                | «Confirme que es usted»: contraseña y código. Vale 30 minutos para las acciones de alto riesgo                                       |
-| `GET /v1/auth/session`               | A medias              | Sesión actual, su etapa (`stage`) y su código antifalsificación                                                                      |
-| `POST /v1/auth/logout`               | A medias              | Cierra la sesión actual                                                                                                              |
-| `POST /v1/auth/password/forgot`      | Público               | Pide el enlace de recuperación; siempre responde 202 con el mismo mensaje                                                            |
-| `POST /v1/auth/password/reset`       | Público               | Cambia la contraseña con el enlace y cierra todas las sesiones                                                                       |
-| `POST /v1/auth/invitation/accept`    | Público               | Activa la cuenta con el enlace de la invitación                                                                                      |
-| `GET /v1/me`                         | Sesión                | Perfil propio                                                                                                                        |
-| `POST /v1/me/password`               | Sesión                | Cambia la contraseña propia y cierra todas las sesiones, incluida la actual                                                          |
-| `GET /v1/me/mfa`                     | Sesión                | Estado del segundo factor propio: obligatorio, activo, desde cuándo y cuántos códigos quedan                                         |
-| `POST /v1/me/mfa/recovery-codes`     | Sesión + confirmación | Diez códigos de recuperación nuevos; los anteriores dejan de servir                                                                  |
-| `POST /v1/me/mfa/disable`            | Sesión + confirmación | Desactiva el segundo factor, solo si es opcional; cierra las demás sesiones                                                          |
-| `GET /v1/me/sessions`                | Sesión                | Sesiones abiertas propias, con navegador, sistema, IP y cuál es la actual                                                            |
-| `POST /v1/me/sessions/{id}/revoke`   | Sesión                | Cierra una sesión propia; surte efecto en la siguiente petición de ese equipo. La de otra persona responde 404                       |
-| `POST /v1/me/sessions/revoke-others` | Sesión                | Cierra todas las demás sesiones propias                                                                                              |
+| Ruta                                                      | Acceso                          | Respuesta                                                                                                                            |
+| --------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET /health`                                             | Público                         | 200 si la base de datos, las colas y los archivos responden; 503 si alguno no. Sin límite de peticiones (ver «Límite de peticiones») |
+| `GET /version`                                            | Público                         | Versión, ambiente (`local`, `staging`, `production`) y commit                                                                        |
+| `GET /api/docs`                                           | Público                         | Documentación interactiva. Solo en local y pruebas; no existe en producción                                                          |
+| `GET /api/docs/openapi.json`                              | Público                         | El mismo documento en formato OpenAPI 3.1                                                                                            |
+| `POST /v1/auth/login`                                     | Público                         | Inicia sesión; entrega la cookie y el código antifalsificación. Mismo mensaje exista o no el correo                                  |
+| `POST /v1/auth/mfa/verify`                                | A medias                        | Segundo paso: código de la aplicación o de recuperación. Completa la sesión con una llave nueva                                      |
+| `POST /v1/auth/mfa/setup`                                 | A medias                        | Empieza a configurar el segundo factor: secreto y dirección para el QR (15 minutos para confirmar)                                   |
+| `POST /v1/auth/mfa/setup/confirm`                         | A medias                        | Confirma con el primer código y entrega los diez códigos de recuperación (una sola vez)                                              |
+| `POST /v1/auth/reauthenticate`                            | Sesión                          | «Confirme que es usted»: contraseña y código. Vale 30 minutos para las acciones de alto riesgo                                       |
+| `GET /v1/auth/session`                                    | A medias                        | Sesión actual, su etapa (`stage`) y su código antifalsificación                                                                      |
+| `POST /v1/auth/logout`                                    | A medias                        | Cierra la sesión actual                                                                                                              |
+| `POST /v1/auth/password/forgot`                           | Público                         | Pide el enlace de recuperación; siempre responde 202 con el mismo mensaje                                                            |
+| `POST /v1/auth/password/reset`                            | Público                         | Cambia la contraseña con el enlace y cierra todas las sesiones                                                                       |
+| `POST /v1/auth/invitation/accept`                         | Público                         | Activa la cuenta con el enlace de la invitación                                                                                      |
+| `GET /v1/me`                                              | Sesión                          | Perfil propio                                                                                                                        |
+| `POST /v1/me/password`                                    | Sesión                          | Cambia la contraseña propia y cierra todas las sesiones, incluida la actual                                                          |
+| `GET /v1/me/mfa`                                          | Sesión                          | Estado del segundo factor propio: obligatorio, activo, desde cuándo y cuántos códigos quedan                                         |
+| `POST /v1/me/mfa/recovery-codes`                          | Sesión + confirmación           | Diez códigos de recuperación nuevos; los anteriores dejan de servir                                                                  |
+| `POST /v1/me/mfa/disable`                                 | Sesión + confirmación           | Desactiva el segundo factor, solo si es opcional; cierra las demás sesiones                                                          |
+| `GET /v1/me/sessions`                                     | Sesión                          | Sesiones abiertas propias, con navegador, sistema, IP y cuál es la actual                                                            |
+| `POST /v1/me/sessions/{id}/revoke`                        | Sesión                          | Cierra una sesión propia; surte efecto en la siguiente petición de ese equipo. La de otra persona responde 404                       |
+| `POST /v1/me/sessions/revoke-others`                      | Sesión                          | Cierra todas las demás sesiones propias                                                                                              |
+| `GET /v1/me/permissions`                                  | Sesión                          | Roles y permisos vigentes propios (todo o «solo lo propio»), para que la web decida qué mostrar                                      |
+| `GET /v1/users`                                           | `iam.user.read`                 | Usuarios por páginas (`limit`, `cursor`), con búsqueda (`q`) y filtros (`status`, `kind`)                                            |
+| `GET /v1/users/{id}`                                      | `iam.user.read`                 | Ficha con roles vigentes; los datos de seguridad solo para quien tiene `iam.user.lock` o `iam.user.reset_mfa`                        |
+| `POST /v1/users`                                          | `iam.user.invite`               | Invita a una persona; las internas reciben COLABORADOR y los roles elegidos                                                          |
+| `POST /v1/users/{id}/actions/invite`                      | `iam.user.invite`               | Reenvía la invitación de una cuenta que sigue invitada                                                                               |
+| `POST /v1/users/{id}/actions/lock`                        | `iam.user.lock`                 | Bloquea la cuenta y cierra sus sesiones                                                                                              |
+| `POST /v1/users/{id}/actions/unlock`                      | `iam.user.lock` + conf.         | Quita el bloqueo del administrador o el de los intentos fallidos                                                                     |
+| `POST /v1/users/{id}/actions/reset-mfa`                   | `iam.user.reset_mfa` + conf.    | Reinicia el segundo factor de otra persona y cierra sus sesiones                                                                     |
+| `POST /v1/users/{id}/actions/revoke-sessions`             | `iam.session.revoke` + conf.    | Cierra todas las sesiones de una persona                                                                                             |
+| `POST /v1/sessions/actions/revoke-all`                    | `iam.session.revoke` + conf.    | Cierra todas las sesiones de la empresa salvo la propia (numeral 15.7)                                                               |
+| `POST /v1/users/{id}/roles`                               | `iam.role.assign` + conf.       | Asigna un rol, con vencimiento opcional (obligatorio para AUDITOR, 90 días como máximo)                                              |
+| `POST /v1/users/{id}/roles/{assignmentId}/actions/revoke` | `iam.role.assign` + conf.       | Retira un rol                                                                                                                        |
+| `GET /v1/permissions`                                     | `iam.role.read`                 | Catálogo del anexo G por módulo                                                                                                      |
+| `GET /v1/roles`                                           | `iam.role.read`                 | Roles del sistema y personalizados, con cuántos permisos y personas tienen                                                           |
+| `GET /v1/roles/{id}`                                      | `iam.role.read`                 | Un rol con sus permisos                                                                                                              |
+| `POST /v1/roles`                                          | `iam.role.manage` + conf.       | Crea un rol personalizado                                                                                                            |
+| `PATCH /v1/roles/{id}`                                    | `iam.role.manage` + conf.       | Edita un rol personalizado con la versión en `If-Match`; nunca uno del sistema ni uno que usted tenga                                |
+| `GET /v1/delegations`                                     | `iam.delegation.manage`         | Todas con el permiso completo; si no, las que la persona hizo o recibió                                                              |
+| `POST /v1/delegations`                                    | `iam.delegation.manage` + conf. | Delega aprobaciones propias hasta 60 días (el administrador, las de otros, nunca a su favor)                                         |
+| `POST /v1/delegations/{id}/actions/revoke`                | `iam.delegation.manage`         | Retira una delegación vigente o programada; la ajena responde 404                                                                    |
+| `GET /v1/access-review`                                   | `iam.access_review.read`        | Informe de revisión de accesos; cada consulta queda en la auditoría                                                                  |
 
-«A medias» quiere decir que también la atiende una sesión que solo verificó la contraseña
+«Sesión» quiere decir cualquier sesión completa, sobre la cuenta propia (`@OwnAccount()`). Un
+permiso como `iam.user.read` quiere decir que la ruta lo exige (`@RequirePermission()`, B10): sin
+él responde 403 `PERMISSION_DENIED`. «A medias» quiere decir que también la atiende una sesión que solo verificó la contraseña
 (`@SigningIn()`); cualquier otra ruta le responde 403 `SECOND_FACTOR_REQUIRED`. «Confirmación» es
-`@RecentAuthentication()`: sin una confirmación de identidad de los últimos 30 minutos responde
+`@RecentAuthentication()` («conf.» en la tabla): sin una confirmación de identidad de los últimos 30 minutos responde
 403 `REAUTHENTICATION_REQUIRED`.
 
 `/health` y `/version` están fuera de `/v1` porque son de operación (los consultan Caddy y
@@ -74,13 +97,16 @@ Cada petición pasa por los mismos eslabones, definidos una sola vez en `src/pla
 | 3    | Límite de peticiones         | `ThrottlerGuard` en `app.module.ts`       | 429 `RATE_LIMITED`          |
 | 4    | Acceso y sesión              | `platform/access/access.guard.ts`         | 401 `UNAUTHENTICATED`       |
 | 5    | Antifalsificación (CSRF)     | `platform/security/csrf.guard.ts`         | 403 `CSRF_INVALID`          |
+| 8    | Autorización (B10)           | `platform/access/authorization.guard.ts`  | 403 `PERMISSION_DENIED`     |
 | 7    | Validación con Zod           | `ZodValidationPipe` en `app.module.ts`    | 422 `VALIDATION_FAILED`     |
 | 12   | Respuesta validada con Zod   | `ZodSerializerInterceptor`                | 500 `INTERNAL_ERROR`        |
 | —    | Formato único de error       | `platform/errors/api-exception.filter.ts` | Siempre el formato del 14.2 |
 
 El paso 6 (contexto de empresa) lo fija cada caso de uso con la empresa de la sesión. El paso 11
-(auditoría) existe en versión mínima desde B08 (`platform/audit/`); B11 lo completa. Los pasos 8
-(autorización) y 9 (idempotencia) llegan en B10 y en los módulos que la necesiten.
+(auditoría) existe en versión mínima desde B08 (`platform/audit/`); B11 lo completa. El paso 8
+(autorización) llega en B10 y corre antes de la validación (paso 7): quien no tiene el permiso no
+llega a saber qué datos acepta la ruta. El paso 9 (idempotencia) llega con los módulos que la
+necesiten.
 
 ### Configuración
 
@@ -122,10 +148,11 @@ queda solo en el registro interno. Códigos de la plataforma: `BAD_REQUEST`, `UN
 
 ### Acceso
 
-Toda ruta debe declarar cómo se accede a ella con `@Public()` o `@Authenticated()`
-(`platform/access/access.decorators.ts`). Sin declaración, la ruta queda cerrada. Una prueba
-(`test/access.test.ts`) falla si alguna ruta de la API no lo declara. Las rutas `@Authenticated()`
-exigen una sesión válida (ver «Identidad»); la persona llega al controlador con `@CurrentPrincipal()`.
+Toda ruta debe declarar cómo se accede a ella con `@Public()`, `@SigningIn()`, `@OwnAccount()` o
+`@RequirePermission()` (`platform/access/access.decorators.ts`). Sin declaración, la ruta queda
+cerrada. Una prueba (`test/access.test.ts`) falla si alguna ruta de la API no lo declara (ver
+«Roles, permisos y autorización»). Las rutas con sesión exigen una sesión válida (ver «Identidad»);
+la persona llega al controlador con `@CurrentPrincipal()` y sus permisos con `@CurrentAbility()`.
 
 ### Límite de peticiones
 
@@ -225,16 +252,16 @@ ahí es ampliar ese contrato.
 Cuentas, inicio de sesión, sesiones y contraseñas según el numeral 15.1 y la ADR-008. Las tablas
 están en [`docs/manual/datos/iam.md`](../../docs/manual/datos/iam.md).
 
-| Regla                        | Cómo se cumple                                                                                                                                                       |
-| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Alta solo por invitación     | `pnpm iam:invitar` crea la cuenta invitada y encola el correo; el enlace vence en 72 horas y sirve una vez. B10 agrega la pantalla de usuarios con `iam.user.invite` |
-| Contraseñas                  | De 12 a 128 caracteres, sin reglas de composición, fuera de la lista de filtradas ([`data/`](data/README.md)). Argon2id de Node.js, parámetros de OWASP, sal propia  |
-| Sesión                       | 256 bits al azar en la cookie `__Host-arza_session` (HttpOnly, Secure, SameSite=Lax); en la base solo su huella. Vence a las 8 horas sin uso y a las 12 en total     |
-| Antifalsificación            | Código por sesión (HMAC con `CSRF_SECRET`) en la cabecera `X-CSRF-Token` y origen propio en toda operación que modifica datos                                        |
-| Espera y bloqueo             | 1, 2, 4 y 8 segundos tras cada fallo; al quinto, 15 minutos con evento de seguridad, alerta en la bandeja de salida y auditoría. Igual para correos sin cuenta       |
-| El error no revela el correo | Mismo código y mensaje para correo inexistente, contraseña equivocada o cuenta no activa; sin cuenta se calcula igual un hash para gastar el mismo tiempo            |
-| Recuperación                 | Enlace de 30 minutos; al usarlo se cierran todas las sesiones y se avisa por correo                                                                                  |
-| Cambio de contraseña         | Pide la actual; cierra todas las sesiones, incluida la actual, y avisa por correo                                                                                    |
+| Regla                        | Cómo se cumple                                                                                                                                                               |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Alta solo por invitación     | `pnpm iam:invitar` crea la cuenta invitada y encola el correo; el enlace vence en 72 horas y sirve una vez. Desde B10 también la pantalla de usuarios, con `iam.user.invite` |
+| Contraseñas                  | De 12 a 128 caracteres, sin reglas de composición, fuera de la lista de filtradas ([`data/`](data/README.md)). Argon2id de Node.js, parámetros de OWASP, sal propia          |
+| Sesión                       | 256 bits al azar en la cookie `__Host-arza_session` (HttpOnly, Secure, SameSite=Lax); en la base solo su huella. Vence a las 8 horas sin uso y a las 12 en total             |
+| Antifalsificación            | Código por sesión (HMAC con `CSRF_SECRET`) en la cabecera `X-CSRF-Token` y origen propio en toda operación que modifica datos                                                |
+| Espera y bloqueo             | 1, 2, 4 y 8 segundos tras cada fallo; al quinto, 15 minutos con evento de seguridad, alerta en la bandeja de salida y auditoría. Igual para correos sin cuenta               |
+| El error no revela el correo | Mismo código y mensaje para correo inexistente, contraseña equivocada o cuenta no activa; sin cuenta se calcula igual un hash para gastar el mismo tiempo                    |
+| Recuperación                 | Enlace de 30 minutos; al usarlo se cierran todas las sesiones y se avisa por correo                                                                                          |
+| Cambio de contraseña         | Pide la actual; cierra todas las sesiones, incluida la actual, y avisa por correo                                                                                            |
 
 Los correos los envía el worker (trabajo `iam.account-email`). El trabajo solo lleva el usuario y
 el propósito: el enlace se crea al enviarlo, así su llave nunca queda guardada en la cola.
@@ -246,21 +273,21 @@ la transacción de esa empresa. Por eso el correo es único en toda la plataform
 
 ## Segundo factor y seguridad de sesión (B09)
 
-| Regla                           | Cómo se cumple                                                                                                                                                                 |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Obligatorio por tipo de usuario | Siempre para los internos (no se puede desactivar). En el portal, para quien tenga `mfa_required` (administradores de cliente; B10 lo pondrá por rol); opcional para los demás |
-| Dos pasos                       | La contraseña correcta abre una sesión a medias de 10 minutos que solo atiende el segundo paso; al completarlo la sesión recibe una llave nueva y sus 12 horas                 |
-| TOTP                            | `otpauth` (MIT): seis dígitos cada 30 segundos, se acepta el anterior y el siguiente, y cada código sirve una sola vez (se guarda el último paso usado)                        |
-| Secreto cifrado                 | AES-256-GCM con `FIELD_ENCRYPTION_KEY` (`src/platform/crypto/field-cipher.ts`), atado a la empresa y la persona; la base rechaza un secreto sin cifrar                         |
-| Códigos de recuperación         | Diez de 16 caracteres, de un solo uso; solo su huella SHA-256. Usar uno deja evento de seguridad y aviso por correo                                                            |
-| Cinco códigos equivocados       | Cierran la sesión y bloquean la cuenta 15 minutos, con evento de seguridad grave, alerta en la bandeja de salida y auditoría (también al confirmar la identidad)               |
-| Confirmar la identidad          | `POST /v1/auth/reauthenticate`; vale 30 minutos. Lo exigen: códigos nuevos, cambiar de celular y desactivar                                                                    |
-| Sesiones activas                | La lista y el cierre remoto; como cada petición valida la sesión en la base, el cierre surte efecto en la siguiente petición                                                   |
-| Dispositivo nuevo (15.5)        | Marca aleatoria en la cookie `__Host-arza_device` (400 días; solo su huella en `iam_known_devices`). El primer equipo no avisa; los siguientes dejan evento y correo           |
-| Avisos por correo               | Activó, cambió, desactivó o reiniciaron el segundo factor; códigos nuevos; código usado; equipo nuevo. Nunca llevan códigos ni secretos                                        |
+| Regla                           | Cómo se cumple                                                                                                                                                             |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Obligatorio por tipo de usuario | Siempre para los internos (no se puede desactivar). En el portal, para quien tenga `mfa_required` (asignar el rol `CLIENTE_ADMIN` lo activa, B10); opcional para los demás |
+| Dos pasos                       | La contraseña correcta abre una sesión a medias de 10 minutos que solo atiende el segundo paso; al completarlo la sesión recibe una llave nueva y sus 12 horas             |
+| TOTP                            | `otpauth` (MIT): seis dígitos cada 30 segundos, se acepta el anterior y el siguiente, y cada código sirve una sola vez (se guarda el último paso usado)                    |
+| Secreto cifrado                 | AES-256-GCM con `FIELD_ENCRYPTION_KEY` (`src/platform/crypto/field-cipher.ts`), atado a la empresa y la persona; la base rechaza un secreto sin cifrar                     |
+| Códigos de recuperación         | Diez de 16 caracteres, de un solo uso; solo su huella SHA-256. Usar uno deja evento de seguridad y aviso por correo                                                        |
+| Cinco códigos equivocados       | Cierran la sesión y bloquean la cuenta 15 minutos, con evento de seguridad grave, alerta en la bandeja de salida y auditoría (también al confirmar la identidad)           |
+| Confirmar la identidad          | `POST /v1/auth/reauthenticate`; vale 30 minutos. Lo exigen: códigos nuevos, cambiar de celular y desactivar                                                                |
+| Sesiones activas                | La lista y el cierre remoto; como cada petición valida la sesión en la base, el cierre surte efecto en la siguiente petición                                               |
+| Dispositivo nuevo (15.5)        | Marca aleatoria en la cookie `__Host-arza_device` (400 días; solo su huella en `iam_known_devices`). El primer equipo no avisa; los siguientes dejan evento y correo       |
+| Avisos por correo               | Activó, cambió, desactivó o reiniciaron el segundo factor; códigos nuevos; código usado; equipo nuevo. Nunca llevan códigos ni secretos                                    |
 
-**Reiniciar el segundo factor de alguien** que perdió el celular y los códigos (hasta que B10
-traiga la pantalla con el permiso `iam.user.reset_mfa`). Antes, confirme la identidad de la persona
+**Reiniciar el segundo factor de alguien** que perdió el celular y los códigos (desde B10 también
+en la pantalla de usuarios, con el permiso `iam.user.reset_mfa`). Antes, confirme la identidad de la persona
 por otro medio:
 
 ```bash
@@ -279,6 +306,48 @@ pnpm iam:invitar --empresa demo-uno --correo ana@demo-uno.test --nombre "Ana Pé
 `--empresa` acepta `plataforma`, `demo-uno`, `demo-dos` o el identificador de la empresa; `--tipo`,
 `interno` (aplicación) o `portal`. Si la invitación sigue pendiente, la reenvía. Para un
 administrador de cliente agregue `--exige-segundo-factor`.
+
+## Roles, permisos y autorización (B10)
+
+Permisos por rol y por registro con CASL (ADR-009). El catálogo del anexo G, la matriz del numeral
+15.3 y los 16 roles del sistema viven en `packages/contracts/src/iam/` y la semilla los carga en
+cada empresa. La tabla legible de qué tiene cada rol está en
+[`permisos-por-rol.md`](../../docs/manual/datos/permisos-por-rol.md) y las tablas en
+[`iam.md`](../../docs/manual/datos/iam.md).
+
+| Regla                                    | Cómo se cumple                                                                                                                                                                                                                                                       |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cada punto declara su permiso            | `@RequirePermission('iam.user.lock')`, `@OwnAccount()` (solo en `/v1/me` y `/v1/auth`), `@SigningIn()` o `@Public()`. `test/access.test.ts` falla si alguna ruta no declara nada, si nombra un permiso fuera del catálogo o si usa `@OwnAccount()` fuera de su lugar |
+| Permisos de la persona                   | La suma de sus roles vigentes (no retirados, empezados y sin vencer), calculada en cada petición: retirar un rol surte efecto en la siguiente                                                                                                                        |
+| Sin el permiso                           | 403 `PERMISSION_DENIED`, sin decir qué permiso falta. La guarda va después de la protección CSRF y antes de pedir confirmar la identidad                                                                                                                             |
+| «Solo lo propio» (letra P)               | El permiso pasa la ruta; el caso de uso revisa el registro con `canOnRecord()` y responde 404 si no es de la persona (numeral 15.5, BOLA)                                                                                                                            |
+| Respuesta según el rol                   | La ficha de un usuario trae sus datos de seguridad solo a quien puede bloquear o reiniciar el segundo factor; a los demás, `security: null`                                                                                                                          |
+| Nadie se asigna permisos a sí mismo      | La API responde 403 `SELF_PERMISSION_CHANGE` al asignarse o retirarse un rol, al editar un rol que se tiene y al registrar una delegación a su favor; la base de datos lo impide además con restricciones                                                            |
+| Roles del sistema                        | No se editan (422 `SYSTEM_ROLE_READONLY`); la semilla los deja como dice la matriz y audita cada corrección (`iam.role.sync`)                                                                                                                                        |
+| Auditor por tiempo limitado              | Su asignación siempre vence, a los 90 días como máximo (422 `ROLE_EXPIRY_INVALID`)                                                                                                                                                                                   |
+| Administrador del cliente                | Asignar `CLIENTE_ADMIN` vuelve obligatorio el segundo factor de esa cuenta                                                                                                                                                                                           |
+| Toda persona interna                     | Recibe COLABORADOR al ser invitada (por la pantalla o por el comando)                                                                                                                                                                                                |
+| Alerta de cada cambio de permisos (15.5) | Auditoría, evento de seguridad `iam.permissions.changed` y alerta `security.alert` en la bandeja de salida, en la misma transacción; correo a la persona cuando cambian sus roles                                                                                    |
+| Delegaciones                             | Solo aprobaciones que quien delega tiene hoy, hasta 60 días, nunca a uno mismo. Quien no ve la lista de usuarios indica el correo de quien recibe                                                                                                                    |
+
+Las acciones de alto riesgo («+ conf.» en la tabla de puntos) piden además confirmar la identidad
+en los últimos 30 minutos, como en B09.
+
+**Para un módulo nuevo:** declare cada ruta con `@RequirePermission()` y un permiso del catálogo.
+Si el permiso tiene «solo lo propio», arme en cada registro el campo `involved_user_ids` con las
+personas relacionadas (quien lo creó, sus miembros, a quien está asignado) y revíselo con
+`canOnRecord(ability, código, registro)` usando `@CurrentAbility()`. Agregar un permiso exige
+agregarlo al catálogo y a la matriz, y regenerar `permisos-por-rol.md` con
+`pnpm --filter @arza/contracts test -u`.
+
+**Dar el primer rol de administrador** (desde la pantalla nadie se asigna roles a sí mismo):
+
+```bash
+pnpm iam:asignar-rol --correo ana@demo-uno.test --rol ADMIN_PLATAFORMA
+```
+
+`--vence dd/mm/aaaa` fija el último día del rol (obligatorio para `AUDITOR`). La asignación queda a
+nombre del sistema en la auditoría y la persona recibe un aviso por correo.
 
 ## Imágenes Docker (B05 y B07)
 

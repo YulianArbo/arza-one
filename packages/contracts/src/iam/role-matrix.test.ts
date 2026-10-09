@@ -7,6 +7,7 @@ import {
   systemRoleGrants,
   type SystemRoleCode,
 } from './role-matrix.js';
+import { roleMatrixMarkdown } from './role-matrix-doc.js';
 import { SYSTEM_ROLES } from './roles.js';
 
 function codesOf(role: SystemRoleCode, own?: boolean): readonly string[] {
@@ -104,5 +105,14 @@ describe('permisos limitados y sensibles', () => {
       { code: 'portal.personal_data.manage', own: true },
     ]);
     expect(codesOf('CLIENTE_ADMIN')).toContain('portal.user.manage');
+  });
+});
+
+describe('documento de permisos por rol', () => {
+  it('coincide con docs/manual/datos/permisos-por-rol.md', async () => {
+    // Si cambia la matriz, regénerelo con: pnpm --filter @arza/contracts test -u
+    await expect(roleMatrixMarkdown()).toMatchFileSnapshot(
+      '../../../../docs/manual/datos/permisos-por-rol.md',
+    );
   });
 });

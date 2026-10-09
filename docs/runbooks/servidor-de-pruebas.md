@@ -165,6 +165,16 @@ factores ya configurados dejarían de funcionar y habría que reiniciarlos
 (`pnpm iam:reiniciar-segundo-factor`). El anexo F pide rotarla «con procedimiento»; ese
 procedimiento todavía no existe (pendiente anotado en el cierre de B09).
 
+B10 no agrega variables. Cada despliegue corre la semilla, que crea el catálogo de permisos y los
+16 roles del sistema de cada empresa. Desde B10 cada pantalla exige su permiso, así que después del
+primer despliegue con B10 hay que dar el rol de administrador a la primera persona, dentro del
+servidor, con la misma forma de comando que usa el despliegue (cambie el correo; la persona debe
+estar invitada):
+
+```bash
+ssh suadmin@203.0.113.10 'sudo -u deploy sh -c "docker compose --project-name arza-one-staging --file /srv/arza-one/current/infra/compose/staging.yml --env-file /srv/arza-one/.env --env-file /srv/arza-one/current/release.env run --rm --no-deps api node dist/modules/iam/interface/cli/assign-role-main.js --correo ana@demo-uno.test --rol ADMIN_PLATAFORMA"'
+```
+
 ## Problemas frecuentes
 
 | Síntoma                                                     | Causa y solución                                                                                                   |
