@@ -2,6 +2,8 @@ import pg from 'pg';
 import { v7 as uuidv7 } from 'uuid';
 import { inject } from 'vitest';
 
+import { seedAccessControl } from '../../../src/modules/iam/index.js';
+import { systemClock } from '../../../src/platform/clock/clock.js';
 import { DatabaseService } from '../../../src/platform/database/database.service.js';
 
 /** Direcciones de la base de datos desechable que levanta global-setup.ts. */
@@ -48,9 +50,13 @@ export function newTestTenant(label: string): TestTenant {
   return { id, legalName: `Empresa de prueba ${label}`, taxId: `T-${id}` };
 }
 
-/** Crea la empresa dentro de su propio contexto, como lo harían los datos semilla. */
+/**
+ * Crea la empresa dentro de su propio contexto, como lo harían los datos semilla, con el catálogo
+ * de permisos y los roles del sistema (B10).
+ */
 export async function createTenant(database: DatabaseService, tenant: TestTenant): Promise<void> {
   await database.withTenant({ tenantId: tenant.id, userId: null }, (transaction) =>
     transaction.tenant.create({ data: tenant }),
   );
+  await seedAccessControl(database, [tenant.id], systemClock);
 }

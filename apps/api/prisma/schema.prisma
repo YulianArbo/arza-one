@@ -16,28 +16,32 @@ datasource db {
 
 /// Empresas inquilinas (M00). La fila de una empresa solo es visible dentro de su propio contexto.
 model Tenant {
-  id             String          @id @default(uuid(7)) @db.Uuid
-  legalName      String          @map("legal_name")
-  tradeName      String?         @map("trade_name")
-  taxId          String          @unique @map("tax_id")
-  status         String          @default("active")
-  settings       Json            @default("{}")
-  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
-  createdBy      String?         @map("created_by") @db.Uuid
-  updatedAt      DateTime        @default(now()) @map("updated_at") @db.Timestamptz(6)
-  updatedBy      String?         @map("updated_by") @db.Uuid
-  version        Int             @default(1)
-  deletedAt      DateTime?       @map("deleted_at") @db.Timestamptz(6)
-  outboxEvents   OutboxEvent[]
-  users          User[]
-  sessions       Session[]
-  tokens         Token[]
-  loginAttempts  LoginAttempt[]
-  mfaFactors     MfaFactor[]
-  recoveryCodes  RecoveryCode[]
-  knownDevices   KnownDevice[]
-  auditEvents    AuditEvent[]
-  securityEvents SecurityEvent[]
+  id              String           @id @default(uuid(7)) @db.Uuid
+  legalName       String           @map("legal_name")
+  tradeName       String?          @map("trade_name")
+  taxId           String           @unique @map("tax_id")
+  status          String           @default("active")
+  settings        Json             @default("{}")
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?          @map("created_by") @db.Uuid
+  updatedAt       DateTime         @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy       String?          @map("updated_by") @db.Uuid
+  version         Int              @default(1)
+  deletedAt       DateTime?        @map("deleted_at") @db.Timestamptz(6)
+  outboxEvents    OutboxEvent[]
+  users           User[]
+  sessions        Session[]
+  tokens          Token[]
+  loginAttempts   LoginAttempt[]
+  mfaFactors      MfaFactor[]
+  recoveryCodes   RecoveryCode[]
+  knownDevices    KnownDevice[]
+  roles           Role[]
+  rolePermissions RolePermission[]
+  userRoles       UserRole[]
+  delegations     Delegation[]
+  auditEvents     AuditEvent[]
+  securityEvents  SecurityEvent[]
 
   @@map("core_tenants")
 }
@@ -68,32 +72,35 @@ model OutboxEvent {
 /// Cuentas de usuario (M01). El correo es único en toda la plataforma: con él se sabe a qué
 /// empresa pertenece la persona al iniciar sesión.
 model User {
-  id                String         @id @default(uuid(7)) @db.Uuid
-  tenantId          String         @map("tenant_id") @db.Uuid
-  email             String         @unique
-  displayName       String?        @map("display_name")
-  passwordHash      String?        @map("password_hash")
-  kind              String
-  status            String         @default("invited")
-  partyId           String?        @map("party_id") @db.Uuid
-  positionId        String?        @map("position_id") @db.Uuid
-  mfaRequired       Boolean        @default(true) @map("mfa_required")
-  lastLoginAt       DateTime?      @map("last_login_at") @db.Timestamptz(6)
-  lockedUntil       DateTime?      @map("locked_until") @db.Timestamptz(6)
-  passwordChangedAt DateTime?      @map("password_changed_at") @db.Timestamptz(6)
-  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
-  createdBy         String?        @map("created_by") @db.Uuid
-  updatedAt         DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
-  updatedBy         String?        @map("updated_by") @db.Uuid
-  version           Int            @default(1)
-  deletedAt         DateTime?      @map("deleted_at") @db.Timestamptz(6)
-  tenant            Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  sessions          Session[]
-  tokens            Token[]
-  loginAttempts     LoginAttempt[]
-  mfaFactors        MfaFactor[]
-  recoveryCodes     RecoveryCode[]
-  knownDevices      KnownDevice[]
+  id                  String         @id @default(uuid(7)) @db.Uuid
+  tenantId            String         @map("tenant_id") @db.Uuid
+  email               String         @unique
+  displayName         String?        @map("display_name")
+  passwordHash        String?        @map("password_hash")
+  kind                String
+  status              String         @default("invited")
+  partyId             String?        @map("party_id") @db.Uuid
+  positionId          String?        @map("position_id") @db.Uuid
+  mfaRequired         Boolean        @default(true) @map("mfa_required")
+  lastLoginAt         DateTime?      @map("last_login_at") @db.Timestamptz(6)
+  lockedUntil         DateTime?      @map("locked_until") @db.Timestamptz(6)
+  passwordChangedAt   DateTime?      @map("password_changed_at") @db.Timestamptz(6)
+  createdAt           DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy           String?        @map("created_by") @db.Uuid
+  updatedAt           DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy           String?        @map("updated_by") @db.Uuid
+  version             Int            @default(1)
+  deletedAt           DateTime?      @map("deleted_at") @db.Timestamptz(6)
+  tenant              Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  sessions            Session[]
+  tokens              Token[]
+  loginAttempts       LoginAttempt[]
+  mfaFactors          MfaFactor[]
+  recoveryCodes       RecoveryCode[]
+  knownDevices        KnownDevice[]
+  roleAssignments     UserRole[]
+  delegationsGiven    Delegation[]   @relation("DelegationsGiven")
+  delegationsReceived Delegation[]   @relation("DelegationsReceived")
 
   @@unique([tenantId, id])
   @@index([tenantId, status])
@@ -247,6 +254,133 @@ model LoginAttempt {
   @@index([email, occurredAt])
   @@index([tenantId, userId])
   @@map("iam_login_attempts")
+}
+
+/// Catálogo de permisos del anexo G (B10). Es el mismo para todas las empresas: no lleva
+/// tenant_id. Lo carga la semilla desde packages/contracts; la API solo lo lee.
+model Permission {
+  id              String           @id @default(uuid(7)) @db.Uuid
+  code            String           @unique
+  resource        String
+  action          String
+  groupKey        String           @map("group_key")
+  level           String
+  ownable         Boolean
+  description     String
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?          @map("created_by") @db.Uuid
+  updatedAt       DateTime         @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy       String?          @map("updated_by") @db.Uuid
+  version         Int              @default(1)
+  deletedAt       DateTime?        @map("deleted_at") @db.Timestamptz(6)
+  rolePermissions RolePermission[]
+
+  @@map("iam_permissions")
+}
+
+/// Roles de cada empresa (numeral 15.2): los 16 del sistema, que no se editan, y los
+/// personalizados. Nunca se borran.
+model Role {
+  id          String           @id @default(uuid(7)) @db.Uuid
+  tenantId    String           @map("tenant_id") @db.Uuid
+  code        String
+  name        String
+  description String?
+  isSystem    Boolean          @map("is_system")
+  audience    String
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?          @map("created_by") @db.Uuid
+  updatedAt   DateTime         @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?          @map("updated_by") @db.Uuid
+  version     Int              @default(1)
+  deletedAt   DateTime?        @map("deleted_at") @db.Timestamptz(6)
+  tenant      Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  permissions RolePermission[]
+  assignments UserRole[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@map("iam_roles")
+}
+
+/// Permisos de cada rol. conditions vacío es «todo»; {"scope": "own"} es «solo lo propio»
+/// (letra P). Un permiso retirado de un rol personalizado queda con deleted_at.
+model RolePermission {
+  id           String     @id @default(uuid(7)) @db.Uuid
+  tenantId     String     @map("tenant_id") @db.Uuid
+  roleId       String     @map("role_id") @db.Uuid
+  permissionId String     @map("permission_id") @db.Uuid
+  conditions   Json?
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy    String?    @map("created_by") @db.Uuid
+  updatedAt    DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy    String?    @map("updated_by") @db.Uuid
+  version      Int        @default(1)
+  deletedAt    DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant       Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  role         Role       @relation(fields: [tenantId, roleId], references: [tenantId, id], onDelete: Restrict)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Restrict)
+
+  @@unique([roleId, permissionId])
+  @@index([tenantId, roleId])
+  @@map("iam_role_permissions")
+}
+
+/// Roles de cada persona, con vigencia (ficha 17.2). Retirar un rol deja revoked_at: el
+/// historial completo queda. Nadie se asigna un rol a sí mismo (assigned_by distinto de user_id).
+model UserRole {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  roleId     String    @map("role_id") @db.Uuid
+  scopeType  String?   @map("scope_type")
+  scopeId    String?   @map("scope_id") @db.Uuid
+  validFrom  DateTime  @map("valid_from") @db.Timestamptz(6)
+  validUntil DateTime? @map("valid_until") @db.Timestamptz(6)
+  assignedBy String?   @map("assigned_by") @db.Uuid
+  revokedAt  DateTime? @map("revoked_at") @db.Timestamptz(6)
+  revokedBy  String?   @map("revoked_by") @db.Uuid
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?   @map("created_by") @db.Uuid
+  updatedAt  DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?   @map("updated_by") @db.Uuid
+  version    Int       @default(1)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  user       User      @relation(fields: [tenantId, userId], references: [tenantId, id], onDelete: Restrict)
+  role       Role      @relation(fields: [tenantId, roleId], references: [tenantId, id], onDelete: Restrict)
+
+  @@index([tenantId, userId])
+  @@index([tenantId, roleId])
+  @@map("iam_user_roles")
+}
+
+/// Delegación temporal de aprobaciones (ficha 17.2): quien delega, a quién, desde, hasta y qué
+/// permisos de aprobación (scope, lista de códigos). Retirarla deja revoked_at.
+model Delegation {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  fromUserId String    @map("from_user_id") @db.Uuid
+  toUserId   String    @map("to_user_id") @db.Uuid
+  startsAt   DateTime  @map("starts_at") @db.Timestamptz(6)
+  endsAt     DateTime  @map("ends_at") @db.Timestamptz(6)
+  scope      Json
+  reason     String
+  revokedAt  DateTime? @map("revoked_at") @db.Timestamptz(6)
+  revokedBy  String?   @map("revoked_by") @db.Uuid
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?   @map("created_by") @db.Uuid
+  updatedAt  DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?   @map("updated_by") @db.Uuid
+  version    Int       @default(1)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  fromUser   User      @relation("DelegationsGiven", fields: [tenantId, fromUserId], references: [tenantId, id], onDelete: Restrict)
+  toUser     User      @relation("DelegationsReceived", fields: [tenantId, toUserId], references: [tenantId, id], onDelete: Restrict)
+
+  @@index([tenantId, fromUserId])
+  @@index([tenantId, toUserId])
+  @@map("iam_delegations")
 }
 
 /// Auditoría de negocio (M19), solo inserción. B08 crea la versión mínima; B11 agrega la cadena
