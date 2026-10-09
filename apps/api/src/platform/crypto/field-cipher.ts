@@ -7,6 +7,8 @@ import { createCipheriv, createDecipheriv, hkdfSync, randomBytes } from 'node:cr
 const ALGORITHM = 'aes-256-gcm';
 const KEY_BYTES = 32;
 const IV_BYTES = 12;
+/** Etiqueta de autenticación completa (128 bits): no se acepta una más corta. */
+const TAG_BYTES = 16;
 /** Versión de la llave en cada valor: permite rotarla más adelante sin perder lo cifrado. */
 const VERSION = 'v1';
 const KEY_INFO = 'arza-one/field-encryption/v1';
@@ -32,7 +34,7 @@ export class FieldCipher {
 
   encrypt(plaintext: string, context: string): string {
     const iv = randomBytes(IV_BYTES);
-    const cipher = createCipheriv(ALGORITHM, this.key, iv);
+    const cipher = createCipheriv(ALGORITHM, this.key, iv, { authTagLength: TAG_BYTES });
     cipher.setAAD(Buffer.from(context));
     const encrypted = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
     const parts = [iv, cipher.getAuthTag(), encrypted].map((part) => part.toString('base64url'));
@@ -45,7 +47,9 @@ export class FieldCipher {
       throw new FieldCipherError();
     }
     try {
-      const decipher = createDecipheriv(ALGORITHM, this.key, Buffer.from(iv, 'base64url'));
+      const decipher = createDecipheriv(ALGORITHM, this.key, Buffer.from(iv, 'base64url'), {
+        authTagLength: TAG_BYTES,
+      });
       decipher.setAAD(Buffer.from(context));
       decipher.setAuthTag(Buffer.from(tag, 'base64url'));
       const decrypted = Buffer.concat([
