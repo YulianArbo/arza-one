@@ -1,7 +1,7 @@
 'use client';
 
 import { Alert, AlertDescription, Button } from '@arza/ui';
-import { Copy, Download, Printer, TriangleAlert } from 'lucide-react';
+import { Copy, Download, Printer, TriangleAlert, type LucideIcon } from 'lucide-react';
 import { useId, useState, type JSX } from 'react';
 
 const FILE_NAME = 'codigos-de-recuperacion-arza-one.txt';
@@ -26,40 +26,68 @@ function download(text: string): void {
   URL.revokeObjectURL(url);
 }
 
-function CodeActions({ text }: { readonly text: string }): JSX.Element {
-  const [copied, setCopied] = useState(false);
-  async function copy(): Promise<void> {
-    await navigator.clipboard.writeText(text);
-    setCopied(true);
-  }
+interface ActionButtonProps {
+  readonly icon: LucideIcon;
+  readonly label: string;
+  readonly onClick: () => void;
+}
+
+function ActionButton({ icon: Icon, label, onClick }: ActionButtonProps): JSX.Element {
   return (
-    <div className="flex flex-wrap gap-2 print:hidden">
-      <Button type="button" variant="outline" size="sm" onClick={() => void copy()}>
-        <Copy aria-hidden="true" />
-        {copied ? 'Copiados' : 'Copiar'}
-      </Button>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
+    <Button type="button" variant="outline" size="sm" onClick={onClick}>
+      <Icon aria-hidden="true" />
+      {label}
+    </Button>
+  );
+}
+
+type CopyState = 'idle' | 'done' | 'failed';
+
+/** Copia al portapapeles. El navegador puede negarlo; entonces quedan descargar o imprimir. */
+function useCopy(text: string): readonly [CopyState, () => void] {
+  const [state, setState] = useState<CopyState>('idle');
+  const copy = (): void => {
+    navigator.clipboard.writeText(text).then(
+      () => {
+        setState('done');
+      },
+      () => {
+        setState('failed');
+      },
+    );
+  };
+  return [state, copy];
+}
+
+/** Copiar, descargar o imprimir los códigos. */
+function CodeActions({ text }: { readonly text: string }): JSX.Element {
+  const [copy, copyCodes] = useCopy(text);
+  return (
+    <div className="flex flex-wrap items-center gap-2 print:hidden">
+      <ActionButton
+        icon={Copy}
+        label={copy === 'done' ? 'Copiados' : 'Copiar'}
+        onClick={copyCodes}
+      />
+      <ActionButton
+        icon={Download}
+        label="Descargar"
         onClick={() => {
           download(text);
         }}
-      >
-        <Download aria-hidden="true" />
-        Descargar
-      </Button>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
+      />
+      <ActionButton
+        icon={Printer}
+        label="Imprimir"
         onClick={() => {
           window.print();
         }}
-      >
-        <Printer aria-hidden="true" />
-        Imprimir
-      </Button>
+      />
+      {copy === 'failed' ? (
+        <p role="status" className="text-sm text-muted-foreground">
+          Su navegador no dejó copiarlos. Descárguelos o imprímalos.
+        </p>
+      ) : null}
     </div>
   );
 }
