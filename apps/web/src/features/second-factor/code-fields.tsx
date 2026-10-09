@@ -36,12 +36,7 @@ export function TotpCodeField({
 }
 
 /** Uno de los diez códigos de recuperación, con o sin guiones. */
-export function RecoveryCodeField({
-  id,
-  value,
-  onChange,
-  missingMessage,
-}: CodeFieldProps): JSX.Element {
+function RecoveryCodeField({ id, value, onChange, missingMessage }: CodeFieldProps): JSX.Element {
   return (
     <FormField
       id={id}

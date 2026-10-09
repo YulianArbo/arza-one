@@ -131,7 +131,7 @@ interface ReauthDialogProps {
 }
 
 /** «Confirme que es usted»: contraseña y, si tiene segundo factor, su código. Vale 30 minutos. */
-export function ReauthDialog({ session, open, onDone, onCancel }: ReauthDialogProps): JSX.Element {
+function ReauthDialog({ session, open, onDone, onCancel }: ReauthDialogProps): JSX.Element {
   const withCode = useHasSecondFactor(open);
   return (
     <Dialog

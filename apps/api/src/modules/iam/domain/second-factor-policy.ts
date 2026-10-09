@@ -3,11 +3,11 @@
 const MINUTE_MS = 60 * 1000;
 
 /** Minutos para completar el segundo paso después de la contraseña. */
-export const PENDING_SIGN_IN_MS = 10 * MINUTE_MS;
+const PENDING_SIGN_IN_MS = 10 * MINUTE_MS;
 /** Minutos para confirmar un segundo factor recién creado con su primer código. */
-export const SETUP_MS = 15 * MINUTE_MS;
+const SETUP_MS = 15 * MINUTE_MS;
 /** Las acciones de alto riesgo exigen haber confirmado la identidad en los últimos 30 minutos. */
-export const REAUTHENTICATION_WINDOW_MS = 30 * MINUTE_MS;
+const REAUTHENTICATION_WINDOW_MS = 30 * MINUTE_MS;
 /** Códigos equivocados de una persona en 15 minutos antes de bloquear la cuenta. */
 export const VERIFICATION_FAILURES_TO_LOCK = 5;
 export const RECOVERY_CODE_COUNT = 10;

@@ -20,7 +20,7 @@ import { useSession } from '../session/session-provider';
 const SESSIONS_KEY = ['me', 'sessions'] as const;
 
 /** «Chrome en Windows», con lo que informó el navegador de ese equipo. */
-export function deviceName(session: ActiveSession): string {
+function deviceName(session: ActiveSession): string {
   return `${session.browser ?? 'Navegador desconocido'} en ${session.os ?? 'sistema desconocido'}`;
 }
 

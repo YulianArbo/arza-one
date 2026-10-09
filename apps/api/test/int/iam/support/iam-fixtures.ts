@@ -124,11 +124,6 @@ export function currentCode(email: string, clock: Clock, offsetMs = 0): string {
   return totpCodeAt(phoneOf(email).secret, new Date(clock.now().getTime() + offsetMs));
 }
 
-/** La persona agregó a su celular el secreto que entregó la API al configurar. */
-export function rememberPhone(email: string, phone: Phone): void {
-  phones.set(email, phone);
-}
-
 async function enrollSecondFactor(tx: TenantTransaction, phone: Phone, email: string) {
   await tx.mfaFactor.create({
     data: {
