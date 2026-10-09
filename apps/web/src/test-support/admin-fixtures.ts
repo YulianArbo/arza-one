@@ -110,6 +110,7 @@ export const ROLES = {
   data: [
     role(),
     role({ id: ROLE_CUSTOM, code: 'APOYO', name: 'Apoyo comercial', is_system: false, version: 4 }),
+    role({ id: '01999a00-0000-7000-8000-00000000c004', code: 'AUDITOR', name: 'Auditor' }),
     role({
       id: ROLE_CLIENT,
       code: 'CLIENTE_ADMIN',

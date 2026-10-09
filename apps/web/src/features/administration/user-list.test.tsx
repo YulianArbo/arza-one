@@ -113,6 +113,7 @@ describe('invitar desde la lista', () => {
     await userEvent.type(within(dialog).getByLabelText('Correo'), 'nueva@demo-uno.test');
     await userEvent.click(await within(dialog).findByLabelText('Comercial'));
     expect(within(dialog).queryByLabelText('Administrador del cliente')).toBeNull();
+    expect(within(dialog).queryByLabelText('Auditor')).toBeNull();
     await userEvent.click(within(dialog).getByRole('button', { name: 'Enviar invitación' }));
     expect(await screen.findByText('Enviamos la invitación a nueva@demo-uno.test.')).toBeVisible();
     const invite = sent.find((request) => request.method === 'POST');

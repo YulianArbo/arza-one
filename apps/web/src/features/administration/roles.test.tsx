@@ -74,7 +74,7 @@ describe('lista y ficha de roles', () => {
       </Screen>,
     );
     expect(await screen.findByRole('link', { name: 'Comercial' })).toBeVisible();
-    expect(screen.getAllByText('Del sistema')).toHaveLength(2);
+    expect(screen.getAllByText('Del sistema')).toHaveLength(3);
     expect(screen.queryByRole('link', { name: 'Crear un rol personalizado' })).toBeNull();
   });
 

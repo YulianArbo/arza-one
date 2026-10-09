@@ -30,6 +30,12 @@ interface InviteValues {
 
 const EMPTY: InviteValues = { email: '', name: '', kind: 'internal', roleIds: [] };
 
+/**
+ * Roles que no se eligen al invitar: COLABORADOR llega solo a toda persona interna, y AUDITOR
+ * exige fecha de vencimiento, que se pone al asignarlo desde la ficha.
+ */
+const NOT_AT_INVITATION: ReadonlySet<string> = new Set(['COLABORADOR', 'AUDITOR']);
+
 const KIND_OPTIONS = [
   { value: 'internal', label: 'Persona interna' },
   { value: 'portal', label: 'Usuario del portal del cliente' },
@@ -47,6 +53,9 @@ function RoleChoices(props: {
   return (
     <fieldset className="flex flex-col gap-2">
       <legend className="mb-1 text-sm font-medium">Roles adicionales (opcional)</legend>
+      <p className="text-xs text-muted-foreground">
+        El rol de auditor se asigna desde la ficha, porque necesita fecha de vencimiento.
+      </p>
       <div className="grid max-h-48 gap-1 overflow-y-auto sm:grid-cols-2">
         {props.roles.map((role) => (
           <label key={role.id} className="flex items-center gap-2 text-sm">
@@ -130,7 +139,7 @@ function InviteForm({ onInvited }: { readonly onInvited: (email: string) => void
   const roles = useRoles();
   const invite = useInvite(onInvited);
   const available = (roles.data?.data ?? []).filter(
-    (role) => role.audience === values.kind && role.code !== 'COLABORADOR',
+    (role) => role.audience === values.kind && !NOT_AT_INVITATION.has(role.code),
   );
   const submit = (event: SubmitEvent<HTMLFormElement>): void => {
     event.preventDefault();
