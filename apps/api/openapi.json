@@ -4265,9 +4265,14 @@
             "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
           },
           "to_user_id": {
+            "description": "Quien recibe",
             "type": "string",
             "format": "uuid",
             "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "to_email": {
+            "description": "O su correo, para quien no ve la lista de usuarios",
+            "type": "string"
           },
           "starts_at": {
             "type": "string",
@@ -4296,7 +4301,6 @@
           }
         },
         "required": [
-          "to_user_id",
           "starts_at",
           "ends_at",
           "permissions",
