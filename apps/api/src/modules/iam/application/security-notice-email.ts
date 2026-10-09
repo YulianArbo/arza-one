@@ -26,7 +26,7 @@ export function isSecurityNotice(purpose: AccountEmailPurpose): purpose is Secur
 }
 
 const IF_NOT_YOU =
-  'Si usted no hizo este cambio, cambie su contraseña de inmediato desde «Mi perfil» o con «¿Olvidó su contraseña?», y avise al responsable técnico de su empresa.';
+  'Si no fue usted, cambie su contraseña de inmediato desde «Mi perfil» o con «¿Olvidó su contraseña?», y avise al responsable técnico de su empresa.';
 
 interface NoticeText {
   readonly subject: string;

@@ -78,7 +78,7 @@ function StatusText({ status }: { readonly status: SecondFactorStatusResponse })
   const few = status.recovery_codes_remaining <= FEW_CODES;
   return (
     <div className="space-y-1 text-sm">
-      <p>Activo desde el {formatDateTime(status.confirmed_at)}.</p>
+      <p>Activo desde el {formatDateTime(status.confirmed_at)}</p>
       <p className={few ? 'font-medium text-warning' : undefined}>
         Códigos de recuperación disponibles: {status.recovery_codes_remaining}
         {few ? '. Le quedan pocos: genere códigos nuevos.' : ''}

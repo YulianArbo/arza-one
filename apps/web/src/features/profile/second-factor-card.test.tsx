@@ -36,7 +36,7 @@ describe('segundo factor en Mi perfil', () => {
   it('muestra desde cuándo está activo, cuántos códigos quedan y si es obligatorio', async () => {
     mockApi({ 'GET /v1/auth/session': () => json(SESSION), 'GET /v1/me/mfa': () => json(ENABLED) });
     renderWithApi(<Card />);
-    expect(await screen.findByText(/Activo desde el 09\/10\/2026, 10:00 a\. m\./)).toBeVisible();
+    expect(await screen.findByText('Activo desde el 09/10/2026, 10:00 a. m.')).toBeVisible();
     expect(screen.getByText(/Le quedan pocos/)).toBeVisible();
     expect(screen.getByText('Es obligatorio para su tipo de usuario.')).toBeVisible();
     expect(screen.queryByRole('button', { name: 'Desactivar' })).toBeNull();
