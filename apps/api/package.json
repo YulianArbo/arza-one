@@ -19,10 +19,10 @@
   },
   "scripts": {
     "postinstall": "prisma generate",
-    "build": "prisma generate && tsc -p tsconfig.build.json",
-    "typecheck": "prisma generate && tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run --coverage",
-    "test:int": "prisma generate && vitest run --config vitest.int.config.ts --coverage",
+    "test:int": "vitest run --config vitest.int.config.ts --coverage",
     "start": "node --env-file-if-exists=../../.env dist/main.js",
     "dev": "node ../../infra/scripts/local/dev-watch.ts dist/main.js",
     "db:generate": "prisma generate",
