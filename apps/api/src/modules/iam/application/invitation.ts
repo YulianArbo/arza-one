@@ -20,6 +20,11 @@ export interface InviteUserInput {
   readonly email: string;
   readonly kind: 'internal' | 'portal';
   readonly displayName: string | null;
+  /**
+   * Exige segundo factor a una cuenta del portal (administradores de cliente, numeral 15.1). Las
+   * internas siempre lo exigen. B10 lo decidirá por el rol.
+   */
+  readonly requireSecondFactor?: boolean;
 }
 
 export type InviteOutcome = 'invited' | 'resent';
@@ -92,7 +97,7 @@ export class InvitationUseCase {
         kind: input.kind,
         displayName: input.displayName,
         status: 'invited',
-        mfaRequired: input.kind === 'internal',
+        mfaRequired: input.kind === 'internal' || input.requireSecondFactor === true,
       },
     });
     await recordAuditEvent(tx, {
@@ -103,7 +108,7 @@ export class InvitationUseCase {
       entityType: 'iam_user',
       entityId: user.id,
       result: 'success',
-      changes: { kind: input.kind, status: 'invited' },
+      changes: { kind: input.kind, status: 'invited', mfa_required: user.mfaRequired },
       meta: null,
     });
     return { userId: user.id, outcome: 'invited' };

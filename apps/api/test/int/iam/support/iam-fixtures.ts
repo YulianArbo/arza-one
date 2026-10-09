@@ -13,8 +13,10 @@ import { inject } from 'vitest';
 
 import { prepareAccountEmail } from '../../../../src/modules/iam/index.js';
 import { hashPassword } from '../../../../src/modules/iam/infrastructure/password-hasher.js';
-import type { Clock } from '../../../../src/platform/clock/clock.js';
-import type { DatabaseService } from '../../../../src/platform/database/database.service.js';
+import { newTotpSecret, totpCodeAt } from '../../../../src/modules/iam/infrastructure/totp.js';
+import { CLOCK, type Clock } from '../../../../src/platform/clock/clock.js';
+import { FieldCipher } from '../../../../src/platform/crypto/field-cipher.js';
+import { DatabaseService } from '../../../../src/platform/database/database.service.js';
 import type { TenantTransaction } from '../../../../src/platform/database/tenant-context.js';
 import {
   JOBS,
@@ -23,6 +25,7 @@ import {
   type AccountEmailPurpose,
 } from '../../../../src/platform/queues/jobs.js';
 import { createTestApp } from '../../../support/test-app.js';
+import { testEnv } from '../../../support/test-env.js';
 import { integrationDatabase } from '../../support/integration-database.js';
 
 // Apoyo de las pruebas de identidad con PostgreSQL y Valkey reales. Todos los datos son ficticios.
@@ -85,26 +88,78 @@ interface NewUser {
   readonly status?: 'invited' | 'active' | 'locked' | 'inactive';
   readonly kind?: 'internal' | 'portal';
   readonly password?: string;
+  /** Marca de segundo factor obligatorio para el portal (las internas siempre lo exigen). */
+  readonly requireSecondFactor?: boolean;
+  /**
+   * La cuenta ya tiene segundo factor activo. Por defecto lo tienen las internas activas, que lo
+   * exigen. Con false, la persona tendrá que configurarlo al entrar.
+   */
+  readonly withSecondFactor?: boolean;
+}
+
+/** Misma llave ficticia con la que la API de pruebas cifra los secretos. */
+const cipher = new FieldCipher(testEnv()['FIELD_ENCRYPTION_KEY'] ?? '');
+
+interface Phone {
+  readonly secret: string;
+  readonly tenantId: string;
+  readonly userId: string;
+}
+
+/** «Celular» de cada cuenta de prueba: su secreto, por correo. */
+const phones = new Map<string, Phone>();
+
+export function factorContext(tenantId: string, userId: string): string {
+  return `iam_mfa_factors:${tenantId}:${userId}`;
+}
+
+function phoneOf(email: string): Phone {
+  const phone = phones.get(email);
+  if (phone === undefined) throw new Error(`La cuenta ${email} no tiene segundo factor.`);
+  return phone;
+}
+
+/** Código que mostraría la aplicación del celular de la persona (ahora, o desplazado). */
+export function currentCode(email: string, clock: Clock, offsetMs = 0): string {
+  return totpCodeAt(phoneOf(email).secret, new Date(clock.now().getTime() + offsetMs));
+}
+
+async function enrollSecondFactor(tx: TenantTransaction, phone: Phone, email: string) {
+  await tx.mfaFactor.create({
+    data: {
+      tenantId: phone.tenantId,
+      userId: phone.userId,
+      secretEncrypted: cipher.encrypt(phone.secret, factorContext(phone.tenantId, phone.userId)),
+      confirmedAt: new Date(),
+    },
+  });
+  phones.set(email, phone);
 }
 
 /** Crea una cuenta directamente en la base, dentro de su empresa. */
 export async function createUser(database: DatabaseService, user: NewUser): Promise<string> {
   const status = user.status ?? 'active';
+  const kind = user.kind ?? 'internal';
   const passwordHash =
     status === 'invited' ? null : await hashPassword(user.password ?? GOOD_PASSWORD);
-  const created = await database.withTenant({ tenantId: user.tenantId, userId: null }, (tx) =>
-    tx.user.create({
+  return database.withTenant({ tenantId: user.tenantId, userId: null }, async (tx) => {
+    const created = await tx.user.create({
       data: {
         tenantId: user.tenantId,
         email: user.email,
-        kind: user.kind ?? 'internal',
+        kind,
         status,
         passwordHash,
         displayName: 'Persona de prueba',
+        mfaRequired: kind === 'internal' || user.requireSecondFactor === true,
       },
-    }),
-  );
-  return created.id;
+    });
+    if (user.withSecondFactor ?? (kind === 'internal' && status !== 'invited')) {
+      const phone = { secret: newTotpSecret(), tenantId: user.tenantId, userId: created.id };
+      await enrollSecondFactor(tx, phone, user.email);
+    }
+    return created.id;
+  });
 }
 
 export interface SignedIn {
@@ -113,22 +168,22 @@ export interface SignedIn {
   readonly session: SessionResponse;
 }
 
-/** Inicia sesión por la API y devuelve la cookie y el código antifalsificación. */
-export async function signIn(
-  app: NestExpressApplication,
-  email: string,
-  password = GOOD_PASSWORD,
-): Promise<SignedIn> {
-  const response = await request(app.getHttpServer())
-    .post('/v1/auth/login')
-    .set('Origin', WEB_ORIGIN)
-    .set('X-Forwarded-For', freshIp())
-    .send({ email, password });
+/** Valor de una cookie en la cabecera Set-Cookie de una respuesta. */
+export function cookieValue(header: string | string[] | undefined, name: string): string | null {
+  const cookies = Array.isArray(header) ? header : header === undefined ? [] : [header];
+  const cookie = cookies.find((value) => value.startsWith(`${name}=`));
+  if (cookie === undefined) return null;
+  const value = cookie.slice(name.length + 1).split(';')[0] ?? '';
+  return value === '' ? null : value;
+}
+
+/** Sesión que entrega una respuesta de inicio de sesión o de segundo paso. */
+export function signedInFrom(response: request.Response, what: string): SignedIn {
   if (response.status !== 200) {
-    throw new Error(`El inicio de sesión respondió ${String(response.status)}: ${response.text}`);
+    throw new Error(`${what} respondió ${String(response.status)}: ${response.text}`);
   }
-  const token = sessionCookieValue(response.headers['set-cookie']);
-  if (token === null) throw new Error('El inicio de sesión no entregó la cookie de sesión.');
+  const token = cookieValue(response.headers['set-cookie'], SESSION_COOKIE);
+  if (token === null) throw new Error(`${what} no entregó la cookie de sesión.`);
   return {
     token,
     cookie: `${SESSION_COOKIE}=${token}`,
@@ -136,12 +191,78 @@ export async function signIn(
   };
 }
 
-function sessionCookieValue(header: string | string[] | undefined): string | null {
-  const cookies = Array.isArray(header) ? header : header === undefined ? [] : [header];
-  const cookie = cookies.find((value) => value.startsWith(`${SESSION_COOKIE}=`));
-  if (cookie === undefined) return null;
-  const value = cookie.slice(SESSION_COOKIE.length + 1).split(';')[0] ?? '';
-  return value === '' ? null : value;
+export interface SignInOptions {
+  readonly password?: string;
+  /** Cookies adicionales, como la marca del equipo. */
+  readonly cookies?: readonly string[];
+}
+
+/** Solo la contraseña: la sesión puede quedar a medias, esperando el segundo factor. */
+export async function signInWithPassword(
+  app: NestExpressApplication,
+  email: string,
+  options: SignInOptions = {},
+): Promise<SignedIn> {
+  let call = request(app.getHttpServer())
+    .post('/v1/auth/login')
+    .set('Origin', WEB_ORIGIN)
+    .set('X-Forwarded-For', freshIp());
+  const cookies = options.cookies ?? [];
+  if (cookies.length > 0) call = call.set('Cookie', cookies.join('; '));
+  const response = await call.send({ email, password: options.password ?? GOOD_PASSWORD });
+  return signedInFrom(response, 'El inicio de sesión');
+}
+
+/** POST con la cookie y el código antifalsificación de una sesión (completa o a medias). */
+export function postWithSession(
+  app: NestExpressApplication,
+  path: string,
+  signedIn: SignedIn,
+  body: object = {},
+): request.Test {
+  return request(app.getHttpServer())
+    .post(path)
+    .set('Origin', WEB_ORIGIN)
+    .set('X-Forwarded-For', freshIp())
+    .set('Cookie', signedIn.cookie)
+    .set('X-CSRF-Token', signedIn.session.csrf_token)
+    .send(body);
+}
+
+/** Olvida el último código usado de la cuenta (ver signIn). */
+async function forgetLastCode(app: NestExpressApplication, email: string): Promise<void> {
+  const { tenantId, userId } = phoneOf(email);
+  await app
+    .get(DatabaseService)
+    .withTenant({ tenantId, userId: null }, (tx) =>
+      tx.mfaFactor.updateMany({ where: { userId }, data: { lastUsedStep: null } }),
+    );
+}
+
+/**
+ * Inicia sesión por la API, con el segundo factor si la cuenta lo tiene, y devuelve la cookie y
+ * el código antifalsificación. Cada código sirve una sola vez; para que una misma cuenta pueda
+ * entrar varias veces dentro de los mismos 30 segundos, este ayudante olvida el último código
+ * usado antes de enviar el siguiente. La prueba de que un código no sirve dos veces está en
+ * second-factor.int.test.ts, sin este atajo.
+ */
+export async function signIn(
+  app: NestExpressApplication,
+  email: string,
+  options: SignInOptions | string = {},
+): Promise<SignedIn> {
+  const settings = typeof options === 'string' ? { password: options } : options;
+  const pending = await signInWithPassword(app, email, settings);
+  if (pending.session.stage !== 'second_factor') return pending;
+  await forgetLastCode(app, email);
+  const code = currentCode(email, app.get<Clock>(CLOCK));
+  // El navegador envía en el segundo paso las mismas cookies, como la marca del equipo.
+  const withCookies = {
+    ...pending,
+    cookie: [pending.cookie, ...(settings.cookies ?? [])].join('; '),
+  };
+  const response = await postWithSession(app, '/v1/auth/mfa/verify', withCookies, { code });
+  return signedInFrom(response, 'El segundo factor');
 }
 
 /** Trabajos de correo de cuenta encolados para una persona. */

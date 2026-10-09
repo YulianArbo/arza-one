@@ -65,6 +65,7 @@ export const INTERNAL_SESSION = {
     display_name: 'Ana Pérez',
     kind: 'internal',
   },
+  stage: 'complete',
   csrf_token: 'codigo-de-prueba',
   expires_at: '2026-10-10T03:00:00.000Z',
 };
@@ -90,10 +91,23 @@ export async function fulfillJson(route: Route, status: number, body: unknown): 
   });
 }
 
-/** Cambia la sesión que simula la API: interna, del portal o ninguna. */
-export async function mockSession(page: Page, kind: 'internal' | 'portal' | 'none'): Promise<void> {
+/** Sesiones a medias (B09): verificó la contraseña y le falta escribir o configurar el código. */
+export const PENDING_SESSIONS = {
+  second_factor: { ...INTERNAL_SESSION, stage: 'second_factor' },
+  second_factor_setup: { ...INTERNAL_SESSION, stage: 'second_factor_setup' },
+} as const;
+
+export type SessionKind = 'internal' | 'portal' | 'none' | keyof typeof PENDING_SESSIONS;
+
+function sessionBody(kind: Exclude<SessionKind, 'none'>): unknown {
+  if (kind === 'internal') return INTERNAL_SESSION;
+  return kind === 'portal' ? PORTAL_SESSION : PENDING_SESSIONS[kind];
+}
+
+/** Cambia la sesión que simula la API: interna, del portal, a medias o ninguna. */
+export async function mockSession(page: Page, kind: SessionKind): Promise<void> {
   await page.route(`${E2E_API_URL}/v1/auth/session`, async (route) => {
     if (kind === 'none') await fulfillJson(route, NO_SESSION.status, NO_SESSION.body);
-    else await fulfillJson(route, 200, kind === 'portal' ? PORTAL_SESSION : INTERNAL_SESSION);
+    else await fulfillJson(route, 200, sessionBody(kind));
   });
 }

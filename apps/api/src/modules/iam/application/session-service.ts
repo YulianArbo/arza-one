@@ -10,10 +10,16 @@ import type { Env } from '../../../platform/config/env-schema.js';
 import { DatabaseService } from '../../../platform/database/database.service.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
+import {
+  isRecentlyVerified,
+  signInStage,
+  type SignInStage,
+} from '../domain/second-factor-policy.js';
 import { isIdleExpired, shouldTouch } from '../domain/session-policy.js';
 import { canSignIn } from '../domain/user.js';
 import { loadUser, revokeSession } from '../infrastructure/accounts-store.js';
 import { findSession, type SessionRef } from '../infrastructure/identity-lookup.js';
+import { hasConfirmedFactor } from '../infrastructure/second-factor-store.js';
 import { csrfTokenFor, hashSecretToken } from '../infrastructure/secret-token.js';
 import { sessionTokenFrom } from './session-cookie.js';
 
@@ -27,6 +33,7 @@ interface SessionUserView {
 export interface SessionView {
   readonly sessionId: string;
   readonly user: SessionUserView;
+  readonly stage: SignInStage;
   readonly csrfToken: string;
   readonly expiresAt: Date;
 }
@@ -34,7 +41,9 @@ export interface SessionView {
 /**
  * Valida la cookie de sesión en cada petición (numeral 13.1, paso 4) contra iam_sessions:
  * debe existir, no estar cerrada ni vencida (12 horas en total, 8 sin uso) y ser de una cuenta
- * activa. Al vencer por inactividad, la cierra.
+ * activa. Al vencer por inactividad, la cierra. Como se consulta en cada petición, una sesión
+ * cerrada desde otro dispositivo deja de servir en la petición siguiente (B09). Informa además si
+ * la sesión ya pasó el segundo factor y si la identidad se confirmó en los últimos 30 minutos.
  */
 @Injectable()
 export class SessionService implements Authenticator {
@@ -50,11 +59,11 @@ export class SessionService implements Authenticator {
     const now = this.clock.now();
     const ref = await findSession(this.database, hashSecretToken(token), now);
     if (ref === null) return null;
-    const valid = await this.database.withTenant(
+    const session = await this.database.withTenant(
       { tenantId: ref.tenantId, userId: ref.userId },
       (tx) => this.checkAndTouch(tx, ref, now),
     );
-    return valid ? this.principalOf(ref) : null;
+    return session === null ? null : this.principalOf(ref, session, now);
   }
 
   /** Datos de la sesión actual para la web, con su código antifalsificación. */
@@ -62,7 +71,8 @@ export class SessionService implements Authenticator {
     return this.database.withTenant(principal, async (tx) => {
       const session = await tx.session.findUniqueOrThrow({ where: { id: principal.sessionId } });
       const user = await tx.user.findUniqueOrThrow({ where: { id: principal.userId } });
-      return this.viewOf(session, user);
+      const stage = signInStage(session.authenticatedAt, await hasConfirmedFactor(tx, user.id));
+      return this.viewOf(session, user, stage);
     });
   }
 
@@ -85,9 +95,10 @@ export class SessionService implements Authenticator {
     });
   }
 
-  viewOf(session: Session, user: User): SessionView {
+  viewOf(session: Session, user: User, stage: SignInStage): SessionView {
     return {
       sessionId: session.id,
+      stage,
       user: {
         id: user.id,
         email: user.email,
@@ -99,27 +110,33 @@ export class SessionService implements Authenticator {
     };
   }
 
-  private principalOf(ref: SessionRef): Principal {
+  private principalOf(ref: SessionRef, session: Session, now: Date): Principal {
     return {
       userId: ref.userId,
       tenantId: ref.tenantId,
       sessionId: ref.sessionId,
       csrfToken: csrfTokenFor(ref.sessionId, this.config.CSRF_SECRET),
+      signInComplete: session.authenticatedAt !== null,
+      recentlyVerified: isRecentlyVerified(session.reauthenticatedAt, now),
     };
   }
 
-  private async checkAndTouch(tx: TenantTransaction, ref: SessionRef, now: Date): Promise<boolean> {
+  private async checkAndTouch(
+    tx: TenantTransaction,
+    ref: SessionRef,
+    now: Date,
+  ): Promise<Session | null> {
     const session = await tx.session.findUnique({ where: { id: ref.sessionId } });
     const user = await loadUser(tx, ref.userId);
-    if (session === null || user === null || !canSignIn(user)) return false;
+    if (session === null || user === null || !canSignIn(user)) return null;
     if (isIdleExpired(session.lastSeenAt, now)) {
       await this.expireIdle(tx, ref, now);
-      return false;
+      return null;
     }
     if (shouldTouch(session.lastSeenAt, now)) {
       await tx.session.update({ where: { id: session.id }, data: { lastSeenAt: now } });
     }
-    return true;
+    return session;
   }
 
   private async expireIdle(tx: TenantTransaction, ref: SessionRef, now: Date): Promise<void> {

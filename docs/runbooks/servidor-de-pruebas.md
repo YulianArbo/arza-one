@@ -146,6 +146,25 @@ Cada control debe decir `[ok]`. Antes del primer despliegue, use la copia del pa
 Además, cada despliegue revisa desde GitHub, desde fuera, que solo respondan 80, 443 y SSH
 (paso «Solo 80, 443 y SSH abiertos» del flujo).
 
+## Variables nuevas de cada bloque
+
+Un servidor creado con una versión anterior de `generate-env.sh` no tiene las variables que
+agregan los bloques siguientes, y el despliegue falla con `required variable ... is missing a
+value`. Agréguelas **en el servidor**, sin copiar el archivo fuera de él:
+
+| Bloque | Variable               | Para qué                                                  |
+| ------ | ---------------------- | --------------------------------------------------------- |
+| B09    | `FIELD_ENCRYPTION_KEY` | Llave del cifrado de campos (secretos del segundo factor) |
+
+```bash
+ssh suadmin@203.0.113.10 'sudo -u deploy sh -c "grep -q ^FIELD_ENCRYPTION_KEY= /srv/arza-one/.env || echo FIELD_ENCRYPTION_KEY=\$(openssl rand -hex 32) >> /srv/arza-one/.env"'
+```
+
+La llave se crea dentro del servidor y no se muestra. **No la cambie después**: los segundos
+factores ya configurados dejarían de funcionar y habría que reiniciarlos
+(`pnpm iam:reiniciar-segundo-factor`). El anexo F pide rotarla «con procedimiento»; ese
+procedimiento todavía no existe (pendiente anotado en el cierre de B09).
+
 ## Problemas frecuentes
 
 | Síntoma                                                     | Causa y solución                                                                                                   |

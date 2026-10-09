@@ -33,29 +33,41 @@ Una sola aplicación con tres grupos de rutas (capítulo 11.1):
 
 Pantallas de la aplicación interna construidas en B04:
 
-| Dirección                 | Qué muestra                                                                         |
-| ------------------------- | ----------------------------------------------------------------------------------- |
-| `/app`                    | Inicio: Mis tareas, Vencimientos próximos, Avisos y Accesos frecuentes, aún vacíos  |
-| `/app/estado-del-sistema` | **Pantalla de ejemplo**: versión de la API y estado de sus piezas, con datos reales |
-| `/app/sistema-de-diseno`  | Muestrario de colores, tipografías, componentes y estados de pantalla               |
-| `/app/<módulo>`           | Módulos del menú aún no construidos: dice en qué bloque se construyen               |
-| `/app/perfil`             | Mi perfil (B08): datos propios y cambio de contraseña                               |
+| Dirección                 | Qué muestra                                                                          |
+| ------------------------- | ------------------------------------------------------------------------------------ |
+| `/app`                    | Inicio: Mis tareas, Vencimientos próximos, Avisos y Accesos frecuentes, aún vacíos   |
+| `/app/estado-del-sistema` | **Pantalla de ejemplo**: versión de la API y estado de sus piezas, con datos reales  |
+| `/app/sistema-de-diseno`  | Muestrario de colores, tipografías, componentes y estados de pantalla                |
+| `/app/<módulo>`           | Módulos del menú aún no construidos: dice en qué bloque se construyen                |
+| `/app/perfil`             | Mi perfil (B08 y B09): datos, contraseña, segundo factor y enlace a sesiones         |
+| `/app/perfil/sesiones`    | Sesiones activas (B09): cada equipo con sesión abierta; cerrar una o todas las demás |
 
 ## Acceso y sesión (B08)
 
 El grupo `app/(access)` tiene las pantallas de acceso del numeral 16.7, que no se indexan:
 
-| Dirección                 | Qué hace                                                                            |
-| ------------------------- | ----------------------------------------------------------------------------------- |
-| `/iniciar-sesion`         | Correo y contraseña. Muestra el aviso del motivo (`?motivo=`) y vuelve a `?volver=` |
-| `/activar-cuenta`         | Se abre desde el correo de invitación: nombre y contraseña                          |
-| `/recuperar-contrasena`   | Pide el enlace; muestra siempre el mismo mensaje de la API                          |
-| `/restablecer-contrasena` | Se abre desde el correo de recuperación: contraseña nueva                           |
+| Dirección                    | Qué hace                                                                                                                           |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `/iniciar-sesion`            | Correo y contraseña. Muestra el aviso del motivo (`?motivo=`) y vuelve a `?volver=`                                                |
+| `/activar-cuenta`            | Se abre desde el correo de invitación: nombre y contraseña                                                                         |
+| `/recuperar-contrasena`      | Pide el enlace; muestra siempre el mismo mensaje de la API                                                                         |
+| `/restablecer-contrasena`    | Se abre desde el correo de recuperación: contraseña nueva                                                                          |
+| `/segundo-factor`            | Segundo paso (B09): código de la aplicación o de recuperación                                                                      |
+| `/segundo-factor/configurar` | Configurar el segundo factor (B09): QR, primer código y diez códigos de recuperación. También «Cambiar de celular» desde Mi perfil |
 
 - `features/session/session-provider.tsx`: `RequireSession` envuelve la aplicación interna y el
   portal. Consulta `GET /v1/auth/session`; sin sesión lleva a iniciar sesión recordando la pantalla,
   y a quien es del portal (o de la aplicación) lo lleva a su superficie. `useSession()` entrega la
   sesión, el código antifalsificación y la salida. La API sigue siendo la única barrera.
+- Segundo factor (B09): si `GET /v1/auth/session` dice que a la sesión le falta el segundo paso
+  (`stage`), `RequireSession` lleva a `/segundo-factor` o a `/segundo-factor/configurar` y luego
+  vuelve a la pantalla. El inicio de sesión hace lo mismo después de la contraseña.
+- El código QR se dibuja en la página con `lean-qr` (MIT, sin dependencias): el secreto no sale a
+  ningún servicio externo. Los códigos de recuperación se pueden copiar, descargar o imprimir y
+  solo se sigue al marcar «Guardé mis códigos».
+- Acciones de alto riesgo: si la API responde `REAUTHENTICATION_REQUIRED`,
+  `useReauthentication()` (`features/second-factor/reauthentication.tsx`) abre «Confirme que es
+  usted» y repite la acción al confirmar.
 - El cliente de la API envía el código en `X-CSRF-Token` en cada `post` con sesión.
 - La llave de los enlaces del correo viene después de `#` (el navegador no la envía al servidor);
   `features/access/link-token.ts` la lee y la quita de la barra de direcciones.

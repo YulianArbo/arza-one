@@ -29,7 +29,8 @@
     "db:migrate": "prisma migrate deploy",
     "db:seed": "node --env-file-if-exists=../../.env dist/platform/database/seed/seed-main.js",
     "db:seed:demo": "node --env-file-if-exists=../../.env dist/platform/database/seed/seed-main.js --demo",
-    "iam:invitar": "node --env-file-if-exists=../../.env dist/modules/iam/interface/cli/invite-main.js"
+    "iam:invitar": "node --env-file-if-exists=../../.env dist/modules/iam/interface/cli/invite-main.js",
+    "iam:reiniciar-segundo-factor": "node --env-file-if-exists=../../.env dist/modules/iam/interface/cli/reset-second-factor-main.js"
   },
   "devDependencies": {
     "@nestjs/testing": "~11.2.7",
@@ -61,6 +62,7 @@
     "ioredis": "^6.0.0",
     "nestjs-pino": "^5.3.1",
     "nestjs-zod": "^5.5.0",
+    "otpauth": "~9.5.2",
     "pg": "^8.23.1",
     "pino": "^10.4.0",
     "pino-http": "^11.0.0",

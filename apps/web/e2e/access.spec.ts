@@ -10,6 +10,9 @@ import { accessibilityViolations, expect, test } from './support/fixtures';
 const TOKEN = 'a'.repeat(43);
 const PASSWORD = 'mango biche con sal y limon';
 
+/** Estado del segundo factor que muestra Mi perfil desde B09. */
+const MFA = { required: true, enabled: true, confirmed_at: null, recovery_codes_remaining: 10 };
+
 const ME = {
   ...INTERNAL_SESSION.user,
   last_login_at: '2026-10-09T20:15:00.000Z',
@@ -108,7 +111,7 @@ test.describe('perfil y salida', () => {
   test('cambiar la contraseña envía el código antifalsificación y pide entrar de nuevo', async ({
     page,
   }) => {
-    await mockApi(page, { '/v1/me': { body: ME } });
+    await mockApi(page, { '/v1/me': { body: ME }, '/v1/me/mfa': { body: MFA } });
     const change = await capturePost(page, '/v1/me/password', 204);
     await page.goto('/app/perfil');
     await expect(page.getByText('ana@demo-uno.test')).toBeVisible();
@@ -132,7 +135,7 @@ test.describe('perfil y salida', () => {
   });
 
   test('Mi perfil no tiene violaciones de accesibilidad', async ({ page, consoleErrors }) => {
-    await mockApi(page, { '/v1/me': { body: ME } });
+    await mockApi(page, { '/v1/me': { body: ME }, '/v1/me/mfa': { body: MFA } });
     await page.goto('/app/perfil');
     await expect(page.getByText('ana@demo-uno.test')).toBeVisible();
     expect(await accessibilityViolations(page)).toEqual([]);

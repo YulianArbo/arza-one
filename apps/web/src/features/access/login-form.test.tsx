@@ -43,6 +43,19 @@ describe('inicio de sesión', () => {
     expect(sent[0]?.body).toEqual({ email: 'ana@demo-uno.test', password: 'una frase propia' });
   });
 
+  it('con segundo factor lleva al segundo paso sin perder a dónde volver (B09)', async () => {
+    navigation.search = new URLSearchParams({ volver: '/app/perfil' });
+    const pending = { ...SESSION, stage: 'second_factor_setup' };
+    mockApi({ 'POST /v1/auth/login': () => json(pending) });
+    renderWithApi(<LoginForm />);
+    await fillLogin('ana@demo-uno.test', 'una frase propia');
+    await vi.waitFor(() => {
+      expect(navigation.replace).toHaveBeenCalledWith(
+        '/segundo-factor/configurar?volver=%2Fapp%2Fperfil',
+      );
+    });
+  });
+
   it('vuelve a la pantalla de donde venía', async () => {
     navigation.search = new URLSearchParams({ volver: '/app/perfil' });
     mockApi({ 'POST /v1/auth/login': () => json(SESSION) });

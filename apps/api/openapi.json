@@ -97,6 +97,7 @@
     },
     "/v1/auth/login": {
       "post": {
+        "description": "Si la cuenta tiene o debe tener segundo factor, la sesión queda a medias (etapa second_factor o second_factor_setup) durante 10 minutos.",
         "operationId": "AuthController_signIn",
         "parameters": [],
         "requestBody": {
@@ -157,6 +158,230 @@
         ]
       }
     },
+    "/v1/auth/mfa/verify": {
+      "post": {
+        "description": "Al acertar, la sesión se completa y recibe una llave nueva.",
+        "operationId": "AuthController_verifySecondFactor",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecondFactorRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sesión completa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Código incorrecto, usado o vencido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Segundo paso: código de la aplicación o código de recuperación",
+        "tags": [
+          "Identidad"
+        ]
+      }
+    },
+    "/v1/auth/mfa/setup": {
+      "post": {
+        "description": "Al iniciar sesión si la cuenta aún no lo tiene; desde el perfil, con la identidad confirmada en los últimos 30 minutos.",
+        "operationId": "AuthController_startSetup",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Secreto para la aplicación del celular",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecondFactorSetupResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Empezar a configurar el segundo factor: secreto y código QR",
+        "tags": [
+          "Identidad"
+        ]
+      }
+    },
+    "/v1/auth/mfa/setup/confirm": {
+      "post": {
+        "operationId": "AuthController_confirmSetup",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecondFactorConfirmRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Segundo factor activo y diez códigos de recuperación (se muestran una vez)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecondFactorConfirmResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Código incorrecto o configuración vencida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Confirmar el segundo factor con el primer código",
+        "tags": [
+          "Identidad"
+        ]
+      }
+    },
+    "/v1/auth/reauthenticate": {
+      "post": {
+        "description": "Contraseña y, si tiene segundo factor, su código. Vale 30 minutos.",
+        "operationId": "AuthController_reauthenticate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReauthenticateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Identidad confirmada"
+          },
+          "422": {
+            "description": "Contraseña o código incorrectos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Confirmar que es usted antes de una acción de alto riesgo",
+        "tags": [
+          "Identidad"
+        ]
+      }
+    },
     "/v1/auth/session": {
       "get": {
         "operationId": "AuthController_current",
@@ -193,7 +418,7 @@
             }
           }
         },
-        "summary": "Sesión actual y su código antifalsificación",
+        "summary": "Sesión actual, su etapa y su código antifalsificación",
         "tags": [
           "Identidad"
         ]
@@ -492,6 +717,276 @@
           "Identidad"
         ]
       }
+    },
+    "/v1/me/mfa": {
+      "get": {
+        "operationId": "MeSecurityController_status",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Estado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecondFactorStatusResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Estado de mi segundo factor",
+        "tags": [
+          "Identidad"
+        ]
+      }
+    },
+    "/v1/me/mfa/recovery-codes": {
+      "post": {
+        "description": "Los anteriores dejan de servir. Exige confirmar la identidad (30 minutos).",
+        "operationId": "MeSecurityController_regenerateRecoveryCodes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Códigos nuevos; se muestran una sola vez",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecoveryCodesResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Generar diez códigos de recuperación nuevos",
+        "tags": [
+          "Identidad"
+        ]
+      }
+    },
+    "/v1/me/mfa/disable": {
+      "post": {
+        "description": "Cierra mis demás sesiones. Exige confirmar la identidad (30 minutos).",
+        "operationId": "MeSecurityController_disable",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "Segundo factor desactivado"
+          },
+          "422": {
+            "description": "Su tipo de usuario exige segundo factor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Desactivar mi segundo factor (solo si es opcional para mí)",
+        "tags": [
+          "Identidad"
+        ]
+      }
+    },
+    "/v1/me/sessions": {
+      "get": {
+        "operationId": "MeSecurityController_listSessions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Sesiones abiertas, la más reciente primero",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActiveSessionsResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Mis sesiones activas",
+        "tags": [
+          "Identidad"
+        ]
+      }
+    },
+    "/v1/me/sessions/revoke-others": {
+      "post": {
+        "operationId": "MeSecurityController_revokeOthers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Cuántas sesiones se cerraron",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClosedSessionsResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Cerrar todas mis demás sesiones",
+        "tags": [
+          "Identidad"
+        ]
+      }
+    },
+    "/v1/me/sessions/{id}/revoke": {
+      "post": {
+        "description": "Surte efecto en la siguiente petición de ese equipo.",
+        "operationId": "MeSecurityController_revokeSession",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Sesión cerrada"
+          },
+          "404": {
+            "description": "No existe, ya está cerrada o no es suya",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Cerrar una de mis sesiones",
+        "tags": [
+          "Identidad"
+        ]
+      }
     }
   },
   "info": {
@@ -697,6 +1192,15 @@
             ],
             "additionalProperties": false
           },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "complete",
+              "second_factor",
+              "second_factor_setup"
+            ],
+            "description": "Etapa del inicio de sesión"
+          },
           "csrf_token": {
             "type": "string",
             "description": "Código antifalsificación de esta sesión"
@@ -710,8 +1214,175 @@
         },
         "required": [
           "user",
+          "stage",
           "csrf_token",
           "expires_at"
+        ],
+        "additionalProperties": false
+      },
+      "SecondFactorRequest": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "description": "Código de seis dígitos de la aplicación del celular",
+            "type": "string",
+            "maxLength": 20
+          },
+          "recovery_code": {
+            "type": "string",
+            "minLength": 16,
+            "maxLength": 24,
+            "description": "Código de recuperación, por ejemplo ABCD-EFGH-JKMN-PQRS"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SecondFactorSetupResponse_Output": {
+        "type": "object",
+        "properties": {
+          "secret": {
+            "type": "string",
+            "description": "Clave para escribir a mano en la aplicación del celular"
+          },
+          "otpauth_uri": {
+            "type": "string",
+            "description": "Dirección otpauth:// que se muestra como código QR"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "description": "Plazo para confirmar con el primer código"
+          }
+        },
+        "required": [
+          "secret",
+          "otpauth_uri",
+          "expires_at"
+        ],
+        "additionalProperties": false
+      },
+      "SecondFactorConfirmRequest": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "description": "Código de seis dígitos de la aplicación del celular",
+            "type": "string",
+            "maxLength": 20
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "additionalProperties": false
+      },
+      "SecondFactorConfirmResponse_Output": {
+        "type": "object",
+        "properties": {
+          "recovery_codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Diez códigos de recuperación de un solo uso"
+          },
+          "session": {
+            "type": "object",
+            "properties": {
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  },
+                  "display_name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "internal",
+                      "portal"
+                    ],
+                    "description": "Aplicación interna o portal"
+                  }
+                },
+                "required": [
+                  "id",
+                  "email",
+                  "display_name",
+                  "kind"
+                ],
+                "additionalProperties": false
+              },
+              "stage": {
+                "type": "string",
+                "enum": [
+                  "complete",
+                  "second_factor",
+                  "second_factor_setup"
+                ],
+                "description": "Etapa del inicio de sesión"
+              },
+              "csrf_token": {
+                "type": "string",
+                "description": "Código antifalsificación de esta sesión"
+              },
+              "expires_at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "description": "Vencimiento total de la sesión"
+              }
+            },
+            "required": [
+              "user",
+              "stage",
+              "csrf_token",
+              "expires_at"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "recovery_codes",
+          "session"
+        ],
+        "additionalProperties": false
+      },
+      "ReauthenticateRequest": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Contraseña"
+          },
+          "code": {
+            "description": "Código de seis dígitos de la aplicación del celular",
+            "type": "string",
+            "maxLength": 20
+          },
+          "recovery_code": {
+            "type": "string",
+            "minLength": 16,
+            "maxLength": 24,
+            "description": "Código de recuperación, por ejemplo ABCD-EFGH-JKMN-PQRS"
+          }
+        },
+        "required": [
+          "password"
         ],
         "additionalProperties": false
       },
@@ -869,6 +1540,144 @@
           "current_password",
           "new_password"
         ]
+      },
+      "SecondFactorStatusResponse_Output": {
+        "type": "object",
+        "properties": {
+          "required": {
+            "type": "boolean",
+            "description": "Su tipo de usuario exige segundo factor"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "confirmed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "recovery_codes_remaining": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "required",
+          "enabled",
+          "confirmed_at",
+          "recovery_codes_remaining"
+        ],
+        "additionalProperties": false
+      },
+      "RecoveryCodesResponse_Output": {
+        "type": "object",
+        "properties": {
+          "recovery_codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Diez códigos de recuperación de un solo uso"
+          }
+        },
+        "required": [
+          "recovery_codes"
+        ],
+        "additionalProperties": false
+      },
+      "ActiveSessionsResponse_Output": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "last_seen_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "ip": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "browser": {
+                  "description": "Navegador que informó el equipo",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "os": {
+                  "description": "Sistema que informó el equipo",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "current": {
+                  "type": "boolean",
+                  "description": "Es la sesión de esta petición"
+                },
+                "pending_second_factor": {
+                  "type": "boolean",
+                  "description": "Verificó la contraseña pero no el segundo factor"
+                }
+              },
+              "required": [
+                "id",
+                "created_at",
+                "last_seen_at",
+                "ip",
+                "browser",
+                "os",
+                "current",
+                "pending_second_factor"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "ClosedSessionsResponse_Output": {
+        "type": "object",
+        "properties": {
+          "closed": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991,
+            "description": "Sesiones cerradas"
+          }
+        },
+        "required": [
+          "closed"
+        ],
+        "additionalProperties": false
       }
     }
   }

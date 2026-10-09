@@ -5,6 +5,30 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { buildOpenApiDocument } from '../src/platform/openapi/openapi.js';
 import { createTestApp } from './support/test-app.js';
 
+/** Rutas publicadas, en orden alfabético. */
+const API_PATHS = [
+  '/health',
+  '/v1/auth/invitation/accept',
+  '/v1/auth/login',
+  '/v1/auth/logout',
+  '/v1/auth/mfa/setup',
+  '/v1/auth/mfa/setup/confirm',
+  '/v1/auth/mfa/verify',
+  '/v1/auth/password/forgot',
+  '/v1/auth/password/reset',
+  '/v1/auth/reauthenticate',
+  '/v1/auth/session',
+  '/v1/me',
+  '/v1/me/mfa',
+  '/v1/me/mfa/disable',
+  '/v1/me/mfa/recovery-codes',
+  '/v1/me/password',
+  '/v1/me/sessions',
+  '/v1/me/sessions/revoke-others',
+  '/v1/me/sessions/{id}/revoke',
+  '/version',
+];
+
 let app: NestExpressApplication | undefined;
 
 afterEach(async () => {
@@ -26,18 +50,7 @@ describe('rutas y esquemas del OpenAPI', () => {
     app = await createTestApp();
     const document = buildOpenApiDocument(app);
     expect(document.openapi).toBe('3.1.0');
-    expect(Object.keys(document.paths).sort()).toEqual([
-      '/health',
-      '/v1/auth/invitation/accept',
-      '/v1/auth/login',
-      '/v1/auth/logout',
-      '/v1/auth/password/forgot',
-      '/v1/auth/password/reset',
-      '/v1/auth/session',
-      '/v1/me',
-      '/v1/me/password',
-      '/version',
-    ]);
+    expect(Object.keys(document.paths).sort()).toEqual(API_PATHS);
     expect(Object.keys(document.components?.schemas ?? {})).toEqual(
       expect.arrayContaining([
         'HealthResponse_Output',
@@ -47,6 +60,10 @@ describe('rutas y esquemas del OpenAPI', () => {
         'SessionResponse_Output',
         'MeResponse_Output',
         'ChangePasswordRequest',
+        'SecondFactorRequest',
+        'SecondFactorConfirmResponse_Output',
+        'ReauthenticateRequest',
+        'ActiveSessionsResponse_Output',
       ]),
     );
   });

@@ -24,13 +24,27 @@ const exampleEmailJobSchema = tenantJobSchema.extend({
 });
 
 /**
- * Correo de una cuenta (B08): invitación, recuperación de contraseña o aviso de cambio. Solo
- * lleva el usuario y el propósito: el worker crea el enlace al enviarlo, así la llave nunca queda
- * guardada en la cola.
+ * Correo de una cuenta: invitación, recuperación de contraseña o aviso de cambio (B08) y avisos de
+ * seguridad del segundo factor y de un equipo nuevo (B09). Solo lleva el usuario, el propósito y
+ * el momento: el worker crea el enlace al enviarlo, así la llave nunca queda guardada en la cola, y
+ * lee lo demás de la base de datos.
  */
 const accountEmailJobSchema = tenantJobSchema.extend({
   accountUserId: z.uuid(),
-  purpose: z.enum(['invitation', 'password_reset', 'password_changed']),
+  purpose: z.enum([
+    'invitation',
+    'password_reset',
+    'password_changed',
+    'mfa_enabled',
+    'mfa_changed',
+    'mfa_disabled',
+    'mfa_reset',
+    'recovery_codes_regenerated',
+    'recovery_code_used',
+    'new_device',
+  ]),
+  /** Momento del hecho que se avisa; los correos con enlace no lo necesitan. */
+  occurredAt: z.iso.datetime({ offset: true }).optional(),
 });
 
 export type TenantJob = z.infer<typeof tenantJobSchema>;

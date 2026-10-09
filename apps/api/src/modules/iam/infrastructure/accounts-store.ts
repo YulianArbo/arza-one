@@ -5,7 +5,15 @@ import type { LinkPurpose } from '../domain/link-policy.js';
 // Lecturas y escrituras de cuentas, sesiones y enlaces, siempre dentro de la transacción de la
 // empresa (la seguridad por fila limita lo que se ve).
 
-export type SessionRevokeReason = 'logout' | 'idle' | 'password_changed' | 'password_reset';
+export type SessionRevokeReason =
+  | 'logout'
+  | 'idle'
+  | 'password_changed'
+  | 'password_reset'
+  | 'remote_revoke'
+  | 'mfa_failures'
+  | 'mfa_changed'
+  | 'mfa_reset';
 
 export async function loadUser(
   transaction: TenantTransaction,
@@ -35,6 +43,20 @@ export async function revokeAllSessions(
 ): Promise<number> {
   const { count } = await transaction.session.updateMany({
     where: { userId, revokedAt: null },
+    data: { revokedAt: now, revokedReason: reason },
+  });
+  return count;
+}
+
+/** Cierra las demás sesiones abiertas de la persona y deja la indicada. Devuelve cuántas cerró. */
+export async function revokeOtherSessions(
+  transaction: TenantTransaction,
+  owner: { readonly userId: string; readonly keepSessionId: string },
+  reason: SessionRevokeReason,
+  now: Date,
+): Promise<number> {
+  const { count } = await transaction.session.updateMany({
+    where: { userId: owner.userId, id: { not: owner.keepSessionId }, revokedAt: null },
     data: { revokedAt: now, revokedReason: reason },
   });
   return count;

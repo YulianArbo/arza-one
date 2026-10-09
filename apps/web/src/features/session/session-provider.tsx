@@ -2,7 +2,7 @@
 
 import { sessionResponseSchema, type SessionResponse, type UserKind } from '@arza/contracts';
 import { ErrorState, LoadingState } from '@arza/ui';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   createContext,
@@ -16,7 +16,7 @@ import {
 
 import { ApiError, CLIENT_ERROR_MESSAGES } from '../../lib/api/api-error';
 import { useApiClient } from '../../lib/api/api-provider';
-import { homeFor, loginPath, type LoginNotice } from './access-routes';
+import { homeFor, loginPath, secondFactorPath, type LoginNotice } from './access-routes';
 
 export const SESSION_QUERY_KEY = ['session'] as const;
 const SESSION_PATH = '/v1/auth/session';
@@ -38,11 +38,12 @@ export function useSession(): SessionValue {
   return value;
 }
 
-function isUnauthenticated(error: unknown): boolean {
+export function isUnauthenticated(error: unknown): boolean {
   return error instanceof ApiError && error.isUnauthenticated;
 }
 
-function useSessionQuery() {
+/** Sesión actual, también la que está a medias (le falta el segundo factor). */
+export function useSessionQuery(): UseQueryResult<SessionResponse> {
   const api = useApiClient();
   return useQuery({
     queryKey: SESSION_QUERY_KEY,
@@ -85,9 +86,10 @@ interface RequireSessionProps {
 }
 
 /**
- * Muestra su contenido solo con una sesión válida (numeral 16.5): sin sesión lleva a iniciar
- * sesión y luego regresa a la misma pantalla; a quien pertenece a la otra superficie lo lleva a
- * la suya. La API sigue siendo la única barrera de seguridad.
+ * Muestra su contenido solo con una sesión válida y completa (numeral 16.5): sin sesión lleva a
+ * iniciar sesión, y a una sesión a la que le falta el segundo factor, a escribir el código o a
+ * configurarlo (B09); en ambos casos luego regresa a la misma pantalla. A quien pertenece a la
+ * otra superficie lo lleva a la suya. La API sigue siendo la única barrera de seguridad.
  */
 export function RequireSession({ kind, children }: RequireSessionProps): JSX.Element {
   const query = useSessionQuery();
@@ -96,13 +98,17 @@ export function RequireSession({ kind, children }: RequireSessionProps): JSX.Ele
   const pathname = usePathname();
   const unauthenticated = isUnauthenticated(query.error);
   const sessionKind = query.data?.user.kind;
+  const stage = query.data?.stage;
   const otherSurface = sessionKind !== undefined && sessionKind !== kind;
+  const incomplete = stage !== undefined && stage !== 'complete';
 
   useEffect(() => {
     if (unauthenticated) router.replace(loginPath(undefined, pathname));
+    else if (stage !== undefined && stage !== 'complete')
+      router.replace(secondFactorPath(stage, pathname));
     else if (sessionKind !== undefined && sessionKind !== kind)
       router.replace(homeFor(sessionKind));
-  }, [unauthenticated, sessionKind, kind, router, pathname]);
+  }, [unauthenticated, stage, sessionKind, kind, router, pathname]);
 
   const value = useMemo(
     () => (query.data === undefined ? null : { session: query.data, logout, endSession }),
@@ -119,6 +125,8 @@ export function RequireSession({ kind, children }: RequireSessionProps): JSX.Ele
       />
     );
   }
-  if (value === null || otherSurface) return <LoadingState label="Verificando su sesión" />;
+  if (value === null || otherSurface || incomplete) {
+    return <LoadingState label="Verificando su sesión" />;
+  }
   return <SessionContext value={value}>{children}</SessionContext>;
 }

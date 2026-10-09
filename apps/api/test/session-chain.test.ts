@@ -16,12 +16,25 @@ const PRINCIPAL: Principal = {
   tenantId: '01999a00-0000-7000-8000-0000000000d1',
   sessionId: '01999a00-0000-7000-8000-00000000b001',
   csrfToken: 'codigo-antifalsificacion-de-prueba',
+  signInComplete: true,
+  recentlyVerified: true,
 };
 
-/** Acepta solo la cookie «sesion=valida». */
+/** Solo verificó la contraseña: le falta el segundo factor (B09). */
+const PENDING: Principal = { ...PRINCIPAL, signInComplete: false, recentlyVerified: false };
+/** Sesión completa, pero confirmó su identidad hace más de 30 minutos. */
+const NOT_RECENT: Principal = { ...PRINCIPAL, recentlyVerified: false };
+
+const SESSIONS: Readonly<Record<string, Principal | undefined>> = {
+  'sesion=valida': PRINCIPAL,
+  'sesion=a-medias': PENDING,
+  'sesion=antigua': NOT_RECENT,
+};
+
+/** Acepta solo las cookies de SESSIONS. */
 const fakeAuthenticator: Authenticator = {
   authenticate: (incoming: Request) =>
-    Promise.resolve(incoming.headers.cookie === 'sesion=valida' ? PRINCIPAL : null),
+    Promise.resolve(SESSIONS[incoming.headers.cookie ?? ''] ?? null),
 };
 
 let app: NestExpressApplication;
@@ -59,6 +72,34 @@ describe('autenticación (paso 4)', () => {
   it('una ruta pública que pide a la persona es un error de programación, nunca un acceso', async () => {
     const response = await request(app.getHttpServer()).get('/test/misused-principal');
     expect(response.status).toBe(500);
+  });
+});
+
+describe('segundo factor y confirmación de identidad (B09, permiso denegado)', () => {
+  function get(path: string, cookie: string) {
+    return request(app.getHttpServer()).get(path).set('Cookie', cookie);
+  }
+
+  it('una sesión a la que le falta el segundo factor no entra a ninguna ruta normal', async () => {
+    const response = await get('/test/whoami', 'sesion=a-medias');
+    expect(response.status).toBe(403);
+    expect(errorResponseSchema.parse(response.body).error.code).toBe('SECOND_FACTOR_REQUIRED');
+  });
+
+  it('esa sesión solo atiende las rutas del segundo paso', async () => {
+    const pending = await get('/test/signing-in', 'sesion=a-medias');
+    expect(pending.status).toBe(200);
+    expect(pending.body).toEqual({ signInComplete: false });
+    expect((await get('/test/signing-in', 'sesion=valida')).status).toBe(200);
+    expect((await get('/test/signing-in', 'sesion=vencida')).status).toBe(401);
+  });
+
+  it('una acción de alto riesgo exige confirmar la identidad en los últimos 30 minutos', async () => {
+    const stale = await get('/test/high-risk', 'sesion=antigua');
+    expect(stale.status).toBe(403);
+    expect(errorResponseSchema.parse(stale.body).error.code).toBe('REAUTHENTICATION_REQUIRED');
+    expect((await get('/test/high-risk', 'sesion=a-medias')).status).toBe(403);
+    expect((await get('/test/high-risk', 'sesion=valida')).status).toBe(200);
   });
 });
 

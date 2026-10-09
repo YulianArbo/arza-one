@@ -6,7 +6,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, type SubmitEvent, type JSX } from 'react';
 
 import { useApiClient } from '../../lib/api/api-provider';
-import { ACCESS_PATHS, loginNoticeOf, safeReturnPath } from '../session/access-routes';
+import {
+  ACCESS_PATHS,
+  loginNoticeOf,
+  safeReturnPath,
+  secondFactorPath,
+} from '../session/access-routes';
 import { SESSION_QUERY_KEY } from '../session/session-provider';
 import { AccessCard } from './access-card';
 import { AccessLink } from './access-links';
@@ -25,7 +30,12 @@ function useLogin() {
       api.post('/v1/auth/login', { body, schema: sessionResponseSchema }),
     onSuccess: (session) => {
       queryClient.setQueryData(SESSION_QUERY_KEY, session);
-      router.replace(safeReturnPath(returnTo, session.user.kind));
+      // Con segundo factor (B09), la contraseña solo es el primer paso.
+      router.replace(
+        session.stage === 'complete'
+          ? safeReturnPath(returnTo, session.user.kind)
+          : secondFactorPath(session.stage, returnTo),
+      );
     },
   });
 }

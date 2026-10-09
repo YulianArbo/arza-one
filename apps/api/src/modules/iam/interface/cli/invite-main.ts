@@ -15,8 +15,9 @@ import { PasswordSetter } from '../../application/password-setter.js';
 // con su permiso llega en B10. El correo lo envía el worker; en local se ve en Mailpit.
 
 const USAGE = [
-  'Uso: pnpm iam:invitar --empresa <empresa> --correo <correo> [--tipo interno|portal] [--nombre "Nombre"]',
+  'Uso: pnpm iam:invitar --empresa <empresa> --correo <correo> [--tipo interno|portal] [--nombre "Nombre"] [--exige-segundo-factor]',
   '  --empresa: plataforma, demo-uno, demo-dos o el identificador de la empresa',
+  '  --exige-segundo-factor: para administradores de cliente del portal (los internos siempre lo exigen)',
 ].join('\n');
 
 const COMPANY_ALIASES: Readonly<Record<string, string | undefined>> = {
@@ -44,6 +45,7 @@ const argsSchema = z.object({
   correo: emailSchema,
   tipo: z.enum(['interno', 'portal']).default('interno'),
   nombre: z.string().trim().min(2).max(120).optional(),
+  'exige-segundo-factor': z.boolean().default(false),
 });
 
 function parseInput(): z.output<typeof argsSchema> {
@@ -53,6 +55,7 @@ function parseInput(): z.output<typeof argsSchema> {
       correo: { type: 'string' },
       tipo: { type: 'string' },
       nombre: { type: 'string' },
+      'exige-segundo-factor': { type: 'boolean' },
     },
   });
   const parsed = argsSchema.safeParse(values);
@@ -80,6 +83,7 @@ async function main(): Promise<void> {
       email: input.correo,
       kind: KINDS[input.tipo],
       displayName: input.nombre ?? null,
+      requireSecondFactor: input['exige-segundo-factor'],
     });
     const verb = outcome === 'invited' ? 'Invitación creada' : 'Invitación reenviada';
     process.stdout.write(
