@@ -1,8 +1,9 @@
 # Diccionario de datos · Identidad (iam\_) y auditoría mínima (aud\_)
 
-Tipos exactos, restricciones e índices de las tablas de identidad (M01) creadas en B08 y de la
-versión mínima de la auditoría (M19) que B11 completa. Migración:
-`apps/api/prisma/migrations/20261009000000_iam_identity_and_audit`. Se actualiza en el mismo pull
+Tipos exactos, restricciones e índices de las tablas de identidad (M01) creadas en B08 y B09 y de
+la versión mínima de la auditoría (M19) que B11 completa. Migraciones (en
+`apps/api/prisma/migrations/`): `20261009000000_iam_identity_and_audit` (B08) y
+`20261010000000_iam_second_factor_and_devices` (B09). Se actualiza en el mismo pull
 request que cambia el modelo.
 
 ## Reglas comunes
@@ -65,13 +66,19 @@ corren como su dueño (`migration_user`), que tiene políticas de **solo lectura
 | `token_hash`     | text        | No   |             | Huella SHA-256 de la llave de la cookie; única                            |
 | `ip`             | text        | Sí   |             | Dirección IP al iniciar sesión                                            |
 | `user_agent`     | text        | Sí   |             | Navegador (máximo 512 caracteres)                                         |
+| `device_id` | uuid | Sí | | Equipo (`iam_known_devices`) desde el que se completó el inicio (B09) |
+| `authenticated_at` | timestamptz | Sí | | Inicio completo, con segundo factor si corresponde. Vacío: sesión a medias, que solo atiende el segundo paso (B09) |
+| `reauthenticated_at` | timestamptz | Sí | | Última confirmación de identidad; vale 30 minutos para las acciones de alto riesgo. Solo con `authenticated_at` (B09) |
 | `last_seen_at`   | timestamptz | No   |             | Última actividad (se guarda como mucho una vez por minuto)                |
-| `expires_at`     | timestamptz | No   |             | Vencimiento total: 12 horas después de iniciar sesión                     |
+| `expires_at` | timestamptz | No | | Vencimiento total: 12 horas después de completar el inicio; 10 minutos mientras está a medias |
 | `revoked_at`     | timestamptz | Sí   |             | Cierre; va junto con `revoked_reason`                                     |
-| `revoked_reason` | text        | Sí   |             | `logout`, `idle`, `password_changed` o `password_reset`                   |
+| `revoked_reason` | text | Sí | | `logout`, `idle`, `password_changed`, `password_reset`; desde B09 también `remote_revoke` (cerrada desde otro equipo), `mfa_failures`, `mfa_changed` y `mfa_reset` |
 | `created_at` … `deleted_at` |  |      |             | Columnas de control                                                       |
 
-Índices: llave primaria, único (`token_hash`) y (`tenant_id`, `user_id`).
+Índices: llave primaria, único (`token_hash`), (`tenant_id`, `user_id`) y (`tenant_id`, `device_id`).
+Llave foránea (`tenant_id`, `device_id`) a `iam_known_devices`. La migración de B09 cerró las
+sesiones abiertas antes de ella (motivo `mfa_changed`), para que quien deba tener segundo factor lo
+configure al volver a entrar.
 
 ## iam_tokens · Enlaces de un solo uso
 
@@ -107,6 +114,65 @@ aplicarles la misma espera y el mismo bloqueo. Esas filas no las ve ninguna empr
 
 Índices: llave primaria, (`email`, `occurred_at`) y (`tenant_id`, `user_id`).
 
+## iam_mfa_factors · Segundo factor (B09)
+
+Una fila por persona y tipo. **El secreto nunca se guarda legible**: va cifrado con AES-256-GCM y
+la llave `FIELD_ENCRYPTION_KEY`, que vive en las variables de entorno (capítulo 12.1), atado a la
+empresa y a la persona: copiado a otra fila no descifra. La base rechaza un secreto sin ese formato.
+
+| Columna | Tipo | Nulo | Por defecto | Regla |
+| --- | --- | --- | --- | --- |
+| `id` | uuid | No | UUID v7 | Llave primaria |
+| `tenant_id` | uuid | No | | Empresa |
+| `user_id` | uuid | No | | Cuenta; llave foránea (`tenant_id`, `user_id`) a `iam_users` |
+| `type` | text | No | `totp` | Solo `totp` por ahora |
+| `secret_encrypted` | text | Sí | | Secreto activo cifrado (`v1.iv.etiqueta.cifrado`); va junto con `confirmed_at` |
+| `confirmed_at` | timestamptz | Sí | | Activación con el primer código |
+| `last_used_step` | integer | Sí | | Último paso de 30 segundos usado: un código no sirve dos veces |
+| `pending_secret_encrypted` | text | Sí | | Secreto en configuración, cifrado; va junto con `pending_expires_at` |
+| `pending_expires_at` | timestamptz | Sí | | 15 minutos para confirmar |
+| `created_at` … `deleted_at` | | | | Columnas de control |
+
+Índices: llave primaria y único (`tenant_id`, `user_id`, `type`). Desactivar o reiniciar el
+segundo factor vacía el secreto; la fila no se borra.
+
+## iam_recovery_codes · Códigos de recuperación (B09)
+
+Diez por persona, de un solo uso. Solo se guarda la huella SHA-256; el código se muestra una vez.
+
+| Columna | Tipo | Nulo | Regla |
+| --- | --- | --- | --- |
+| `id` | uuid | No | Llave primaria |
+| `tenant_id` | uuid | No | Empresa |
+| `user_id` | uuid | No | Cuenta |
+| `code_hash` | text | No | Huella SHA-256 en hexadecimal; única |
+| `used_at` | timestamptz | Sí | Uso |
+| `revoked_at` | timestamptz | Sí | Anulado al generar otros, al desactivar o al reiniciar el segundo factor |
+| `created_at` … `deleted_at` | | | Columnas de control |
+
+Índices: llave primaria, único (`code_hash`) y (`tenant_id`, `user_id`).
+
+## iam_known_devices · Dispositivos conocidos (B09)
+
+Equipos desde los que la persona ya entró, para avisar de uno nuevo (numeral 15.5). El navegador
+guarda una marca aleatoria en la cookie `__Host-arza_device`; aquí solo queda su huella.
+
+| Columna | Tipo | Nulo | Regla |
+| --- | --- | --- | --- |
+| `id` | uuid | No | Llave primaria |
+| `tenant_id` | uuid | No | Empresa |
+| `user_id` | uuid | No | Cuenta |
+| `device_hash` | text | No | Huella SHA-256 de la marca del navegador |
+| `user_agent` | text | Sí | Navegador que informó el equipo la última vez |
+| `first_seen_at` | timestamptz | No | Primera entrada |
+| `last_seen_at` | timestamptz | No | Última entrada; no antes de `first_seen_at` |
+| `created_at` … `deleted_at` | | | Columnas de control |
+
+Índices: llave primaria, únicos (`tenant_id`, `id`) y (`tenant_id`, `user_id`, `device_hash`).
+
+Las tres tablas tienen seguridad por fila forzada; `app_user` puede leerlas, insertar y
+modificar, pero no borrar. Ninguna búsqueda sin empresa las necesita.
+
 ## aud_events · Auditoría de negocio (versión mínima)
 
 B11 agrega la cadena de hash (`prev_hash`, `hash`), la partición por mes, la consulta y la
@@ -133,6 +199,12 @@ Acciones registradas en B08: `iam.user.invite`, `iam.link.issue`, `iam.invitatio
 `iam.session.create` (éxito y fallo), `iam.session.revoke` (salida y por inactividad),
 `iam.user.lock`, `iam.password.reset_request`, `iam.password.reset` e `iam.password.change`.
 
+Acciones de B09: `iam.mfa.verify` (éxito y fallo), `iam.mfa.setup_start`, `iam.mfa.setup_confirm`
+(fallo), `iam.mfa.enable`, `iam.mfa.change`, `iam.mfa.disable`,
+`iam.mfa.recovery_codes_regenerate`, `iam.session.reauthenticate` (éxito y fallo),
+`iam.session.revoke` (cerrada desde otro equipo), `iam.session.revoke_others`, `iam.user.lock`
+(por códigos equivocados) e `iam.user.reset_mfa` (comando del responsable técnico).
+
 ## aud_security_events · Eventos de seguridad
 
 | Columna       | Tipo        | Nulo | Regla                                           |
@@ -148,3 +220,17 @@ Acciones registradas en B08: `iam.user.invite`, `iam.link.issue`, `iam.invitatio
 
 Índices: llave primaria y (`tenant_id`, `occurred_at`). Cada bloqueo también deja el evento de
 dominio `security.alert` en la bandeja de salida (numeral 13.3), para el aviso de B16.
+
+Eventos de seguridad de B09. Todos llegan además a la persona como aviso por correo (trabajo
+`iam.account-email`), sin códigos ni secretos:
+
+| Tipo | Gravedad | Cuándo | Alerta en la bandeja (B16) |
+| --- | --- | --- | --- |
+| `iam.mfa.failures` | high | Cinco códigos equivocados: sesión cerrada y cuenta bloqueada 15 minutos | Sí |
+| `iam.mfa.reset` | high | El responsable técnico reinició el segundo factor | Sí |
+| `iam.mfa.changed` | medium | Pasó el segundo factor a otro celular | Sí |
+| `iam.mfa.disabled` | medium | Desactivó el segundo factor (solo si era opcional) | Sí |
+| `iam.mfa.recovery_codes_regenerated` | medium | Generó códigos de recuperación nuevos | No |
+| `iam.mfa.recovery_code_used` | medium | Entró o confirmó su identidad con un código de recuperación | No |
+| `iam.mfa.enabled` | low | Activó el segundo factor | No |
+| `iam.login.new_device` | low | Inició sesión desde un equipo que la cuenta no conocía | No |
