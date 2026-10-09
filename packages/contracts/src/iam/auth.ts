@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-// Contratos de identidad (M01, B08): inicio de sesión, sesiones, invitación y contraseñas.
+// Contratos de identidad (M01, B08 y B09): inicio de sesión, sesiones, invitación y contraseñas.
 
 /** Reglas de contraseña del numeral 15.1: longitud, sin reglas de composición forzadas. */
 export const PASSWORD_POLICY = { minLength: 12, maxLength: 128 } as const;
@@ -18,6 +18,16 @@ export const IAM_ERROR_CODES = {
   currentPasswordIncorrect: 'CURRENT_PASSWORD_INCORRECT',
   csrfInvalid: 'CSRF_INVALID',
   emailTaken: 'EMAIL_TAKEN',
+  secondFactorRequired: 'SECOND_FACTOR_REQUIRED',
+  secondFactorCodeInvalid: 'SECOND_FACTOR_CODE_INVALID',
+  secondFactorNotConfigured: 'SECOND_FACTOR_NOT_CONFIGURED',
+  secondFactorAlreadyConfigured: 'SECOND_FACTOR_ALREADY_CONFIGURED',
+  secondFactorSetupExpired: 'SECOND_FACTOR_SETUP_EXPIRED',
+  secondFactorMandatory: 'SECOND_FACTOR_MANDATORY',
+  signInAlreadyComplete: 'SIGN_IN_ALREADY_COMPLETE',
+  reauthenticationRequired: 'REAUTHENTICATION_REQUIRED',
+  reauthenticationFailed: 'REAUTHENTICATION_FAILED',
+  sessionNotFound: 'SESSION_NOT_FOUND',
 } as const;
 
 export type PasswordShapeProblem = 'too_short' | 'too_long';
@@ -46,7 +56,7 @@ export const emailSchema = z
 
 // Límite holgado de lo que se acepta en el campo; la regla de longitud la aplica la API con un
 // mensaje propio (passwordShapeProblem). Evita que alguien envíe textos enormes al cálculo del hash.
-const passwordFieldSchema = z
+export const passwordFieldSchema = z
   .string()
   .min(1)
   .max(PASSWORD_POLICY.maxLength * 4)
@@ -92,9 +102,18 @@ const sessionUserSchema = z.object({
   kind: userKindSchema,
 });
 
+/**
+ * Etapa del inicio de sesión (B09): completa, falta escribir el código del segundo factor o falta
+ * configurarlo. Mientras no esté completa, la API solo atiende el segundo paso.
+ */
+export const signInStageSchema = z
+  .enum(['complete', 'second_factor', 'second_factor_setup'])
+  .describe('Etapa del inicio de sesión');
+
 /** Sesión actual. El código antifalsificación se envía en la cabecera X-CSRF-Token. */
 export const sessionResponseSchema = z.object({
   user: sessionUserSchema,
+  stage: signInStageSchema,
   csrf_token: z.string().describe('Código antifalsificación de esta sesión'),
   expires_at: z.iso.datetime({ offset: true }).describe('Vencimiento total de la sesión'),
 });
@@ -116,6 +135,7 @@ export type ResetPasswordRequest = z.infer<typeof resetPasswordRequestSchema>;
 export type AcceptInvitationRequest = z.infer<typeof acceptInvitationRequestSchema>;
 export type ChangePasswordRequest = z.infer<typeof changePasswordRequestSchema>;
 export type UserKind = z.infer<typeof userKindSchema>;
+export type SignInStage = z.infer<typeof signInStageSchema>;
 export type SessionResponse = z.infer<typeof sessionResponseSchema>;
 export type MeResponse = z.infer<typeof meResponseSchema>;
 export type AcknowledgementResponse = z.infer<typeof acknowledgementResponseSchema>;
