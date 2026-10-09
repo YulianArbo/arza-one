@@ -76,9 +76,8 @@ corren como su dueño (`migration_user`), que tiene políticas de **solo lectura
 | `created_at` … `deleted_at` |  |      |             | Columnas de control                                                       |
 
 Índices: llave primaria, único (`token_hash`), (`tenant_id`, `user_id`) y (`tenant_id`, `device_id`).
-Llave foránea (`tenant_id`, `device_id`) a `iam_known_devices`. La migración de B09 cerró las
-sesiones abiertas antes de ella (motivo `mfa_changed`), para que quien deba tener segundo factor lo
-configure al volver a entrar.
+Llave foránea (`tenant_id`, `device_id`) a `iam_known_devices`. Las sesiones abiertas antes de la
+migración de B09 quedan sin `authenticated_at`: la API las trata como sesiones a medias.
 
 ## iam_tokens · Enlaces de un solo uso
 

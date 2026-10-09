@@ -31,8 +31,9 @@ tomadas»).
 (`tenant_id`), protección por fila y sin permiso de borrar. `iam_sessions` gana tres columnas
 (etapa del inicio, última confirmación de identidad y equipo). Diccionario en
 [`docs/manual/datos/iam.md`](../manual/datos/iam.md). **Migración:** una
-(`20261010000000_iam_second_factor_and_devices`). Al aplicarse cierra las sesiones abiertas antes
-de ella, para que cada persona interna configure su segundo factor al volver a entrar.
+(`20261010000000_iam_second_factor_and_devices`). Las sesiones abiertas antes de ella
+quedan «a medias»: la API solo les deja hacer el segundo paso, así que cada persona interna
+configura su segundo factor antes de seguir.
 
 **Puntos de la API:** nueve nuevos y tres que cambian (lista en
 [`apps/api/README.md`](../../apps/api/README.md)). **Pantallas:** «Segundo factor», «Configurar el
@@ -262,8 +263,11 @@ Tomadas durante la construcción (técnicas, sin cambiar lo que usted ve):
 
 6. **Sesión «a medias»:** la contraseña correcta crea una sesión que solo atiende el segundo paso,
    y al completarlo cambia de llave. Así el servidor es la barrera, no la pantalla.
-7. **Al aplicar la migración se cierran las sesiones abiertas**, para que nadie siga dentro sin
-   segundo factor.
+7. **Las sesiones abiertas antes de la migración quedan «a medias»**: no tienen la marca de inicio
+   completo, así que la API solo les deja hacer el segundo paso. Un control del proyecto prohíbe
+   desactivar la protección por fila en una migración, que era lo que exigía cerrarlas allí. Una
+   persona del portal con sesión abierta verá una vez la configuración, hasta que esa sesión venza
+   (12 horas como máximo).
 8. **El conteo de códigos equivocados se lee de la auditoría** de la persona (ver «Problemas
    reales», punto 1), sin una tabla nueva.
 9. **Se acepta el código anterior y el siguiente** (30 segundos antes o después) por diferencias de
