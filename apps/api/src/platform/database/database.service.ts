@@ -5,9 +5,11 @@ import { PrismaClient } from '../../generated/prisma/client.js';
 import { PROBE_TIMEOUT_MS } from '../health/health-probe.js';
 import {
   applyTenantContext,
+  assertAudited,
   parseTenantContext,
   type TenantContext,
   type TenantTransaction,
+  type UnauditedWrite,
 } from './tenant-context.js';
 
 /**
@@ -18,20 +20,34 @@ import {
 export class DatabaseService implements OnModuleDestroy {
   private readonly client: PrismaClient;
 
-  constructor(connectionString: string) {
+  /**
+   * requireAudit en false solo para preparar datos de prueba directamente en las tablas; la API,
+   * el worker, la semilla y los comandos siempre exigen la auditoría.
+   */
+  constructor(
+    connectionString: string,
+    private readonly options: { readonly requireAudit: boolean } = { requireAudit: true },
+  ) {
     const adapter = new PrismaPg({ connectionString, connectionTimeoutMillis: PROBE_TIMEOUT_MS });
     this.client = new PrismaClient({ adapter });
   }
 
-  /** Ejecuta el trabajo en una transacción con la empresa y el usuario fijados. */
+  /**
+   * Ejecuta el trabajo en una transacción con la empresa y el usuario fijados. Si la transacción
+   * escribió algo sin registrar su evento de auditoría, se revierte (ADR-012); solo las escrituras
+   * de UnauditedWrite, cada una con su porqué, quedan exentas.
+   */
   async withTenant<T>(
     context: TenantContext,
     work: (transaction: TenantTransaction) => Promise<T>,
+    unaudited?: UnauditedWrite,
   ): Promise<T> {
     const validContext = parseTenantContext(context);
     return this.client.$transaction(async (transaction) => {
       await applyTenantContext(transaction, validContext);
-      return work(transaction);
+      const result = await work(transaction);
+      if (unaudited === undefined && this.options.requireAudit) await assertAudited(transaction);
+      return result;
     });
   }
 

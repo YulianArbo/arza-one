@@ -56,6 +56,23 @@ describe('origen de las operaciones que modifican datos', () => {
   });
 });
 
+describe('cabeceras entre la web y la API', () => {
+  it('deja enviar la versión al editar y leer el nombre de una descarga', async () => {
+    const preflight = await request(app.getHttpServer())
+      .options('/v1/roles/x')
+      .set('Origin', 'http://localhost:3000')
+      .set('Access-Control-Request-Method', 'PATCH')
+      .set('Access-Control-Request-Headers', 'content-type,if-match,x-csrf-token');
+    expect(preflight.headers['access-control-allow-headers']).toContain('If-Match');
+    const response = await request(app.getHttpServer())
+      .get('/version')
+      .set('Origin', 'http://localhost:3000');
+    expect(response.headers['access-control-expose-headers']).toBe(
+      'X-Correlation-Id,Content-Disposition',
+    );
+  });
+});
+
 describe('rutas de identidad sin sesión', () => {
   it.each([
     ['get', '/v1/auth/session'],

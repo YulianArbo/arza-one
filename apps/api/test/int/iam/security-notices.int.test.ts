@@ -1,6 +1,7 @@
 import { recoveryCodesResponseSchema } from '@arza/contracts';
 import { describe, expect, it } from 'vitest';
 
+import { apiDatabase } from '../support/integration-database.js';
 import { prepareAccountEmail } from '../../../src/modules/iam/index.js';
 import {
   APP_URL,
@@ -31,7 +32,7 @@ const NOTICES = [
 
 function prepare(job: Parameters<typeof prepareAccountEmail>[0]) {
   return prepareAccountEmail(job, {
-    database: scenario.db,
+    database: apiDatabase(),
     clock: scenario.clock,
     appUrl: APP_URL,
   });

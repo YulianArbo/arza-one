@@ -15,6 +15,10 @@
     "./iam": {
       "types": "./dist/modules/iam/index.d.ts",
       "default": "./dist/modules/iam/index.js"
+    },
+    "./audit": {
+      "types": "./dist/modules/audit/index.d.ts",
+      "default": "./dist/modules/audit/index.js"
     }
   },
   "scripts": {

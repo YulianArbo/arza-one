@@ -16,7 +16,7 @@ import { hashPassword } from '../../../../src/modules/iam/infrastructure/passwor
 import { newTotpSecret, totpCodeAt } from '../../../../src/modules/iam/infrastructure/totp.js';
 import { CLOCK, type Clock } from '../../../../src/platform/clock/clock.js';
 import { FieldCipher } from '../../../../src/platform/crypto/field-cipher.js';
-import { DatabaseService } from '../../../../src/platform/database/database.service.js';
+import type { DatabaseService } from '../../../../src/platform/database/database.service.js';
 import type { TenantTransaction } from '../../../../src/platform/database/tenant-context.js';
 import {
   JOBS,
@@ -26,7 +26,11 @@ import {
 } from '../../../../src/platform/queues/jobs.js';
 import { createTestApp } from '../../../support/test-app.js';
 import { testEnv } from '../../../support/test-env.js';
-import { integrationDatabase } from '../../support/integration-database.js';
+import {
+  apiDatabase,
+  createDatabaseService,
+  integrationDatabase,
+} from '../../support/integration-database.js';
 
 // Apoyo de las pruebas de identidad con PostgreSQL y Valkey reales. Todos los datos son ficticios.
 
@@ -229,14 +233,15 @@ export function postWithSession(
     .send(body);
 }
 
-/** Olvida el último código usado de la cuenta (ver signIn). */
-async function forgetLastCode(app: NestExpressApplication, email: string): Promise<void> {
+let fixtureDatabase: DatabaseService | undefined;
+
+/** Olvida el último código usado de la cuenta (ver signIn). Es preparación, no un caso de uso. */
+async function forgetLastCode(email: string): Promise<void> {
   const { tenantId, userId } = phoneOf(email);
-  await app
-    .get(DatabaseService)
-    .withTenant({ tenantId, userId: null }, (tx) =>
-      tx.mfaFactor.updateMany({ where: { userId }, data: { lastUsedStep: null } }),
-    );
+  fixtureDatabase ??= createDatabaseService();
+  await fixtureDatabase.withTenant({ tenantId, userId: null }, (tx) =>
+    tx.mfaFactor.updateMany({ where: { userId }, data: { lastUsedStep: null } }),
+  );
 }
 
 /**
@@ -254,7 +259,7 @@ export async function signIn(
   const settings = typeof options === 'string' ? { password: options } : options;
   const pending = await signInWithPassword(app, email, settings);
   if (pending.session.stage !== 'second_factor') return pending;
-  await forgetLastCode(app, email);
+  await forgetLastCode(email);
   const code = currentCode(email, app.get<Clock>(CLOCK));
   // El navegador envía en el segundo paso las mismas cookies, como la marca del equipo.
   const withCookies = {
@@ -286,12 +291,8 @@ export async function accountEmailJobs(
  * Hace lo que el worker: prepara el correo del trabajo y devuelve la llave del enlace, que solo
  * existe dentro del correo.
  */
-export async function linkTokenFromEmail(
-  database: DatabaseService,
-  clock: Clock,
-  job: AccountEmailJob,
-): Promise<string> {
-  const email = await prepareAccountEmail(job, { database, clock, appUrl: APP_URL });
+export async function linkTokenFromEmail(clock: Clock, job: AccountEmailJob): Promise<string> {
+  const email = await prepareAccountEmail(job, { database: apiDatabase(), clock, appUrl: APP_URL });
   const match = email === null ? null : /#token=([\w-]{43})/.exec(email.text);
   if (match?.[1] === undefined) throw new Error('El correo no trae un enlace con llave.');
   return match[1];

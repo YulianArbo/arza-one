@@ -113,7 +113,6 @@ describe('aislamiento entre empresas: escrituras y sesiones', () => {
 describe('aislamiento entre empresas: enlaces y trabajos', () => {
   it('un enlace emitido para la empresa A solo cambia la cuenta de la empresa A', async () => {
     const token = await linkTokenFromEmail(
-      database,
       clock,
       accountEmailJob(tenantA.id, userA, 'password_reset'),
     );
@@ -132,7 +131,7 @@ describe('aislamiento entre empresas: enlaces y trabajos', () => {
 
   it('un trabajo de correo con la empresa equivocada no encuentra la cuenta', async () => {
     await expect(
-      linkTokenFromEmail(database, clock, accountEmailJob(tenantA.id, userB, 'password_reset')),
+      linkTokenFromEmail(clock, accountEmailJob(tenantA.id, userB, 'password_reset')),
     ).rejects.toThrow('El correo no trae un enlace con llave.');
   });
 

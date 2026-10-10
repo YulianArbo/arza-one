@@ -50,7 +50,7 @@ describe('menú por permisos (permiso denegado, 16.3)', () => {
   });
 
   it('con todos los permisos del menú se ven todos los módulos', () => {
-    expect(visibleSlugs([...navigationPermissions()])).toHaveLength(14);
+    expect(visibleSlugs([...navigationPermissions()])).toHaveLength(15); // B11 agrega Auditoría.
   });
 });
 

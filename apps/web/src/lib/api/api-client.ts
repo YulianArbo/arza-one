@@ -27,10 +27,18 @@ interface PatchOptions<T> extends PostOptions<T> {
   version: number;
 }
 
+/** Archivo que entrega la API, como una exportación (numeral 13.2). */
+export interface DownloadedFile {
+  readonly fileName: string;
+  readonly content: Blob;
+}
+
 export interface ApiClient {
   get<T>(path: string, options: GetOptions<T>): Promise<T>;
   post<T = void>(path: string, options: PostOptions<T>): Promise<T>;
   patch<T = void>(path: string, options: PatchOptions<T>): Promise<T>;
+  /** POST que responde un archivo en lugar de JSON. */
+  download(path: string, options: Omit<PostOptions<never>, 'schema'>): Promise<DownloadedFile>;
 }
 
 const CSRF_HEADER = 'X-CSRF-Token';
@@ -61,7 +69,22 @@ export function createApiClient(baseUrl: string, fetchImpl: typeof fetch = fetch
       const ifMatch = { 'If-Match': `"${String(options.version)}"` };
       return sendWithBody(fetchImpl, apiEndpoint(baseUrl, path), 'PATCH', options, ifMatch);
     },
+
+    async download(path, options): Promise<DownloadedFile> {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (options.csrfToken !== undefined) headers[CSRF_HEADER] = options.csrfToken;
+      const init = { method: 'POST', headers, body: JSON.stringify(options.body) };
+      const response = await send(fetchImpl, apiEndpoint(baseUrl, path), init);
+      if (!response.ok) throw toApiError(response, await readJson(response));
+      return { fileName: fileNameOf(response), content: await response.blob() };
+    },
   };
+}
+
+/** Nombre que la API propone en Content-Disposition; «descarga» si no trae uno. */
+function fileNameOf(response: Response): string {
+  const disposition = response.headers.get('content-disposition') ?? '';
+  return /filename="([^"]+)"/.exec(disposition)?.[1] ?? 'descarga';
 }
 
 /** POST o PATCH con cuerpo JSON y, si hay sesión, el código antifalsificación. */

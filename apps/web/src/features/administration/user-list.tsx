@@ -1,6 +1,6 @@
 'use client';
 
-import type { UserListResponse, UserSummary } from '@arza/contracts';
+import type { UserSummary } from '@arza/contracts';
 import { Badge, Button, EmptyState, TableCell, TableRow } from '@arza/ui';
 import { Users } from 'lucide-react';
 import Link from 'next/link';
@@ -20,6 +20,7 @@ import {
 import { useUserPage, type UserFilters } from './queries';
 import { QueryState } from './query-state';
 import { SelectField } from './select-field';
+import { Pager } from './pager';
 import { SimpleTable } from './simple-table';
 
 const STATUS_OPTIONS = [
@@ -104,37 +105,6 @@ function Filters({ onApply }: { readonly onApply: (filters: UserFilters) => void
         Buscar
       </Button>
     </form>
-  );
-}
-
-interface PagerProps {
-  readonly page: UserListResponse;
-  readonly hasPrevious: boolean;
-  readonly onPrevious: () => void;
-  readonly onNext: (cursor: string) => void;
-}
-
-function Pager({ page, hasPrevious, onPrevious, onNext }: PagerProps): JSX.Element {
-  const next = page.next_cursor;
-  return (
-    <div className="flex gap-2">
-      {hasPrevious ? (
-        <Button type="button" variant="outline" onClick={onPrevious}>
-          Página anterior
-        </Button>
-      ) : null}
-      {next === null ? null : (
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => {
-            onNext(next);
-          }}
-        >
-          Página siguiente
-        </Button>
-      )}
-    </div>
   );
 }
 

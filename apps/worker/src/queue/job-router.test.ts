@@ -5,7 +5,10 @@ import { describe, expect, it } from 'vitest';
 import { createJobRouter, type JobDependencies } from './job-router.js';
 
 const unusedDeps: JobDependencies = {
-  database: { withTenant: async () => Promise.reject(new Error('no se usa')) },
+  database: {
+    withTenant: async () => Promise.reject(new Error('no se usa')),
+    withoutTenant: async () => Promise.reject(new Error('no se usa')),
+  },
   mailer: { send: async () => Promise.reject(new Error('no se usa')) },
   clock: { now: () => new Date() },
   appUrl: 'http://localhost:3000/app',
@@ -25,6 +28,11 @@ describe('enrutador de trabajos', () => {
     await expect(route({ name: JOBS.accountEmail.name, data: {} })).rejects.toThrow(
       'Los datos del trabajo no son válidos',
     );
+  });
+
+  it('envía la verificación diaria de la auditoría a su procesador', async () => {
+    const route = createJobRouter(unusedDeps);
+    await expect(route({ name: JOBS.auditChainCheck.name, data: {} })).rejects.toThrow('no se usa');
   });
 
   it('rechaza sin reintento un trabajo sin procesador', async () => {

@@ -26,8 +26,8 @@ inválido, el worker no arranca y dice cuál, sin mostrar su valor. Usa el mismo
 
 ## Qué reutiliza de la API
 
-El worker importa solo `@arza/api/platform` y `@arza/api/iam` (el módulo de identidad, para
-armar los correos de las cuentas) ([`apps/api/src/platform/index.ts`](../api/src/platform/index.ts)),
+El worker importa solo `@arza/api/platform`, `@arza/api/iam` (el módulo de identidad, para
+armar los correos de las cuentas) y `@arza/api/audit` (la verificación de la cadena de la auditoría) ([`apps/api/src/platform/index.ts`](../api/src/platform/index.ts)),
 la interfaz pública de la plataforma de la API (ADR-004):
 
 - `DatabaseService`: la misma conexión limitada (`app_user`) y el mismo `withTenant`. Cada trabajo
@@ -39,19 +39,25 @@ la interfaz pública de la plataforma de la API (ADR-004):
 
 ## Estructura
 
-| Archivo                      | Qué hace                                                                                                                                                                                                                                                  |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/main.ts`                | Valida la configuración y arranca NestJS; al recibir la señal de apagado, cierra en orden                                                                                                                                                                 |
-| `src/worker.module.ts`       | Conexiones (base de datos, Valkey, correo), procesadores de las colas y latido                                                                                                                                                                            |
-| `src/queue/queue-workers.ts` | Un procesador de BullMQ por cola. Al apagarse deja de tomar trabajos y espera los que están en curso (25 s como máximo), aunque Valkey no responda                                                                                                        |
-| `src/queue/job-router.ts`    | Envía cada trabajo a su procesador según su nombre. Un nombre desconocido falla sin reintento                                                                                                                                                             |
-| `src/queue/job-log.ts`       | Qué se registra de cada trabajo: identificador, intento, empresa y correlación; nunca sus datos                                                                                                                                                           |
-| `src/jobs/example-email.ts`  | Trabajo de ejemplo (B06): lee el nombre de la empresa en su contexto y envía un correo de prueba                                                                                                                                                          |
-| `src/jobs/account-email.ts`  | Correos de las cuentas (B08): invitación, recuperación y aviso de cambio de contraseña; desde B09, también los avisos de seguridad del segundo factor y de un equipo nuevo. El enlace se crea al enviar; si la cuenta ya no aplica, no envía ni reintenta |
-| `src/mail/mailer.ts`         | Envío por SMTP con nodemailer. Fuera del entorno local exige TLS                                                                                                                                                                                          |
-| `src/heartbeat/heartbeat.ts` | Latido en Valkey cada 15 s, con vencimiento a los 45 s (numeral 10.3)                                                                                                                                                                                     |
-| `src/healthcheck.ts`         | Verificación de salud de la imagen Docker: sale con 1 si no hay latido reciente                                                                                                                                                                           |
-| `src/cli/enqueue-example.ts` | Comando `pnpm job:ejemplo`                                                                                                                                                                                                                                |
+| Archivo                         | Qué hace                                                                                                                                                                                                                                                  |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/main.ts`                   | Valida la configuración y arranca NestJS; al recibir la señal de apagado, cierra en orden                                                                                                                                                                 |
+| `src/worker.module.ts`          | Conexiones (base de datos, Valkey, correo), procesadores de las colas y latido                                                                                                                                                                            |
+| `src/queue/queue-workers.ts`    | Un procesador de BullMQ por cola. Al apagarse deja de tomar trabajos y espera los que están en curso (25 s como máximo), aunque Valkey no responda                                                                                                        |
+| `src/queue/job-router.ts`       | Envía cada trabajo a su procesador según su nombre. Un nombre desconocido falla sin reintento                                                                                                                                                             |
+| `src/queue/job-log.ts`          | Qué se registra de cada trabajo: identificador, intento, empresa y correlación; nunca sus datos                                                                                                                                                           |
+| `src/jobs/example-email.ts`     | Trabajo de ejemplo (B06): lee el nombre de la empresa en su contexto y envía un correo de prueba                                                                                                                                                          |
+| `src/jobs/account-email.ts`     | Correos de las cuentas (B08): invitación, recuperación y aviso de cambio de contraseña; desde B09, también los avisos de seguridad del segundo factor y de un equipo nuevo. El enlace se crea al enviar; si la cuenta ya no aplica, no envía ni reintenta |
+| `src/jobs/audit-chain-check.ts` | Verificación diaria de la auditoría (B11): particiones de los próximos meses y cadena de cada empresa. Un daño termina el trabajo fallido, sin reintento, para que la alerta lo avise                                                                     |
+| `src/mail/mailer.ts`            | Envío por SMTP con nodemailer. Fuera del entorno local exige TLS                                                                                                                                                                                          |
+| `src/heartbeat/heartbeat.ts`    | Latido en Valkey cada 15 s, con vencimiento a los 45 s (numeral 10.3)                                                                                                                                                                                     |
+| `src/healthcheck.ts`            | Verificación de salud de la imagen Docker: sale con 1 si no hay latido reciente                                                                                                                                                                           |
+| `src/cli/enqueue-example.ts`    | Comando `pnpm job:ejemplo`                                                                                                                                                                                                                                |
+
+## Trabajos programados (B11)
+
+Al arrancar, el worker registra los trabajos de `SCHEDULED_JOBS` (`@arza/api/platform`) en Valkey;
+repetirlo no los duplica. Hoy: `audit.chain-check` todos los días a las 3:00 a. m., hora de Bogotá.
 
 ## Reintentos (ADR-014)
 

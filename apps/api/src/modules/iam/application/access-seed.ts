@@ -7,6 +7,7 @@ import type { TenantTransaction } from '../../../platform/database/tenant-contex
 import {
   syncPermissionCatalog,
   syncSystemRole,
+  type CatalogSync,
   type RoleSyncResult,
 } from '../infrastructure/access-catalog.js';
 
@@ -19,7 +20,8 @@ async function recordRoleChange(
   result: RoleSyncResult,
   now: Date,
 ): Promise<void> {
-  if (result.added + result.changed + result.removed === 0) return;
+  const touched = Object.keys(result.fields).length > 0;
+  if (!touched && result.added + result.changed + result.removed === 0) return;
   await recordAuditEvent(tx, {
     tenantId,
     occurredAt: now,
@@ -29,10 +31,33 @@ async function recordRoleChange(
     entityId: result.roleId,
     result: 'success',
     changes: {
+      ...result.fields,
       permissions_added: result.added,
       permissions_changed: result.changed,
       permissions_removed: result.removed,
     },
+    meta: null,
+  });
+}
+
+/** El catálogo es común a todas las empresas; su carga queda en la auditoría de la primera. */
+async function recordCatalogSync(
+  tx: TenantTransaction,
+  tenantId: string,
+  sync: CatalogSync,
+  now: Date,
+): Promise<void> {
+  const { added, updated, retired } = sync.counts;
+  if (added + updated + retired === 0) return;
+  await recordAuditEvent(tx, {
+    tenantId,
+    occurredAt: now,
+    actor: { kind: 'system' },
+    action: 'iam.permission.sync',
+    entityType: 'iam_permission',
+    entityId: null,
+    result: 'success',
+    changes: { added, updated, retired },
     meta: null,
   });
 }
@@ -49,9 +74,11 @@ export async function seedAccessControl(
   const [first] = tenantIds;
   if (first === undefined) return;
   const now = clock.now();
-  const permissionIds = await database.withTenant({ tenantId: first, userId: null }, (tx) =>
-    syncPermissionCatalog(tx, now),
-  );
+  const permissionIds = await database.withTenant({ tenantId: first, userId: null }, async (tx) => {
+    const sync = await syncPermissionCatalog(tx, now);
+    await recordCatalogSync(tx, first, sync, now);
+    return sync.ids;
+  });
   for (const tenantId of tenantIds) {
     for (const role of SYSTEM_ROLES) {
       await database.withTenant({ tenantId, userId: null }, async (tx) => {

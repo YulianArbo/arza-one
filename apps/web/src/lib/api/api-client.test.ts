@@ -145,3 +145,28 @@ describe('cliente de la API: edición con versión (B10)', () => {
     expect(init?.body).toBe(JSON.stringify({ name: 'Nuevo' }));
   });
 });
+
+describe('cliente de la API: descargas (B11)', () => {
+  it('entrega el archivo con el nombre que propone la API', async () => {
+    const response = new Response('a,b\r\n', {
+      headers: { 'Content-Disposition': 'attachment; filename="auditoria.csv"' },
+    });
+    const file = await clientReturning(response).download('/v1/audit-exports', {
+      body: {},
+      csrfToken: 'codigo',
+    });
+    expect(file.fileName).toBe('auditoria.csv');
+    expect(await file.content.text()).toBe('a,b\r\n');
+  });
+
+  it('una falla de la API llega como error con su mensaje', async () => {
+    const body = {
+      error: { code: 'FORBIDDEN', message: 'Sin permiso', details: [], correlation_id: 'c-1' },
+    };
+    const error = await errorOf(
+      clientReturning(jsonResponse(body, 403)).download('/v1/audit-exports', { body: {} }),
+    );
+    expect(error.message).toBe('Sin permiso');
+    expect(error.correlationId).toBe('c-1');
+  });
+});

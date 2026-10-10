@@ -6,6 +6,7 @@ import type { JSX } from 'react';
 
 import { PageHeader } from '../../components/app-shell/page-header';
 import { formatDateTime } from '../../lib/format/date-time';
+import { EntityHistory } from '../audit/entity-history';
 import { usePermissions } from '../session/permissions';
 import { useSession } from '../session/session-provider';
 import { USER_KIND_LABELS, USER_STATUS_LABELS, USER_STATUS_TONES, personName } from './labels';
@@ -79,6 +80,7 @@ function UserDetail({ user }: { readonly user: UserDetailResponse }): JSX.Elemen
         <UserRolesCard user={user} canAssign={!own && permissions.can('iam.role.assign')} />
       </div>
       {own ? null : <UserActionsCard user={user} />}
+      <EntityHistory entityType="iam_user" entityId={user.id} />
     </>
   );
 }

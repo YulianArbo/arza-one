@@ -21,6 +21,19 @@ export class JobQueue {
     return added.id;
   }
 
+  /** Registra (o actualiza) un trabajo programado; repetirlo no lo duplica. */
+  async schedule(scheduled: {
+    readonly id: string;
+    readonly job: JobDefinition;
+    readonly pattern: string;
+  }): Promise<void> {
+    await this.queue(scheduled.job.queue).upsertJobScheduler(
+      scheduled.id,
+      { pattern: scheduled.pattern, tz: 'America/Bogota' },
+      { name: scheduled.job.name, data: {}, opts: DEFAULT_JOB_OPTIONS },
+    );
+  }
+
   async close(): Promise<void> {
     await Promise.all([...this.queues.values()].map(async (queue) => queue.close()));
   }

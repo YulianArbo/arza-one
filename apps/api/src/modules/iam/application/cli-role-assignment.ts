@@ -28,9 +28,11 @@ export class CliRoleAssignment {
     const now = this.clock.now();
     const { tenantId, userId } = ref;
     const assigned = await this.database.withTenant({ tenantId, userId: null }, async (tx) => {
-      const user = await lockUser(tx, userId);
+      // El rol se busca antes de bloquear la cuenta: si no existe, la transacción no toca nada.
       const role = await findRoleByCode(tx, input.roleCode);
-      if (user === null || role === null) return false;
+      if (role === null) return false;
+      const user = await lockUser(tx, userId);
+      if (user === null) return false;
       const grant = { tenantId, actorId: null, user, role, validUntil: input.validUntil };
       await grantRole(tx, { ...grant, now, meta: null });
       return true;

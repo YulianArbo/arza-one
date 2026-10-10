@@ -14,6 +14,8 @@ interface AdminActionOptions<TArgs, TResult> {
   /** Consultas que se recargan al terminar, para que la pantalla refleje el cambio (16.5). */
   readonly invalidate: readonly QueryKey[];
   readonly onSuccess?: (result: TResult, args: TArgs) => void;
+  /** Por qué se pide confirmar la identidad; por defecto, que cambia accesos de otros. */
+  readonly reason?: string;
 }
 
 export interface AdminAction<TArgs, TResult> {
@@ -36,7 +38,7 @@ export function useAdminAction<TArgs, TResult = void>(
 ): AdminAction<TArgs, TResult> {
   const { session, endSession } = useSession();
   const queryClient = useQueryClient();
-  const reauth = useReauthentication(session, ADMIN_REASON);
+  const reauth = useReauthentication(session, options.reason ?? ADMIN_REASON);
   const mutation = useMutation({
     mutationFn: (args: TArgs) => options.run(args, session.csrf_token),
     onSuccess: (result, args) => {

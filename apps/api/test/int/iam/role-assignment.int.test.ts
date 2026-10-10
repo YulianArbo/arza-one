@@ -1,6 +1,7 @@
 import { createdResponseSchema, myPermissionsResponseSchema } from '@arza/contracts';
 import { describe, expect, it } from 'vitest';
 
+import { apiDatabase } from '../support/integration-database.js';
 import {
   MINUTE,
   accountEmailJobs,
@@ -172,7 +173,7 @@ describe('primer administrador por comando (pnpm iam:asignar-rol)', () => {
   it('el sistema asigna el rol, queda auditado como sistema y avisa a la persona', async () => {
     const first = await scenario.newUser('primer-admin');
     const notifier = new AccountNotifier(scenario.app.get(JobQueue));
-    const command = new CliRoleAssignment(scenario.db, scenario.clock, notifier);
+    const command = new CliRoleAssignment(apiDatabase(), scenario.clock, notifier);
     const input = { email: first.email, roleCode: 'ADMIN_PLATAFORMA', validUntil: null };
     await expect(command.execute(input)).resolves.toBe('assigned');
     const [assignment] = await scenario.inTenant((tx) =>
@@ -188,7 +189,7 @@ describe('primer administrador por comando (pnpm iam:asignar-rol)', () => {
 
   it('un correo sin cuenta o un rol que no existe no asignan nada', async () => {
     const notifier = new AccountNotifier(scenario.app.get(JobQueue));
-    const command = new CliRoleAssignment(scenario.db, scenario.clock, notifier);
+    const command = new CliRoleAssignment(apiDatabase(), scenario.clock, notifier);
     const unknown = { email: 'nadie@pruebas.test', roleCode: 'DIRECCION', validUntil: null };
     await expect(command.execute(unknown)).resolves.toBe('not_found');
     const person = await scenario.newUser('rol-inexistente');

@@ -1,3 +1,5 @@
+import { recordAuditEvent } from '../../audit/audit-recorder.js';
+import { systemClock } from '../../clock/clock.js';
 import type { DatabaseService } from '../database.service.js';
 import type { TenantTransaction } from '../tenant-context.js';
 import {
@@ -15,6 +17,17 @@ async function ensureTenant(transaction: TenantTransaction, tenant: SeedTenant):
   const existing = await transaction.tenant.findUnique({ where: { id: tenant.id } });
   if (existing === null) {
     await transaction.tenant.create({ data: tenant });
+    await recordAuditEvent(transaction, {
+      tenantId: tenant.id,
+      occurredAt: systemClock.now(),
+      actor: { kind: 'system' },
+      action: 'core.tenant.create',
+      entityType: 'tenant',
+      entityId: tenant.id,
+      result: 'success',
+      changes: { legalName: tenant.legalName, taxId: tenant.taxId },
+      meta: null,
+    });
   }
 }
 

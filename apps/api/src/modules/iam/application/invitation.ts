@@ -84,17 +84,22 @@ export class InvitationUseCase {
 
   /** Reenvía la invitación de una cuenta que sigue invitada (pantalla de usuarios). */
   async resend(principal: Principal, userId: string, meta: RequestMeta): Promise<void> {
-    const user = await this.database.withTenant(principal, (tx) => loadUser(tx, userId));
-    if (user === null || user.kind === 'service') throw userNotFound();
-    if (user.status !== 'invited') throw userStateInvalid('La cuenta ya se activó.');
-    const queued = await this.notifier.request({
-      tenantId: principal.tenantId,
-      actorId: principal.userId,
-      accountUserId: user.id,
-      purpose: 'invitation',
-      correlationId: meta.correlationId,
+    const now = this.clock.now();
+    // Se encola dentro de la transacción: si el correo no se encola, tampoco queda el evento.
+    await this.database.withTenant(principal, async (tx) => {
+      const user = await loadUser(tx, userId);
+      if (user === null || user.kind === 'service') throw userNotFound();
+      if (user.status !== 'invited') throw userStateInvalid('La cuenta ya se activó.');
+      const actor = { tenantId: principal.tenantId, actorId: principal.userId };
+      await recordResent(tx, { ...actor, userId: user.id, meta, now });
+      const queued = await this.notifier.request({
+        ...actor,
+        accountUserId: user.id,
+        purpose: 'invitation',
+        correlationId: meta.correlationId,
+      });
+      if (!queued) throw invitationNotQueued();
     });
-    if (!queued) throw invitationNotQueued();
   }
 
   /** Activa la cuenta con el enlace de la invitación y la contraseña elegida. */
@@ -117,6 +122,8 @@ export class InvitationUseCase {
     const existing = await tx.user.findFirst({ where: { email: input.email, deletedAt: null } });
     if (existing !== null) {
       if (existing.status !== 'invited') throw emailTaken();
+      const actor = { tenantId: input.tenantId, actorId: input.actorId ?? null };
+      await recordResent(tx, { ...actor, userId: existing.id, meta: input.meta ?? null, now });
       return { userId: existing.id, outcome: 'resent' };
     }
     const user = await tx.user.create({
@@ -172,6 +179,30 @@ export class InvitationUseCase {
       meta,
     });
   }
+}
+
+/** Quién reenvió la invitación de una cuenta que sigue invitada. */
+async function recordResent(
+  tx: TenantTransaction,
+  event: {
+    readonly tenantId: string;
+    readonly actorId: string | null;
+    readonly userId: string;
+    readonly meta: RequestMeta | null;
+    readonly now: Date;
+  },
+): Promise<void> {
+  await recordAuditEvent(tx, {
+    tenantId: event.tenantId,
+    occurredAt: event.now,
+    actor: event.actorId === null ? { kind: 'system' } : { kind: 'user', id: event.actorId },
+    action: 'iam.user.invite',
+    entityType: 'iam_user',
+    entityId: event.userId,
+    result: 'success',
+    changes: { resent: true },
+    meta: event.meta,
+  });
 }
 
 /** COLABORADOR para toda persona interna (B10) y los roles elegidos al invitar. */

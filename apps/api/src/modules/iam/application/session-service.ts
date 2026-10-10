@@ -62,6 +62,7 @@ export class SessionService implements Authenticator {
     const session = await this.database.withTenant(
       { tenantId: ref.tenantId, userId: ref.userId },
       (tx) => this.checkAndTouch(tx, ref, now),
+      'session_activity',
     );
     return session === null ? null : this.principalOf(ref, session, now);
   }

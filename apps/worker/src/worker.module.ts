@@ -8,7 +8,7 @@ import {
   type OnApplicationBootstrap,
   type OnApplicationShutdown,
 } from '@nestjs/common';
-import { DatabaseService, systemClock } from '@arza/api/platform';
+import { DatabaseService, JobQueue, SCHEDULED_JOBS, systemClock } from '@arza/api/platform';
 import { Redis } from 'ioredis';
 import type { Logger } from 'pino';
 
@@ -57,10 +57,29 @@ class WorkerRuntime implements OnApplicationBootstrap, OnApplicationShutdown {
       concurrency: this.config.WORKER_CONCURRENCY,
       logger: this.logger,
     });
+    this.scheduleJobs();
     this.stopHeartbeat = startHeartbeat(this.valkey, hostname(), (error) => {
       this.logger.warn({ reason: String(error) }, 'No se pudo emitir el latido');
     });
     this.logger.info({ queues: this.queueWorkers.queues }, 'Worker listo');
+  }
+
+  /**
+   * Registra los trabajos programados, como la verificación diaria de la auditoría. No detiene el
+   * arranque: si Valkey no responde, BullMQ lo intenta hasta lograrlo. Repetirlo no los duplica.
+   */
+  private scheduleJobs(): void {
+    const jobs = new JobQueue({ url: this.config.VALKEY_URL });
+    void Promise.all(SCHEDULED_JOBS.map(async (scheduled) => jobs.schedule(scheduled)))
+      .then(() => {
+        this.logger.info({ jobs: SCHEDULED_JOBS.map((item) => item.id) }, 'Trabajos programados');
+      })
+      .catch((error: unknown) => {
+        this.logger.warn({ reason: String(error) }, 'No se registraron los trabajos programados');
+      })
+      .finally(() => {
+        void jobs.close();
+      });
   }
 
   /** Espera a que terminen los trabajos en curso antes de cerrar las conexiones. */
