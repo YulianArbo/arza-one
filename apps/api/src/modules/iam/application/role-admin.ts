@@ -16,6 +16,7 @@ import { changesBetween } from '../../../platform/audit/audit-recorder.js';
 import { CLOCK, type Clock } from '../../../platform/clock/clock.js';
 import { DatabaseService } from '../../../platform/database/database.service.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
+import { versionConflict } from '../../../platform/http/if-match.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
 import { roleCodeFromName } from '../domain/access-policy.js';
 import {
@@ -33,7 +34,6 @@ import {
   roleNotFound,
   selfPermissionChange,
   systemRoleReadonly,
-  versionConflict,
 } from './access-messages.js';
 import { recordPermissionChange } from './permission-change.js';
 

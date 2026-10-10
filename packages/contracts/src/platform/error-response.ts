@@ -11,6 +11,8 @@ export const PLATFORM_ERROR_CODES = {
   validationFailed: 'VALIDATION_FAILED',
   rateLimited: 'RATE_LIMITED',
   internalError: 'INTERNAL_ERROR',
+  versionRequired: 'VERSION_REQUIRED',
+  versionConflict: 'VERSION_CONFLICT',
 } as const;
 
 const errorDetailSchema = z.object({
