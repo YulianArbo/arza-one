@@ -12,6 +12,7 @@ import {
 
 import type { Prisma } from '../../../generated/prisma/client.js';
 import type { Principal } from '../../../platform/access/principal.js';
+import { changesBetween } from '../../../platform/audit/audit-recorder.js';
 import { CLOCK, type Clock } from '../../../platform/clock/clock.js';
 import { DatabaseService } from '../../../platform/database/database.service.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
@@ -159,10 +160,13 @@ export class RoleAdminUseCase {
       if (input.permissions !== undefined) {
         await replaceRolePermissions(tx, role, input.permissions, now);
       }
-      const renamed = input.name === undefined ? {} : { name: { from: role.name, to: name } };
+      const fields = changesBetween(
+        { name: role.name, description: role.description },
+        { name, description },
+      );
       const event = { roleId: role.id, action: 'iam.role.update', now, meta };
       const diff = permissionDiff(before, await rolePermissions(tx, role.id));
-      await this.recordChange(tx, principal, event, { ...renamed, ...diff });
+      await this.recordChange(tx, principal, event, { ...fields, ...diff });
       return this.detailIn(tx, role.id, now);
     });
   }

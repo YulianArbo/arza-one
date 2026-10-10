@@ -2,9 +2,9 @@ import type { Prisma } from '../../generated/prisma/client.js';
 import type { TenantTransaction } from '../database/tenant-context.js';
 import type { RequestMeta } from '../http/request-meta.js';
 
-// Auditoría mínima de B08 (ADR-012): cada caso de uso que escribe inserta su evento dentro de la
-// misma transacción. Si la transacción se revierte, el evento también. B11 agrega la cadena de
-// hash y la verificación sin cambiar esta interfaz.
+// Auditoría (ADR-012): cada caso de uso que escribe inserta su evento dentro de la misma
+// transacción. Si la transacción se revierte, el evento también. La base de datos encadena el
+// evento por hash (B11) y la API no confirma una escritura sin evento (DatabaseService).
 
 /** Quién actúa: una persona con sesión, el sistema (comandos, worker) o alguien sin sesión. */
 type AuditActor =
@@ -24,6 +24,27 @@ export interface AuditEventInput {
   /** Lo que cambió. Nunca contraseñas, huellas, llaves ni códigos. */
   readonly changes?: Prisma.InputJsonObject;
   readonly meta: RequestMeta | null;
+}
+
+type AuditValue = string | number | boolean | null;
+
+/**
+ * Valor anterior y nuevo de cada campo que cambió (ficha 17.20). De los campos restringidos solo
+ * queda que cambiaron, nunca su valor.
+ */
+export function changesBetween<T extends Record<string, AuditValue>>(
+  before: T,
+  after: T,
+  restricted: readonly (keyof T & string)[] = [],
+): Prisma.InputJsonObject {
+  const changed = Object.keys(after).filter((field) => before[field] !== after[field]);
+  return Object.fromEntries(
+    changed.map((field): [string, Prisma.InputJsonObject] =>
+      restricted.includes(field)
+        ? [field, { changed: true }]
+        : [field, { from: before[field] ?? null, to: after[field] ?? null }],
+    ),
+  );
 }
 
 export async function recordAuditEvent(
