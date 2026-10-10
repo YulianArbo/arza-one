@@ -119,7 +119,10 @@ Acciones de B10: `iam.role.assign` (también al invitar y por comando), `iam.rol
 pantalla), `iam.session.revoke_user`, `iam.session.revoke_all` e `iam.access_review.read` (cada
 consulta del informe de revisión de accesos).
 
-Acciones de B11: `core.tenant.create` (la semilla crea una empresa), `iam.user.invite` con
+Acciones de B11: `core.tenant.create` (la semilla crea una empresa), `iam.permission.sync` (la
+semilla agregó, corrigió o retiró permisos del catálogo; queda en la primera empresa), `iam.role.sync`
+ahora también cuando la semilla crea un rol del sistema (`created`) o corrige su nombre, descripción o
+público, `iam.user.invite` con
 `changes.resent` (se reenvió una invitación), `audit.event.read` (cada consulta de eventos, de un
 historial o de las exportaciones, con los filtros usados), `audit.security.read`,
 `audit.event.export` (con los filtros y cuántos eventos) y `audit.chain.verify` (éxito o fallo,
