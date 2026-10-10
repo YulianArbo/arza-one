@@ -44,6 +44,15 @@ model Tenant {
   auditChainHead  AuditChainHead?
   auditExports    AuditExport[]
   securityEvents  SecurityEvent[]
+  sites           Site[]
+  orgUnits        OrgUnit[]
+  positions       Position[]
+  costCenters     CostCenter[]
+  catalogs        Catalog[]
+  catalogItems    CatalogItem[]
+  sequences       Sequence[]
+  parameters      Parameter[]
+  holidays        Holiday[]
 
   @@map("core_tenants")
 }
@@ -103,9 +112,11 @@ model User {
   roleAssignments     UserRole[]
   delegationsGiven    Delegation[]   @relation("DelegationsGiven")
   delegationsReceived Delegation[]   @relation("DelegationsReceived")
+  position            Position?      @relation(fields: [tenantId, positionId], references: [tenantId, id], onDelete: Restrict)
 
   @@unique([tenantId, id])
   @@index([tenantId, status])
+  @@index([tenantId, positionId])
   @@map("iam_users")
 }
 
@@ -456,4 +467,212 @@ model SecurityEvent {
 
   @@index([tenantId, occurredAt])
   @@map("aud_security_events")
+}
+
+/// Sedes de la empresa (M00). Solo una es la principal: la API lo garantiza al guardar.
+model Site {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  tenantId  String    @map("tenant_id") @db.Uuid
+  name      String
+  city      String
+  address   String
+  isMain    Boolean   @default(false) @map("is_main")
+  isActive  Boolean   @default(true) @map("is_active")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy String?   @map("created_by") @db.Uuid
+  updatedAt DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy String?   @map("updated_by") @db.Uuid
+  version   Int       @default(1)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId])
+  @@map("core_sites")
+}
+
+/// Procesos y áreas del mapa de procesos (MP-DG-001), con su jerarquía. Uno con registros
+/// asociados no se elimina: se inactiva (ficha 17.1).
+model OrgUnit {
+  id              String       @id @default(uuid(7)) @db.Uuid
+  tenantId        String       @map("tenant_id") @db.Uuid
+  parentId        String?      @map("parent_id") @db.Uuid
+  code            String
+  name            String
+  kind            String
+  ownerPositionId String?      @map("owner_position_id") @db.Uuid
+  isActive        Boolean      @default(true) @map("is_active")
+  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?      @map("created_by") @db.Uuid
+  updatedAt       DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy       String?      @map("updated_by") @db.Uuid
+  version         Int          @default(1)
+  deletedAt       DateTime?    @map("deleted_at") @db.Timestamptz(6)
+  tenant          Tenant       @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  parent          OrgUnit?     @relation("OrgUnitTree", fields: [tenantId, parentId], references: [tenantId, id], onDelete: Restrict)
+  children        OrgUnit[]    @relation("OrgUnitTree")
+  ownerPosition   Position?    @relation("OrgUnitOwner", fields: [tenantId, ownerPositionId], references: [tenantId, id], onDelete: Restrict)
+  positions       Position[]   @relation("PositionUnit")
+  costCenters     CostCenter[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@index([tenantId, parentId])
+  @@index([tenantId, ownerPositionId])
+  @@map("core_org_units")
+}
+
+/// Cargos del organigrama (DC-SGC-001): a qué proceso pertenecen y a qué cargo reportan.
+model Position {
+  id           String     @id @default(uuid(7)) @db.Uuid
+  tenantId     String     @map("tenant_id") @db.Uuid
+  orgUnitId    String     @map("org_unit_id") @db.Uuid
+  name         String
+  reportsToId  String?    @map("reports_to_id") @db.Uuid
+  isActive     Boolean    @default(true) @map("is_active")
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy    String?    @map("created_by") @db.Uuid
+  updatedAt    DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy    String?    @map("updated_by") @db.Uuid
+  version      Int        @default(1)
+  deletedAt    DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant       Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  orgUnit      OrgUnit    @relation("PositionUnit", fields: [tenantId, orgUnitId], references: [tenantId, id], onDelete: Restrict)
+  reportsTo    Position?  @relation("PositionTree", fields: [tenantId, reportsToId], references: [tenantId, id], onDelete: Restrict)
+  subordinates Position[] @relation("PositionTree")
+  ledUnits     OrgUnit[]  @relation("OrgUnitOwner")
+  users        User[]
+
+  @@unique([tenantId, id])
+  @@index([tenantId, orgUnitId])
+  @@index([tenantId, reportsToId])
+  @@map("core_positions")
+}
+
+/// Centros de costo, opcionalmente ligados a un proceso o área.
+model CostCenter {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  tenantId  String    @map("tenant_id") @db.Uuid
+  code      String
+  name      String
+  orgUnitId String?   @map("org_unit_id") @db.Uuid
+  isActive  Boolean   @default(true) @map("is_active")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy String?   @map("created_by") @db.Uuid
+  updatedAt DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy String?   @map("updated_by") @db.Uuid
+  version   Int       @default(1)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  orgUnit   OrgUnit?  @relation(fields: [tenantId, orgUnitId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, code])
+  @@index([tenantId, orgUnitId])
+  @@map("core_cost_centers")
+}
+
+/// Catálogos administrables: la lista la define el sistema, sus opciones la empresa.
+model Catalog {
+  id          String        @id @default(uuid(7)) @db.Uuid
+  tenantId    String        @map("tenant_id") @db.Uuid
+  key         String
+  name        String
+  description String?
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?       @map("created_by") @db.Uuid
+  updatedAt   DateTime      @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?       @map("updated_by") @db.Uuid
+  version     Int           @default(1)
+  deletedAt   DateTime?     @map("deleted_at") @db.Timestamptz(6)
+  tenant      Tenant        @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  items       CatalogItem[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, key])
+  @@map("core_catalogs")
+}
+
+/// Opciones de un catálogo. Una opción que ya se usó no se borra: se inactiva.
+model CatalogItem {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  tenantId  String    @map("tenant_id") @db.Uuid
+  catalogId String    @map("catalog_id") @db.Uuid
+  code      String
+  label     String
+  sortOrder Int       @default(0) @map("sort_order")
+  isActive  Boolean   @default(true) @map("is_active")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy String?   @map("created_by") @db.Uuid
+  updatedAt DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy String?   @map("updated_by") @db.Uuid
+  version   Int       @default(1)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  catalog   Catalog   @relation(fields: [tenantId, catalogId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([catalogId, code])
+  @@index([tenantId, catalogId])
+  @@map("core_catalog_items")
+}
+
+/// Consecutivos de negocio por tipo y año (ADR-021). next_value solo lo sube el servicio de
+/// consecutivos, con la fila bloqueada: sin saltos ni duplicados.
+model Sequence {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  tenantId  String    @map("tenant_id") @db.Uuid
+  key       String
+  name      String
+  prefix    String
+  year      Int
+  nextValue Int       @default(1) @map("next_value")
+  padding   Int       @default(4)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy String?   @map("created_by") @db.Uuid
+  updatedAt DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy String?   @map("updated_by") @db.Uuid
+  version   Int       @default(1)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, key, year])
+  @@map("core_sequences")
+}
+
+/// Parámetros con vigencia (ficha 17.1): nunca se sobrescriben. Una vigencia nueva cierra la
+/// anterior el día antes de empezar (valid_to) y la conserva.
+model Parameter {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  tenantId  String    @map("tenant_id") @db.Uuid
+  key       String
+  value     Json
+  validFrom DateTime  @map("valid_from") @db.Date
+  validTo   DateTime? @map("valid_to") @db.Date
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy String?   @map("created_by") @db.Uuid
+  updatedAt DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy String?   @map("updated_by") @db.Uuid
+  version   Int       @default(1)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, key, validFrom])
+  @@map("core_parameters")
+}
+
+/// Festivos para el cálculo de días hábiles. Uno retirado queda con deleted_at y se recupera si
+/// se vuelve a agregar la misma fecha.
+model Holiday {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  tenantId    String    @map("tenant_id") @db.Uuid
+  holidayDate DateTime  @map("holiday_date") @db.Date
+  name        String
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?   @map("created_by") @db.Uuid
+  updatedAt   DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?   @map("updated_by") @db.Uuid
+  version     Int       @default(1)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, holidayDate])
+  @@map("core_holidays")
 }
