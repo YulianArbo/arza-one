@@ -57,6 +57,18 @@ async function findItem(tx: TenantTransaction, catalog: Catalog, id: string) {
   return item;
 }
 
+/** La opción existe y está activa: los demás módulos validan así lo que eligen las personas. */
+export async function isActiveCatalogCode(
+  tx: TenantTransaction,
+  key: string,
+  code: string,
+): Promise<boolean> {
+  const count = await tx.catalogItem.count({
+    where: { code, isActive: true, deletedAt: null, catalog: { key, deletedAt: null } },
+  });
+  return count > 0;
+}
+
 /**
  * Catálogos administrables (ficha 17.1). La lista la crea el sistema y la empresa administra sus
  * opciones. Una opción no se borra, porque los registros la guardan: se inactiva y deja de

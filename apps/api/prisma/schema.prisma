@@ -53,6 +53,11 @@ model Tenant {
   sequences       Sequence[]
   parameters      Parameter[]
   holidays        Holiday[]
+  parties         Party[]
+  partyRoles      PartyRole[]
+  contacts        Contact[]
+  bankAccounts    BankAccount[]
+  dueDiligence    DueDiligence[]
 
   @@map("core_tenants")
 }
@@ -675,4 +680,155 @@ model Holiday {
 
   @@unique([tenantId, holidayDate])
   @@map("core_holidays")
+}
+
+/// Terceros (M02): registro único de cada persona u organización con la que la empresa se
+/// relaciona. Un duplicado fusionado queda con merged_into_id y deleted_at; nunca se borra.
+model Party {
+  id                String         @id @default(uuid(7)) @db.Uuid
+  tenantId          String         @map("tenant_id") @db.Uuid
+  kind              String
+  legalName         String?        @map("legal_name")
+  tradeName         String?        @map("trade_name")
+  firstName         String?        @map("first_name")
+  lastName          String?        @map("last_name")
+  idType            String         @map("id_type")
+  idNumber          String         @map("id_number")
+  checkDigit        Int?           @map("check_digit") @db.SmallInt
+  email             String?
+  phone             String?
+  city              String?
+  address           String?
+  status            String         @default("active")
+  statusReason      String?        @map("status_reason")
+  dataPurpose       String?        @map("data_purpose")
+  dataAuthorization String?        @map("data_authorization")
+  dataAuthorizedOn  DateTime?      @map("data_authorized_on") @db.Date
+  mergedIntoId      String?        @map("merged_into_id") @db.Uuid
+  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy         String?        @map("created_by") @db.Uuid
+  updatedAt         DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy         String?        @map("updated_by") @db.Uuid
+  version           Int            @default(1)
+  deletedAt         DateTime?      @map("deleted_at") @db.Timestamptz(6)
+  tenant            Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  mergedInto        Party?         @relation("PartyMerges", fields: [tenantId, mergedIntoId], references: [tenantId, id], onDelete: Restrict)
+  mergedParties     Party[]        @relation("PartyMerges")
+  roles             PartyRole[]
+  contacts          Contact[]      @relation("OrganizationContacts")
+  contactOf         Contact[]      @relation("PersonContacts")
+  bankAccounts      BankAccount[]
+  dueDiligence      DueDiligence[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, idType, idNumber])
+  @@index([tenantId, mergedIntoId])
+  @@index([tenantId, status])
+  @@index([tenantId, email])
+  @@index([tenantId, phone])
+  @@map("pty_parties")
+}
+
+/// Papeles del tercero: cliente, proveedor, colaborador, contacto o candidato. Uno por papel; al
+/// terminar queda inactivo y la auditoría guarda el historial.
+model PartyRole {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  tenantId  String    @map("tenant_id") @db.Uuid
+  partyId   String    @map("party_id") @db.Uuid
+  role      String
+  since     DateTime  @db.Date
+  status    String    @default("active")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy String?   @map("created_by") @db.Uuid
+  updatedAt DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy String?   @map("updated_by") @db.Uuid
+  version   Int       @default(1)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  party     Party     @relation(fields: [tenantId, partyId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, partyId, role])
+  @@map("pty_party_roles")
+}
+
+/// Personas de contacto de una organización, con su cargo y si firman por ella.
+model Contact {
+  id             String    @id @default(uuid(7)) @db.Uuid
+  tenantId       String    @map("tenant_id") @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  personId       String    @map("person_id") @db.Uuid
+  jobTitle       String?   @map("job_title")
+  isPrimary      Boolean   @default(false) @map("is_primary")
+  canSign        Boolean   @default(false) @map("can_sign")
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy      String?   @map("created_by") @db.Uuid
+  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy      String?   @map("updated_by") @db.Uuid
+  version        Int       @default(1)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  organization   Party     @relation("OrganizationContacts", fields: [tenantId, organizationId], references: [tenantId, id], onDelete: Restrict)
+  person         Party     @relation("PersonContacts", fields: [tenantId, personId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, organizationId, personId])
+  @@index([tenantId, personId])
+  @@map("pty_contacts")
+}
+
+/// Cuentas para pagos. El número va cifrado (numeral 12.1); en claro solo los cuatro últimos
+/// dígitos. La aprueba una persona distinta de quien la registró (ficha 17.3).
+model BankAccount {
+  id                     String        @id @default(uuid(7)) @db.Uuid
+  tenantId               String        @map("tenant_id") @db.Uuid
+  partyId                String        @map("party_id") @db.Uuid
+  bank                   String
+  accountType            String        @map("account_type")
+  accountNumberEncrypted String        @map("account_number_encrypted")
+  accountLast4           String        @map("account_last4")
+  status                 String        @default("pending")
+  replacesId             String?       @map("replaces_id") @db.Uuid
+  reviewedBy             String?       @map("reviewed_by") @db.Uuid
+  reviewedAt             DateTime?     @map("reviewed_at") @db.Timestamptz(6)
+  reviewNote             String?       @map("review_note")
+  createdAt              DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy              String?       @map("created_by") @db.Uuid
+  updatedAt              DateTime      @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy              String?       @map("updated_by") @db.Uuid
+  version                Int           @default(1)
+  deletedAt              DateTime?     @map("deleted_at") @db.Timestamptz(6)
+  tenant                 Tenant        @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  party                  Party         @relation(fields: [tenantId, partyId], references: [tenantId, id], onDelete: Restrict)
+  replaces               BankAccount?  @relation("BankAccountReplacements", fields: [tenantId, replacesId], references: [tenantId, id], onDelete: Restrict)
+  replacedBy             BankAccount[] @relation("BankAccountReplacements")
+
+  @@unique([tenantId, id])
+  @@index([tenantId, partyId])
+  @@index([tenantId, replacesId])
+  @@map("pty_bank_accounts")
+}
+
+/// Conocimiento del tercero y nivel de riesgo. Lo aprueba una persona distinta de quien lo
+/// registró; sin uno aprobado y vigente no se factura ni se contrata (ficha 17.3).
+model DueDiligence {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  tenantId     String    @map("tenant_id") @db.Uuid
+  partyId      String    @map("party_id") @db.Uuid
+  riskLevel    String    @map("risk_level")
+  summary      String
+  status       String    @default("pending")
+  reviewedBy   String?   @map("reviewed_by") @db.Uuid
+  reviewedAt   DateTime? @map("reviewed_at") @db.Timestamptz(6)
+  reviewNote   String?   @map("review_note")
+  nextReviewOn DateTime? @map("next_review_on") @db.Date
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy    String?   @map("created_by") @db.Uuid
+  updatedAt    DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy    String?   @map("updated_by") @db.Uuid
+  version      Int       @default(1)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  party        Party     @relation(fields: [tenantId, partyId], references: [tenantId, id], onDelete: Restrict)
+
+  @@index([tenantId, partyId])
+  @@map("pty_due_diligence")
 }
