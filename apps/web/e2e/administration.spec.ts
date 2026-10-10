@@ -53,6 +53,9 @@ const ADMIN_API: ApiRoutes = {
     body: { ...ROLE_SUMMARY, permissions: [{ code: 'crm.lead.read', scope: 'all' }] },
   },
   '/v1/permissions': { body: CATALOG },
+  // Historial de las fichas (B11).
+  [`/v1/entities/iam_user/${LUIS}/history`]: { body: { data: [], next_cursor: null } },
+  [`/v1/entities/iam_role/${ROLE}/history`]: { body: { data: [], next_cursor: null } },
   '/v1/delegations': { body: { data: [] } },
   '/v1/access-review': {
     body: {

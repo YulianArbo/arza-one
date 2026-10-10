@@ -11,6 +11,7 @@ import { useState, type JSX, type SubmitEvent } from 'react';
 import { PageHeader } from '../../components/app-shell/page-header';
 import { useApiClient } from '../../lib/api/api-provider';
 import { FormError, FormSuccess } from '../access/form-alert';
+import { EntityHistory } from '../audit/entity-history';
 import { PERMISSIONS_QUERY_KEY, usePermissions } from '../session/permissions';
 import { useAdminAction } from './admin-action';
 import { USER_KIND_LABELS } from './labels';
@@ -114,6 +115,7 @@ function RoleView({ role, catalog }: RoleProps): JSX.Element {
       ) : (
         <PermissionPicker groups={groups} choice={choiceOf(role.permissions)} />
       )}
+      <EntityHistory entityType="iam_role" entityId={role.id} />
     </>
   );
 }

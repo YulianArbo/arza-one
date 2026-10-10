@@ -11,6 +11,7 @@ import {
   Landmark,
   ListTodo,
   Palette,
+  ScrollText,
   Settings,
   Users,
   type LucideIcon,
@@ -116,6 +117,12 @@ const MODULES: readonly NavigationItem[] = [
       'iam.delegation.manage',
       'iam.access_review.read',
     ],
+  },
+  {
+    slug: 'auditoria',
+    label: 'Auditoría',
+    icon: ScrollText,
+    permissions: ['audit.event.read', 'audit.security.read', 'audit.chain.verify'],
   },
 ];
 
