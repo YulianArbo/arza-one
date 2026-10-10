@@ -146,6 +146,19 @@ describe('cliente de la API: edición con versión (B10)', () => {
   });
 });
 
+describe('cliente de la API: borrados (B12)', () => {
+  it('envía DELETE con la versión y el código antifalsificación', async () => {
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 204 }));
+    await createApiClient('http://api.test', fetchImpl).delete('/v1/sites/x', {
+      version: 2,
+      csrfToken: 'codigo',
+    });
+    const init = fetchImpl.mock.calls[0]?.[1];
+    expect(init?.method).toBe('DELETE');
+    expect(init?.headers).toMatchObject({ 'If-Match': '"2"', 'X-CSRF-Token': 'codigo' });
+  });
+});
+
 describe('cliente de la API: descargas (B11)', () => {
   it('entrega el archivo con el nombre que propone la API', async () => {
     const response = new Response('a,b\r\n', {

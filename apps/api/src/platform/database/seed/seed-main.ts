@@ -1,7 +1,8 @@
 import { z } from 'zod';
 
-// La semilla de acceso es del módulo de identidad: este punto de entrada la reúne con la de la
-// plataforma, como app.module.ts reúne los módulos.
+// Las semillas de acceso y del núcleo son de sus módulos: este punto de entrada las reúne con la
+// de la plataforma, como app.module.ts reúne los módulos.
+import { seedCore } from '../../../modules/core/index.js';
 import { seedAccessControl } from '../../../modules/iam/index.js';
 import { systemClock } from '../../clock/clock.js';
 import { DatabaseService } from '../database.service.js';
@@ -28,6 +29,11 @@ async function main(): Promise<void> {
     }
     const tenants = withDemo ? [PLATFORM_TENANT, ...DEMO_TENANTS] : [PLATFORM_TENANT];
     await seedAccessControl(
+      database,
+      tenants.map((tenant) => tenant.id),
+      systemClock,
+    );
+    await seedCore(
       database,
       tenants.map((tenant) => tenant.id),
       systemClock,

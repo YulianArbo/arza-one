@@ -20,6 +20,7 @@ import {
   uniqueEmail,
 } from '../../iam/support/iam-fixtures.js';
 import { giveRole, type AccessScenario, type Person } from '../../iam/support/access-scenario.js';
+import { CORE_CALLS } from './core-route-calls.js';
 
 // Una petición válida a cada ruta de la API que escribe (B11, criterio de la ficha 17.20). Cada
 // llamada prepara lo que necesita y devuelve la petición final sin enviar, para que la prueba le
@@ -263,4 +264,5 @@ export const WRITE_ROUTE_CALLS: Readonly<Record<string, RouteCall>> = {
   ...ACCESS_CALLS,
   ...USER_CALLS,
   ...AUDIT_CALLS,
+  ...CORE_CALLS,
 };

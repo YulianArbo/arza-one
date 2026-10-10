@@ -7,4 +7,4 @@ export {
   type AccountEmail,
   type AccountEmailDependencies,
 } from './application/account-email.js';
-export { peopleById } from './infrastructure/user-directory-store.js';
+export { peopleById, usersInPosition } from './infrastructure/user-directory-store.js';

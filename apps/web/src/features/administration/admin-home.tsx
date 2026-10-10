@@ -1,7 +1,19 @@
 'use client';
 
 import { Card, CardDescription, CardHeader, CardTitle, ForbiddenState } from '@arza/ui';
-import { ClipboardCheck, KeyRound, Repeat, Settings2, Users } from 'lucide-react';
+import {
+  Building2,
+  CalendarDays,
+  ClipboardCheck,
+  Hash,
+  KeyRound,
+  Landmark,
+  ListChecks,
+  Network,
+  Repeat,
+  Settings2,
+  Users,
+} from 'lucide-react';
 import Link from 'next/link';
 import type { JSX, ReactNode } from 'react';
 
@@ -9,7 +21,7 @@ import { usePermissions } from '../session/permissions';
 import { ADMIN_PATHS } from './labels';
 
 interface Section {
-  readonly href: string | null;
+  readonly href: string;
   readonly title: string;
   readonly description: string;
   readonly permission: string;
@@ -46,11 +58,53 @@ const SECTIONS: readonly Section[] = [
     icon: <ClipboardCheck aria-hidden="true" />,
   },
   {
-    href: null,
-    title: 'Empresa, catálogos y parámetros',
-    description: 'Se construye en el bloque B12 del plan de construcción.',
-    permission: 'core.parameter.manage',
+    href: ADMIN_PATHS.company,
+    title: 'Empresa y sedes',
+    description: 'Razón social, NIT y sedes, que salen en los documentos que genera la plataforma.',
+    permission: 'core.tenant.read',
+    icon: <Building2 aria-hidden="true" />,
+  },
+  {
+    href: ADMIN_PATHS.structure,
+    title: 'Procesos, cargos y organigrama',
+    description: 'El mapa de procesos y los cargos con su jerarquía (DC-SGC-001).',
+    permission: 'core.org.read',
+    icon: <Network aria-hidden="true" />,
+  },
+  {
+    href: ADMIN_PATHS.costCenters,
+    title: 'Centros de costo',
+    description: 'Los centros con que la empresa reparte sus gastos.',
+    permission: 'core.org.read',
+    icon: <Landmark aria-hidden="true" />,
+  },
+  {
+    href: ADMIN_PATHS.catalogs,
+    title: 'Catálogos',
+    description: 'Las listas que usan los formularios, como los tipos de documento.',
+    permission: 'core.parameter.read',
+    icon: <ListChecks aria-hidden="true" />,
+  },
+  {
+    href: ADMIN_PATHS.parameters,
+    title: 'Parámetros',
+    description: 'El horario laboral y otros valores con fecha de vigencia y su historial.',
+    permission: 'core.parameter.read',
     icon: <Settings2 aria-hidden="true" />,
+  },
+  {
+    href: ADMIN_PATHS.sequences,
+    title: 'Consecutivos',
+    description: 'Los códigos como COT-2026-0001, sin saltos ni repetidos.',
+    permission: 'core.sequence.manage',
+    icon: <Hash aria-hidden="true" />,
+  },
+  {
+    href: ADMIN_PATHS.holidays,
+    title: 'Festivos y días hábiles',
+    description: 'Los festivos de Colombia y el cálculo de plazos en días hábiles.',
+    permission: 'core.parameter.read',
+    icon: <CalendarDays aria-hidden="true" />,
   },
 ];
 
@@ -64,7 +118,6 @@ function SectionCard({ section }: { readonly section: Section }): JSX.Element {
       </div>
     </CardHeader>
   );
-  if (section.href === null) return <Card className="opacity-80">{content}</Card>;
   return (
     <Link
       href={section.href}

@@ -52,6 +52,10 @@ export const DATABASE_BOUND_FILES = [
   'src/modules/audit/application/**/*.ts',
   'src/modules/audit/infrastructure/**/*.ts',
   'src/modules/audit/interface/**/*.ts',
+  // Núcleo (B12): todo menos las reglas del dominio, que se prueban solas.
+  'src/modules/core/application/**/*.ts',
+  'src/modules/core/infrastructure/**/*.ts',
+  'src/modules/core/interface/**/*.ts',
 ];
 
 /** Procesos que solo arrancan algo; se prueban a mano o como proceso real. */

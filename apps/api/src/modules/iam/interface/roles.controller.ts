@@ -27,9 +27,9 @@ import {
   RequirePermission,
 } from '../../../platform/access/access.decorators.js';
 import { CurrentPrincipal, type Principal } from '../../../platform/access/principal.js';
+import { versionFromIfMatch } from '../../../platform/http/if-match.js';
 import { Meta, type RequestMeta } from '../../../platform/http/request-meta.js';
 import { ApiPermissionErrors } from '../../../platform/openapi/api-common-errors.js';
-import { versionRequired } from '../application/access-messages.js';
 import { RoleAdminUseCase } from '../application/role-admin.js';
 
 // El nombre de la clase es el nombre del esquema en el OpenAPI.
@@ -40,16 +40,6 @@ class CreateRoleRequest extends createZodDto(createRoleRequestSchema) {}
 class UpdateRoleRequest extends createZodDto(updateRoleRequestSchema) {}
 class RoleCreatedResponse extends createZodDto(createdResponseSchema) {}
 class ErrorResponse extends createZodDto(errorResponseSchema) {}
-
-/** Versión del registro en la cabecera If-Match (numeral 14.1): «3» o «"3"». */
-function versionFromIfMatch(header: string | undefined): number {
-  const value = header
-    ?.trim()
-    .replace(/^W\//, '')
-    .replace(/^"(.*)"$/, '$1');
-  if (value === undefined || !/^[1-9]\d{0,8}$/.test(value)) throw versionRequired();
-  return Number(value);
-}
 
 /**
  * Roles y catálogo de permisos (B10). Los roles del sistema se consultan pero no se editan; los

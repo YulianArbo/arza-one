@@ -125,19 +125,3 @@ export function delegationInvalid(problem: DelegationProblem | 'not_held' | 'per
 export function userStateInvalid(message: string): AppError {
   return new AppError(HttpStatus.CONFLICT, ACCESS_ERROR_CODES.userStateInvalid, message);
 }
-
-export function versionRequired(): AppError {
-  return new AppError(
-    HttpStatus.BAD_REQUEST,
-    ACCESS_ERROR_CODES.versionRequired,
-    'Falta la versión del registro (cabecera If-Match).',
-  );
-}
-
-export function versionConflict(): AppError {
-  return new AppError(
-    HttpStatus.CONFLICT,
-    ACCESS_ERROR_CODES.versionConflict,
-    'Otra persona cambió este registro mientras usted lo editaba. Recargue para ver los cambios.',
-  );
-}
