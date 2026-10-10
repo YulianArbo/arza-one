@@ -85,7 +85,28 @@ exportar y verificar la cadena.
 
 ### Resultado de `pnpm check`
 
-RESULTADO_DEL_CHECK
+**No quedó en verde de corrido en su equipo, por una sola prueba que no es de este bloque.** Corrí
+`pnpm check` completo cinco veces. Todas las etapas pasan (formato, tipos, analizador, límites
+entre módulos, código sin usar, compilación, secretos) salvo la prueba de arranque de la API de
+B02, que en cuatro de las cinco corridas no alcanzó a ver la API encendida en sus 18 segundos de
+espera, mientras el equipo corría en paralelo las pruebas de todos los paquetes. Sola pasa siempre.
+Medí el arranque con y sin este bloque y tarda lo mismo (unos 5 a 7 segundos con el equipo
+tranquilo). No la cambié: darle más tiempo es una decisión suya (ver «Pendientes»).
+
+Resultado de cada etapa en la última versión del código:
+
+| Etapa                                                              | Resultado                                                                                          |
+| ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| Formato, tipos, analizador, límites entre módulos, código sin usar | Pasan                                                                                              |
+| Pruebas unitarias                                                  | 613 de 614 pasan; la que falta es la de arranque de la API cuando corre junto con todo (sola pasa) |
+| Pruebas de integración (base de datos y colas reales)              | 337 pasan (322 de la API y 15 del worker)                                                          |
+| Compilación                                                        | Pasa                                                                                               |
+| Pruebas en navegador (Playwright)                                  | 91 pasan                                                                                           |
+| Búsqueda de secretos                                               | Sin hallazgos                                                                                      |
+
+Dos corridas tuvieron además fallas de lectura del disco de Windows («UNKNOWN: unknown error» al
+abrir un archivo), que desaparecieron al repetir. La revisión automática de GitHub corre en Linux
+y dirá si allí todo pasa.
 
 ## Cómo lo prueba usted, paso a paso
 
@@ -248,10 +269,10 @@ pnpm infra:down
 - **Escrituras muy simultáneas en una misma empresa** esperan su turno para sellar su evento: el
   sello de cada evento depende del anterior. Para el tamaño de ARZA TECH no se nota. Si algún día
   se volviera lento, se puede sellar en lote, en segundo plano.
-- **Prueba de arranque de la API** (de B03 y B05): falló en dos corridas de `pnpm check` por la
-  carga del equipo (espera 18 segundos a que la API arranque). Sola pasa siempre. Medí que la API
-  arranca en el mismo tiempo con y sin este bloque (unos 5 a 7 segundos), así que no la cambié;
-  si sigue fallando, conviene darle más tiempo o correr las pruebas con menos paralelismo.
+- **Decisión suya: la prueba de arranque de la API.** Falla en `pnpm check` por la carga del equipo
+  (ver «Resultado de `pnpm check`»). Hay dos salidas: darle más tiempo de espera (como se hizo en
+  B05, que la subió de 10 a 18 segundos) o correr las pruebas de los paquetes de a uno. Ninguna
+  cambia lo que la prueba comprueba, pero no la toqué sin su visto bueno.
 
 ## Decisiones tomadas
 
