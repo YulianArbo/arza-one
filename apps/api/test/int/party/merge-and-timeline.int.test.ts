@@ -97,7 +97,7 @@ describe('fusión de duplicados: reglas', () => {
     const again = await scenario.post('/v1/parties', sales.session, duplicateBody);
     expect(errorCode(again)).toBe('PARTY_DUPLICATE');
     const search = await scenario.get(
-      `/v1/parties/search?id_number=${String(duplicateBody.id_number)}`,
+      `/v1/parties/search?id_number=${duplicateBody.id_number}`,
       sales.session,
     );
     const found = partySearchResponseSchema.parse(search.body).data;

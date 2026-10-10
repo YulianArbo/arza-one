@@ -21,7 +21,10 @@ export function uniqueNit(): { id_number: string; check_digit: number } {
   return { id_number: idNumber, check_digit: nitCheckDigit(idNumber) };
 }
 
-export function organizationBody(overrides: object = {}): Record<string, unknown> {
+/** Cuerpo de una ficha de prueba; el número de documento se usa para buscarla. */
+export type PartyBody = Record<string, unknown> & { readonly id_number: string };
+
+export function organizationBody(overrides: object = {}): PartyBody {
   return {
     kind: 'organization',
     legal_name: `Organización de prueba ${uniqueNumber()} S.A.S.`,
@@ -33,7 +36,7 @@ export function organizationBody(overrides: object = {}): Record<string, unknown
   };
 }
 
-export function personBody(overrides: object = {}): Record<string, unknown> {
+export function personBody(overrides: object = {}): PartyBody {
   return {
     kind: 'person',
     first_name: 'Persona',

@@ -50,7 +50,7 @@ describe('registro del tercero', () => {
     });
     expect(errorCode(again)).toBe('PARTY_DUPLICATE');
     const search = await scenario.get(
-      `/v1/parties/search?id_number=${String(body.id_number)}`,
+      `/v1/parties/search?id_number=${body.id_number}`,
       sales.session,
     );
     const found = partySearchResponseSchema.parse(search.body).data;
