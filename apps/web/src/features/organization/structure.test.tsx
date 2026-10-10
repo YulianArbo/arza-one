@@ -52,7 +52,14 @@ describe('organigrama', () => {
 
 describe('organigrama (2)', () => {
   it('un cargo cuyo jefe ya no está queda en la raíz', () => {
-    const orphan = { ...POSITIONS.data[1], reports_to_id: 'no-existe' };
+    const orphan = {
+      id: POS_MANAGER,
+      org_unit_id: UNIT_TEC,
+      name: 'Gerente de Tecnología',
+      reports_to_id: 'no-existe',
+      is_active: true,
+      version: 1,
+    };
     const chart = buildChart([orphan], []);
     expect(chart.map((node) => node.position.name)).toEqual(['Gerente de Tecnología']);
   });
