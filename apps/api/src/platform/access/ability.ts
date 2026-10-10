@@ -12,6 +12,13 @@ import { splitPermission, type OwnField, type PermissionCode } from '@arza/contr
 
 export type AppAbility = MongoAbility;
 
+/**
+ * CASL trata la acción «manage» como «cualquier acción» y el recurso «all» como «cualquier
+ * recurso». En el anexo G «manage» es un permiso más (party.due_diligence.manage registra, no
+ * aprueba): sin esto, quien administra un recurso podría también aprobarlo o publicarlo.
+ */
+const NO_WILDCARDS = { anyAction: '__ninguna_accion__', anySubjectType: '__ningun_recurso__' };
+
 /** Un permiso vigente de la persona: todo, o solo lo propio según el campo indicado. */
 export interface PermissionGrant {
   readonly code: PermissionCode;
@@ -35,6 +42,7 @@ export function buildAbility(grants: readonly PermissionGrant[], userId: string)
       const conditions = conditionsFor(grant.ownField, userId);
       return conditions === undefined ? { action, subject } : { action, subject, conditions };
     }),
+    NO_WILDCARDS,
   );
 }
 
