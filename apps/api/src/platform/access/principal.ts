@@ -31,12 +31,12 @@ export function principalOf(request: Request): Principal | undefined {
   return principals.get(request);
 }
 
-/** Parámetro de controlador con la persona autenticada. Solo en rutas @Authenticated(). */
+/** Parámetro de controlador con la persona autenticada. Solo en rutas con sesión. */
 export const CurrentPrincipal = createParamDecorator(
   (_data: unknown, context: ExecutionContext) => {
     const principal = principalOf(context.switchToHttp().getRequest<Request>());
     if (principal === undefined) {
-      throw new Error('La ruta usa CurrentPrincipal sin declarar @Authenticated().');
+      throw new Error('La ruta usa CurrentPrincipal en una ruta sin sesión.');
     }
     return principal;
   },

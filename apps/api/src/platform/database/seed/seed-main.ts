@@ -1,6 +1,11 @@
 import { z } from 'zod';
 
+// La semilla de acceso es del módulo de identidad: este punto de entrada la reúne con la de la
+// plataforma, como app.module.ts reúne los módulos.
+import { seedAccessControl } from '../../../modules/iam/index.js';
+import { systemClock } from '../../clock/clock.js';
 import { DatabaseService } from '../database.service.js';
+import { DEMO_TENANTS, PLATFORM_TENANT } from './seed-data.js';
 import { seedDemo, seedPlatform } from './seed.js';
 
 // Punto de entrada de `pnpm db:seed` y `pnpm db:seed:demo`. Solo necesita DATABASE_URL.
@@ -21,6 +26,12 @@ async function main(): Promise<void> {
     if (withDemo) {
       await seedDemo(database);
     }
+    const tenants = withDemo ? [PLATFORM_TENANT, ...DEMO_TENANTS] : [PLATFORM_TENANT];
+    await seedAccessControl(
+      database,
+      tenants.map((tenant) => tenant.id),
+      systemClock,
+    );
     process.stdout.write(withDemo ? 'Semilla y datos ficticios listos.\n' : 'Semilla lista.\n');
   } finally {
     await database.onModuleDestroy();

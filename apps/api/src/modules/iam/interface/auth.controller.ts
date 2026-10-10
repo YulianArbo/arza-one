@@ -18,7 +18,7 @@ import {
 import type { Response } from 'express';
 import { createZodDto, ZodResponse } from 'nestjs-zod';
 
-import { Authenticated, Public, SigningIn } from '../../../platform/access/access.decorators.js';
+import { OwnAccount, Public, SigningIn } from '../../../platform/access/access.decorators.js';
 import { CurrentPrincipal, type Principal } from '../../../platform/access/principal.js';
 import { Meta, type RequestMeta } from '../../../platform/http/request-meta.js';
 import { ApiCommonErrors } from '../../../platform/openapi/api-common-errors.js';
@@ -191,7 +191,7 @@ export class AuthController {
     };
   }
 
-  @Authenticated()
+  @OwnAccount()
   @Throttle(ACCESS_THROTTLE)
   @Post('reauthenticate')
   @HttpCode(HttpStatus.NO_CONTENT)

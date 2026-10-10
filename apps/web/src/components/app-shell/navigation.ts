@@ -109,8 +109,13 @@ const MODULES: readonly NavigationItem[] = [
     slug: 'administracion',
     label: 'Administración',
     icon: Settings,
-    permissions: ['core.parameter.manage', 'iam.user.read'],
-    block: 'B12',
+    permissions: [
+      'core.parameter.manage',
+      'iam.user.read',
+      'iam.role.read',
+      'iam.delegation.manage',
+      'iam.access_review.read',
+    ],
   },
 ];
 

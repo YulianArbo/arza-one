@@ -1,24 +1,23 @@
-import { SetMetadata, type CustomDecorator } from '@nestjs/common';
+import { applyDecorators, SetMetadata, type CustomDecorator } from '@nestjs/common';
+import type { PermissionCode } from '@arza/contracts';
 
 export const ACCESS_KEY = 'arza:access';
+export const PERMISSION_KEY = 'arza:permission';
 export const RECENT_AUTHENTICATION_KEY = 'arza:recent-authentication';
 
 /**
- * Cómo se accede a una ruta. Toda ruta debe declararlo; sin declaración queda cerrada.
+ * Cómo se accede a una ruta. Toda ruta debe declararlo; sin declaración queda cerrada, y una
+ * prueba falla si alguna no lo hace (B10).
  * - public: sin sesión.
- * - authenticated: sesión completa (con el segundo factor, si le corresponde).
  * - signing_in: también una sesión que solo verificó la contraseña (el segundo paso, B09).
+ * - own_account: sesión completa, sobre la cuenta propia (Mi perfil, mis sesiones, mis permisos).
+ * - permission: sesión completa y el permiso del anexo G que declara la ruta (B10).
  */
-export type AccessRule = 'public' | 'authenticated' | 'signing_in';
+export type AccessRule = 'public' | 'signing_in' | 'own_account' | 'permission';
 
 /** Ruta abierta sin sesión, como /health. Úsela solo cuando el manual lo prevea. */
 export function Public(): CustomDecorator {
   return SetMetadata(ACCESS_KEY, 'public' satisfies AccessRule);
-}
-
-/** Ruta que exige una sesión completa. Los permisos por rol se agregan en B10. */
-export function Authenticated(): CustomDecorator {
-  return SetMetadata(ACCESS_KEY, 'authenticated' satisfies AccessRule);
 }
 
 /**
@@ -27,6 +26,26 @@ export function Authenticated(): CustomDecorator {
  */
 export function SigningIn(): CustomDecorator {
   return SetMetadata(ACCESS_KEY, 'signing_in' satisfies AccessRule);
+}
+
+/**
+ * Ruta sobre la cuenta propia: toda persona con sesión completa puede ver y cambiar lo suyo
+ * (numeral 15.3, «P» en M01), sin permiso del catálogo. Solo bajo /v1/me y /v1/auth.
+ */
+export function OwnAccount(): CustomDecorator {
+  return SetMetadata(ACCESS_KEY, 'own_account' satisfies AccessRule);
+}
+
+/**
+ * Ruta que exige un permiso del anexo G (numeral 13.1, paso 8). Sin él responde 403. Si el
+ * permiso es «solo lo propio», el caso de uso revisa además el registro concreto y responde 404
+ * cuando no es de la persona (numeral 15.5).
+ */
+export function RequirePermission(code: PermissionCode): MethodDecorator & ClassDecorator {
+  return applyDecorators(
+    SetMetadata(ACCESS_KEY, 'permission' satisfies AccessRule),
+    SetMetadata(PERMISSION_KEY, code),
+  );
 }
 
 /**

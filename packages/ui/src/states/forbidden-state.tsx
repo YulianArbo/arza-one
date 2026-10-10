@@ -2,7 +2,7 @@ import { Lock } from 'lucide-react';
 import type { JSX } from 'react';
 
 export interface ForbiddenStateProps {
-  /** A quién pedir el acceso. */
+  /** A quién pedir el acceso, con su artículo: «al administrador…», «a la Dirección». */
   whomToAsk?: string;
 }
 
@@ -11,7 +11,7 @@ export interface ForbiddenStateProps {
  * La interfaz solo informa; quien niega el acceso es siempre la API.
  */
 export function ForbiddenState({
-  whomToAsk = 'el administrador de la plataforma',
+  whomToAsk = 'al administrador de la plataforma',
 }: ForbiddenStateProps): JSX.Element {
   return (
     <div
@@ -21,7 +21,7 @@ export function ForbiddenState({
       <Lock aria-hidden="true" className="size-8 text-muted-foreground" />
       <h2 className="text-base font-semibold">No tiene acceso a esta sección</h2>
       <p className="max-w-prose text-sm text-muted-foreground">
-        Su usuario no tiene el permiso necesario. Si lo necesita para su trabajo, solicítelo a{' '}
+        Su usuario no tiene el permiso necesario. Si lo necesita para su trabajo, solicítelo{' '}
         {whomToAsk}.
       </p>
     </div>

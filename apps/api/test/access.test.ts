@@ -1,10 +1,9 @@
 import type { NestExpressApplication } from '@nestjs/platform-express';
-import { DiscoveryService, MetadataScanner, ModulesContainer, Reflector } from '@nestjs/core';
-import { errorResponseSchema } from '@arza/contracts';
+import { errorResponseSchema, isPermissionCode } from '@arza/contracts';
 import request from 'supertest';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
-import { ACCESS_KEY } from '../src/platform/access/access.decorators.js';
+import { routeDeclarations, type RouteDeclaration } from './support/route-inventory.js';
 import { SampleController } from './support/sample.controller.js';
 import { createTestApp } from './support/test-app.js';
 
@@ -15,24 +14,11 @@ afterEach(async () => {
   app = undefined;
 });
 
-/** Lista las rutas de la API que no declaran cómo se accede a ellas. */
-function undeclaredRoutes(target: NestExpressApplication): string[] {
-  const reflector = target.get(Reflector);
-  const scanner = new MetadataScanner();
-  const undeclared: string[] = [];
-  for (const wrapper of new DiscoveryService(target.get(ModulesContainer)).getControllers()) {
-    const controller = wrapper.metatype as (new () => object) | null;
-    if (controller === null) continue;
-    const prototype = controller.prototype as Record<string, unknown>;
-    for (const method of scanner.getAllMethodNames(prototype)) {
-      const rule = reflector.getAllAndOverride<unknown>(ACCESS_KEY, [
-        prototype[method] as () => unknown,
-        controller,
-      ]);
-      if (rule === undefined) undeclared.push(`${controller.name}.${method}`);
-    }
-  }
-  return undeclared;
+const DECLARATIONS = new Set(['public', 'signing_in', 'own_account', 'permission']);
+
+/** Rutas que no declaran cómo se accede a ellas. */
+function undeclared(routes: readonly RouteDeclaration[]): string[] {
+  return routes.filter((route) => !DECLARATIONS.has(String(route.access))).map((r) => r.route);
 }
 
 describe('permiso denegado: la API está cerrada por defecto', () => {
@@ -50,13 +36,58 @@ describe('permiso denegado: la API está cerrada por defecto', () => {
     expect(response.status).toBe(401);
   });
 
-  it('detecta las rutas que no declaran su acceso', async () => {
+  it('una ruta con permiso responde 401 si no hay sesión', async () => {
     app = await createTestApp({ controllers: [SampleController] });
-    expect(undeclaredRoutes(app)).toEqual(['SampleController.undeclared']);
+    const response = await request(app.getHttpServer()).get('/test/users');
+    expect(response.status).toBe(401);
   });
 
-  it('todas las rutas reales de la API declaran su acceso', async () => {
-    app = await createTestApp();
-    expect(undeclaredRoutes(app)).toEqual([]);
+  it('detecta las rutas que no declaran su acceso', async () => {
+    app = await createTestApp({ controllers: [SampleController] });
+    expect(undeclared(routeDeclarations(app))).toEqual(['SampleController.undeclared']);
+  });
+});
+
+// Criterio de aceptación de B10: cada punto de la API declara su permiso.
+describe('todas las rutas reales de la API declaran su acceso', () => {
+  let routes: RouteDeclaration[] = [];
+
+  beforeAll(async () => {
+    const real = await createTestApp();
+    routes = routeDeclarations(real);
+    await real.close();
+  });
+
+  afterAll(() => {
+    routes = [];
+  });
+
+  it('ninguna ruta queda sin declarar', () => {
+    expect(routes.length).toBeGreaterThan(30);
+    expect(undeclared(routes)).toEqual([]);
+  });
+
+  it('las que exigen permiso nombran uno del catálogo del anexo G', () => {
+    const withPermission = routes.filter((route) => route.access === 'permission');
+    expect(withPermission.length).toBeGreaterThan(10);
+    for (const route of withPermission) {
+      expect(isPermissionCode(String(route.permission)), route.route).toBe(true);
+    }
+  });
+
+  it('«mi propia cuenta» solo se usa en /v1/me y /v1/auth', () => {
+    const own = routes.filter((route) => route.access === 'own_account');
+    for (const route of own) {
+      expect(route.path, route.route).toMatch(/^\/v1\/(me|auth)(\/|$)/);
+    }
+  });
+
+  it('las rutas públicas son solo las de acceso y las de estado del sistema', () => {
+    const open = routes.filter((route) => route.access === 'public').map((route) => route.path);
+    for (const path of open) {
+      expect(path).toMatch(
+        /^\/(health|version|v1\/auth\/(login|password\/\w+|invitation\/accept))$/,
+      );
+    }
   });
 });

@@ -6,6 +6,7 @@ import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 
 import { IamModule } from './modules/iam/index.js';
 import { AccessGuard } from './platform/access/access.guard.js';
+import { AuthorizationGuard } from './platform/access/authorization.guard.js';
 import { ClockModule } from './platform/clock/clock.js';
 import { ConfigModule } from './platform/config/config.module.js';
 import type { Env } from './platform/config/env-schema.js';
@@ -57,6 +58,7 @@ export class AppModule {
         { provide: APP_GUARD, useClass: ThrottlerGuard },
         { provide: APP_GUARD, useClass: AccessGuard },
         { provide: APP_GUARD, useClass: CsrfGuard },
+        { provide: APP_GUARD, useClass: AuthorizationGuard },
         { provide: APP_PIPE, useClass: ZodValidationPipe },
         { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
         { provide: APP_FILTER, useClass: ApiExceptionFilter },

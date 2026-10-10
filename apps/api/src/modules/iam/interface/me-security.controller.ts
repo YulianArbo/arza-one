@@ -18,7 +18,7 @@ import {
 } from '@arza/contracts';
 import { createZodDto, ZodResponse } from 'nestjs-zod';
 
-import { Authenticated, RecentAuthentication } from '../../../platform/access/access.decorators.js';
+import { OwnAccount, RecentAuthentication } from '../../../platform/access/access.decorators.js';
 import { CurrentPrincipal, type Principal } from '../../../platform/access/principal.js';
 import { Meta, type RequestMeta } from '../../../platform/http/request-meta.js';
 import { ApiCommonErrors } from '../../../platform/openapi/api-common-errors.js';
@@ -38,7 +38,7 @@ class ErrorResponse extends createZodDto(errorResponseSchema) {}
  */
 @ApiTags('Identidad')
 @Controller('v1/me')
-@Authenticated()
+@OwnAccount()
 export class MeSecurityController {
   constructor(
     @Inject(SecondFactorSettings) private readonly secondFactor: SecondFactorSettings,

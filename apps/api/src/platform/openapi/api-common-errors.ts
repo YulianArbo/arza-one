@@ -21,3 +21,20 @@ export function ApiCommonErrors(): MethodDecorator & ClassDecorator {
     }),
   );
 }
+
+/** Documenta los errores de las rutas con permiso (B10): sin sesión y sin permiso. */
+export function ApiPermissionErrors(): MethodDecorator & ClassDecorator {
+  return applyDecorators(
+    ApiResponse({
+      status: HttpStatus.UNAUTHORIZED,
+      type: ErrorResponse.Output,
+      description: 'Sin sesión válida',
+    }),
+    ApiResponse({
+      status: HttpStatus.FORBIDDEN,
+      type: ErrorResponse.Output,
+      description: 'Sin el permiso de la ruta, o falta confirmar la identidad',
+    }),
+    ApiCommonErrors(),
+  );
+}

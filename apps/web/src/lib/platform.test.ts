@@ -4,8 +4,6 @@ import { shouldRetry } from './api/api-provider';
 import { ApiError } from './api/api-error';
 import { apiOrigin, loadWebEnv } from './config/web-env';
 import { buildContentSecurityPolicy, noIndexHeaders } from './security/security-headers';
-import { navigationPermissions } from '../components/app-shell/navigation';
-import { currentPermissions } from './session/current-permissions';
 import { parseTheme, themeClassName, themeCookie } from './theme/theme';
 
 describe('configuración de la web', () => {
@@ -83,16 +81,12 @@ describe('preferencia de modo claro u oscuro', () => {
   });
 });
 
-describe('reintentos y permisos de la vista local', () => {
+describe('reintentos', () => {
   it('reintenta una vez solo las fallas pasajeras', () => {
     const network = new ApiError('NETWORK_ERROR', 'x', 0);
     expect(shouldRetry(0, network)).toBe(true);
     expect(shouldRetry(1, network)).toBe(false);
     expect(shouldRetry(0, new ApiError('FORBIDDEN', 'x', 403))).toBe(false);
     expect(shouldRetry(0, new Error('otro'))).toBe(false);
-  });
-
-  it('mientras no existan roles (B10), la vista local concede solo los permisos del menú', () => {
-    expect([...currentPermissions()]).toEqual([...navigationPermissions()]);
   });
 });

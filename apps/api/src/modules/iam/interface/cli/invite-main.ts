@@ -11,8 +11,9 @@ import { AccountNotifier } from '../../application/account-notifier.js';
 import { InvitationUseCase } from '../../application/invitation.js';
 import { PasswordSetter } from '../../application/password-setter.js';
 
-// `pnpm iam:invitar`: el responsable técnico invita a una persona (B08). La pantalla de usuarios
-// con su permiso llega en B10. El correo lo envía el worker; en local se ve en Mailpit.
+// `pnpm iam:invitar`: el responsable técnico invita a una persona (B08). Las personas internas
+// reciben el rol COLABORADOR; los demás roles se asignan con `pnpm iam:asignar-rol` o desde la
+// pantalla de usuarios (B10). El correo lo envía el worker; en local se ve en Mailpit.
 
 const USAGE = [
   'Uso: pnpm iam:invitar --empresa <empresa> --correo <correo> [--tipo interno|portal] [--nombre "Nombre"] [--exige-segundo-factor]',
@@ -78,7 +79,7 @@ async function main(): Promise<void> {
       new AccountNotifier(queue),
       new PasswordSetter(),
     );
-    const outcome = await invitation.invite({
+    const { outcome } = await invitation.invite({
       tenantId: input.empresa,
       email: input.correo,
       kind: KINDS[input.tipo],

@@ -51,7 +51,7 @@ describe('estado de error (16.5)', () => {
 
 describe('estado sin permiso (16.5)', () => {
   it('sin permiso: explica a quién pedir acceso y no muestra datos', () => {
-    render(<ForbiddenState whomToAsk="la Dirección" />);
+    render(<ForbiddenState whomToAsk="a la Dirección" />);
     const alert = screen.getByRole('alert');
     expect(alert).toHaveTextContent('No tiene acceso a esta sección');
     expect(alert).toHaveTextContent('solicítelo a la Dirección.');
@@ -59,6 +59,8 @@ describe('estado sin permiso (16.5)', () => {
 
   it('sin permiso: por defecto remite al administrador de la plataforma', () => {
     render(<ForbiddenState />);
-    expect(screen.getByRole('alert')).toHaveTextContent('el administrador de la plataforma');
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'solicítelo al administrador de la plataforma.',
+    );
   });
 });
