@@ -115,6 +115,24 @@ Las acciones de alto riesgo usan `useAdminAction()` (`admin-action.ts`): si la A
 la identidad, abre «Confirme que es usted» y repite la acción al confirmar. Mi perfil muestra
 además «Sus roles».
 
+## Auditoría (B11)
+
+Pantallas en `/app/auditoria` (`features/audit/`), con el mismo `<RequirePermission>`. Arriba, los
+enlaces a las secciones que la persona puede usar.
+
+| Pantalla                       | Permiso               | Qué hace                                                                                                                                                                                     |
+| ------------------------------ | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/app/auditoria`               | `audit.event.read`    | Eventos con quién, qué, cuándo y qué cambió, en palabras; filtros por fechas (hora de Colombia), acción y resultado. «Exportar a CSV» con `audit.event.export` (pide confirmar la identidad) |
+| `/app/auditoria/seguridad`     | `audit.security.read` | Eventos de seguridad por gravedad                                                                                                                                                            |
+| `/app/auditoria/exportaciones` | `audit.event.read`    | Quién exportó, cuándo, con qué filtros y cuántos eventos                                                                                                                                     |
+| `/app/auditoria/integridad`    | `audit.chain.verify`  | «Verificar ahora» y su resultado                                                                                                                                                             |
+
+`<EntityHistory entityType="iam_user" entityId={id} />` es el historial reutilizable de una
+ficha; solo aparece con `audit.event.read`. Hoy lo muestran las fichas de usuario y de rol. Los
+textos de cada acción están en `features/audit/labels.ts`; una acción sin texto se muestra con su
+código. El paginador de los listados está en `features/administration/pager.tsx`
+(`useCursorTrail`).
+
 ## Cliente de la API
 
 `src/lib/api/` contiene el cliente tipado (`createApiClient`) y su proveedor para React

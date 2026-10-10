@@ -1,7 +1,7 @@
-# Diccionario de datos · Identidad (iam\_) y auditoría mínima (aud\_)
+# Diccionario de datos · Identidad (iam\_)
 
-Tipos exactos, restricciones e índices de las tablas de identidad (M01) creadas en B08, B09 y B10 y de
-la versión mínima de la auditoría (M19) que B11 completa. Migraciones (en
+Tipos exactos, restricciones e índices de las tablas de identidad (M01) creadas en B08, B09 y
+B10. La auditoría (M19) está en [aud.md](aud.md). Migraciones (en
 `apps/api/prisma/migrations/`): `20261009000000_iam_identity_and_audit` (B08) y
 `20261010000000_iam_second_factor_and_devices` (B09) y
 `20261011000000_iam_roles_permissions_and_delegations` (B10). Se actualiza en el mismo pull
@@ -16,8 +16,6 @@ Las mismas de [core.md](core.md): columnas de control con el disparador
 - **Sin `DELETE`** para `app_user` en ninguna tabla.
 - **`iam_login_attempts`**: `app_user` solo la lee (y solo las filas de su empresa); escribe en
   ella únicamente por la función `iam_record_login_attempt`.
-- **`aud_events` y `aud_security_events`**: solo inserción. `app_user` tiene `SELECT` e `INSERT`;
-  no puede modificar ni borrar. No llevan columnas de control porque sus filas no cambian.
 - Las llaves de sesión y de enlaces **nunca** se guardan: solo su huella SHA-256 en hexadecimal.
 
 ## Búsquedas antes de conocer la empresa
@@ -283,82 +281,7 @@ modificar, pero no borrar (tampoco en `iam_permissions`).
 `revoked_reason` admite además `account_locked`: bloquear una cuenta desde la pantalla de
 usuarios cierra sus sesiones.
 
-## aud_events · Auditoría de negocio (versión mínima)
+## Auditoría
 
-B11 agrega la cadena de hash (`prev_hash`, `hash`), la partición por mes, la consulta y la
-verificación.
-
-| Columna          | Tipo        | Nulo | Regla                                                                    |
-| ---------------- | ----------- | ---- | ------------------------------------------------------------------------ |
-| `id`             | uuid        | No   | Llave primaria                                                           |
-| `tenant_id`      | uuid        | No   | Empresa                                                                  |
-| `occurred_at`    | timestamptz | No   | Momento del hecho                                                        |
-| `actor_id`       | uuid        | Sí   | Obligatorio solo si `actor_kind` es `user`                               |
-| `actor_kind`     | text        | No   | `user`, `system` o `anonymous`                                           |
-| `action`         | text        | No   | Formato de los permisos del anexo G, por ejemplo `iam.session.create`    |
-| `entity_type`    | text        | No   | Tabla o recurso, por ejemplo `iam_user`                                  |
-| `entity_id`      | uuid        | Sí   | Registro afectado                                                        |
-| `result`         | text        | No   | `success` o `failure`                                                    |
-| `changes`        | jsonb       | No   | Lo que cambió; nunca contraseñas, huellas, llaves ni códigos             |
-| `ip`             | text        | Sí   | Dirección IP                                                             |
-| `correlation_id` | text        | Sí   | Identificador de la petición                                             |
-
-Índices: llave primaria, (`tenant_id`, `occurred_at`) y (`tenant_id`, `entity_type`, `entity_id`).
-
-Acciones registradas en B08: `iam.user.invite`, `iam.link.issue`, `iam.invitation.accept`,
-`iam.session.create` (éxito y fallo), `iam.session.revoke` (salida y por inactividad),
-`iam.user.lock`, `iam.password.reset_request`, `iam.password.reset` e `iam.password.change`.
-
-Acciones de B09: `iam.mfa.verify` (éxito y fallo), `iam.mfa.setup_start`, `iam.mfa.setup_confirm`
-(fallo), `iam.mfa.enable`, `iam.mfa.change`, `iam.mfa.disable`,
-`iam.mfa.recovery_codes_regenerate`, `iam.session.reauthenticate` (éxito y fallo),
-`iam.session.revoke` (cerrada desde otro equipo), `iam.session.revoke_others`, `iam.user.lock`
-(por códigos equivocados) e `iam.user.reset_mfa` (comando del responsable técnico).
-
-Acciones de B10: `iam.role.assign` (también al invitar y por comando), `iam.role.revoke`,
-`iam.role.create`, `iam.role.update`, `iam.role.sync` (la semilla corrigió un rol del sistema),
-`iam.delegation.create`, `iam.delegation.revoke`, `iam.user.invite` (ahora con quien invitó),
-`iam.user.lock` e `iam.user.unlock` (por un administrador), `iam.user.reset_mfa` (desde la
-pantalla), `iam.session.revoke_user`, `iam.session.revoke_all` e `iam.access_review.read` (cada
-consulta del informe de revisión de accesos).
-
-## aud_security_events · Eventos de seguridad
-
-| Columna       | Tipo        | Nulo | Regla                                           |
-| ------------- | ----------- | ---- | ----------------------------------------------- |
-| `id`          | uuid        | No   | Llave primaria                                  |
-| `tenant_id`   | uuid        | No   | Empresa                                         |
-| `occurred_at` | timestamptz | No   | Momento                                         |
-| `type`        | text        | No   | Por ejemplo `iam.account.locked`                |
-| `user_id`     | uuid        | Sí   | Cuenta afectada                                 |
-| `ip`          | text        | Sí   | Dirección IP                                    |
-| `detail`      | jsonb       | No   | Explicación; nunca datos secretos               |
-| `severity`    | text        | No   | `low`, `medium`, `high` o `critical`            |
-
-Índices: llave primaria y (`tenant_id`, `occurred_at`). Cada bloqueo también deja el evento de
-dominio `security.alert` en la bandeja de salida (numeral 13.3), para el aviso de B16.
-
-Eventos de seguridad de B09. Todos llegan además a la persona como aviso por correo (trabajo
-`iam.account-email`), sin códigos ni secretos:
-
-| Tipo | Gravedad | Cuándo | Alerta en la bandeja (B16) |
-| --- | --- | --- | --- |
-| `iam.mfa.failures` | high | Cinco códigos equivocados: sesión cerrada y cuenta bloqueada 15 minutos | Sí |
-| `iam.mfa.reset` | high | El responsable técnico reinició el segundo factor | Sí |
-| `iam.mfa.changed` | medium | Pasó el segundo factor a otro celular | Sí |
-| `iam.mfa.disabled` | medium | Desactivó el segundo factor (solo si era opcional) | Sí |
-| `iam.mfa.recovery_codes_regenerated` | medium | Generó códigos de recuperación nuevos | No |
-| `iam.mfa.recovery_code_used` | medium | Entró o confirmó su identidad con un código de recuperación | No |
-| `iam.mfa.enabled` | low | Activó el segundo factor | No |
-| `iam.login.new_device` | low | Inició sesión desde un equipo que la cuenta no conocía | No |
-
-Eventos de seguridad de B10. Todo cambio de permisos deja uno, como pide el numeral 15.5 («alerta
-de cada cambio de permisos»), con su alerta en la bandeja de salida:
-
-| Tipo | Gravedad | Cuándo | Aviso por correo a la persona |
-| --- | --- | --- | --- |
-| `iam.permissions.changed` | medium | Se asignó o retiró un rol, se creó o editó un rol personalizado, se creó o retiró una delegación. `detail.action` dice cuál | Sí, al asignar o retirar sus roles («Cambiaron sus roles en ARZA ONE») |
-| `iam.account.locked_by_admin` | high | Un administrador bloqueó la cuenta y cerró sus sesiones | No |
-| `iam.sessions.revoked` | high | Un administrador cerró todas las sesiones de una persona | No |
-| `iam.sessions.revoked_all` | high | Se cerraron todas las sesiones de la empresa (respuesta a incidentes, numeral 15.7) | No |
-| `iam.mfa.reset` | high | Un administrador reinició el segundo factor desde la pantalla (además del comando de B09) | Sí, el mismo aviso de B09 |
+Las tablas `aud_events` y `aud_security_events`, con las acciones y los eventos de seguridad que
+registra este módulo, están en [aud.md](aud.md) desde B11.
