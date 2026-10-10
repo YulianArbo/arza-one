@@ -26,9 +26,12 @@ export function integrationDatabase(): IntegrationDatabase {
   return inject('database');
 }
 
-/** Conexión de la API, como en producción. */
+/**
+ * Conexión de app_user para preparar y revisar datos de prueba directamente en las tablas: no exige
+ * el evento de auditoría de cada transacción. La API bajo prueba sí lo exige.
+ */
 export function createDatabaseService(): DatabaseService {
-  return new DatabaseService(integrationDatabase().appUrl);
+  return new DatabaseService(integrationDatabase().appUrl, { requireAudit: false });
 }
 
 /** Conexión directa con SQL, para comprobar lo que la base de datos permite o rechaza. */

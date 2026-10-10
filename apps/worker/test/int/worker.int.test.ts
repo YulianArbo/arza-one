@@ -24,7 +24,8 @@ let queue: Queue;
 let events: QueueEvents;
 
 beforeAll(async () => {
-  database = new DatabaseService(config.DATABASE_URL);
+  // Prepara los datos de prueba directamente; el worker bajo prueba sí exige la auditoría.
+  database = new DatabaseService(config.DATABASE_URL, { requireAudit: false });
   tenant = await createTenant(database, `Trabajo ${uuidv7().slice(-6)}`);
   jobs = new JobQueue(connection);
   queue = new Queue(QUEUES.platform, { connection });

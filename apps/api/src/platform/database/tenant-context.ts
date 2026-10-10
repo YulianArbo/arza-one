@@ -36,3 +36,25 @@ export async function applyTenantContext(
 ): Promise<void> {
   await transaction.$executeRaw`SELECT set_config('app.tenant_id', ${context.tenantId}, true), set_config('app.user_id', ${context.userId ?? ''}, true)`;
 }
+
+/**
+ * Escrituras que no dejan evento de auditoría. Cada una es técnica: no cambia un dato de negocio
+ * ni una decisión de nadie (ficha 17.20).
+ */
+export type UnauditedWrite =
+  /** La última actividad de la sesión (last_seen_at), que mide la inactividad. */
+  'session_activity';
+
+/**
+ * Falla si la transacción escribió algo y no insertó un evento de auditoría ni de seguridad. Los
+ * disparadores de aud_events y aud_security_events marcan app.audited; PostgreSQL asigna un
+ * número de transacción solo cuando esta escribe.
+ */
+export async function assertAudited(transaction: TenantTransaction): Promise<void> {
+  const [state] = await transaction.$queryRaw<{ wrote: boolean; audited: boolean }[]>`
+    SELECT pg_current_xact_id_if_assigned() IS NOT NULL AS wrote,
+           coalesce(current_setting('app.audited', true), '') = 'on' AS audited`;
+  if (state?.wrote === true && !state.audited) {
+    throw new Error('La transacción escribió sin registrar su evento de auditoría (ADR-012).');
+  }
+}

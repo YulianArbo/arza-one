@@ -31,7 +31,8 @@ function jobFor(tenantId: string): Record<string, unknown> {
 }
 
 beforeAll(async () => {
-  database = new DatabaseService(config.DATABASE_URL);
+  // Prepara los datos de prueba directamente; el worker bajo prueba sí exige la auditoría.
+  database = new DatabaseService(config.DATABASE_URL, { requireAudit: false });
   tenantA = await createTenant(database, 'Aislada A');
   tenantB = await createTenant(database, 'Aislada B');
 });
