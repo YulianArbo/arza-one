@@ -26,7 +26,11 @@ import {
 } from '../../../../src/platform/queues/jobs.js';
 import { createTestApp } from '../../../support/test-app.js';
 import { testEnv } from '../../../support/test-env.js';
-import { createDatabaseService, integrationDatabase } from '../../support/integration-database.js';
+import {
+  apiDatabase,
+  createDatabaseService,
+  integrationDatabase,
+} from '../../support/integration-database.js';
 
 // Apoyo de las pruebas de identidad con PostgreSQL y Valkey reales. Todos los datos son ficticios.
 
@@ -287,12 +291,8 @@ export async function accountEmailJobs(
  * Hace lo que el worker: prepara el correo del trabajo y devuelve la llave del enlace, que solo
  * existe dentro del correo.
  */
-export async function linkTokenFromEmail(
-  database: DatabaseService,
-  clock: Clock,
-  job: AccountEmailJob,
-): Promise<string> {
-  const email = await prepareAccountEmail(job, { database, clock, appUrl: APP_URL });
+export async function linkTokenFromEmail(clock: Clock, job: AccountEmailJob): Promise<string> {
+  const email = await prepareAccountEmail(job, { database: apiDatabase(), clock, appUrl: APP_URL });
   const match = email === null ? null : /#token=([\w-]{43})/.exec(email.text);
   if (match?.[1] === undefined) throw new Error('El correo no trae un enlace con llave.');
   return match[1];

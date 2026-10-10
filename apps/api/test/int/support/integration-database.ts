@@ -28,10 +28,21 @@ export function integrationDatabase(): IntegrationDatabase {
 
 /**
  * Conexión de app_user para preparar y revisar datos de prueba directamente en las tablas: no exige
- * el evento de auditoría de cada transacción. La API bajo prueba sí lo exige.
+ * el evento de auditoría de cada transacción. El código de la aplicación nunca corre con ella.
  */
 export function createDatabaseService(): DatabaseService {
   return new DatabaseService(integrationDatabase().appUrl, { requireAudit: false });
+}
+
+let applicationDatabase: DatabaseService | undefined;
+
+/**
+ * Conexión como la de la API, que exige el evento de auditoría de cada escritura (B11): con ella
+ * corren en las pruebas los casos de uso, la semilla y los comandos.
+ */
+export function apiDatabase(): DatabaseService {
+  applicationDatabase ??= new DatabaseService(integrationDatabase().appUrl);
+  return applicationDatabase;
 }
 
 /** Conexión directa con SQL, para comprobar lo que la base de datos permite o rechaza. */
@@ -61,5 +72,5 @@ export async function createTenant(database: DatabaseService, tenant: TestTenant
   await database.withTenant({ tenantId: tenant.id, userId: null }, (transaction) =>
     transaction.tenant.create({ data: tenant }),
   );
-  await seedAccessControl(database, [tenant.id], systemClock);
+  await seedAccessControl(apiDatabase(), [tenant.id], systemClock);
 }

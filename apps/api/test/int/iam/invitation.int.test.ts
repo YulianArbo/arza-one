@@ -6,6 +6,7 @@ import { prepareAccountEmail } from '../../../src/modules/iam/index.js';
 import type { DatabaseService } from '../../../src/platform/database/database.service.js';
 import type { TenantTransaction } from '../../../src/platform/database/tenant-context.js';
 import {
+  apiDatabase,
   createDatabaseService,
   createTenant,
   newTestTenant,
@@ -73,12 +74,12 @@ function accept(token: string, password = GOOD_PASSWORD) {
 }
 
 async function invitationToken(userId: string): Promise<string> {
-  return linkTokenFromEmail(database, clock, accountEmailJob(tenant.id, userId, 'invitation'));
+  return linkTokenFromEmail(clock, accountEmailJob(tenant.id, userId, 'invitation'));
 }
 
 function invitationEmail(userId: string) {
   const job = accountEmailJob(tenant.id, userId, 'invitation');
-  return prepareAccountEmail(job, { database, clock, appUrl: APP_URL });
+  return prepareAccountEmail(job, { database: apiDatabase(), clock, appUrl: APP_URL });
 }
 
 describe('invitar a una persona', () => {
@@ -197,7 +198,7 @@ describe('el enlace de invitación', () => {
       email: uniqueEmail('proposito'),
     });
     const job = accountEmailJob(tenant.id, userId, 'password_reset');
-    const resetToken = await linkTokenFromEmail(database, clock, job);
+    const resetToken = await linkTokenFromEmail(clock, job);
     expect(errorCode(await accept(resetToken))).toBe('LINK_INVALID');
   });
 });

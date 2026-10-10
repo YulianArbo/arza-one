@@ -6,6 +6,7 @@ import { seedAccessControl } from '../../../src/modules/iam/index.js';
 import { systemClock } from '../../../src/platform/clock/clock.js';
 import type { DatabaseService } from '../../../src/platform/database/database.service.js';
 import {
+  apiDatabase,
   connect,
   createDatabaseService,
   createTenant,
@@ -71,7 +72,7 @@ describe('semilla repetible', () => {
         tenantA.id,
       )((tx) => tx.auditEvent.count({ where: { action: 'iam.role.sync' } }));
     const before = await sync();
-    await seedAccessControl(database, [tenantA.id], systemClock);
+    await seedAccessControl(apiDatabase(), [tenantA.id], systemClock);
     expect(await sync()).toBe(before);
     await tenantScope(
       database,
@@ -83,7 +84,7 @@ describe('semilla repetible', () => {
         data: { tenantId: tenantA.id, roleId: role.id, permissionId: salary.id },
       });
     });
-    await seedAccessControl(database, [tenantA.id], systemClock);
+    await seedAccessControl(apiDatabase(), [tenantA.id], systemClock);
     expect(await sync()).toBe(before + 1);
     const extra = await tenantScope(
       database,

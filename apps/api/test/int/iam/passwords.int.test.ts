@@ -7,6 +7,7 @@ import { prepareAccountEmail } from '../../../src/modules/iam/index.js';
 import type { DatabaseService } from '../../../src/platform/database/database.service.js';
 import type { TenantTransaction } from '../../../src/platform/database/tenant-context.js';
 import {
+  apiDatabase,
   createDatabaseService,
   createTenant,
   newTestTenant,
@@ -66,7 +67,7 @@ async function openSessions(userId: string): Promise<number> {
 }
 
 async function resetToken(userId: string): Promise<string> {
-  return linkTokenFromEmail(database, clock, accountEmailJob(tenant.id, userId, 'password_reset'));
+  return linkTokenFromEmail(clock, accountEmailJob(tenant.id, userId, 'password_reset'));
 }
 
 function reset(token: string, password = NEW_PASSWORD) {
@@ -118,7 +119,7 @@ describe('crear la contraseña nueva con el enlace', () => {
   it('avisa por correo, sin enlace, cuándo cambió', async () => {
     const { email, id } = await newUser('aviso');
     const job = accountEmailJob(tenant.id, id, 'password_changed');
-    const deps = { database, clock, appUrl: APP_URL };
+    const deps = { database: apiDatabase(), clock, appUrl: APP_URL };
     expect(await prepareAccountEmail(job, deps)).toBeNull();
     await reset(await resetToken(id));
     expect(await accountEmailJobs(id, 'password_changed')).toHaveLength(1);

@@ -60,7 +60,7 @@ async function linkToken(
   purpose: 'invitation' | 'password_reset',
 ): Promise<string> {
   const job = accountEmailJob(scenario.tenant.id, userId, purpose);
-  return linkTokenFromEmail(scenario.db, scenario.clock, job);
+  return linkTokenFromEmail(scenario.clock, job);
 }
 
 async function createDelegation(scenario: AccessScenario) {
