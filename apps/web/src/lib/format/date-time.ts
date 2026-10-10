@@ -13,6 +13,13 @@ const DATE_TIME = new Intl.DateTimeFormat(PLATFORM_DEFAULTS.locale, {
   hour12: true,
 });
 
+/** Fecha de calendario sin hora (AAAA-MM-DD) como dd/mm/aaaa; no depende de la zona horaria. */
+export function formatDate(date: string | null): string {
+  if (date === null) return '—';
+  const [year, month, day] = date.split('-');
+  return `${day ?? ''}/${month ?? ''}/${year ?? ''}`;
+}
+
 /** «09/10/2026, 3:15 p. m.»; un guion si no hay fecha. */
 export function formatDateTime(iso: string | null): string {
   return iso === null ? '—' : DATE_TIME.format(new Date(iso));

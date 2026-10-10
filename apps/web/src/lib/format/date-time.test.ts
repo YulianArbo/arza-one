@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatDateTime } from './date-time';
+import { formatDate, formatDateTime } from './date-time';
 
 describe('fechas para la persona (16.6)', () => {
   it('muestra dd/mm/aaaa y la hora de Colombia con a. m. y p. m.', () => {
@@ -10,5 +10,12 @@ describe('fechas para la persona (16.6)', () => {
 
   it('muestra un guion cuando no hay fecha', () => {
     expect(formatDateTime(null)).toBe('—');
+  });
+});
+
+describe('fechas de calendario (B12)', () => {
+  it('muestra AAAA-MM-DD como dd/mm/aaaa, sin correrse un día por la zona horaria', () => {
+    expect(formatDate('2026-04-02')).toBe('02/04/2026');
+    expect(formatDate(null)).toBe('—');
   });
 });

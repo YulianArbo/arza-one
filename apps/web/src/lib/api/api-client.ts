@@ -27,6 +27,12 @@ interface PatchOptions<T> extends PostOptions<T> {
   version: number;
 }
 
+interface DeleteOptions {
+  readonly csrfToken?: string;
+  /** Versión del registro que se vio (If-Match), si la ruta la pide. */
+  readonly version?: number;
+}
+
 /** Archivo que entrega la API, como una exportación (numeral 13.2). */
 export interface DownloadedFile {
   readonly fileName: string;
@@ -37,6 +43,8 @@ export interface ApiClient {
   get<T>(path: string, options: GetOptions<T>): Promise<T>;
   post<T = void>(path: string, options: PostOptions<T>): Promise<T>;
   patch<T = void>(path: string, options: PatchOptions<T>): Promise<T>;
+  /** Borrado lógico; la API responde 204. */
+  delete(path: string, options: DeleteOptions): Promise<void>;
   /** POST que responde un archivo en lugar de JSON. */
   download(path: string, options: Omit<PostOptions<never>, 'schema'>): Promise<DownloadedFile>;
 }
@@ -68,6 +76,17 @@ export function createApiClient(baseUrl: string, fetchImpl: typeof fetch = fetch
     async patch<T = void>(path: string, options: PatchOptions<T>): Promise<T> {
       const ifMatch = { 'If-Match': `"${String(options.version)}"` };
       return sendWithBody(fetchImpl, apiEndpoint(baseUrl, path), 'PATCH', options, ifMatch);
+    },
+
+    async delete(path: string, options: DeleteOptions): Promise<void> {
+      const headers: Record<string, string> = { Accept: 'application/json' };
+      if (options.version !== undefined) headers['If-Match'] = `"${String(options.version)}"`;
+      if (options.csrfToken !== undefined) headers[CSRF_HEADER] = options.csrfToken;
+      const response = await send(fetchImpl, apiEndpoint(baseUrl, path), {
+        method: 'DELETE',
+        headers,
+      });
+      if (!response.ok) throw toApiError(response, await readJson(response));
     },
 
     async download(path, options): Promise<DownloadedFile> {

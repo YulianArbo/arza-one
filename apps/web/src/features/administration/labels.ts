@@ -38,6 +38,13 @@ export const ADMIN_PATHS = {
   newRole: '/app/administracion/roles/nuevo',
   delegations: '/app/administracion/delegaciones',
   accessReview: '/app/administracion/revision-de-accesos',
+  company: '/app/administracion/empresa',
+  structure: '/app/administracion/procesos-y-cargos',
+  costCenters: '/app/administracion/centros-de-costo',
+  catalogs: '/app/administracion/catalogos',
+  parameters: '/app/administracion/parametros',
+  sequences: '/app/administracion/consecutivos',
+  holidays: '/app/administracion/festivos',
 } as const;
 
 export function userPath(id: string): string {

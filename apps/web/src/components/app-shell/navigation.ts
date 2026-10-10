@@ -111,7 +111,11 @@ const MODULES: readonly NavigationItem[] = [
     label: 'Administración',
     icon: Settings,
     permissions: [
+      'core.tenant.update',
+      'core.org.manage',
+      'core.catalog.manage',
       'core.parameter.manage',
+      'core.sequence.manage',
       'iam.user.read',
       'iam.role.read',
       'iam.delegation.manage',

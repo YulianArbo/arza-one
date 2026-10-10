@@ -133,6 +133,25 @@ textos de cada acción están en `features/audit/labels.ts`; una acción sin tex
 código. El paginador de los listados está en `features/administration/pager.tsx`
 (`useCursorTrail`).
 
+## Datos maestros (B12)
+
+Pantallas en `/app/administracion` (`features/organization/`), con el mismo `<RequirePermission>`.
+Los botones para cambiar solo aparecen con el permiso de administrar.
+
+| Pantalla                                | Permiso para ver       | Qué hace                                                                                |
+| --------------------------------------- | ---------------------- | --------------------------------------------------------------------------------------- |
+| `/app/administracion/empresa`           | `core.tenant.read`     | Datos legales (editar con `core.tenant.update`) y sedes (con `core.org.manage`)         |
+| `/app/administracion/procesos-y-cargos` | `core.org.read`        | Organigrama como árbol de cargos, procesos y áreas, y cargos                            |
+| `/app/administracion/centros-de-costo`  | `core.org.read`        | Centros de costo                                                                        |
+| `/app/administracion/catalogos`         | `core.parameter.read`  | Opciones de cada catálogo (con `core.catalog.manage`)                                   |
+| `/app/administracion/parametros`        | `core.parameter.read`  | Horario laboral vigente, cambio programado e historial; «Programar un cambio»           |
+| `/app/administracion/consecutivos`      | `core.sequence.manage` | Tipos de consecutivo con el siguiente código                                            |
+| `/app/administracion/festivos`          | `core.parameter.read`  | Festivos por año (agregar y quitar con `core.parameter.manage`) y calculadora de plazos |
+
+Los formularios se abren en `RecordDialog` (`record-dialog.tsx`) y guardan con `useAdminAction()`;
+las ediciones envían la versión vista en `If-Match` y un borrado pide confirmación. Las fechas sin
+hora se muestran con `formatDate()` (dd/mm/aaaa).
+
 ## Cliente de la API
 
 `src/lib/api/` contiene el cliente tipado (`createApiClient`) y su proveedor para React

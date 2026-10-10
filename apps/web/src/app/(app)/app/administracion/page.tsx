@@ -11,7 +11,7 @@ export default function AdministrationPage(): JSX.Element {
     <>
       <PageHeader
         title="Administración"
-        description="Usuarios, roles y accesos de la empresa. Solo ve las secciones que su rol le permite."
+        description="Usuarios, roles, accesos y datos maestros de la empresa. Solo ve las secciones que su rol le permite."
       />
       <AdminHome />
     </>
