@@ -7,6 +7,7 @@ import {
 } from '@arza/contracts';
 
 import { Prisma } from '../../../generated/prisma/client.js';
+import { changesBetween } from '../../../platform/audit/audit-recorder.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import { OWN_CONDITION, isOwnCondition } from './access-store.js';
 
@@ -56,52 +57,80 @@ function sameRow(saved: CatalogRow, wanted: CatalogRow): boolean {
  * catálogo queda borrado. Si dos cargas corren a la vez (una por empresa), la segunda no repite
  * los permisos que la primera ya creó.
  */
+export interface CatalogSync {
+  /** Identificador de cada permiso, por su código. */
+  readonly ids: Map<string, string>;
+  /** Cuántos permisos se agregaron, corrigieron y retiraron (0, 0, 0 si ya estaba al día). */
+  readonly counts: { readonly added: number; readonly updated: number; readonly retired: number };
+}
+
 export async function syncPermissionCatalog(
   tx: TenantTransaction,
   now: Date,
-): Promise<Map<string, string>> {
+): Promise<CatalogSync> {
   const before = new Map((await tx.permission.findMany()).map((row) => [row.code, row]));
   const missing = PERMISSIONS.filter((permission) => !before.has(permission.code));
-  await tx.permission.createMany({
+  const { count: added } = await tx.permission.createMany({
     data: missing.map((permission) => ({ code: permission.code, ...catalogRow(permission) })),
     skipDuplicates: true,
   });
+  let updated = 0;
   for (const permission of PERMISSIONS) {
     const existing = before.get(permission.code);
     const row = catalogRow(permission);
     if (existing !== undefined && !sameRow(existing, row)) {
       await tx.permission.update({ where: { id: existing.id }, data: row });
+      updated += 1;
     }
   }
   const codes = PERMISSIONS.map((permission) => permission.code);
-  await tx.permission.updateMany({
+  const { count: retired } = await tx.permission.updateMany({
     where: { code: { notIn: codes }, deletedAt: null },
     data: { deletedAt: now },
   });
   const saved = await tx.permission.findMany({ where: { code: { in: codes } } });
-  return new Map(saved.map((row) => [row.code, row.id]));
+  return {
+    ids: new Map(saved.map((row) => [row.code, row.id])),
+    counts: { added, updated, retired },
+  };
 }
 
 export interface RoleSyncResult {
   readonly roleId: string;
+  /** Lo que cambió del rol mismo: { created: true } o su nombre, descripción o público. */
+  readonly fields: Prisma.InputJsonObject;
   readonly added: number;
   readonly changed: number;
   readonly removed: number;
 }
 
+/** Crea el rol o corrige su nombre, descripción y público; si ya está bien, no escribe nada. */
 async function upsertSystemRole(
   tx: TenantTransaction,
   tenantId: string,
   role: SystemRoleDefinition,
-): Promise<string> {
+): Promise<{ readonly id: string; readonly fields: Prisma.InputJsonObject }> {
   const values = { name: role.name, description: role.description, audience: role.audience };
-  const saved = await tx.role.upsert({
+  const existing = await tx.role.findUnique({
     where: { tenantId_code: { tenantId, code: role.code } },
-    create: { tenantId, code: role.code, isSystem: true, ...values },
-    update: values,
-    select: { id: true },
   });
-  return saved.id;
+  if (existing === null) {
+    const created = await tx.role.create({
+      data: { tenantId, code: role.code, isSystem: true, ...values },
+      select: { id: true },
+    });
+    return { id: created.id, fields: { created: true } };
+  }
+  const before = {
+    name: existing.name,
+    description: existing.description,
+    audience: existing.audience,
+  };
+  const fields = changesBetween(before, values);
+  if (Object.keys(fields).length > 0) {
+    await tx.role.update({ where: { id: existing.id }, data: values });
+  }
+  return { id: existing.id, fields };
 }
 
 /** Deja los permisos de un rol del sistema como dice la matriz. */
@@ -116,7 +145,7 @@ async function syncRolePermissions(
   tx: TenantTransaction,
   context: RoleContext,
   permissionIds: ReadonlyMap<string, string>,
-): Promise<Omit<RoleSyncResult, 'roleId'>> {
+): Promise<Omit<RoleSyncResult, 'roleId' | 'fields'>> {
   const { tenantId, roleId } = context;
   const current = await tx.rolePermission.findMany({ where: { roleId } });
   const byPermission = new Map(current.map((row) => [row.permissionId, row]));
@@ -155,7 +184,7 @@ export async function syncSystemRole(
   now: Date,
 ): Promise<RoleSyncResult> {
   const { tenantId, role } = target;
-  const roleId = await upsertSystemRole(tx, tenantId, role);
+  const { id: roleId, fields } = await upsertSystemRole(tx, tenantId, role);
   const counts = await syncRolePermissions(tx, { tenantId, roleId, role, now }, permissionIds);
-  return { roleId, ...counts };
+  return { roleId, fields, ...counts };
 }
