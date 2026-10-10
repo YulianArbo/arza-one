@@ -5,6 +5,7 @@ import type { Redis } from 'ioredis';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 
 import { AuditModule } from './modules/audit/index.js';
+import { CoreModule } from './modules/core/index.js';
 import { IamModule } from './modules/iam/index.js';
 import { AccessGuard } from './platform/access/access.guard.js';
 import { AuthorizationGuard } from './platform/access/authorization.guard.js';
@@ -55,6 +56,7 @@ export class AppModule {
         VersionModule,
         IamModule,
         AuditModule,
+        CoreModule,
       ],
       providers: [
         { provide: APP_GUARD, useClass: ThrottlerGuard },

@@ -86,6 +86,11 @@ export async function peopleById(
   return new Map(people.map((person) => [person.id, person]));
 }
 
+/** Cuentas que tienen el cargo, de cualquier estado: el núcleo no elimina un cargo en uso. */
+export async function usersInPosition(tx: TenantTransaction, positionId: string): Promise<number> {
+  return tx.user.count({ where: { positionId, deletedAt: null } });
+}
+
 export async function openSessionCount(
   tx: TenantTransaction,
   userId: string,
