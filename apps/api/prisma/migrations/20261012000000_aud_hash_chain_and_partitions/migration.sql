@@ -217,6 +217,16 @@ CREATE FUNCTION "aud_verify_chain"()
            coalesce((SELECT problem FROM first_damage), (SELECT problem FROM head_damage))
 $$;
 
+-- Empresas cuya cadena verifica el worker cada día. El trabajo empieza sin contexto de empresa:
+-- esta función corre como su dueño, con una política de solo lectura, y solo dice qué empresas
+-- existen. Cada verificación ocurre después, dentro del contexto de esa empresa.
+CREATE POLICY "core_tenants_chain_lookup" ON "core_tenants"
+    FOR SELECT TO migration_user USING (true);
+
+CREATE FUNCTION "aud_tenant_ids"() RETURNS SETOF UUID
+    LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
+    AS $$ SELECT id FROM core_tenants ORDER BY id $$;
+
 -- Copia de los eventos de B08 ------------------------------------------------------------------
 -- Se insertan en orden para que el disparador los encadene igual que a los nuevos.
 
@@ -268,4 +278,6 @@ GRANT SELECT, INSERT ON "aud_exports" TO app_user;
 
 REVOKE EXECUTE ON FUNCTION "aud_ensure_partitions"(DATE, DATE) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION "aud_chain_event"() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION "aud_tenant_ids"() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION "aud_ensure_partitions"(DATE, DATE) TO app_user;
+GRANT EXECUTE ON FUNCTION "aud_tenant_ids"() TO app_user;
