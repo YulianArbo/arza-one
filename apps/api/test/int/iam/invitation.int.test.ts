@@ -110,6 +110,12 @@ describe('invitar a una persona', () => {
     const userId = await invite(email);
     await expect(inviteInto(tenant.id, email)).resolves.toEqual({ userId, outcome: 'resent' });
     expect(await accountEmailJobs(userId, 'invitation')).toHaveLength(2);
+    // B11: el reenvío también queda auditado.
+    expect(await auditActions(database, tenant.id, userId)).toEqual([
+      'iam.user.invite:success',
+      'iam.role.assign:success',
+      'iam.user.invite:success',
+    ]);
   });
 });
 
