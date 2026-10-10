@@ -13,7 +13,10 @@ function snapshot(tenantId: string) {
   return database.withTenant({ tenantId, userId: null }, async (transaction) => ({
     tenants: await transaction.tenant.findMany(),
     events: await transaction.outboxEvent.findMany(),
-    audit: await transaction.auditEvent.count(),
+    // Sin los de la auditoría misma: la verificación diaria (otra prueba) los deja en toda empresa.
+    audit: await transaction.auditEvent.count({
+      where: { NOT: { action: { startsWith: 'audit.' } } },
+    }),
   }));
 }
 

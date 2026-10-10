@@ -1,14 +1,14 @@
 -- B11: auditoría particionada por mes, encadenada por hash y verificable; exportaciones.
 -- Ficha 17.20 (M19), capítulo 12.1, numeral 15.5 y ADR-012.
 
--- La tabla de B08 se reemplaza por una particionada. Se renombra la anterior (y sus índices, cuyos
--- nombres son únicos en el esquema) para copiar sus filas a la nueva y luego eliminarla.
+-- arza:contract aud_events de B08 se reemplaza por la particionada con el mismo nombre y las mismas columnas (más seq, prev_hash y hash, con valor por defecto); B10 la sigue usando igual, y solo se renombra y borra la copia vieja
+-- La tabla de B08 se reemplaza por una particionada: PostgreSQL no convierte una tabla en
+-- particionada. Se renombra la anterior (y sus índices, cuyos nombres son únicos en el esquema)
+-- para copiar sus filas a la nueva con el mismo nombre y luego eliminarla.
 ALTER TABLE "aud_events" RENAME TO "aud_events_b08";
 ALTER INDEX "aud_events_pkey" RENAME TO "aud_events_b08_pkey";
 ALTER INDEX "aud_events_tenant_id_occurred_at_idx" RENAME TO "aud_events_b08_tenant_id_occurred_at_idx";
 ALTER INDEX "aud_events_tenant_id_entity_type_entity_id_idx" RENAME TO "aud_events_b08_tenant_id_entity_type_entity_id_idx";
--- FORCE impediría al dueño leer las filas sin contexto de empresa durante la copia.
-ALTER TABLE "aud_events_b08" NO FORCE ROW LEVEL SECURITY;
 
 -- CreateTable
 CREATE TABLE "aud_events" (
@@ -227,28 +227,10 @@ CREATE FUNCTION "aud_tenant_ids"() RETURNS SETOF UUID
     LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
     AS $$ SELECT id FROM core_tenants ORDER BY id $$;
 
--- Copia de los eventos de B08 ------------------------------------------------------------------
--- Se insertan en orden para que el disparador los encadene igual que a los nuevos.
-
-SELECT aud_ensure_partitions(
-    coalesce((SELECT min(occurred_at) FROM aud_events_b08), now())::date,
-    (now() + INTERVAL '3 months')::date
-);
-
-INSERT INTO "aud_events" (
-    "id", "tenant_id", "occurred_at", "actor_id", "actor_kind", "action", "entity_type",
-    "entity_id", "result", "changes", "ip", "correlation_id"
-)
-SELECT "id", "tenant_id", "occurred_at", "actor_id", "actor_kind", "action", "entity_type",
-       "entity_id", "result", "changes", "ip", "correlation_id"
-  FROM "aud_events_b08"
- ORDER BY "tenant_id", "occurred_at", "id";
-
-DROP TABLE "aud_events_b08";
-
 -- Seguridad por fila (ADR-007) -----------------------------------------------------------------
--- Se activa después de la copia, que corre sin contexto de empresa. Las políticas de la tabla
--- particionada se aplican al consultar por ella; app_user no tiene acceso directo a las particiones.
+-- Se activa antes de copiar: la copia corre empresa por empresa con su contexto fijado, como la
+-- API. Las políticas de la tabla particionada se aplican al consultar por ella; app_user no tiene
+-- acceso directo a las particiones.
 
 ALTER TABLE "aud_events" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "aud_events" FORCE ROW LEVEL SECURITY;
@@ -267,6 +249,38 @@ ALTER TABLE "aud_exports" FORCE ROW LEVEL SECURITY;
 CREATE POLICY "aud_exports_tenant_isolation" ON "aud_exports"
     USING ("tenant_id" = core_current_tenant_id())
     WITH CHECK ("tenant_id" = core_current_tenant_id());
+
+-- Copia de los eventos de B08 ------------------------------------------------------------------
+-- Empresa por empresa, con app.tenant_id fijado: la seguridad por fila de las dos tablas sigue
+-- activa y forzada. Se insertan en orden para que el disparador los encadene igual que a los
+-- nuevos, y antes se crean las particiones de los meses que traen.
+
+DO $$
+DECLARE
+    tenant UUID;
+    first_event TIMESTAMPTZ;
+BEGIN
+    FOR tenant IN SELECT id FROM core_tenants ORDER BY id LOOP
+        PERFORM set_config('app.tenant_id', tenant::text, true);
+        SELECT min(occurred_at) INTO first_event FROM aud_events_b08;
+        PERFORM aud_ensure_partitions(
+            coalesce(first_event, now())::date,
+            (now() + INTERVAL '3 months')::date
+        );
+        INSERT INTO aud_events (
+            id, tenant_id, occurred_at, actor_id, actor_kind, action, entity_type, entity_id,
+            result, changes, ip, correlation_id
+        )
+        SELECT id, tenant_id, occurred_at, actor_id, actor_kind, action, entity_type, entity_id,
+               result, changes, ip, correlation_id
+          FROM aud_events_b08
+         ORDER BY occurred_at, id;
+    END LOOP;
+    PERFORM set_config('app.tenant_id', '', true);
+END;
+$$;
+
+DROP TABLE "aud_events_b08";
 
 -- Permisos de la API ---------------------------------------------------------------------------
 -- Solo lectura e inserción: ningún evento ni exportación se modifica ni se borra (ficha 17.20).
