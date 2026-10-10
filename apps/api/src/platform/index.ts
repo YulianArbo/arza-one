@@ -11,6 +11,7 @@ export {
   DEFAULT_JOB_OPTIONS,
   JOBS,
   QUEUES,
+  SCHEDULED_JOBS,
   type AccountEmailJob,
   type ExampleEmailJob,
   type JobDefinition,

@@ -48,6 +48,12 @@ const accountEmailJobSchema = tenantJobSchema.extend({
   occurredAt: z.iso.datetime({ offset: true }).optional(),
 });
 
+/**
+ * Verificación diaria de la cadena de la auditoría (B11, ficha 17.20). Es del sistema y no lleva
+ * empresa: el worker abre el contexto de cada una para verificarla.
+ */
+const auditChainCheckJobSchema = z.object({});
+
 export type TenantJob = z.infer<typeof tenantJobSchema>;
 export type ExampleEmailJob = z.infer<typeof exampleEmailJobSchema>;
 export type AccountEmailJob = z.infer<typeof accountEmailJobSchema>;
@@ -65,7 +71,17 @@ export const JOBS = {
     name: 'iam.account-email',
     schema: accountEmailJobSchema,
   },
+  auditChainCheck: {
+    queue: QUEUES.platform,
+    name: 'audit.chain-check',
+    schema: auditChainCheckJobSchema,
+  },
 } as const;
+
+/** Trabajos programados: el worker los registra al arrancar (expresión cron, hora de Bogotá). */
+export const SCHEDULED_JOBS = [
+  { id: 'audit.chain-check.daily', job: JOBS.auditChainCheck, pattern: '0 3 * * *' },
+] as const;
 
 export type JobDefinition = (typeof JOBS)[keyof typeof JOBS];
 
