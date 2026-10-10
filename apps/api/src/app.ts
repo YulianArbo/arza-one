@@ -18,7 +18,10 @@ export function configureApp(app: NestExpressApplication, config: Env): void {
   app.enableCors({
     origin: allowedOrigins(config),
     credentials: true,
-    allowedHeaders: ['Content-Type', 'X-Correlation-Id', 'X-CSRF-Token'],
+    // If-Match lleva la versión al editar (numeral 14.1).
+    allowedHeaders: ['Content-Type', 'X-Correlation-Id', 'X-CSRF-Token', 'If-Match'],
+    // Que la web lea el identificador de correlación y el nombre de una descarga (B11).
+    exposedHeaders: ['X-Correlation-Id', 'Content-Disposition'],
   });
   app.useBodyParser('json', { limit: MAX_BODY_SIZE });
   setupApiDocs(app, config);
