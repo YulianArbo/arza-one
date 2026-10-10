@@ -18,6 +18,7 @@ export const PARTY_ERROR_CODES = {
   contactInvalid: 'PARTY_CONTACT_INVALID',
   sameReviewer: 'PARTY_SAME_REVIEWER',
   reviewClosed: 'PARTY_REVIEW_CLOSED',
+  nextReviewInvalid: 'PARTY_NEXT_REVIEW_INVALID',
   mergeInvalid: 'PARTY_MERGE_INVALID',
 } as const;
 
@@ -70,7 +71,8 @@ const catalogCode = z
   .trim()
   .regex(/^[A-Z0-9][A-Z0-9_-]{0,19}$/, 'Opción inválida');
 
-const commonFields = {
+const partyDataFields = {
+  kind: partyKindSchema,
   id_type: catalogCode.describe('Código del catálogo «Tipos de documento de identidad»'),
   id_number: z
     .string()
@@ -87,23 +89,51 @@ const commonFields = {
     .default(null),
   city: optionalText(120),
   address: optionalText(200),
-};
-
-const personFields = {
-  kind: z.literal('person'),
-  first_name: personName.describe('Nombres'),
-  last_name: personName.describe('Apellidos'),
+  legal_name: organizationName.nullable().default(null).describe('Razón social; organizaciones'),
+  trade_name: organizationName
+    .nullable()
+    .default(null)
+    .describe('Nombre comercial; organizaciones'),
+  first_name: personName.nullable().default(null).describe('Nombres; personas'),
+  last_name: personName.nullable().default(null).describe('Apellidos; personas'),
   // Todo dato personal con su finalidad y su autorización (ficha 17.3, M18).
-  data_purpose: catalogCode.describe('Código del catálogo «Finalidades del tratamiento»'),
-  data_authorization: dataAuthorizationSchema,
-  data_authorized_on: calendarDate.describe('Fecha de la autorización'),
+  data_purpose: catalogCode
+    .nullable()
+    .default(null)
+    .describe('Personas: código del catálogo «Finalidades del tratamiento»'),
+  data_authorization: dataAuthorizationSchema.nullable().default(null).describe('Personas'),
+  data_authorized_on: calendarDate.nullable().default(null).describe('Personas: fecha'),
 };
 
-const organizationFields = {
-  kind: z.literal('organization'),
-  legal_name: organizationName.describe('Razón social'),
-  trade_name: z.string().trim().min(2).max(160).nullable().default(null),
-};
+type PartyDataInput = z.infer<z.ZodObject<typeof partyDataFields>>;
+
+const REQUIRED_BY_KIND = {
+  organization: ['legal_name'],
+  person: ['first_name', 'last_name', 'data_purpose', 'data_authorization', 'data_authorized_on'],
+} as const satisfies Record<PartyKind, readonly (keyof PartyDataInput)[]>;
+
+const FORBIDDEN_BY_KIND = {
+  organization: REQUIRED_BY_KIND.person,
+  person: ['legal_name', 'trade_name'],
+} as const satisfies Record<PartyKind, readonly (keyof PartyDataInput)[]>;
+
+/** Una organización lleva razón social; una persona, nombres, apellidos y su autorización. */
+function checkKindFields(value: PartyDataInput, context: z.RefinementCtx): void {
+  for (const field of REQUIRED_BY_KIND[value.kind]) {
+    if (value[field] === null) {
+      context.addIssue({ code: 'custom', path: [field], message: 'Este dato es obligatorio.' });
+    }
+  }
+  for (const field of FORBIDDEN_BY_KIND[value.kind]) {
+    if (value[field] !== null) {
+      const message =
+        value.kind === 'person'
+          ? 'Solo las organizaciones lo llevan.'
+          : 'Solo las personas lo llevan.';
+      context.addIssue({ code: 'custom', path: [field], message });
+    }
+  }
+}
 
 interface IdentificationInput {
   readonly id_type: string;
@@ -140,30 +170,21 @@ function checkIdentification(value: IdentificationInput, context: z.RefinementCt
   }
 }
 
-const partyDataSchema = z.discriminatedUnion('kind', [
-  z.strictObject({ ...commonFields, ...personFields }),
-  z.strictObject({ ...commonFields, ...organizationFields }),
-]);
+function checkParty(value: PartyDataInput, context: z.RefinementCtx): void {
+  checkKindFields(value, context);
+  checkIdentification(value, context);
+}
 
 export const createPartyRequestSchema = z
-  .discriminatedUnion('kind', [
-    z.strictObject({
-      ...commonFields,
-      ...personFields,
-      status: z.enum(['prospect', 'active']).default('active'),
-      roles: z.array(partyRoleSchema).max(5).default([]),
-    }),
-    z.strictObject({
-      ...commonFields,
-      ...organizationFields,
-      status: z.enum(['prospect', 'active']).default('active'),
-      roles: z.array(partyRoleSchema).max(5).default([]),
-    }),
-  ])
-  .superRefine(checkIdentification);
+  .strictObject({
+    ...partyDataFields,
+    status: z.enum(['prospect', 'active']).default('active'),
+    roles: z.array(partyRoleSchema).max(5).default([]),
+  })
+  .superRefine(checkParty);
 
 /** Edición de los datos; el estado y los papeles cambian por sus propias acciones. */
-export const updatePartyRequestSchema = partyDataSchema.superRefine(checkIdentification);
+export const updatePartyRequestSchema = z.strictObject(partyDataFields).superRefine(checkParty);
 
 export const changePartyStatusRequestSchema = z
   .strictObject({
@@ -176,6 +197,8 @@ export const changePartyStatusRequestSchema = z
   });
 
 export const addPartyRoleRequestSchema = z.strictObject({ role: partyRoleSchema });
+
+export const partyRoleParamsSchema = z.strictObject({ id: z.uuid(), role: partyRoleSchema });
 
 export const partySummarySchema = z.object({
   id: z.uuid(),

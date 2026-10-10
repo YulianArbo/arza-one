@@ -56,6 +56,9 @@ export const DATABASE_BOUND_FILES = [
   'src/modules/core/application/**/*.ts',
   'src/modules/core/infrastructure/**/*.ts',
   'src/modules/core/interface/**/*.ts',
+  // Terceros (B13): todo menos las reglas del dominio, que se prueban solas.
+  'src/modules/party/application/**/*.ts',
+  'src/modules/party/interface/**/*.ts',
 ];
 
 /** Procesos que solo arrancan algo; se prueban a mano o como proceso real. */

@@ -7,3 +7,4 @@ export { nextBusinessCode } from './application/sequences.js';
 export { businessDeadline } from './application/calendar.js';
 export { workScheduleOn } from './application/parameters.js';
 export { isActiveCatalogCode } from './application/catalogs.js';
+export { bogotaToday, fromCalendarDate, toCalendarDate } from './domain/calendar-date.js';

@@ -12,7 +12,7 @@ const partyRefSchema = z.object({ id: z.uuid(), name: z.string() });
 
 /** Revisión de un segundo usuario: pendiente, aprobada o rechazada (ficha 17.3). */
 const reviewFields = {
-  requested_by: personRefSchema.describe('Quién la registró'),
+  requested_by: personRefSchema.nullable().describe('Quién la registró; vacío si fue el sistema'),
   requested_at: dateTime,
   reviewed_by: personRefSchema.nullable().describe('Quién la aprobó o rechazó'),
   reviewed_at: dateTime.nullable(),
