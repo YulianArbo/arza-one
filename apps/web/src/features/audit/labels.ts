@@ -38,6 +38,7 @@ const ACTION_LABELS: Readonly<Record<string, string>> = {
   'iam.role.create': 'Creó un rol',
   'iam.role.update': 'Editó un rol',
   'iam.role.sync': 'Actualizó los roles del sistema',
+  'iam.permission.sync': 'Actualizó el catálogo de permisos',
   'iam.role.assign': 'Asignó un rol',
   'iam.role.revoke': 'Retiró un rol',
   'iam.delegation.create': 'Creó una delegación',
@@ -105,6 +106,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function plain(value: unknown): string {
   if (value === null || value === undefined) return 'vacío';
+  if (isRecord(value) && Object.keys(value).length === 0) return 'ninguno';
   return typeof value === 'string' ? value : JSON.stringify(value);
 }
 
@@ -118,6 +120,7 @@ const ENTITY_LABELS: Readonly<Record<string, string>> = {
   iam_mfa_factor: 'Segundo factor',
   iam_token: 'Enlace de correo',
   iam_access_review: 'Revisión de accesos',
+  iam_permission: 'Catálogo de permisos',
   aud_events: 'Auditoría',
   aud_exports: 'Exportación',
   aud_security_events: 'Eventos de seguridad',

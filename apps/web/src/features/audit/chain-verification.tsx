@@ -33,7 +33,7 @@ function Result({ result }: { readonly result: ChainVerification }): JSX.Element
       <AlertDescription>
         <p>
           {result.problem === null ? '' : CHAIN_PROBLEM_LABELS[result.problem]} Primer evento
-          dañado: número {result.broken_seq ?? '—'}. Revisamos {count} eventos el {when}.
+          dañado: número {result.broken_seq ?? '—'}. El {when} revisamos {count} eventos.
         </p>
         <p>
           Quedó registrado como evento de seguridad crítico. Informe de inmediato al líder técnico.

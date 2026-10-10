@@ -23,6 +23,18 @@ const SEVERITY_OPTIONS = [
 /** Qué pasó, dicho para la persona; el tipo sin traducir se muestra tal cual. */
 const TYPE_LABELS: Readonly<Record<string, string>> = {
   'iam.account.locked': 'Cuenta bloqueada por intentos fallidos',
+  'iam.account.locked_by_admin': 'Un administrador bloqueó la cuenta',
+  'iam.mfa.failures': 'Códigos equivocados: sesión cerrada y cuenta bloqueada',
+  'iam.mfa.reset': 'Se reinició el segundo factor',
+  'iam.mfa.changed': 'Pasó el segundo factor a otro celular',
+  'iam.mfa.disabled': 'Desactivó el segundo factor',
+  'iam.mfa.enabled': 'Activó el segundo factor',
+  'iam.mfa.recovery_codes_regenerated': 'Generó códigos de recuperación nuevos',
+  'iam.mfa.recovery_code_used': 'Usó un código de recuperación',
+  'iam.login.new_device': 'Inició sesión desde un equipo nuevo',
+  'iam.permissions.changed': 'Cambiaron los permisos',
+  'iam.sessions.revoked': 'Se cerraron todas las sesiones de una persona',
+  'iam.sessions.revoked_all': 'Se cerraron todas las sesiones de la empresa',
   'audit.chain.broken': 'La auditoría fue alterada',
 };
 
