@@ -6,11 +6,11 @@ import type { JSX, ReactNode } from 'react';
 import { RequireSession } from '../features/session/session-provider';
 import { SESSION, json, mockApi, type SentRequest } from './fake-api';
 
-export const SITE_MAIN = '01999a00-0000-7000-8000-00000000e001';
+const SITE_MAIN = '01999a00-0000-7000-8000-00000000e001';
 export const SITE_OTHER = '01999a00-0000-7000-8000-00000000e002';
-export const UNIT_DG = '01999a00-0000-7000-8000-00000000e101';
+const UNIT_DG = '01999a00-0000-7000-8000-00000000e101';
 export const UNIT_TEC = '01999a00-0000-7000-8000-00000000e102';
-export const POS_DIRECTOR = '01999a00-0000-7000-8000-00000000e201';
+const POS_DIRECTOR = '01999a00-0000-7000-8000-00000000e201';
 export const POS_MANAGER = '01999a00-0000-7000-8000-00000000e202';
 export const CENTER_ID = '01999a00-0000-7000-8000-00000000e301';
 export const ITEM_CC = '01999a00-0000-7000-8000-00000000e401';
@@ -126,7 +126,7 @@ export const COST_CENTERS = {
   ],
 };
 
-export const CATALOGS = {
+const CATALOGS = {
   data: [
     {
       key: 'identification_types',
@@ -169,7 +169,7 @@ const version = (id: string, from: string, to: string | null, by: string | null)
 
 const CURRENT = version('01999a00-0000-7000-8000-00000000e701', '2026-01-01', null, null);
 
-export const PARAMETERS = {
+const PARAMETERS = {
   data: [
     {
       key: 'work.schedule',
@@ -181,7 +181,7 @@ export const PARAMETERS = {
   ],
 };
 
-export const HISTORY = {
+const HISTORY = {
   key: 'work.schedule',
   label: 'Horario laboral',
   data: [
@@ -206,7 +206,7 @@ export const SEQUENCES = {
   ],
 };
 
-export const HOLIDAYS = {
+const HOLIDAYS = {
   data: [{ id: HOLIDAY_ID, date: '2026-07-20', name: 'Día de la Independencia' }],
 };
 

@@ -6,7 +6,7 @@ import { AppError } from '../errors/app-error.js';
 // Bloqueo optimista (numeral 14.1): quien edita envía la versión que vio en la cabecera If-Match y
 // la escritura solo procede si nadie cambió el registro entretanto.
 
-export function versionRequired(): AppError {
+function versionRequired(): AppError {
   return new AppError(
     HttpStatus.BAD_REQUEST,
     PLATFORM_ERROR_CODES.versionRequired,

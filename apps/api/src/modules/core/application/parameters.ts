@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   PARAMETER_DEFINITIONS,
   isParameterKey,
-  parameterValueSchema,
+  workScheduleSchema,
   type CreateParameterVersionRequest,
   type ParameterHistoryResponse,
   type ParameterKey,
@@ -53,7 +53,7 @@ async function viewsOf(tx: TenantTransaction, versions: readonly Dated[]) {
     const person = version.row.createdBy === null ? undefined : people.get(version.row.createdBy);
     return {
       id: version.row.id,
-      value: parameterValueSchema.parse(version.row.value),
+      value: workScheduleSchema.parse(version.row.value),
       valid_from: version.validFrom,
       valid_to: version.validTo,
       created_at: version.row.createdAt.toISOString(),
@@ -155,7 +155,7 @@ export class ParametersUseCase {
           changes: {
             key: known,
             value: {
-              from: latest === undefined ? null : parameterValueSchema.parse(latest.row.value),
+              from: latest === undefined ? null : workScheduleSchema.parse(latest.row.value),
               to: input.value,
             },
             valid_from: input.valid_from,
@@ -174,5 +174,5 @@ export async function workScheduleOn(
 ): Promise<WorkSchedule | null> {
   const versions = await versionsOf(tx, 'work.schedule');
   const { current } = currentAndScheduled(versions, date);
-  return current === null ? null : parameterValueSchema.parse(current.row.value);
+  return current === null ? null : workScheduleSchema.parse(current.row.value);
 }

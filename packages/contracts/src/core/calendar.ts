@@ -60,7 +60,7 @@ export function isParameterKey(value: string): value is ParameterKey {
 }
 
 // shortcut: hoy hay un solo parámetro; con el segundo, este esquema pasa a ser una unión por clave.
-export const parameterValueSchema = workScheduleSchema;
+const parameterValueSchema = workScheduleSchema;
 
 const personRefSchema = z.object({ id: z.uuid(), name: z.string() });
 
