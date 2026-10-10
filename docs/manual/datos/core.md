@@ -57,3 +57,121 @@ El worker los publica a partir de B06.
 | `created_at` … `deleted_at` |  |      |             | Columnas de control (ver reglas comunes)                  |
 
 Índices: llave primaria (`id`) y (`tenant_id`, `occurred_at`).
+
+## Organización, catálogos, consecutivos, parámetros y festivos (B12)
+
+Todas tienen además las columnas de control, `tenant_id` (llave foránea a `core_tenants`),
+seguridad por fila y borrado lógico (`deleted_at`). Las llaves foráneas entre tablas de una misma
+empresa son compuestas (`tenant_id`, `id`): un registro nunca apunta a uno de otra empresa.
+
+### core_sites · Sedes
+
+| Columna     | Tipo    | Nulo | Por defecto | Regla                                                      |
+| ----------- | ------- | ---- | ----------- | ---------------------------------------------------------- |
+| `name`      | text    | No   |             | De 2 a 120 caracteres                                      |
+| `city`      | text    | No   |             | De 2 a 120 caracteres                                      |
+| `address`   | text    | No   |             | De 5 a 200 caracteres                                      |
+| `is_main`   | boolean | No   | `false`     | Sede principal. Solo una por empresa (lo garantiza la API) |
+| `is_active` | boolean | No   | `true`      | La principal no se inactiva                                |
+
+Índice: (`tenant_id`).
+
+### core_org_units · Procesos y áreas
+
+| Columna             | Tipo    | Nulo | Por defecto | Regla                                                                    |
+| ------------------- | ------- | ---- | ----------- | ------------------------------------------------------------------------ |
+| `parent_id`         | uuid    | Sí   |             | Proceso o área de la que depende; nunca ella misma ni un ciclo           |
+| `code`              | text    | No   |             | Mayúsculas, números y guiones; único por empresa, también eliminados     |
+| `name`              | text    | No   |             | De 2 a 120 caracteres                                                    |
+| `kind`              | text    | No   |             | `process` o `area`                                                       |
+| `owner_position_id` | uuid    | Sí   |             | Cargo líder (`core_positions`)                                           |
+| `is_active`         | boolean | No   | `true`      | Con registros asociados no se elimina: se inactiva                       |
+
+Índices: únicos (`tenant_id`, `id`) y (`tenant_id`, `code`); (`tenant_id`, `parent_id`) y
+(`tenant_id`, `owner_position_id`).
+
+### core_positions · Cargos del organigrama
+
+| Columna         | Tipo    | Nulo | Por defecto | Regla                                                       |
+| --------------- | ------- | ---- | ----------- | ----------------------------------------------------------- |
+| `org_unit_id`   | uuid    | No   |             | Proceso o área del cargo                                    |
+| `name`          | text    | No   |             | De 2 a 120 caracteres                                       |
+| `reports_to_id` | uuid    | Sí   |             | Cargo al que reporta; vacío en la cabeza; nunca un ciclo    |
+| `is_active`     | boolean | No   | `true`      | Con personas, subordinados o procesos a cargo no se elimina |
+
+Índices: único (`tenant_id`, `id`); (`tenant_id`, `org_unit_id`) y (`tenant_id`, `reports_to_id`).
+`iam_users.position_id` apunta aquí (llave foránea agregada en B12). El enlace al manual de
+funciones de cada cargo llega con la gestión documental (M03).
+
+### core_cost_centers · Centros de costo
+
+| Columna       | Tipo    | Nulo | Por defecto | Regla                                      |
+| ------------- | ------- | ---- | ----------- | ------------------------------------------ |
+| `code`        | text    | No   |             | Como el de los procesos; único por empresa |
+| `name`        | text    | No   |             | De 2 a 120 caracteres                      |
+| `org_unit_id` | uuid    | Sí   |             | Proceso o área al que pertenece            |
+| `is_active`   | boolean | No   | `true`      |                                            |
+
+Índices: único (`tenant_id`, `code`); (`tenant_id`, `org_unit_id`).
+
+### core_catalogs y core_catalog_items · Catálogos administrables
+
+El sistema crea los catálogos (`key` como `identification_types`); la empresa administra sus
+opciones. Una opción no se borra: se inactiva.
+
+| Columna (catálogo) | Tipo | Nulo | Regla                                       |
+| ------------------ | ---- | ---- | ------------------------------------------- |
+| `key`              | text | No   | Minúsculas, números y guiones bajos; única  |
+| `name`             | text | No   | De 2 a 120 caracteres                       |
+| `description`      | text | Sí   |                                             |
+
+| Columna (opción) | Tipo    | Nulo | Por defecto | Regla                                          |
+| ---------------- | ------- | ---- | ----------- | ---------------------------------------------- |
+| `catalog_id`     | uuid    | No   |             | Catálogo de la misma empresa                   |
+| `code`           | text    | No   |             | Mayúsculas, números, guiones; único en el catálogo |
+| `label`          | text    | No   |             | De 2 a 120 caracteres                          |
+| `sort_order`     | integer | No   | `0`         | Entre 0 y 9999                                 |
+| `is_active`      | boolean | No   | `true`      | Inactiva: deja de ofrecerse en los formularios |
+
+### core_sequences · Consecutivos de negocio (ADR-021)
+
+Una fila por tipo y año. El código es `PREFIJO-AAAA-NNNN`; el año es el de Colombia.
+
+| Columna      | Tipo    | Nulo | Por defecto | Regla                                         |
+| ------------ | ------- | ---- | ----------- | --------------------------------------------- |
+| `key`        | text    | No   |             | Como `crm.quote`; hasta 60 caracteres         |
+| `name`       | text    | No   |             | De 2 a 120 caracteres                         |
+| `prefix`     | text    | No   |             | De 2 a 6 letras mayúsculas                    |
+| `year`       | integer | No   |             | Entre 2000 y 2100                             |
+| `next_value` | integer | No   | `1`         | Número del siguiente registro; mayor que cero |
+| `padding`    | integer | No   | `4`         | Dígitos del número, entre 3 y 8               |
+
+Índice único (`tenant_id`, `key`, `year`). `next_value` solo lo sube `nextBusinessCode()` con un
+`UPDATE ... RETURNING` que bloquea la fila hasta el final de la transacción de quien pide el
+número: otra petición espera y recibe el siguiente; si la transacción se revierte, el número no
+se gasta. El primer número de un año nuevo copia el prefijo y los dígitos del año anterior.
+
+### core_parameters · Parámetros con vigencia
+
+| Columna      | Tipo  | Nulo | Regla                                                           |
+| ------------ | ----- | ---- | --------------------------------------------------------------- |
+| `key`        | text  | No   | Como `work.schedule`; definida en `packages/contracts`          |
+| `value`      | jsonb | No   | Objeto; validado con el esquema Zod de la clave                 |
+| `valid_from` | date  | No   | Primer día de la vigencia                                       |
+| `valid_to`   | date  | Sí   | Último día; vacío en la vigente. Mayor o igual que `valid_from` |
+
+Índice único (`tenant_id`, `key`, `valid_from`). El disparador `core_parameters_keep_history`
+impide cambiar la clave, el valor o el inicio de una vigencia, cerrarla dos veces o borrarla: un
+parámetro nunca se sobrescribe. Parámetro de hoy: `work.schedule` (días de la semana y dos
+jornadas; sembrado de lunes a viernes, 8:00 a 12:00 y 13:00 a 17:00).
+
+### core_holidays · Festivos
+
+| Columna        | Tipo | Nulo | Regla                 |
+| -------------- | ---- | ---- | --------------------- |
+| `holiday_date` | date | No   | Única por empresa     |
+| `name`         | text | No   | De 2 a 120 caracteres |
+
+Un festivo quitado queda con `deleted_at` y se recupera si se vuelve a agregar la misma fecha. La
+semilla carga los festivos de Colombia de 2025 a 2030 (Ley 51 de 1983); un año que ya tiene
+festivos no se vuelve a cargar.
