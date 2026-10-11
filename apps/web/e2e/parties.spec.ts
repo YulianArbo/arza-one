@@ -125,6 +125,10 @@ const PAGES = [
 
 for (const theme of ['light', 'dark'] as const) {
   test.describe(`terceros en modo ${theme === 'light' ? 'claro' : 'oscuro'}`, () => {
+    // Con el servidor de pruebas recién encendido y cuatro pruebas a la vez, abrir una pantalla y
+    // revisar su accesibilidad pasa de 30 s en un equipo con poca memoria. Más tiempo, mismas
+    // comprobaciones.
+    test.slow();
     for (const { path, ready, tab } of PAGES) {
       test(`${path} ${tab ?? ''} no tiene violaciones de accesibilidad`, async ({
         page,
