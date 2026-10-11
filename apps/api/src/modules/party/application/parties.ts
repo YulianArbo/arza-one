@@ -8,7 +8,7 @@ import {
   type UpdatePartyRequest,
 } from '@arza/contracts';
 
-import type { Party } from '../../../generated/prisma/client.js';
+import { Prisma, type Party } from '../../../generated/prisma/client.js';
 import type { Principal } from '../../../platform/access/principal.js';
 import { changesBetween } from '../../../platform/audit/audit-recorder.js';
 import { CLOCK, type Clock } from '../../../platform/clock/clock.js';
@@ -92,6 +92,14 @@ async function assertUniqueId(tx: TenantTransaction, input: PartyData, selfId: s
   if (taken > 0) throw partyDuplicate();
 }
 
+/** Dos registros simultáneos del mismo documento: decide el índice único y se responde 409. */
+function duplicateOnConflict(error: unknown): never {
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+    throw partyDuplicate();
+  }
+  throw error;
+}
+
 /** Ficha, estado y papeles del tercero (ficha 17.3). */
 @Injectable()
 export class PartiesUseCase {
@@ -114,9 +122,11 @@ export class PartiesUseCase {
     return this.database.withTenant(principal, async (tx) => {
       await assertCatalogs(tx, input, null);
       await assertUniqueId(tx, input, null);
-      const party = await tx.party.create({
-        data: { tenantId: principal.tenantId, ...columnsOf(input), status: input.status },
-      });
+      const party = await tx.party
+        .create({
+          data: { tenantId: principal.tenantId, ...columnsOf(input), status: input.status },
+        })
+        .catch(duplicateOnConflict);
       const roles = [...new Set(input.roles)];
       await tx.partyRole.createMany({
         data: roles.map((role) => ({
@@ -148,10 +158,9 @@ export class PartiesUseCase {
       if (before.kind !== input.kind) throw kindChange();
       await assertCatalogs(tx, input, before);
       await assertUniqueId(tx, input, before.id);
-      const { count } = await tx.party.updateMany({
-        where: { id: before.id, version: target.version },
-        data: columnsOf(input),
-      });
+      const { count } = await tx.party
+        .updateMany({ where: { id: before.id, version: target.version }, data: columnsOf(input) })
+        .catch(duplicateOnConflict);
       if (count === 0) throw versionConflict();
       const after = await findParty(tx, ALL_PARTIES, before.id);
       await auditParty(tx, actor, {
