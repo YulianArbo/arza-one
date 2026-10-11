@@ -1,6 +1,7 @@
 import {
   Activity,
   BadgeCheck,
+  BookUser,
   BriefcaseBusiness,
   ChartColumn,
   FileSignature,
@@ -39,6 +40,7 @@ export interface NavigationGroup {
 const MODULES: readonly NavigationItem[] = [
   { slug: '', label: 'Inicio', icon: House, permissions: [] },
   { slug: 'mis-tareas', label: 'Mis tareas', icon: ListTodo, permissions: [], block: 'B15' },
+  { slug: 'terceros', label: 'Terceros', icon: BookUser, permissions: ['party.read'] },
   {
     slug: 'comercial',
     label: 'Comercial',

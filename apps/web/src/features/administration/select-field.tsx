@@ -5,6 +5,8 @@ interface SelectFieldProps extends Omit<ComponentProps<'select'>, 'id'> {
   readonly id: string;
   readonly label: string;
   readonly hint?: string | undefined;
+  /** Mensaje del problema; se anuncia al lector de pantalla (16.6). */
+  readonly error?: string | undefined;
   readonly options: readonly { readonly value: string; readonly label: string }[];
 }
 
@@ -13,16 +15,20 @@ export function SelectField({
   id,
   label,
   hint,
+  error,
   options,
   ...select
 }: SelectFieldProps): JSX.Element {
   const hintId = hint === undefined ? undefined : `${id}-ayuda`;
+  const errorId = error === undefined ? undefined : `${id}-error`;
+  const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
   return (
     <div className="flex flex-col gap-1.5">
       <Label htmlFor={id}>{label}</Label>
       <select
         id={id}
-        aria-describedby={hintId}
+        aria-describedby={describedBy}
+        aria-invalid={error === undefined ? undefined : true}
         className="flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm text-foreground shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
         {...select}
       >
@@ -35,6 +41,11 @@ export function SelectField({
       {hint === undefined ? null : (
         <p id={hintId} className="text-xs text-muted-foreground">
           {hint}
+        </p>
+      )}
+      {error === undefined ? null : (
+        <p id={errorId} className="text-xs font-medium text-destructive">
+          {error}
         </p>
       )}
     </div>
