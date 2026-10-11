@@ -7,7 +7,7 @@ import { auditEventViews } from './audit-views.js';
 // Historial de un conjunto de registros para la línea de tiempo de otros módulos, como la ficha
 // del tercero (ficha 17.3). Quien llama decide qué registros puede ver la persona.
 
-export interface EntityHistoryPage {
+interface EntityHistoryPage {
   readonly events: AuditEventView[];
   readonly nextCursor: string | null;
 }

@@ -7,9 +7,9 @@ import { SESSION, json, mockApi, type SentRequest } from './fake-api';
 export const ORG_ID = '01999a00-0000-7000-8000-00000000f001';
 export const PERSON_ID = '01999a00-0000-7000-8000-00000000f002';
 export const DUPLICATE_ID = '01999a00-0000-7000-8000-00000000f003';
-export const CONTACT_ID = '01999a00-0000-7000-8000-00000000f101';
+const CONTACT_ID = '01999a00-0000-7000-8000-00000000f101';
 export const ACCOUNT_ID = '01999a00-0000-7000-8000-00000000f201';
-export const OWN_ACCOUNT_ID = '01999a00-0000-7000-8000-00000000f202';
+const OWN_ACCOUNT_ID = '01999a00-0000-7000-8000-00000000f202';
 export const REVIEW_ID = '01999a00-0000-7000-8000-00000000f301';
 const OTHER_USER = '01999a00-0000-7000-8000-00000000a099';
 
@@ -87,7 +87,7 @@ export const DUPLICATE_SUMMARY = {
   check_digit: 3,
 };
 
-export const PARTY_LIST = { data: [summary, PERSON_SUMMARY], next_cursor: null };
+const PARTY_LIST = { data: [summary, PERSON_SUMMARY], next_cursor: null };
 
 export const CONTACTS = {
   data: [
@@ -182,7 +182,7 @@ const catalog = (key: string, items: readonly (readonly [string, string])[]) => 
   })),
 });
 
-export const CATALOGS = {
+const CATALOGS = {
   identification_types: catalog('identification_types', [
     ['NIT', 'NIT'],
     ['CC', 'Cédula de ciudadanía'],

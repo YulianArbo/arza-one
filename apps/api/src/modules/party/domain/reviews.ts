@@ -3,7 +3,7 @@ import type { DueDiligenceState } from '@arza/contracts';
 // Conocimiento del tercero (ficha 17.3): vigencia de la aprobación y estado que muestra la ficha.
 
 /** Meses entre una aprobación y la siguiente revisión, si quien aprueba no fija otra fecha. */
-export const REVIEW_MONTHS = 12;
+const REVIEW_MONTHS = 12;
 
 /** Misma fecha doce meses después; el 29 de febrero pasa al 28 si el año no es bisiesto. */
 export function defaultNextReview(today: string): string {

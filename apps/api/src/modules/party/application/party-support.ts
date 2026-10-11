@@ -92,7 +92,7 @@ export function partyName(party: Party): string {
     : `${party.firstName ?? ''} ${party.lastName ?? ''}`.trim();
 }
 
-export function activeRoles(roles: readonly PartyRoleRow[]): PartyRole[] {
+function activeRoles(roles: readonly PartyRoleRow[]): PartyRole[] {
   return roles
     .filter((row) => row.status === 'active')
     .map((row) => partyRoleSchema.parse(row.role));
