@@ -36,13 +36,13 @@ describe('verificación diaria de la auditoría', () => {
   it('el worker la programa a las 3:00 de la madrugada, hora de Bogotá', async () => {
     await expect
       .poll(async () => queue.getJobSchedulers(), { timeout: 10_000 })
-      .toEqual([
+      .toContainEqual(
         expect.objectContaining({
           key: 'audit.chain-check.daily',
           pattern: '0 3 * * *',
           tz: 'America/Bogota',
         }),
-      ]);
+      );
   });
 
   it('verifica cada empresa y deja la verificación en su auditoría', async () => {

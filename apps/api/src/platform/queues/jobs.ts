@@ -60,6 +60,12 @@ const auditChainCheckJobSchema = z.object({});
  */
 const fileScanJobSchema = tenantJobSchema.extend({ fileId: z.uuid() });
 
+/**
+ * Escalamiento de las tareas vencidas (B15, ficha 17.5). Es del sistema y no lleva empresa: el
+ * worker revisa cada empresa que tiene tareas vencidas.
+ */
+const wfOverdueCheckJobSchema = z.object({});
+
 export type TenantJob = z.infer<typeof tenantJobSchema>;
 export type ExampleEmailJob = z.infer<typeof exampleEmailJobSchema>;
 export type AccountEmailJob = z.infer<typeof accountEmailJobSchema>;
@@ -88,11 +94,18 @@ export const JOBS = {
     name: 'doc.file-scan',
     schema: fileScanJobSchema,
   },
+  wfOverdueCheck: {
+    queue: QUEUES.platform,
+    name: 'wf.overdue-check',
+    schema: wfOverdueCheckJobSchema,
+  },
 } as const;
 
 /** Trabajos programados: el worker los registra al arrancar (expresión cron, hora de Bogotá). */
 export const SCHEDULED_JOBS = [
   { id: 'audit.chain-check.daily', job: JOBS.auditChainCheck, pattern: '0 3 * * *' },
+  // Cada 15 minutos: una tarea vencida escala al jefe inmediato a lo sumo un cuarto de hora después.
+  { id: 'wf.overdue-check.quarter-hour', job: JOBS.wfOverdueCheck, pattern: '*/15 * * * *' },
 ] as const;
 
 export type JobDefinition = (typeof JOBS)[keyof typeof JOBS];

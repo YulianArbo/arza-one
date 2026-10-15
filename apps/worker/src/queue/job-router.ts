@@ -8,6 +8,7 @@ import {
 } from '../jobs/audit-chain-check.js';
 import { processExampleEmail, type ExampleEmailDependencies } from '../jobs/example-email.js';
 import { processFileScan, type FileScanJobDependencies } from '../jobs/file-scan.js';
+import { processOverdueCheck, type OverdueCheckJobDependencies } from '../jobs/overdue-check.js';
 
 /** Lo que un procesador necesita saber del trabajo. */
 interface IncomingJob {
@@ -20,7 +21,8 @@ export type JobHandler = (job: IncomingJob) => Promise<void>;
 export type JobDependencies = ExampleEmailDependencies &
   AccountEmailJobDependencies &
   AuditChainCheckDependencies &
-  FileScanJobDependencies;
+  FileScanJobDependencies &
+  OverdueCheckJobDependencies;
 
 /** Procesadores de cada trabajo, por su nombre. Cada bloque agrega los suyos. */
 function handlers(deps: JobDependencies): ReadonlyMap<string, JobHandler> {
@@ -42,6 +44,12 @@ function handlers(deps: JobDependencies): ReadonlyMap<string, JobHandler> {
       JOBS.fileScan.name,
       async (job) => {
         await processFileScan(job.data, deps);
+      },
+    ],
+    [
+      JOBS.wfOverdueCheck.name,
+      async () => {
+        await processOverdueCheck(deps);
       },
     ],
   ]);
