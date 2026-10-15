@@ -103,6 +103,7 @@ export const downloadLinkResponseSchema = z.object({
 export type CreateUploadRequest = z.infer<typeof createUploadRequestSchema>;
 export type UploadLinkResponse = z.infer<typeof uploadLinkResponseSchema>;
 export type FileView = z.infer<typeof fileSchema>;
+export type FileListResponse = z.infer<typeof fileListResponseSchema>;
 export type FileStatus = z.infer<typeof fileStatusSchema>;
 export type FileRejection = z.infer<typeof fileRejectionSchema>;
 export type DownloadLinkResponse = z.infer<typeof downloadLinkResponseSchema>;

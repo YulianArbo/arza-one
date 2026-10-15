@@ -50,6 +50,8 @@ export function buildContentSecurityPolicy(options: ContentSecurityPolicyOptions
     // Radix posiciona menús y ventanas con estilos en línea; el manual solo los prohíbe en scripts.
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
+    // Vista previa de un PDF (B14): se muestra desde la memoria del navegador, nunca desde la API.
+    "frame-src 'self' blob:",
     "font-src 'self'",
     `connect-src 'self' ${options.apiOrigin}`,
     "object-src 'none'",
