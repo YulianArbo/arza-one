@@ -53,9 +53,10 @@ export async function scanWithClamav(
     socket.on('end', () => {
       resolve(Buffer.concat(received).toString('utf8'));
     });
+    // Sin cerrar nuestro lado: tras ese aviso, la red de Docker corta antes de la respuesta.
+    // clamd cierra la conexión después de responder.
     socket.on('connect', () => {
       for (const part of frames(content)) socket.write(part);
-      socket.end();
     });
   });
   return parseVerdict(reply);

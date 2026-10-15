@@ -1,4 +1,6 @@
 import { randomBytes } from 'node:crypto';
+import { connect } from 'node:net';
+import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 
 import { GenericContainer, Wait, type StartedTestContainer } from 'testcontainers';
@@ -97,6 +99,34 @@ const CLAMD_CONFIG = [
   '',
 ].join('\n');
 
+/** Respuesta de clamd a «PING»; vacía si el puerto aún no llega al demonio. */
+async function ping(antivirus: TestAntivirus): Promise<string> {
+  return new Promise((resolve) => {
+    const socket = connect(antivirus);
+    const received: Buffer[] = [];
+    socket.on('data', (data: Buffer) => received.push(data));
+    socket.on('error', () => {
+      resolve('');
+    });
+    socket.on('end', () => {
+      resolve(Buffer.concat(received).toString());
+    });
+    socket.on('connect', () => socket.write(`zPING${String.fromCharCode(0)}`));
+  });
+}
+
+/**
+ * clamd anuncia que está listo un instante antes de atender: con el equipo cargado, la primera
+ * conexión se cierra sin respuesta. Se espera hasta que conteste PONG (como mucho 30 s).
+ */
+async function untilAnswers(antivirus: TestAntivirus): Promise<void> {
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    if ((await ping(antivirus)).startsWith('PONG')) return;
+    await delay(500);
+  }
+  throw new Error('ClamAV de pruebas no respondió a PING.');
+}
+
 export async function startClamav(): Promise<{
   container: StartedTestContainer;
   antivirus: TestAntivirus;
@@ -114,5 +144,7 @@ export async function startClamav(): Promise<{
   // En Docker Desktop, «localhost» puede ir por IPv6 a un puerto que acepta la conexión y la
   // cierra sin responder; 127.0.0.1 llega siempre al contenedor.
   const host = container.getHost() === 'localhost' ? '127.0.0.1' : container.getHost();
-  return { container, antivirus: { host, port: container.getMappedPort(3310) } };
+  const antivirus = { host, port: container.getMappedPort(3310) };
+  await untilAnswers(antivirus);
+  return { container, antivirus };
 }
