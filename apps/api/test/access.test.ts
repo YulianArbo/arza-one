@@ -82,11 +82,12 @@ describe('todas las rutas reales de la API declaran su acceso', () => {
     }
   });
 
-  it('las rutas públicas son solo las de acceso y las de estado del sistema', () => {
+  it('las rutas públicas son solo las de acceso, las de estado y los enlaces de archivos', () => {
     const open = routes.filter((route) => route.access === 'public').map((route) => route.path);
     for (const path of open) {
+      // Enlaces temporales de archivos (B14): la llave del enlace es la autorización.
       expect(path).toMatch(
-        /^\/(health|version|v1\/auth\/(login|password\/\w+|invitation\/accept))$/,
+        /^\/(health|version|v1\/auth\/(login|password\/\w+|invitation\/accept)|v1\/files\/(uploads|downloads)\/:token)$/,
       );
     }
   });
