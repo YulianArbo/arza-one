@@ -79,6 +79,18 @@ export async function isActiveInternalUser(
   return (await tx.user.count({ where: { id: userId, ...ACTIVE_INTERNAL } })) > 0;
 }
 
+/** Colaborador interno activo con ese correo, o null. */
+export async function activeInternalUserByEmail(
+  tx: TenantTransaction,
+  email: string,
+): Promise<string | null> {
+  const user = await tx.user.findFirst({
+    where: { email, ...ACTIVE_INTERNAL },
+    select: { id: true },
+  });
+  return user?.id ?? null;
+}
+
 /** De los códigos dados, los de roles que existen en la empresa. */
 export async function existingRoleCodes(
   tx: TenantTransaction,

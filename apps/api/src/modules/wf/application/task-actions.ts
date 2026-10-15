@@ -16,7 +16,7 @@ import type { TenantTransaction } from '../../../platform/database/tenant-contex
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
 import { addOutboxEvent } from '../../../platform/outbox/outbox.js';
 import { businessHoursDeadline } from '../../core/index.js';
-import { isActiveInternalUser } from '../../iam/index.js';
+import { activeInternalUserByEmail, isActiveInternalUser } from '../../iam/index.js';
 import { stateOf } from '../domain/engine.js';
 import { canHandOver, isOpen, taskReason, type TaskActor } from '../domain/task-rules.js';
 import { findFlow } from '../infrastructure/flow-store.js';
@@ -102,23 +102,24 @@ export class TaskActionsUseCase {
       if (!canHandOver(reason)) {
         throw taskActionNotAllowed('Solo la persona responsable puede delegar esta tarea.');
       }
-      await this.assertReceiver(tx, input.to_user_id, request.principal.userId);
+      const receiver = await this.receiverOf(tx, input, request.principal.userId);
       await tx.workflowTask.update({
         where: { id },
         data: {
-          assigneeId: input.to_user_id,
+          assigneeId: receiver,
           delegatedFromId: request.principal.userId,
           ...(task.status === 'in_progress' ? { status: 'pending' } : {}),
         },
       });
-      await this.handedOver(tx, context, task, { action: 'wf.task.delegate', input });
+      const change = { action: 'wf.task.delegate', receiver, comment: input.comment };
+      await this.handedOver(tx, context, task, change);
     });
   }
 
   /** Quien reasigna tareas la entrega a otra persona con un plazo nuevo desde ahora. */
   async reassign(request: Request, id: string, input: HandOverTaskRequest): Promise<void> {
     await this.run(request, id, async (tx, context, { task }) => {
-      await this.assertReceiver(tx, input.to_user_id, null);
+      const receiver = await this.receiverOf(tx, input, null);
       const instance = await tx.workflowInstance.findFirstOrThrow({
         where: { id: task.instanceId },
       });
@@ -127,7 +128,7 @@ export class TaskActionsUseCase {
       await tx.workflowTask.update({
         where: { id },
         data: {
-          assigneeId: input.to_user_id,
+          assigneeId: receiver,
           delegatedFromId: null,
           escalatedToId: null,
           escalatedAt: null,
@@ -135,7 +136,8 @@ export class TaskActionsUseCase {
           dueAt: hours === null ? null : await businessHoursDeadline(tx, context.at, hours),
         },
       });
-      await this.handedOver(tx, context, task, { action: 'wf.task.reassign', input });
+      const change = { action: 'wf.task.reassign', receiver, comment: input.comment };
+      await this.handedOver(tx, context, task, change);
     });
   }
 
@@ -181,28 +183,42 @@ export class TaskActionsUseCase {
     });
   }
 
-  private async assertReceiver(tx: TenantTransaction, userId: string, self: string | null) {
-    if (userId === self || !(await isActiveInternalUser(tx, userId))) throw personInvalid();
+  /** Quien recibe la tarea, por identificador o por correo: un colaborador activo, no uno mismo. */
+  private async receiverOf(
+    tx: TenantTransaction,
+    input: HandOverTaskRequest,
+    self: string | null,
+  ): Promise<string> {
+    const byEmail =
+      input.to_email === undefined ? null : await activeInternalUserByEmail(tx, input.to_email);
+    const receiver = input.to_user_id ?? byEmail;
+    const valid =
+      receiver !== null && receiver !== self && (await isActiveInternalUser(tx, receiver));
+    if (!valid) throw personInvalid();
+    return receiver;
   }
 
   private async handedOver(
     tx: TenantTransaction,
     context: WfContext,
     task: WorkflowTask,
-    change: { readonly action: string; readonly input: HandOverTaskRequest },
+    change: {
+      readonly action: string;
+      readonly receiver: string;
+      readonly comment: string | undefined;
+    },
   ): Promise<void> {
-    const { to_user_id, comment } = change.input;
     await this.audit(tx, context, change.action, task, {
       from_user_id: task.assigneeId,
-      to_user_id,
-      comment: comment ?? null,
+      to_user_id: change.receiver,
+      comment: change.comment ?? null,
     });
     await addOutboxEvent(tx, {
       tenantId: context.tenantId,
       eventType: 'wf.task.assigned',
       actorId: context.userId,
       occurredAt: context.at,
-      payload: { task_id: task.id, instance_id: task.instanceId, assignee_id: to_user_id },
+      payload: { task_id: task.id, instance_id: task.instanceId, assignee_id: change.receiver },
     });
   }
 

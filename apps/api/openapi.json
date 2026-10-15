@@ -19265,10 +19265,14 @@
         "type": "object",
         "properties": {
           "to_user_id": {
+            "description": "Persona interna activa que recibe la tarea",
             "type": "string",
             "format": "uuid",
-            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-            "description": "Persona interna activa que recibe la tarea"
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "to_email": {
+            "description": "O su correo, para quien no ve la lista de usuarios",
+            "type": "string"
           },
           "comment": {
             "type": "string",
@@ -19276,9 +19280,6 @@
             "maxLength": 2000
           }
         },
-        "required": [
-          "to_user_id"
-        ],
         "additionalProperties": false
       },
       "InstanceResponse_Output": {

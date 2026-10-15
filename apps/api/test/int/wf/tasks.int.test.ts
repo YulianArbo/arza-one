@@ -79,6 +79,23 @@ describe('delegación', () => {
   });
 });
 
+describe('delegación por correo', () => {
+  it('quien no ve la lista de usuarios delega escribiendo el correo', async () => {
+    const { boss, id, review } = await inReview();
+    const colleague = await scenario.people('colega-correo', ['COLABORADOR']);
+    await scenario.act(boss, review.id, 'delegate', { to_email: colleague.email.toUpperCase() });
+    expect((await scenario.onlyOpenTask(id)).assigneeId).toBe(colleague.id);
+    const unknown = await scenario.post(
+      `/v1/tasks/${review.id}/actions/delegate`,
+      colleague.session,
+      {
+        to_email: 'nadie@ejemplo.test',
+      },
+    );
+    expect(errorCode(unknown)).toBe('WF_PERSON_INVALID');
+  });
+});
+
 describe('delegación de aprobaciones (B10)', () => {
   it('con una delegación de aprobaciones vigente (B10), el delegado aprueba a nombre del jefe', async () => {
     const { boss, id, review } = await inReview();

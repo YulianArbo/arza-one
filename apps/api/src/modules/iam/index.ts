@@ -9,6 +9,7 @@ export {
 } from './application/account-email.js';
 export { peopleById, usersInPosition } from './infrastructure/user-directory-store.js';
 export {
+  activeInternalUserByEmail,
   activeRoleCodes,
   activeUsersInPosition,
   delegationsTo,

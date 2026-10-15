@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { emailSchema } from '../iam/auth.js';
 import { stateKindSchema, taskPrioritySchema, wfKeySchema } from './definitions.js';
 
 // Contratos de los trámites, su historial y las tareas (M04, B15): bandeja «Mis tareas»,
@@ -126,10 +127,15 @@ export const rejectTaskRequestSchema = z.strictObject({
   comment: commentSchema.describe('El motivo del rechazo es obligatorio'),
 });
 
-export const handOverTaskRequestSchema = z.strictObject({
-  to_user_id: z.uuid().describe('Persona interna activa que recibe la tarea'),
-  comment: commentSchema.optional(),
-});
+export const handOverTaskRequestSchema = z
+  .strictObject({
+    to_user_id: z.uuid().optional().describe('Persona interna activa que recibe la tarea'),
+    to_email: emailSchema.optional().describe('O su correo, para quien no ve la lista de usuarios'),
+    comment: commentSchema.optional(),
+  })
+  .refine((value) => (value.to_user_id === undefined) !== (value.to_email === undefined), {
+    message: 'Indique quién recibe: su identificador o su correo, no los dos.',
+  });
 
 export const instanceActionRequestSchema = z.strictObject({ comment: commentSchema.optional() });
 
