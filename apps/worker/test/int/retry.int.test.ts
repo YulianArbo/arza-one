@@ -6,6 +6,7 @@ import {
   systemClock,
   type ExampleEmailJob,
 } from '@arza/api/platform';
+import { fileStorageFrom } from '@arza/api/doc';
 import { Queue, QueueEvents } from 'bullmq';
 import { pino } from 'pino';
 import { v7 as uuidv7 } from 'uuid';
@@ -55,6 +56,8 @@ beforeAll(async () => {
     mailer: flakyMailer,
     clock: systemClock,
     appUrl: config.APP_URL,
+    storage: fileStorageFrom(config),
+    antivirus: async () => Promise.reject(new Error('no se usa en esta prueba')),
   });
   workers = startQueueWorkers(router, {
     connection: { ...connection, maxRetriesPerRequest: null },

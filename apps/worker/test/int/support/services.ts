@@ -13,6 +13,14 @@ declare module 'vitest' {
     database: { readonly appUrl: string; readonly migrationUrl: string };
     valkeyUrl: string;
     mailpit: { readonly smtpHost: string; readonly smtpPort: number; readonly apiUrl: string };
+    storage: {
+      readonly endpoint: string;
+      readonly region: string;
+      readonly bucket: string;
+      readonly accessKeyId: string;
+      readonly secretAccessKey: string;
+    };
+    antivirus: { readonly host: string; readonly port: number };
   }
 }
 
@@ -22,6 +30,8 @@ declare module 'vitest' {
  */
 export function workerConfig(valkeyDatabase: number): WorkerEnv {
   const mailpit = inject('mailpit');
+  const storage = inject('storage');
+  const antivirus = inject('antivirus');
   return loadWorkerConfig({
     NODE_ENV: 'test',
     APP_ENV: 'local',
@@ -32,6 +42,13 @@ export function workerConfig(valkeyDatabase: number): WorkerEnv {
     SMTP_HOST: mailpit.smtpHost,
     SMTP_PORT: String(mailpit.smtpPort),
     MAIL_FROM: 'ARZA ONE <no-responder@arza-one.test>',
+    S3_ENDPOINT: storage.endpoint,
+    S3_REGION: storage.region,
+    S3_BUCKET: storage.bucket,
+    S3_ACCESS_KEY: storage.accessKeyId,
+    S3_SECRET_KEY: storage.secretAccessKey,
+    CLAMAV_HOST: antivirus.host,
+    CLAMAV_PORT: String(antivirus.port),
   });
 }
 
