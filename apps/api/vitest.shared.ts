@@ -48,6 +48,7 @@ export const DATABASE_BOUND_FILES = [
   'src/modules/iam/infrastructure/assignment-store.ts',
   'src/modules/iam/infrastructure/role-store.ts',
   'src/modules/iam/infrastructure/user-directory-store.ts',
+  'src/modules/iam/infrastructure/people-directory.ts',
   // Auditoría y trazabilidad (B11): todo menos el formato CSV, que se prueba solo.
   'src/modules/audit/application/**/*.ts',
   'src/modules/audit/infrastructure/**/*.ts',

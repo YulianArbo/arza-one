@@ -1,10 +1,12 @@
 import { z } from 'zod';
 
-// Las semillas de acceso, del núcleo y los terceros ficticios son de sus módulos: este punto de entrada las reúne con la
-// de la plataforma, como app.module.ts reúne los módulos.
+// Las semillas de acceso, del núcleo, los terceros ficticios y el flujo de prueba son de sus
+// módulos: este punto de entrada las reúne con la de la plataforma, como app.module.ts reúne los
+// módulos.
 import { seedCore } from '../../../modules/core/index.js';
 import { seedAccessControl } from '../../../modules/iam/index.js';
 import { seedPartyDemo } from '../../../modules/party/index.js';
+import { seedWorkflowDemo } from '../../../modules/wf/index.js';
 import { systemClock } from '../../clock/clock.js';
 import { DatabaseService } from '../database.service.js';
 import { DEMO_TENANTS, PLATFORM_TENANT } from './seed-data.js';
@@ -41,6 +43,11 @@ async function main(): Promise<void> {
     );
     if (withDemo) {
       await seedPartyDemo(
+        database,
+        DEMO_TENANTS.map((tenant) => tenant.id),
+        systemClock,
+      );
+      await seedWorkflowDemo(
         database,
         DEMO_TENANTS.map((tenant) => tenant.id),
         systemClock,

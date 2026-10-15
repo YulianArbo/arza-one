@@ -261,10 +261,12 @@ export const definitionListResponseSchema = z.object({
   data: z.array(definitionSummarySchema).describe('La última versión de cada flujo, por nombre'),
 });
 
+/** Datos del registro que el módulo dueño entrega para evaluar las condiciones. */
+export const workflowFactsSchema = z.record(wfKeySchema, scalarSchema);
+
 export const startTestInstanceRequestSchema = z.strictObject({
   title: z.string().trim().min(3).max(160).describe('Asunto del trámite de prueba'),
-  facts: z
-    .record(wfKeySchema, scalarSchema)
+  facts: workflowFactsSchema
     .optional()
     .describe('Datos del registro para las condiciones, como {"amount": 6000000}'),
 });
@@ -278,4 +280,4 @@ export type DefinitionListResponse = z.infer<typeof definitionListResponseSchema
 export type StartTestInstanceRequest = z.infer<typeof startTestInstanceRequestSchema>;
 export type StateKind = z.infer<typeof stateKindSchema>;
 export type TaskPriority = z.infer<typeof taskPrioritySchema>;
-export type WorkflowFacts = Readonly<Record<string, string | number | boolean>>;
+export type WorkflowFacts = Readonly<z.infer<typeof workflowFactsSchema>>;

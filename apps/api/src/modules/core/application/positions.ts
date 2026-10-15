@@ -171,3 +171,15 @@ export class PositionsUseCase {
     });
   }
 }
+
+/** Cargo al que reporta el cargo dado (el del jefe inmediato), o null en la cabeza. */
+export async function superiorPositionId(
+  tx: TenantTransaction,
+  positionId: string,
+): Promise<string | null> {
+  const position = await tx.position.findFirst({
+    where: { id: positionId, deletedAt: null },
+    select: { reportsToId: true },
+  });
+  return position?.reportsToId ?? null;
+}

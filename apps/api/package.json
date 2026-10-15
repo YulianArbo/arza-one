@@ -23,6 +23,10 @@
     "./doc": {
       "types": "./dist/modules/doc/index.d.ts",
       "default": "./dist/modules/doc/index.js"
+    },
+    "./wf": {
+      "types": "./dist/modules/wf/index.d.ts",
+      "default": "./dist/modules/wf/index.js"
     }
   },
   "scripts": {

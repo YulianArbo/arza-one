@@ -6,5 +6,6 @@ export { seedCore } from './application/core-seed.js';
 export { nextBusinessCode } from './application/sequences.js';
 export { businessDeadline, businessHoursDeadline } from './application/calendar.js';
 export { workScheduleOn } from './application/parameters.js';
+export { superiorPositionId } from './application/positions.js';
 export { isActiveCatalogCode } from './application/catalogs.js';
 export { bogotaToday, fromCalendarDate, toCalendarDate } from './domain/calendar-date.js';

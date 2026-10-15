@@ -437,3 +437,21 @@ GRANT SELECT, INSERT, UPDATE ON "wf_instances" TO app_user;
 GRANT SELECT, INSERT ON "wf_history" TO app_user;
 GRANT SELECT, INSERT, UPDATE ON "wf_tasks" TO app_user;
 GRANT SELECT, INSERT ON "wf_approvals" TO app_user;
+
+-- Escalamiento de tareas vencidas ---------------------------------------------------------------
+-- El worker escala las tareas vencidas de todas las empresas. Para saber en cuáles hay, sin leer
+-- nada más fuera de la seguridad por fila, solo obtiene los identificadores de esas empresas;
+-- luego trabaja en cada una con su contexto fijado, como la API. La función corre como su dueño,
+-- con una política de solo lectura para él, igual que aud_tenant_ids (B11).
+
+CREATE POLICY "wf_tasks_overdue_lookup" ON "wf_tasks"
+    FOR SELECT TO migration_user USING (true);
+
+CREATE FUNCTION "wf_tenants_with_overdue_tasks"(at TIMESTAMPTZ) RETURNS SETOF UUID
+    LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
+    AS $$ SELECT DISTINCT tenant_id FROM wf_tasks
+          WHERE status IN ('pending', 'in_progress') AND due_at < at AND deleted_at IS NULL
+          ORDER BY tenant_id $$;
+
+REVOKE EXECUTE ON FUNCTION "wf_tenants_with_overdue_tasks"(TIMESTAMPTZ) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION "wf_tenants_with_overdue_tasks"(TIMESTAMPTZ) TO app_user;

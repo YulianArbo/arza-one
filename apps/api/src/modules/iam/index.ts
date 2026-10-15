@@ -8,3 +8,12 @@ export {
   type AccountEmailDependencies,
 } from './application/account-email.js';
 export { peopleById, usersInPosition } from './infrastructure/user-directory-store.js';
+export {
+  activeRoleCodes,
+  activeUsersInPosition,
+  delegationsTo,
+  existingRoleCodes,
+  isActiveInternalUser,
+  positionOfUser,
+  type ReceivedDelegation,
+} from './infrastructure/people-directory.js';
