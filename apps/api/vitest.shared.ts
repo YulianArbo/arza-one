@@ -64,6 +64,10 @@ export const DATABASE_BOUND_FILES = [
   'src/modules/doc/application/**/*.ts',
   'src/modules/doc/infrastructure/**/*.ts',
   'src/modules/doc/interface/**/*.ts',
+  // Flujos y tareas (B15): todo menos el motor del dominio, que se prueba solo.
+  'src/modules/wf/application/**/*.ts',
+  'src/modules/wf/infrastructure/**/*.ts',
+  'src/modules/wf/interface/**/*.ts',
 ];
 
 /** Procesos que solo arrancan algo; se prueban a mano o como proceso real. */
