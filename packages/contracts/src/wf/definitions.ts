@@ -120,7 +120,7 @@ function duplicates(values: readonly string[]): string[] {
 function stateProblems(state: StateInput): string[] {
   const problems: string[] = [];
   const name = `«${state.label}»`;
-  if (state.kind === 'approval' && state.approval === null) {
+  if (state.kind === 'approval' && (state.approval?.approvers.length ?? 0) === 0) {
     problems.push(`El estado ${name} es de aprobación y no dice quién aprueba.`);
   }
   if (state.kind !== 'approval' && state.approval !== null) {

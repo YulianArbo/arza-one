@@ -40,7 +40,12 @@ export interface NavigationGroup {
 // Módulos del menú lateral, en el orden de la figura 16.3.
 const MODULES: readonly NavigationItem[] = [
   { slug: '', label: 'Inicio', icon: House, permissions: [] },
-  { slug: 'mis-tareas', label: 'Mis tareas', icon: ListTodo, permissions: [], block: 'B15' },
+  {
+    slug: 'mis-tareas',
+    label: 'Mis tareas',
+    icon: ListTodo,
+    permissions: ['wf.task.work', 'wf.task.read_all'],
+  },
   { slug: 'terceros', label: 'Terceros', icon: BookUser, permissions: ['party.read'] },
   {
     slug: 'comercial',
@@ -124,6 +129,7 @@ const MODULES: readonly NavigationItem[] = [
       'iam.role.read',
       'iam.delegation.manage',
       'iam.access_review.read',
+      'wf.definition.manage',
     ],
   },
   {

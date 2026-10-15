@@ -13,11 +13,13 @@ import {
   Repeat,
   Settings2,
   Users,
+  Workflow,
 } from 'lucide-react';
 import Link from 'next/link';
 import type { JSX, ReactNode } from 'react';
 
 import { usePermissions } from '../session/permissions';
+import { WF_PATHS } from '../workflows/labels';
 import { ADMIN_PATHS } from './labels';
 
 interface Section {
@@ -56,6 +58,13 @@ const SECTIONS: readonly Section[] = [
     description: 'Informe para la Dirección: usuarios, roles, último ingreso y cuentas sin uso.',
     permission: 'iam.access_review.read',
     icon: <ClipboardCheck aria-hidden="true" />,
+  },
+  {
+    href: WF_PATHS.definitions,
+    title: 'Flujos',
+    description: 'Estados, transiciones, aprobaciones y plazos de cada proceso, por versiones.',
+    permission: 'wf.definition.manage',
+    icon: <Workflow aria-hidden="true" />,
   },
   {
     href: ADMIN_PATHS.company,
