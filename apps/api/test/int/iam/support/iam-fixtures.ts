@@ -76,7 +76,7 @@ export async function createIamTestApp(clock: Clock): Promise<NestExpressApplica
 }
 
 /** Variables S3_* del Garage de las pruebas (B14). */
-export function storageEnv(): Record<string, string> {
+function storageEnv(): Record<string, string> {
   const storage = inject('storage');
   return {
     S3_ENDPOINT: storage.endpoint,

@@ -29,7 +29,7 @@ function frames(content: Buffer): Buffer[] {
 }
 
 /** Interpreta «stream: OK» o «stream: <firma> FOUND»; cualquier otra respuesta es un error. */
-export function parseVerdict(reply: string): ScanVerdict {
+function parseVerdict(reply: string): ScanVerdict {
   const text = reply.replace(/\0/g, '').trim();
   if (text === 'stream: OK') return { infected: false };
   const found = /^stream: (.+) FOUND$/.exec(text);

@@ -56,7 +56,7 @@ export interface FileDownload {
 /** shortcut: la lista trae los 200 más recientes, sin páginas; páginas cuando haya expedientes. */
 const LIST_LIMIT = 200;
 
-export function fileView(file: File): FileView {
+function fileView(file: File): FileView {
   return {
     id: file.id,
     file_name: file.fileName,
