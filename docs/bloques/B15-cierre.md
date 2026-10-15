@@ -64,7 +64,34 @@ que actúan en flujos (todos menos el Auditor, que solo lee). Anexo G y
 
 ### Resultado de `pnpm check`
 
-RESULTADOS_PENDIENTES
+En verde el 15/10/2026, paso por paso (ver las notas):
+
+| Paso                    | Resultado                                                                                        |
+| ----------------------- | ------------------------------------------------------------------------------------------------ |
+| Formato                 | Sin problemas en los archivos del proyecto (nota 1)                                              |
+| Estilo y tipos          | Sin problemas                                                                                    |
+| Fronteras entre módulos | Sin problemas: el motor usa iam y el núcleo solo por sus índices; el worker, por `@arza/api/wf`  |
+| Código sin usar (knip)  | Sin problemas                                                                                    |
+| Pruebas unitarias       | API 278, web 272, contratos 76, worker 37, interfaz 19, configuración 24, guiones 140            |
+| Pruebas de integración  | API 490 en 51 archivos (6 archivos nuevos de flujos), worker 19 (uno nuevo de vencimientos)      |
+| Cobertura               | Por encima de lo que exige el capítulo 21 (ramas de la API en integración: 85,25 %, mínimo 85 %) |
+| Pruebas en navegador    | Todas, incluidas 7 nuevas de flujos y tareas en modo claro y oscuro                              |
+| Búsqueda de secretos    | Ninguno                                                                                          |
+| Migraciones             | Desde cero en la prueba de integración, sin diferencias con el modelo                            |
+
+**Cosas que debe saber de esta verificación:**
+
+1. **Las mismas carpetas ajenas de B14.** `apps/api/.agents`, `apps/api/.claude`,
+   `apps/api/.windsurf` y `.claude/worktrees/…` no son del proyecto ni están en git, y hacen que el
+   paso de formato marque 179 archivos. No las toqué. Revisé el formato del proyecto sin ellas
+   (todo bien) y corrí los demás pasos uno por uno; ESLint, excluyendo solo esas cuatro carpetas.
+2. **Pruebas un paquete a la vez** (`turbo --concurrency=1`), como en B14, por la memoria del
+   equipo. En la primera pasada Docker dejó de responder a mitad de las pruebas de integración y
+   la prueba de arranque de la API (la misma de B11 y B14) se pasó de tiempo; en la segunda pasada
+   las dos pasaron sin cambiar nada.
+3. **Dos correcciones que salieron de la verificación:** knip encontró ayudas exportadas que solo
+   usaba su archivo y una función que nadie usaba (commit `f461d6e`), y una prueba de B10 que
+   contaba 201 permisos ahora cuenta 202 por el permiso nuevo (commit `aea5ec0`).
 
 ## Cómo lo prueba usted, paso a paso
 
@@ -213,4 +240,17 @@ Y estas, que tomé al construir:
 
 ## Commits
 
-COMMITS_PENDIENTES
+| Commit    | Qué hizo                                                                                  |
+| --------- | ----------------------------------------------------------------------------------------- |
+| `0a5e927` | Permiso «Atender sus tareas» (`wf.task.work`) para los roles que actúan en flujos         |
+| `499db0c` | Contratos, las siete tablas `wf_` con sus reglas y los plazos en horas hábiles del núcleo |
+| `5b4f27b` | Reglas del motor: transiciones, condiciones, aprobaciones y quién atiende cada tarea      |
+| `9070cf7` | Motor en ejecución, bandeja de tareas y rutas de la API, con el flujo de demostración     |
+| `f2f43fa` | Pruebas de integración: motor, versiones, permisos, aislamiento y auditoría               |
+| `532c2d5` | Worker: escalamiento de tareas vencidas cada 15 minutos                                   |
+| `0472d6c` | Delegar y reasignar por correo                                                            |
+| `6c13a7c` | Pantallas: «Mis tareas», tarea, trámite, tablero y editor de flujos                       |
+| `6ed2322` | Diccionario de datos, README, textos de la auditoría                                      |
+| `f461d6e` | Una función sin uso eliminada y ayudas de un solo archivo privadas (knip)                 |
+| `aea5ec0` | La prueba del catálogo cuenta el permiso nuevo                                            |
+| (este)    | Cierre del bloque                                                                         |
