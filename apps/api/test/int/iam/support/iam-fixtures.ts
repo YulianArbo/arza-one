@@ -67,8 +67,24 @@ function iamValkeyUrl(): string {
 export async function createIamTestApp(clock: Clock): Promise<NestExpressApplication> {
   return createTestApp({
     clock,
-    env: { DATABASE_URL: integrationDatabase().appUrl, VALKEY_URL: iamValkeyUrl() },
+    env: {
+      DATABASE_URL: integrationDatabase().appUrl,
+      VALKEY_URL: iamValkeyUrl(),
+      ...storageEnv(),
+    },
   });
+}
+
+/** Variables S3_* del Garage de las pruebas (B14). */
+export function storageEnv(): Record<string, string> {
+  const storage = inject('storage');
+  return {
+    S3_ENDPOINT: storage.endpoint,
+    S3_REGION: storage.region,
+    S3_BUCKET: storage.bucket,
+    S3_ACCESS_KEY: storage.accessKeyId,
+    S3_SECRET_KEY: storage.secretAccessKey,
+  };
 }
 
 let ipCounter = 0;

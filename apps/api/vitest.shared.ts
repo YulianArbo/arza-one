@@ -59,6 +59,11 @@ export const DATABASE_BOUND_FILES = [
   // Terceros (B13): todo menos las reglas del dominio, que se prueban solas.
   'src/modules/party/application/**/*.ts',
   'src/modules/party/interface/**/*.ts',
+  // Archivos (B14): todo menos las reglas del dominio, que se prueban solas. El almacenamiento, el
+  // antivirus y los enlaces necesitan Garage, ClamAV y Valkey reales.
+  'src/modules/doc/application/**/*.ts',
+  'src/modules/doc/infrastructure/**/*.ts',
+  'src/modules/doc/interface/**/*.ts',
 ];
 
 /** Procesos que solo arrancan algo; se prueban a mano o como proceso real. */

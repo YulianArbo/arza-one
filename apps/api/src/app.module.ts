@@ -6,6 +6,7 @@ import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 
 import { AuditModule } from './modules/audit/index.js';
 import { CoreModule } from './modules/core/index.js';
+import { DocModule } from './modules/doc/index.js';
 import { IamModule } from './modules/iam/index.js';
 import { PartyModule } from './modules/party/index.js';
 import { AccessGuard } from './platform/access/access.guard.js';
@@ -59,6 +60,7 @@ export class AppModule {
         AuditModule,
         CoreModule,
         PartyModule,
+        DocModule,
       ],
       providers: [
         { provide: APP_GUARD, useClass: ThrottlerGuard },

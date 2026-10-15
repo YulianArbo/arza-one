@@ -19,6 +19,10 @@
     "./audit": {
       "types": "./dist/modules/audit/index.d.ts",
       "default": "./dist/modules/audit/index.js"
+    },
+    "./doc": {
+      "types": "./dist/modules/doc/index.d.ts",
+      "default": "./dist/modules/doc/index.js"
     }
   },
   "scripts": {

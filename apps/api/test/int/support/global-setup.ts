@@ -5,6 +5,7 @@ import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testconta
 import { GenericContainer, Wait, type StartedTestContainer } from 'testcontainers';
 import type { TestProject } from 'vitest/node';
 
+import { startClamav, startGarage } from './file-services.js';
 import type { IntegrationDatabase } from './integration-database.js';
 import { runPrismaCli } from './prisma-cli.js';
 
@@ -60,12 +61,19 @@ async function startPostgres(): Promise<{
 
 export default async function setup(project: TestProject): Promise<() => Promise<void>> {
   const valkeyPassword = throwawayPassword();
-  const [{ container, database }, valkey] = await Promise.all([
+  const [{ container, database }, valkey, garage, clamav] = await Promise.all([
     startPostgres(),
     startValkey(valkeyPassword),
+    startGarage(),
+    startClamav(),
   ]);
   const stopAll = async (): Promise<void> => {
-    await Promise.all([container.stop(), valkey.stop()]);
+    await Promise.all([
+      container.stop(),
+      valkey.stop(),
+      garage.container.stop(),
+      clamav.container.stop(),
+    ]);
   };
   // Las migraciones se aplican desde cero sobre una base vacía (capítulo 11.4, paso 7).
   if (runPrismaCli(['migrate', 'deploy'], database.migrationUrl).status !== 0) {
@@ -75,5 +83,7 @@ export default async function setup(project: TestProject): Promise<() => Promise
   project.provide('database', database);
   const valkeyHost = `${valkey.getHost()}:${String(valkey.getMappedPort(6379))}`;
   project.provide('valkeyUrl', `redis://:${valkeyPassword}@${valkeyHost}`);
+  project.provide('storage', garage.storage);
+  project.provide('antivirus', clamav.antivirus);
   return stopAll;
 }
