@@ -15,12 +15,9 @@ import { ALL_PARTIES, auditParty, findParty, lockParty, partyName } from './part
 // muestra también el historial del duplicado.
 
 async function moveRoles(tx: TenantTransaction, survivorId: string, duplicateId: string, at: Date) {
-  const [survivor, duplicate] = await Promise.all(
-    [survivorId, duplicateId].map((partyId) =>
-      tx.partyRole.findMany({ where: { partyId, deletedAt: null } }),
-    ),
-  );
-  const plan = roleMergePlan(survivor ?? [], duplicate ?? []);
+  const rolesOf = (partyId: string) =>
+    tx.partyRole.findMany({ where: { partyId, deletedAt: null } });
+  const plan = roleMergePlan(await rolesOf(survivorId), await rolesOf(duplicateId));
   await tx.partyRole.updateMany({
     where: { id: { in: plan.move } },
     data: { partyId: survivorId },
@@ -54,11 +51,9 @@ async function moveContacts(
     where: { id: { in: plan.retire } },
     data: { deletedAt: at, isPrimary: false },
   });
-  for (const id of plan.move) {
-    const row = contacts.find((contact) => contact.id === id);
-    if (row === undefined) continue;
+  for (const row of contacts.filter((contact) => plan.move.includes(contact.id))) {
     await tx.contact.update({
-      where: { id },
+      where: { id: row.id },
       data: {
         organizationId: row.organizationId === duplicateId ? survivorId : row.organizationId,
         personId: row.personId === duplicateId ? survivorId : row.personId,
