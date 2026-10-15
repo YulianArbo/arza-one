@@ -35,6 +35,7 @@ const SHUTDOWN_GRACE_MS = 25_000;
 class WorkerRuntime implements OnApplicationBootstrap, OnApplicationShutdown {
   private queueWorkers: QueueWorkers | undefined;
   private stopHeartbeat: (() => void) | undefined;
+  private scheduledJobs: JobQueue | undefined;
 
   constructor(
     @Inject(WORKER_CONFIG) private readonly config: WorkerEnv,
@@ -70,6 +71,7 @@ class WorkerRuntime implements OnApplicationBootstrap, OnApplicationShutdown {
    */
   private scheduleJobs(): void {
     const jobs = new JobQueue({ url: this.config.VALKEY_URL });
+    this.scheduledJobs = jobs;
     void Promise.all(SCHEDULED_JOBS.map(async (scheduled) => jobs.schedule(scheduled)))
       .then(() => {
         this.logger.info({ jobs: SCHEDULED_JOBS.map((item) => item.id) }, 'Trabajos programados');
@@ -86,6 +88,8 @@ class WorkerRuntime implements OnApplicationBootstrap, OnApplicationShutdown {
   async onApplicationShutdown(): Promise<void> {
     this.stopHeartbeat?.();
     await this.queueWorkers?.stop(SHUTDOWN_GRACE_MS);
+    // Si Valkey nunca respondió, el registro sigue pendiente: cerrarlo corta sus reintentos.
+    await this.scheduledJobs?.close();
     this.mailer.close();
     this.valkey.disconnect();
     this.logger.info('Worker detenido');
