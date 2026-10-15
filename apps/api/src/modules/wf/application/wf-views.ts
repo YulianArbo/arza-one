@@ -112,7 +112,7 @@ function actionLabel(flow: Flow, row: WorkflowHistory): string {
 }
 
 /** Historial del trámite: cada paso y cada decisión, del más antiguo al más reciente. */
-export function historyEntries(
+function historyEntries(
   flow: Flow,
   rows: {
     readonly steps: readonly WorkflowHistory[];

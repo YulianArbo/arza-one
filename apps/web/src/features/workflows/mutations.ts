@@ -9,7 +9,7 @@ import { WF_KEYS } from './queries';
 
 const REASON = 'Esta acción cambia un trámite.';
 
-export type TaskActionName = 'start' | 'complete' | 'approve' | 'reject' | 'delegate' | 'reassign';
+type TaskActionName = 'start' | 'complete' | 'approve' | 'reject' | 'delegate' | 'reassign';
 
 export interface TaskActionArgs {
   readonly action: TaskActionName;

@@ -10,7 +10,7 @@ const BOGOTA_OFFSET_MS = 5 * 60 * MINUTE_MS;
 const MAX_DAYS = 3660;
 
 /** Una jornada en minutos desde la medianoche: 08:00–12:00 es 480–720. */
-export interface Shift {
+interface Shift {
   readonly start: number;
   readonly end: number;
 }

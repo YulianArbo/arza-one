@@ -24,7 +24,7 @@ import { apiDatabase } from '../../support/integration-database.js';
 // personas con roles y un flujo de ejemplo que ensaya condición, aprobación en serie (jefe y
 // Calidad), en paralelo (Dirección y Finanzas), devolución y cancelación.
 
-export const LIMIT = 1000;
+const LIMIT = 1000;
 
 type State = CreateDefinitionRequest['states'][number];
 type Transition = CreateDefinitionRequest['transitions'][number];

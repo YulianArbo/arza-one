@@ -33,16 +33,6 @@ export function factsOf(instance: WorkflowInstance): WorkflowFacts {
   return parsed.success ? parsed.data : {};
 }
 
-/** La llegada al estado actual: el paso más reciente del historial. */
-export async function currentEntryId(tx: TenantTransaction, instanceId: string): Promise<string> {
-  const entry = await tx.workflowHistory.findFirstOrThrow({
-    where: { instanceId },
-    orderBy: [{ occurredAt: 'desc' }, { id: 'desc' }],
-    select: { id: true },
-  });
-  return entry.id;
-}
-
 export async function openTasksOf(
   tx: TenantTransaction,
   instanceId: string,

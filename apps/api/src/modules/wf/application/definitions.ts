@@ -38,7 +38,7 @@ import { startWorkflow } from './workflow-engine.js';
 // versión vigente; cambiar una publicada exige una versión nueva. Los trámites en curso terminan
 // con la versión con la que iniciaron.
 
-export function summaryOf(flow: StoredFlow): DefinitionSummary {
+function summaryOf(flow: StoredFlow): DefinitionSummary {
   return {
     id: flow.id,
     key: flow.key,

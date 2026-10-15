@@ -9,7 +9,7 @@ export const INSTANCE_ID = '01999a00-0000-7000-8000-0000000e0002';
 export const DEFINITION_ID = '01999a00-0000-7000-8000-0000000e0003';
 const LUIS_ID = '01999a00-0000-7000-8000-00000000a002';
 
-export const ANA = { id: SESSION.user.id, email: 'ana@demo-uno.test', display_name: 'Ana Pérez' };
+const ANA = { id: SESSION.user.id, email: 'ana@demo-uno.test', display_name: 'Ana Pérez' };
 export const LUIS = { id: LUIS_ID, email: 'luis@demo-uno.test', display_name: null };
 
 function grants(codes: readonly PermissionCode[], scope: 'all' | 'own') {
@@ -63,7 +63,7 @@ export function taskSummary(overrides: Record<string, unknown> = {}): Record<str
   };
 }
 
-export const HISTORY = [
+const HISTORY = [
   {
     id: '01999a00-0000-7000-8000-0000000e0101',
     from_state: null,
@@ -88,7 +88,7 @@ export const HISTORY = [
   },
 ];
 
-export const SUBMIT = {
+const SUBMIT = {
   action: 'submit',
   label: 'Enviar a revisión',
   to_state: REVIEW,
@@ -96,7 +96,7 @@ export const SUBMIT = {
   condition_met: true,
 };
 
-export const TO_DIRECTION = {
+const TO_DIRECTION = {
   action: 'submit_direction',
   label: 'Enviar a Dirección',
   to_state: { key: 'direction', label: 'Dirección', kind: 'approval' },
