@@ -90,6 +90,20 @@ Los servicios locales se encienden con `pnpm infra:up` ([guía](../../docs/runbo
 | `GET /v1/sequences` · `POST` · `PATCH /{id}`                     | `core.sequence.manage`                          | Tipos de consecutivo con el siguiente código; el número no se edita                                                                                                                                     |
 | `GET /v1/holidays?year=` · `POST` · `DELETE /{id}`               | `core.parameter.read` / `core.parameter.manage` | Festivos de un año                                                                                                                                                                                      |
 | `GET /v1/business-days?from=&days=`                              | `core.parameter.read`                           | Fecha en que vence un plazo en días hábiles                                                                                                                                                             |
+| `GET /v1/parties` · `GET /v1/parties/{id}`                       | `party.read`                                    | Terceros con búsqueda, filtros por papel y estado, y su ficha. El equipo de proyecto solo ve los que registró                                                                                           |
+| `GET /v1/parties/search`                                         | `party.read`                                    | Posibles duplicados: mismo documento, correo, teléfono o nombre                                                                                                                                         |
+| `POST /v1/parties` · `PATCH /{id}`                               | `party.create` / `party.update`                 | Registra o edita un tercero; un documento repetido responde 409 `PARTY_DUPLICATE`                                                                                                                       |
+| `POST /v1/parties/{id}/actions/change-status`                    | `party.update`                                  | Activa, inactiva, bloquea (con motivo) o desbloquea, con la versión en `If-Match`                                                                                                                       |
+| `POST /v1/parties/{id}/roles` · `DELETE .../roles/{role}`        | `party.update`                                  | Agrega o termina un papel                                                                                                                                                                               |
+| `GET /v1/parties/{id}/contacts` · `POST` · `PATCH` · `DELETE`    | `party.read` / `party.update`                   | Contactos y firmantes de una organización                                                                                                                                                               |
+| `GET /v1/parties/{id}/bank-accounts`                             | `party.bank_account.read`                       | Cuentas con los cuatro últimos dígitos                                                                                                                                                                  |
+| `POST /v1/parties/{id}/bank-accounts`                            | `party.bank_account.manage` + conf.             | Registra una cuenta pendiente; el número se cifra                                                                                                                                                       |
+| `POST .../bank-accounts/{accountId}/actions/approve` · `reject`  | `party.bank_account.approve` + conf.            | Aprueba o rechaza; quien la registró responde 403 `PARTY_SAME_REVIEWER`                                                                                                                                 |
+| `POST .../bank-accounts/{accountId}/actions/reveal`              | `party.bank_account.read` + conf.               | Número completo; cada consulta queda en la auditoría                                                                                                                                                    |
+| `GET /v1/parties/{id}/due-diligence` · `POST`                    | `party.read` / `party.due_diligence.manage`     | Conocimiento del tercero y nivel de riesgo                                                                                                                                                              |
+| `POST .../due-diligence/{reviewId}/actions/approve` · `reject`   | `party.due_diligence.approve`                   | Aprueba (próxima revisión en 12 meses si no se indica) o rechaza; nunca quien lo registró                                                                                                               |
+| `POST /v1/parties/{id}/merge`                                    | `party.merge`                                   | Fusiona un duplicado en este tercero; evento `party.merged` en la bandeja de salida                                                                                                                     |
+| `GET /v1/parties/{id}/timeline`                                  | `party.read`                                    | Línea de tiempo con lo que el rol puede ver                                                                                                                                                             |
 
 «Sesión» quiere decir cualquier sesión completa, sobre la cuenta propia (`@OwnAccount()`). Un
 permiso como `iam.user.read` quiere decir que la ruta lo exige (`@RequirePermission()`, B10): sin
@@ -338,6 +352,7 @@ cada empresa. La tabla legible de qué tiene cada rol está en
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Cada punto declara su permiso            | `@RequirePermission('iam.user.lock')`, `@OwnAccount()` (solo en `/v1/me` y `/v1/auth`), `@SigningIn()` o `@Public()`. `test/access.test.ts` falla si alguna ruta no declara nada, si nombra un permiso fuera del catálogo o si usa `@OwnAccount()` fuera de su lugar |
 | Permisos de la persona                   | La suma de sus roles vigentes (no retirados, empezados y sin vencer), calculada en cada petición: retirar un rol surte efecto en la siguiente                                                                                                                        |
+| «manage» no es comodín                   | CASL trata «manage» como cualquier acción; `buildAbility()` lo desactiva para que `party.due_diligence.manage` no incluya aprobar (B13)                                                                                                                              |
 | Sin el permiso                           | 403 `PERMISSION_DENIED`, sin decir qué permiso falta. La guarda va después de la protección CSRF y antes de pedir confirmar la identidad                                                                                                                             |
 | «Solo lo propio» (letra P)               | El permiso pasa la ruta; el caso de uso revisa el registro con `canOnRecord()` y responde 404 si no es de la persona (numeral 15.5, BOLA)                                                                                                                            |
 | Respuesta según el rol                   | La ficha de un usuario trae sus datos de seguridad solo a quien puede bloquear o reiniciar el segundo factor; a los demás, `security: null`                                                                                                                          |
@@ -415,6 +430,29 @@ las tablas `core_` directamente. Un parámetro nuevo se agrega a `PARAMETER_DEFI
 `pnpm db:seed` carga en cada empresa: los festivos de 2025 a 2030, el horario laboral, el catálogo
 de tipos de documento y el organigrama **provisional** (`core-seed-data.ts`). La semilla solo crea
 lo que falta: nunca deshace lo que la empresa cambió.
+
+## Terceros (B13, módulo `src/modules/party`)
+
+Registro único de cada persona u organización (ficha 17.3). Las tablas están en
+[`pty.md`](../../docs/manual/datos/pty.md).
+
+| Regla                                            | Cómo se cumple                                                                                                                                                                   |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Documento único y NIT con su dígito              | Índice único `(tenant_id, id_type, id_number)` y restricción con `pty_nit_check_digit()`; el contrato valida lo mismo en la web y la API                                         |
+| Crear con documento repetido ofrece el existente | 409 `PARTY_DUPLICATE`; `GET /v1/parties/search?id_number=` devuelve el tercero, o el que se conservó si el documento es de un duplicado fusionado                                |
+| Datos personales con finalidad y autorización    | Obligatorios en personas (contrato y restricción de la base); la finalidad sale del catálogo `personal_data_purposes`                                                            |
+| Cuentas bancarias cifradas con doble aprobación  | `FieldCipher` con contexto de empresa y fila; `reviewed_by <> created_by` en la base; el disparador `pty_keep_reviews` impide cambiar una cuenta revisada                        |
+| Conocimiento aprobado por otra persona           | Solo Dirección tiene `party.due_diligence.approve`; quien registró no aprueba. «Apto» = último aprobado y vigente                                                                |
+| La fusión conserva el historial de ambos         | El duplicado queda con `merged_into_id` y `deleted_at`; papeles, contactos, cuentas y conocimiento pasan al que se conserva; evento `party.merge` y `party.merged` en la bandeja |
+| La línea de tiempo muestra solo lo que el rol ve | `entityHistory()` del módulo de auditoría con los registros del tercero; los de cuentas bancarias solo con `party.bank_account.read`                                             |
+
+**Para un módulo nuevo:** guarde `party_id` con llave foránea `(tenant_id, party_id)` a
+`pty_parties`, escuche `party.merged` para reasignar sus registros, y antes de facturar o contratar
+exija que la ficha diga `due_diligence.state = 'approved'` (ficha 17.3). Nunca lea las tablas
+`pty_` directamente.
+
+`pnpm db:seed:demo` carga en las empresas de demostración tres organizaciones (dos de ellas son la
+misma escrita distinto, para ensayar la fusión) y dos personas de contacto, todas ficticias.
 
 ## Imágenes Docker (B05 y B07)
 

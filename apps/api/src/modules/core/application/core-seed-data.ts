@@ -38,6 +38,45 @@ export const CATALOGS: readonly SeedCatalog[] = [
       ['PPT', 'Permiso por protección temporal'],
     ],
   },
+  {
+    key: 'banks',
+    name: 'Bancos',
+    description: 'Entidades donde los terceros tienen sus cuentas para pagos (B13).',
+    items: [
+      ['BANCOLOMBIA', 'Bancolombia'],
+      ['BOGOTA', 'Banco de Bogotá'],
+      ['DAVIVIENDA', 'Davivienda'],
+      ['BBVA', 'BBVA Colombia'],
+      ['OCCIDENTE', 'Banco de Occidente'],
+      ['POPULAR', 'Banco Popular'],
+      ['AV_VILLAS', 'Banco AV Villas'],
+      ['COLPATRIA', 'Scotiabank Colpatria'],
+      ['CAJA_SOCIAL', 'Banco Caja Social'],
+      ['AGRARIO', 'Banco Agrario de Colombia'],
+      ['ITAU', 'Itaú'],
+      ['GNB_SUDAMERIS', 'Banco GNB Sudameris'],
+      ['FALABELLA', 'Banco Falabella'],
+      ['PICHINCHA', 'Banco Pichincha'],
+      ['BANCOOMEVA', 'Bancoomeva'],
+      ['NU', 'Nu Colombia'],
+      ['LULO', 'Lulo Bank'],
+    ],
+  },
+  {
+    key: 'personal_data_purposes',
+    name: 'Finalidades del tratamiento',
+    description:
+      'Para qué se usan los datos personales de un tercero (Ley 1581 de 2012). Las precisa el módulo de privacidad.',
+    items: [
+      ['COMMERCIAL', 'Relación comercial y contractual'],
+      ['BILLING', 'Facturación, pagos y cartera'],
+      ['SUPPORT', 'Servicio al cliente y soporte'],
+      ['SUPPLIER', 'Gestión de proveedores'],
+      ['EMPLOYMENT', 'Relación laboral'],
+      ['RECRUITMENT', 'Selección de personal'],
+      ['MARKETING', 'Envío de información comercial'],
+    ],
+  },
 ];
 
 /** Procesos del mapa de procesos, con el código que usan los módulos (capítulo 7.4). */

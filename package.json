@@ -30,7 +30,7 @@
     "iam:reiniciar-segundo-factor": "turbo run build --filter=@arza/api --output-logs=errors-only && pnpm --filter @arza/api iam:reiniciar-segundo-factor",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "eslint . --max-warnings 0",
+    "lint": "NODE_OPTIONS=--max-old-space-size=6144 eslint . --max-warnings 0",
     "boundaries": "depcruise apps packages --config .dependency-cruiser.cjs",
     "unused": "knip",
     "secrets": "gitleaks git --no-banner --redact",

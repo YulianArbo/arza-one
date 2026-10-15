@@ -18,6 +18,14 @@ describe('permisos por rol (RBAC)', () => {
     expect(hasPermission(buildAbility([], ANA), 'iam.user.read')).toBe(false);
   });
 
+  it('«manage» es un permiso más, no todas las acciones del recurso', () => {
+    const manager = buildAbility([{ code: 'party.due_diligence.manage', ownField: null }], ANA);
+    expect(hasPermission(manager, 'party.due_diligence.manage')).toBe(true);
+    expect(hasPermission(manager, 'party.due_diligence.approve')).toBe(false);
+    const finance = buildAbility([{ code: 'finance.expense.manage', ownField: null }], ANA);
+    expect(hasPermission(finance, 'finance.expense.approve')).toBe(false);
+  });
+
   it('separa recursos de dos y de tres partes', () => {
     const party = buildAbility([{ code: 'party.read', ownField: null }], ANA);
     expect(hasPermission(party, 'party.read')).toBe(true);

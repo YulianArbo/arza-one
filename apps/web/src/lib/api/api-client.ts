@@ -20,6 +20,8 @@ interface PostOptions<T> {
   schema?: z.ZodType<T>;
   /** Código antifalsificación de la sesión (numeral 13.1, paso 5), si hay sesión. */
   csrfToken?: string;
+  /** Versión del registro que se vio (If-Match), en las acciones que la piden. */
+  version?: number;
 }
 
 interface PatchOptions<T> extends PostOptions<T> {
@@ -74,8 +76,7 @@ export function createApiClient(baseUrl: string, fetchImpl: typeof fetch = fetch
     },
 
     async patch<T = void>(path: string, options: PatchOptions<T>): Promise<T> {
-      const ifMatch = { 'If-Match': `"${String(options.version)}"` };
-      return sendWithBody(fetchImpl, apiEndpoint(baseUrl, path), 'PATCH', options, ifMatch);
+      return sendWithBody(fetchImpl, apiEndpoint(baseUrl, path), 'PATCH', options);
     },
 
     async delete(path: string, options: DeleteOptions): Promise<void> {
@@ -106,20 +107,22 @@ function fileNameOf(response: Response): string {
   return /filename="([^"]+)"/.exec(disposition)?.[1] ?? 'descarga';
 }
 
-/** POST o PATCH con cuerpo JSON y, si hay sesión, el código antifalsificación. */
+/**
+ * POST o PATCH con cuerpo JSON y, si hay sesión, el código antifalsificación; con la versión del
+ * registro, la cabecera If-Match.
+ */
 async function sendWithBody<T>(
   fetchImpl: typeof fetch,
   url: URL,
   method: 'POST' | 'PATCH',
   options: PostOptions<T>,
-  extra: Record<string, string> = {},
 ): Promise<T> {
   const headers: Record<string, string> = {
     Accept: 'application/json',
     'Content-Type': 'application/json',
-    ...extra,
   };
   if (options.csrfToken !== undefined) headers[CSRF_HEADER] = options.csrfToken;
+  if (options.version !== undefined) headers['If-Match'] = `"${String(options.version)}"`;
   const init = { method, headers, body: JSON.stringify(options.body) };
   const response = await send(fetchImpl, url, init);
   const body = await readJson(response);

@@ -2,3 +2,4 @@
 // el worker, que verifica la cadena de cada empresa a diario.
 export { AuditModule } from './interface/audit.module.js';
 export { ChainVerificationUseCase } from './application/chain-verification.js';
+export { entityHistory } from './application/entity-history.js';
