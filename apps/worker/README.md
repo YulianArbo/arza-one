@@ -21,7 +21,9 @@ Las variables se leen del `.env` de la raíz (ver `.env.example`). Requiere `pnp
 
 `src/config/env-schema.ts` valida al arrancar `NODE_ENV`, `APP_ENV`, `LOG_LEVEL`, `DATABASE_URL`,
 `VALKEY_URL`, `APP_URL` (dominio de los enlaces de los correos), `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER` y `SMTP_PASSWORD` (opcionales), `MAIL_FROM` y
-`WORKER_CONCURRENCY` (trabajos a la vez por cola; 5 por defecto). Si falta una o tiene formato
+`WORKER_CONCURRENCY` (trabajos a la vez por cola; 5 por defecto), y desde B14 `S3_ENDPOINT`, `S3_REGION`,
+`S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` (almacenamiento de archivos), `CLAMAV_HOST` y
+`CLAMAV_PORT` (antivirus; 3310 por defecto). Si falta una o tiene formato
 inválido, el worker no arranca y dice cuál, sin mostrar su valor. Usa el mismo validador de la API.
 
 ## Qué reutiliza de la API
@@ -49,6 +51,7 @@ la interfaz pública de la plataforma de la API (ADR-004):
 | `src/jobs/example-email.ts`     | Trabajo de ejemplo (B06): lee el nombre de la empresa en su contexto y envía un correo de prueba                                                                                                                                                          |
 | `src/jobs/account-email.ts`     | Correos de las cuentas (B08): invitación, recuperación y aviso de cambio de contraseña; desde B09, también los avisos de seguridad del segundo factor y de un equipo nuevo. El enlace se crea al enviar; si la cuenta ya no aplica, no envía ni reintenta |
 | `src/jobs/audit-chain-check.ts` | Verificación diaria de la auditoría (B11): particiones de los próximos meses y cadena de cada empresa. Un daño termina el trabajo fallido, sin reintento, para que la alerta lo avise                                                                     |
+| `src/jobs/file-scan.ts`         | Análisis de un archivo subido (B14): antivirus ClamAV, tipo real y huella SHA-256, con `scanUploadedFile()` del módulo de gestión documental. Si ClamAV no responde se reintenta; el archivo sigue «en análisis»                                          |
 | `src/mail/mailer.ts`            | Envío por SMTP con nodemailer. Fuera del entorno local exige TLS                                                                                                                                                                                          |
 | `src/heartbeat/heartbeat.ts`    | Latido en Valkey cada 15 s, con vencimiento a los 45 s (numeral 10.3)                                                                                                                                                                                     |
 | `src/healthcheck.ts`            | Verificación de salud de la imagen Docker: sale con 1 si no hay latido reciente                                                                                                                                                                           |

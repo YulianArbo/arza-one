@@ -49,6 +49,10 @@ export interface ApiClient {
   delete(path: string, options: DeleteOptions): Promise<void>;
   /** POST que responde un archivo en lugar de JSON. */
   download(path: string, options: Omit<PostOptions<never>, 'schema'>): Promise<DownloadedFile>;
+  /** Envía un archivo a un enlace temporal de subida (B14); el enlace es la autorización. */
+  putFile(url: string, file: Blob): Promise<void>;
+  /** Trae el contenido de un enlace temporal de descarga (B14), para la vista previa. */
+  fetchFile(url: string): Promise<Blob>;
 }
 
 const CSRF_HEADER = 'X-CSRF-Token';
@@ -97,6 +101,25 @@ export function createApiClient(baseUrl: string, fetchImpl: typeof fetch = fetch
       const response = await send(fetchImpl, apiEndpoint(baseUrl, path), init);
       if (!response.ok) throw toApiError(response, await readJson(response));
       return { fileName: fileNameOf(response), content: await response.blob() };
+    },
+
+    ...fileLinkMethods(fetchImpl),
+  };
+}
+
+/** Subida y descarga por enlaces temporales (B14): la dirección completa la entrega la API. */
+function fileLinkMethods(fetchImpl: typeof fetch): Pick<ApiClient, 'putFile' | 'fetchFile'> {
+  return {
+    async putFile(url, file): Promise<void> {
+      const init = { method: 'PUT', headers: { 'Content-Type': file.type }, body: file };
+      const response = await send(fetchImpl, new URL(url), init);
+      if (!response.ok) throw toApiError(response, await readJson(response));
+    },
+
+    async fetchFile(url): Promise<Blob> {
+      const response = await send(fetchImpl, new URL(url), { method: 'GET' });
+      if (!response.ok) throw toApiError(response, await readJson(response));
+      return response.blob();
     },
   };
 }

@@ -14,6 +14,7 @@ export {
   SCHEDULED_JOBS,
   type AccountEmailJob,
   type ExampleEmailJob,
+  type FileScanJob,
   type JobDefinition,
   type TenantJob,
 } from './queues/jobs.js';

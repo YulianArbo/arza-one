@@ -58,6 +58,7 @@ model Tenant {
   contacts        Contact[]
   bankAccounts    BankAccount[]
   dueDiligence    DueDiligence[]
+  files           File[]
 
   @@map("core_tenants")
 }
@@ -831,4 +832,32 @@ model DueDiligence {
 
   @@index([tenantId, partyId])
   @@map("pty_due_diligence")
+}
+
+/// Archivo físico guardado en el almacenamiento privado (M03, B14). Entra «esperando el archivo»;
+/// el worker lo analiza con el antivirus, revisa que su contenido sea del tipo declarado y calcula
+/// su huella SHA-256. Solo un archivo disponible se descarga (numeral 13.2, ADR-013).
+model File {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  storageKey String    @map("storage_key")
+  fileName   String    @map("file_name")
+  mimeType   String    @map("mime_type")
+  sizeBytes  Int       @map("size_bytes")
+  sha256     String?
+  scanStatus String    @default("pending_upload") @map("scan_status")
+  rejection  String?
+  scannedAt  DateTime? @map("scanned_at") @db.Timestamptz(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?   @map("created_by") @db.Uuid
+  updatedAt  DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?   @map("updated_by") @db.Uuid
+  version    Int       @default(1)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([storageKey])
+  @@index([tenantId, createdBy, createdAt])
+  @@map("doc_files")
 }

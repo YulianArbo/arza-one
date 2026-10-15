@@ -13,6 +13,12 @@ const VALID = {
   SMTP_HOST: 'localhost',
   SMTP_PORT: '1025',
   MAIL_FROM: 'ARZA ONE <no-responder@arza-one.test>',
+  S3_ENDPOINT: 'http://127.0.0.1:1',
+  S3_REGION: 'garage',
+  S3_BUCKET: 'arza-one-test',
+  S3_ACCESS_KEY: 'ficticia',
+  S3_SECRET_KEY: 'ficticia',
+  CLAMAV_HOST: 'localhost',
 };
 
 function problemsOf(raw: Record<string, string | undefined>): readonly string[] {
@@ -31,6 +37,7 @@ describe('configuración del worker', () => {
     expect(config.SMTP_PORT).toBe(1025);
     expect(config.WORKER_CONCURRENCY).toBe(5);
     expect(config.LOG_LEVEL).toBe('info');
+    expect(config.CLAMAV_PORT).toBe(3310);
     expect(config.SMTP_USER).toBeUndefined();
   });
 

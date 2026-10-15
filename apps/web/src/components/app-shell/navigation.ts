@@ -11,6 +11,7 @@ import {
   House,
   Landmark,
   ListTodo,
+  Paperclip,
   Palette,
   ScrollText,
   Settings,
@@ -76,6 +77,7 @@ const MODULES: readonly NavigationItem[] = [
     permissions: ['doc.document.read'],
     block: 'B18',
   },
+  { slug: 'archivos', label: 'Archivos', icon: Paperclip, permissions: ['doc.document.read'] },
   {
     slug: 'calidad',
     label: 'Calidad',

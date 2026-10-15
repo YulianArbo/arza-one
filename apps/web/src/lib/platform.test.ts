@@ -36,6 +36,7 @@ describe('política de seguridad del contenido (15.6)', () => {
     expect(production).toContain("connect-src 'self' https://api.arza.test");
     expect(production).toContain("frame-ancestors 'none'");
     expect(production).toContain("object-src 'none'");
+    expect(production).toContain("frame-src 'self' blob:");
   });
 
   it('sin scripts en línea: solo los firmados con el nonce de la petición', () => {

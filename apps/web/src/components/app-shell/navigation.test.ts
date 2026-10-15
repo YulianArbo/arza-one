@@ -50,7 +50,7 @@ describe('menú por permisos (permiso denegado, 16.3)', () => {
   });
 
   it('con todos los permisos del menú se ven todos los módulos', () => {
-    expect(visibleSlugs([...navigationPermissions()])).toHaveLength(16); // B13 agrega Terceros.
+    expect(visibleSlugs([...navigationPermissions()])).toHaveLength(17); // B13 agrega Terceros y B14, Archivos.
   });
 });
 

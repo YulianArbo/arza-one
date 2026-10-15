@@ -12,6 +12,11 @@ const unusedDeps: JobDependencies = {
   mailer: { send: async () => Promise.reject(new Error('no se usa')) },
   clock: { now: () => new Date() },
   appUrl: 'http://localhost:3000/app',
+  storage: {
+    read: async () => Promise.reject(new Error('no se usa')),
+    delete: async () => Promise.reject(new Error('no se usa')),
+  },
+  antivirus: async () => Promise.reject(new Error('no se usa')),
 };
 
 describe('enrutador de trabajos', () => {
@@ -33,6 +38,13 @@ describe('enrutador de trabajos', () => {
   it('envía la verificación diaria de la auditoría a su procesador', async () => {
     const route = createJobRouter(unusedDeps);
     await expect(route({ name: JOBS.auditChainCheck.name, data: {} })).rejects.toThrow('no se usa');
+  });
+
+  it('envía el análisis de un archivo a su procesador', async () => {
+    const route = createJobRouter(unusedDeps);
+    await expect(route({ name: JOBS.fileScan.name, data: {} })).rejects.toThrow(
+      'Los datos del trabajo no son válidos',
+    );
   });
 
   it('rechaza sin reintento un trabajo sin procesador', async () => {

@@ -54,10 +54,17 @@ const accountEmailJobSchema = tenantJobSchema.extend({
  */
 const auditChainCheckJobSchema = z.object({});
 
+/**
+ * Análisis de un archivo recién subido (B14, numeral 13.2): antivirus, tipo real y huella SHA-256.
+ * Solo lleva el archivo; el worker lee lo demás de la base de datos y del almacenamiento.
+ */
+const fileScanJobSchema = tenantJobSchema.extend({ fileId: z.uuid() });
+
 export type TenantJob = z.infer<typeof tenantJobSchema>;
 export type ExampleEmailJob = z.infer<typeof exampleEmailJobSchema>;
 export type AccountEmailJob = z.infer<typeof accountEmailJobSchema>;
 export type AccountEmailPurpose = AccountEmailJob['purpose'];
+export type FileScanJob = z.infer<typeof fileScanJobSchema>;
 
 /** Cada trabajo: su cola, su nombre y el esquema de sus datos. */
 export const JOBS = {
@@ -75,6 +82,11 @@ export const JOBS = {
     queue: QUEUES.platform,
     name: 'audit.chain-check',
     schema: auditChainCheckJobSchema,
+  },
+  fileScan: {
+    queue: QUEUES.platform,
+    name: 'doc.file-scan',
+    schema: fileScanJobSchema,
   },
 } as const;
 

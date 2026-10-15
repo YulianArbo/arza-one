@@ -183,3 +183,32 @@ describe('cliente de la API: descargas (B11)', () => {
     expect(error.correlationId).toBe('c-1');
   });
 });
+
+describe('cliente de la API: enlaces temporales de archivos (B14)', () => {
+  const LINK = 'http://api.test/v1/files/uploads/llave';
+
+  it('sube el archivo con su tipo al enlace', async () => {
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 204 }));
+    const file = new Blob(['%PDF-1.7'], { type: 'application/pdf' });
+    await createApiClient(BASE_URL, fetchImpl).putFile(LINK, file);
+    const [url, init] = fetchImpl.mock.calls[0] ?? [];
+    expect(url).toEqual(new URL(LINK));
+    expect(init?.method).toBe('PUT');
+    expect(init?.headers).toMatchObject({ 'Content-Type': 'application/pdf' });
+  });
+
+  it('un enlace vencido llega como error con su mensaje', async () => {
+    const body = {
+      error: { code: 'FILE_LINK_INVALID', message: 'Venció', details: [], correlation_id: 'c-2' },
+    };
+    const upload = clientReturning(jsonResponse(body, 404)).putFile(LINK, new Blob(['x']));
+    expect((await errorOf(upload)).code).toBe('FILE_LINK_INVALID');
+    const preview = clientReturning(jsonResponse(body, 404)).fetchFile(LINK);
+    expect((await errorOf(preview)).message).toBe('Venció');
+  });
+
+  it('trae el contenido de un enlace de descarga', async () => {
+    const blob = await clientReturning(new Response('contenido')).fetchFile(LINK);
+    expect(await blob.text()).toBe('contenido');
+  });
+});

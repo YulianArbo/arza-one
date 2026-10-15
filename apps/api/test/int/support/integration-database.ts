@@ -5,6 +5,7 @@ import { inject } from 'vitest';
 import { seedAccessControl } from '../../../src/modules/iam/index.js';
 import { systemClock } from '../../../src/platform/clock/clock.js';
 import { DatabaseService } from '../../../src/platform/database/database.service.js';
+import type { TestAntivirus, TestStorage } from './file-services.js';
 
 /** Direcciones de la base de datos desechable que levanta global-setup.ts. */
 export interface IntegrationDatabase {
@@ -19,6 +20,10 @@ declare module 'vitest' {
     database: IntegrationDatabase;
     /** Valkey desechable, con contraseña. */
     valkeyUrl: string;
+    /** Garage desechable con su depósito y su llave (B14). */
+    storage: TestStorage;
+    /** ClamAV con solo la firma de ensayo EICAR (B14). */
+    antivirus: TestAntivirus;
   }
 }
 

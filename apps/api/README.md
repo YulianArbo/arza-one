@@ -104,6 +104,11 @@ Los servicios locales se encienden con `pnpm infra:up` ([guía](../../docs/runbo
 | `POST .../due-diligence/{reviewId}/actions/approve` · `reject`   | `party.due_diligence.approve`                   | Aprueba (próxima revisión en 12 meses si no se indica) o rechaza; nunca quien lo registró                                                                                                               |
 | `POST /v1/parties/{id}/merge`                                    | `party.merge`                                   | Fusiona un duplicado en este tercero; evento `party.merged` en la bandeja de salida                                                                                                                     |
 | `GET /v1/parties/{id}/timeline`                                  | `party.read`                                    | Línea de tiempo con lo que el rol puede ver                                                                                                                                                             |
+| `POST /v1/files`                                                 | `doc.document.create`                           | Pide subir un archivo (lista blanca y hasta 20 MB); devuelve el enlace de subida de un solo uso, válido 15 minutos                                                                                      |
+| `PUT /v1/files/uploads/{token}`                                  | El enlace                                       | Recibe el archivo con el tipo y el tamaño declarados; queda en análisis                                                                                                                                 |
+| `GET /v1/files` · `GET /v1/files/{id}`                           | `doc.document.read`                             | Archivos con su estado y su huella. Quien solo ve lo propio ve los que subió                                                                                                                            |
+| `POST /v1/files/{id}/download-link`                              | `doc.document.read`                             | Enlace de descarga de cinco minutos, solo si el archivo está disponible                                                                                                                                 |
+| `GET /v1/files/downloads/{token}`                                | El enlace                                       | Entrega el archivo como adjunto y deja la descarga en la auditoría                                                                                                                                      |
 
 «Sesión» quiere decir cualquier sesión completa, sobre la cuenta propia (`@OwnAccount()`). Un
 permiso como `iam.user.read` quiere decir que la ruta lo exige (`@RequirePermission()`, B10): sin
@@ -453,6 +458,27 @@ exija que la ficha diga `due_diligence.state = 'approved'` (ficha 17.3). Nunca l
 
 `pnpm db:seed:demo` carga en las empresas de demostración tres organizaciones (dos de ellas son la
 misma escrita distinto, para ensayar la fusión) y dos personas de contacto, todas ficticias.
+
+## Archivos (B14, módulo `src/modules/doc`)
+
+Carga, análisis y descarga de archivos (numeral 13.2, ADR-013). La tabla está en
+[`doc.md`](../../docs/manual/datos/doc.md).
+
+| Regla                                     | Cómo se cumple                                                                                                                                                               |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Garage nunca queda expuesto               | Los enlaces temporales son de la API (`/v1/files/uploads/…` y `/downloads/…`): el contenido pasa por ella. La llave tiene 256 bits y Valkey guarda solo su huella            |
+| Lista blanca por contenido real           | El contrato revisa tipo, extensión y tamaño; el worker reconoce el tipo por los primeros bytes (`detectFileType()`): un ejecutable renombrado como PDF queda `type_mismatch` |
+| Antivirus antes de aceptar                | `scanWithClamav()` usa la orden INSTREAM de clamd. Si ClamAV no responde, el trabajo se reintenta y el archivo sigue «en análisis»: nunca se acepta sin revisar              |
+| Huella SHA-256 fija                       | La calcula el worker; el disparador `doc_keep_analyzed_files` no deja cambiarla después                                                                                      |
+| Descarga solo con permiso y por 5 minutos | El enlace se emite tras revisar `doc.document.read` (y «lo propio»); vence a los cinco minutos y la respuesta es siempre un adjunto                                          |
+| Registro de accesos                       | Pedir el enlace y descargar dejan `doc.file.download_link` y `doc.file.download` en la auditoría; un virus deja además el evento de seguridad `doc.file.virus_detected`      |
+
+**Para un módulo nuevo:** guarde el `file_id` del archivo y decida quién lo ve según sus propios
+registros; para servirlo, use el índice del módulo `doc` (nunca la tabla `doc_files` ni Garage
+directamente).
+
+Las pruebas de integración levantan Garage y un ClamAV con una sola firma, la del archivo de
+ensayo EICAR, que arranca en segundos (`test/int/support/file-services.ts`).
 
 ## Imágenes Docker (B05 y B07)
 
