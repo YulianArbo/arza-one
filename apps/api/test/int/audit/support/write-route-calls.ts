@@ -23,6 +23,7 @@ import { giveRole, type AccessScenario, type Person } from '../../iam/support/ac
 import { CORE_CALLS } from './core-route-calls.js';
 import { DOC_ROUTE_CALLS } from './doc-route-calls.js';
 import { PARTY_ROUTE_CALLS } from './party-route-calls.js';
+import { WF_ROUTE_CALLS } from './wf-route-calls.js';
 
 // Una petición válida a cada ruta de la API que escribe (B11, criterio de la ficha 17.20). Cada
 // llamada prepara lo que necesita y devuelve la petición final sin enviar, para que la prueba le
@@ -269,4 +270,5 @@ export const WRITE_ROUTE_CALLS: Readonly<Record<string, RouteCall>> = {
   ...CORE_CALLS,
   ...PARTY_ROUTE_CALLS,
   ...DOC_ROUTE_CALLS,
+  ...WF_ROUTE_CALLS,
 };
