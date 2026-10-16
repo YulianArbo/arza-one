@@ -25,7 +25,7 @@ import type {
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
 import { JobQueue } from '../../../platform/queues/job-queue.js';
 import { JOBS } from '../../../platform/queues/jobs.js';
-import { DOWNLOAD_LINK_TTL_MS, UPLOAD_LINK_TTL_MS, linkIsValid } from '../domain/file-rules.js';
+import { linkIsValid } from '../domain/file-rules.js';
 import { FileLinks, type FileLink } from '../infrastructure/file-links.js';
 import { FileStorage } from '../infrastructure/file-storage.js';
 import {
@@ -35,9 +35,7 @@ import {
   uploadSizeMismatch,
   uploadTypeMismatch,
 } from './file-messages.js';
-
-/** Dirección pública de la API (API_URL); los enlaces conservan su prefijo, como /api. */
-export const FILE_LINKS_BASE_URL = Symbol('FILE_LINKS_BASE_URL');
+import { FileLinkIssuer } from './file-link-issuer.js';
 
 /** Contenido que llega por el enlace de subida, con las cabeceras que lo describen. */
 export interface IncomingUpload {
@@ -117,7 +115,7 @@ export class FilesUseCase {
     @Inject(FileStorage) private readonly storage: FileStorage,
     @Inject(FileLinks) private readonly links: FileLinks,
     @Inject(JobQueue) private readonly queue: JobQueue,
-    @Inject(FILE_LINKS_BASE_URL) private readonly baseUrl: string,
+    @Inject(FileLinkIssuer) private readonly issuer: FileLinkIssuer,
   ) {}
 
   /** Registra el archivo «esperando el archivo» y entrega el enlace de subida (un solo uso). */
@@ -148,7 +146,7 @@ export class FilesUseCase {
         fileId: id,
         changes,
       });
-      const link = await this.issueLink(principal, 'upload', id);
+      const link = await this.issuer.issue(principal, 'upload', id);
       return { id, upload_url: link.url, expires_at: link.expires_at };
     });
   }
@@ -223,7 +221,7 @@ export class FilesUseCase {
     return this.database.withTenant(principal, async (tx) => {
       const file = await this.find(tx, principal, ability, id);
       if (file.scanStatus !== 'available') throw fileNotAvailable();
-      const link = await this.issueLink(principal, 'download', file.id);
+      const link = await this.issuer.issue(principal, 'download', file.id);
       await auditFile(tx, {
         ...principal,
         at: this.clock.now(),
@@ -260,24 +258,6 @@ export class FilesUseCase {
       sizeBytes: file.sizeBytes,
       content: await this.storage.stream(file.storageKey),
     };
-  }
-
-  /**
-   * Emite el enlace dentro de la transacción del caso de uso: si la auditoría falla, el enlace
-   * queda en Valkey sin que nadie conozca su llave y vence solo.
-   */
-  private async issueLink(
-    principal: Principal,
-    purpose: FileLink['purpose'],
-    fileId: string,
-  ): Promise<DownloadLinkResponse> {
-    const ttl = purpose === 'upload' ? UPLOAD_LINK_TTL_MS : DOWNLOAD_LINK_TTL_MS;
-    const expiresAt = new Date(this.clock.now().getTime() + ttl).toISOString();
-    const { tenantId, userId } = principal;
-    const token = await this.links.issue({ tenantId, userId, purpose, fileId, expiresAt }, ttl);
-    const base = this.baseUrl.endsWith('/') ? this.baseUrl : `${this.baseUrl}/`;
-    const kind = purpose === 'upload' ? 'uploads' : 'downloads';
-    return { url: new URL(`v1/files/${kind}/${token}`, base).toString(), expires_at: expiresAt };
   }
 
   private async validLink(token: string, purpose: FileLink['purpose']): Promise<FileLink> {

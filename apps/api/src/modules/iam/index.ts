@@ -23,3 +23,8 @@ export {
   positionOfUser,
   type ReceivedDelegation,
 } from './infrastructure/people-directory.js';
+export {
+  activeUsersWithRoles,
+  noticeRecipients,
+  type NoticeRecipient,
+} from './infrastructure/notice-recipients.js';
