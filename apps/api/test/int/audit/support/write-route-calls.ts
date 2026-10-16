@@ -237,6 +237,20 @@ const USER_CALLS: Record<string, RouteCall> = {
         kind: 'internal',
       }),
     ),
+  'PATCH /v1/users/{id}': async (s) => {
+    const target = await s.newUser('con-cargo');
+    const position = await s.inTenant(async (tx) => {
+      const code = `CG${uuidv7().slice(-8).toUpperCase()}`;
+      const unit = await tx.orgUnit.create({
+        data: { tenantId: s.tenant.id, code, name: 'Recorrido', kind: 'area' },
+      });
+      return tx.position.create({
+        data: { tenantId: s.tenant.id, orgUnitId: unit.id, name: 'Recorrido' },
+      });
+    });
+    const body = { position_id: position.id };
+    return final(s.patch(`/v1/users/${target.id}`, (await admin(s)).session, body, 1));
+  },
   'POST /v1/users/{id}/actions/invite': onUser('invite', (s) => userWithStatus(s, 'invited')),
   'POST /v1/users/{id}/actions/lock': onUser('lock', (s) => s.newUser('bloquear')),
   'POST /v1/users/{id}/actions/unlock': onUser('unlock', (s) => userWithStatus(s, 'locked')),

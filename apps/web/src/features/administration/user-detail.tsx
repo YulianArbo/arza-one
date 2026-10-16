@@ -13,6 +13,7 @@ import { USER_KIND_LABELS, USER_STATUS_LABELS, USER_STATUS_TONES, personName } f
 import { useUser } from './queries';
 import { QueryState } from './query-state';
 import { UserActionsCard } from './user-actions';
+import { UserPositionCard } from './user-position';
 import { UserRolesCard } from './user-roles';
 
 function Row({ label, value }: { readonly label: string; readonly value: string }): JSX.Element {
@@ -67,7 +68,7 @@ function UserDetail({ user }: { readonly user: UserDetailResponse }): JSX.Elemen
       {own ? (
         <PageHeader
           title={personName(user)}
-          description="Esta es su propia cuenta: sus roles los cambia otro administrador."
+          description="Esta es su propia cuenta: sus roles y su cargo los cambia otro administrador."
         />
       ) : (
         <PageHeader title={personName(user)} />
@@ -78,6 +79,12 @@ function UserDetail({ user }: { readonly user: UserDetailResponse }): JSX.Elemen
       <div className="grid gap-4 lg:grid-cols-2">
         <AccountCard user={user} />
         <UserRolesCard user={user} canAssign={!own && permissions.can('iam.role.assign')} />
+        {user.kind === 'internal' ? (
+          <UserPositionCard
+            user={user}
+            canEdit={!own && permissions.can('iam.user.update') && permissions.can('core.org.read')}
+          />
+        ) : null}
       </div>
       {own ? null : <UserActionsCard user={user} />}
       <EntityHistory entityType="iam_user" entityId={user.id} />

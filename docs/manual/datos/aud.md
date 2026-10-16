@@ -128,6 +128,9 @@ historial o de las exportaciones, con los filtros usados), `audit.security.read`
 `audit.event.export` (con los filtros y cuántos eventos) y `audit.chain.verify` (éxito o fallo,
 por una persona o por el trabajo diario).
 
+Cargo de cada persona (después de B15): `iam.user.position`, con el cargo anterior y el nuevo
+(`changes.position.from` y `changes.position.to`, cada uno con `id` y `name`, o null).
+
 ## aud_security_events · Eventos de seguridad
 
 | Columna       | Tipo        | Nulo | Regla                                           |

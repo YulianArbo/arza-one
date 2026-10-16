@@ -13,7 +13,7 @@ import { DatabaseService } from '../../../platform/database/database.service.js'
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import { versionConflict } from '../../../platform/http/if-match.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
-import { usersInPosition } from '../../iam/index.js';
+import { usersInPosition, type PositionRecord } from '../../iam/index.js';
 import { createsCycle } from '../domain/hierarchy.js';
 import { auditCore, type CoreActor } from './core-audit.js';
 import { hierarchyCycle, recordInUse, recordNotFound } from './core-messages.js';
@@ -182,4 +182,15 @@ export async function superiorPositionId(
     select: { reportsToId: true },
   });
   return position?.reportsToId ?? null;
+}
+
+/** Nombre y estado de un cargo, para la ficha de usuario de iam; null si no existe. */
+export async function positionRecord(
+  tx: TenantTransaction,
+  positionId: string,
+): Promise<PositionRecord | null> {
+  return tx.position.findFirst({
+    where: { id: positionId, deletedAt: null },
+    select: { id: true, name: true, isActive: true },
+  });
 }

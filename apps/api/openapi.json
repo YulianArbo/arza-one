@@ -1315,6 +1315,118 @@
         "tags": [
           "Usuarios y roles"
         ]
+      },
+      "patch": {
+        "description": "Del cargo sale su jefe inmediato en los flujos de aprobación. El cargo debe estar activo. Nunca sobre la propia cuenta.",
+        "operationId": "UsersController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión de la ficha",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Ficha guardada"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El usuario o el cargo no existen",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o una cuenta que no ocupa cargos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "El cargo está inactivo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Editar la ficha de una persona interna: su cargo",
+        "tags": [
+          "Usuarios y roles"
+        ]
       }
     },
     "/v1/users/{id}/actions/invite": {
@@ -11912,6 +12024,43 @@
             "format": "date-time",
             "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
           },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Versión de la ficha, para editarla (If-Match)"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "is_active": {
+                    "type": "boolean",
+                    "description": "Falso si el cargo se inactivó después de asignarlo"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "is_active"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Cargo del organigrama que ocupa; de él sale su jefe inmediato. Null si no tiene"
+          },
           "assignments": {
             "type": "array",
             "items": {
@@ -12062,6 +12211,8 @@
           "last_login_at",
           "roles",
           "created_at",
+          "version",
+          "position",
           "assignments",
           "security"
         ],
@@ -12147,6 +12298,28 @@
         },
         "required": [
           "closed"
+        ],
+        "additionalProperties": false
+      },
+      "UpdateUserRequest": {
+        "type": "object",
+        "properties": {
+          "position_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Cargo activo del organigrama; null para quitarlo"
+          }
+        },
+        "required": [
+          "position_id"
         ],
         "additionalProperties": false
       },

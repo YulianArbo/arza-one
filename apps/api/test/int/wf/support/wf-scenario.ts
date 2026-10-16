@@ -181,9 +181,9 @@ export class WfScenario extends CoreScenario {
     expect(response.status, response.text).toBe(204);
   }
 
-  /** Pone a `worker` a reportar a `boss` en el organigrama (cargos nuevos en un proceso). */
-  async reportsTo(worker: Person, boss: Person): Promise<void> {
-    await this.inTenant(async (tx) => {
+  /** Dos cargos nuevos en un proceso: un analista que reporta a un jefe. */
+  async bossAndAnalyst(): Promise<{ top: string; below: string }> {
+    return this.inTenant(async (tx) => {
       const unit = await tx.orgUnit.findFirstOrThrow({ where: { deletedAt: null } });
       const top = await tx.position.create({
         data: { tenantId: this.tenant.id, orgUnitId: unit.id, name: unique('Jefe ') },
@@ -196,8 +196,16 @@ export class WfScenario extends CoreScenario {
           reportsToId: top.id,
         },
       });
-      await tx.user.update({ where: { id: boss.id }, data: { positionId: top.id } });
-      await tx.user.update({ where: { id: worker.id }, data: { positionId: below.id } });
+      return { top: top.id, below: below.id };
+    });
+  }
+
+  /** Pone a `worker` a reportar a `boss` en el organigrama, directamente en la base. */
+  async reportsTo(worker: Person, boss: Person): Promise<void> {
+    const { top, below } = await this.bossAndAnalyst();
+    await this.inTenant(async (tx) => {
+      await tx.user.update({ where: { id: boss.id }, data: { positionId: top } });
+      await tx.user.update({ where: { id: worker.id }, data: { positionId: below } });
     });
   }
 

@@ -7,10 +7,12 @@ import {
   Inject,
   Param,
   ParseUUIDPipe,
+  Headers,
+  Patch,
   Post,
   Query,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   assignRoleRequestSchema,
   closedSessionsResponseSchema,
@@ -18,6 +20,7 @@ import {
   errorResponseSchema,
   inviteUserRequestSchema,
   inviteUserResponseSchema,
+  updateUserRequestSchema,
   userDetailResponseSchema,
   userListQuerySchema,
   userListResponseSchema,
@@ -31,6 +34,7 @@ import {
 } from '../../../platform/access/access.decorators.js';
 import { CurrentAbility } from '../../../platform/access/authorizer.js';
 import { CurrentPrincipal, type Principal } from '../../../platform/access/principal.js';
+import { versionFromIfMatch } from '../../../platform/http/if-match.js';
 import { Meta, type RequestMeta } from '../../../platform/http/request-meta.js';
 import { ApiPermissionErrors } from '../../../platform/openapi/api-common-errors.js';
 import { InvitationUseCase } from '../application/invitation.js';
@@ -38,6 +42,7 @@ import { RoleAssignmentUseCase } from '../application/role-assignment.js';
 import { SecondFactorResetUseCase } from '../application/second-factor-reset.js';
 import { UserAdministration } from '../application/user-admin.js';
 import { UserDirectoryQuery } from '../application/user-directory.js';
+import { UserPositionUseCase } from '../application/user-position.js';
 
 // El nombre de la clase es el nombre del esquema en el OpenAPI.
 class UserListQuery extends createZodDto(userListQuerySchema) {}
@@ -45,6 +50,7 @@ class UserListResponse extends createZodDto(userListResponseSchema) {}
 class UserDetailResponse extends createZodDto(userDetailResponseSchema) {}
 class InviteUserRequest extends createZodDto(inviteUserRequestSchema) {}
 class InviteUserResponse extends createZodDto(inviteUserResponseSchema) {}
+class UpdateUserRequest extends createZodDto(updateUserRequestSchema) {}
 class AssignRoleRequest extends createZodDto(assignRoleRequestSchema) {}
 class AssignmentCreatedResponse extends createZodDto(createdResponseSchema) {}
 class RevokedSessionsResponse extends createZodDto(closedSessionsResponseSchema) {}
@@ -54,7 +60,7 @@ const USER_ID = new ParseUUIDPipe();
 
 /**
  * Administración de usuarios (B10, ficha 17.2): listar, invitar, bloquear, reiniciar el segundo
- * factor, cerrar sesiones y asignar roles. Cada ruta declara su permiso del anexo G; nadie actúa
+ * factor, cerrar sesiones, asignar roles y el cargo. Cada ruta declara su permiso del anexo G; nadie actúa
  * sobre su propia cuenta desde aquí.
  */
 @ApiTags('Usuarios y roles')
@@ -67,6 +73,7 @@ export class UsersController {
     @Inject(UserAdministration) private readonly admin: UserAdministration,
     @Inject(SecondFactorResetUseCase) private readonly secondFactor: SecondFactorResetUseCase,
     @Inject(RoleAssignmentUseCase) private readonly roles: RoleAssignmentUseCase,
+    @Inject(UserPositionUseCase) private readonly positions: UserPositionUseCase,
   ) {}
 
   @RequirePermission('iam.user.read')
@@ -215,6 +222,43 @@ export class UsersController {
     @Meta() meta: RequestMeta,
   ): Promise<RevokedSessionsResponse> {
     return { closed: await this.admin.revokeAllInTenant(principal, meta) };
+  }
+
+  @RequirePermission('iam.user.update')
+  @Patch('users/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Editar la ficha de una persona interna: su cargo',
+    description:
+      'Del cargo sale su jefe inmediato en los flujos de aprobación. El cargo debe estar activo. ' +
+      'Nunca sobre la propia cuenta.',
+  })
+  @ApiHeader({ name: 'If-Match', description: 'Versión de la ficha', required: true })
+  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Ficha guardada' })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    type: ErrorResponse.Output,
+    description: 'El usuario o el cargo no existen',
+  })
+  @ApiResponse({
+    status: HttpStatus.CONFLICT,
+    type: ErrorResponse.Output,
+    description: 'Otra versión, o una cuenta que no ocupa cargos',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNPROCESSABLE_ENTITY,
+    type: ErrorResponse.Output,
+    description: 'El cargo está inactivo',
+  })
+  async update(
+    @CurrentPrincipal() principal: Principal,
+    @Param('id', USER_ID) userId: string,
+    @Headers('if-match') ifMatch: string | undefined,
+    @Body() body: UpdateUserRequest,
+    @Meta() meta: RequestMeta,
+  ): Promise<void> {
+    const target = { id: userId, version: versionFromIfMatch(ifMatch) };
+    await this.positions.assign({ principal, target, positionId: body.position_id, meta });
   }
 
   @RequirePermission('iam.role.assign')

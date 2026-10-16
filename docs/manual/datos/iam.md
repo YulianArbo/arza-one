@@ -46,7 +46,7 @@ corren como su dueño (`migration_user`), que tiene políticas de **solo lectura
 | `kind`                | text        | No   |             | `internal`, `portal` o `service` (las de servicio nunca tienen contraseña)     |
 | `status`              | text        | No   | `invited`   | `invited`, `active`, `locked` o `inactive` (ficha 17.2)                        |
 | `party_id`            | uuid        | Sí   |             | Tercero de la persona (M02, B13)                                               |
-| `position_id`         | uuid        | Sí   |             | Cargo (M00, B12)                                                               |
+| `position_id`         | uuid        | Sí   |             | Cargo (M00, B12); solo internas y activo al asignarlo. Da el jefe inmediato     |
 | `mfa_required`        | boolean     | No   | true        | Segundo factor obligatorio (B09)                                               |
 | `last_login_at`       | timestamptz | Sí   |             | Último inicio de sesión                                                        |
 | `locked_until`        | timestamptz | Sí   |             | Bloqueo temporal de 15 minutos tras cinco fallos                               |
