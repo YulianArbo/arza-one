@@ -69,6 +69,10 @@ export const DATABASE_BOUND_FILES = [
   'src/modules/wf/application/**/*.ts',
   'src/modules/wf/infrastructure/**/*.ts',
   'src/modules/wf/interface/**/*.ts',
+  // Avisos, comentarios y adjuntos (B16): todo menos las reglas del dominio, que se prueban solas.
+  'src/modules/iam/infrastructure/notice-recipients.ts',
+  'src/modules/ntf/application/**/*.ts',
+  'src/modules/ntf/interface/**/*.ts',
 ];
 
 /** Procesos que solo arrancan algo; se prueban a mano o como proceso real. */

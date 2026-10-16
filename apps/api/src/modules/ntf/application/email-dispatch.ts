@@ -99,7 +99,8 @@ async function deliver(
   return true;
 }
 
-async function dispatchTenant(
+/** Envía los correos de una empresa cuya hora llegó. */
+export async function sendTenantNoticeEmails(
   deps: EmailDispatchDependencies,
   tenantId: string,
   now: Date,
@@ -132,7 +133,7 @@ export async function sendDueNoticeEmails(
   );
   const total = { sent: 0, failed: 0 };
   for (const { id } of tenants) {
-    const result = await dispatchTenant(deps, id, now);
+    const result = await sendTenantNoticeEmails(deps, id, now);
     total.sent += result.sent;
     total.failed += result.failed;
   }

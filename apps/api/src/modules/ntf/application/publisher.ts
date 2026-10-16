@@ -133,7 +133,8 @@ export interface PublishResult {
   readonly failed: number;
 }
 
-async function publishTenant(
+/** Publica los eventos pendientes de una empresa. */
+export async function publishTenantEvents(
   deps: PublisherDependencies,
   tenantId: string,
   now: Date,
@@ -178,7 +179,7 @@ export async function publishOutboxEvents(deps: PublisherDependencies): Promise<
   );
   const total = { published: 0, failed: 0 };
   for (const { id } of tenants) {
-    const result = await publishTenant(deps, id, now);
+    const result = await publishTenantEvents(deps, id, now);
     total.published += result.published;
     total.failed += result.failed;
   }
