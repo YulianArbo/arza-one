@@ -13,17 +13,21 @@ import { SubmitButton } from '../access/submit-button';
 import { useAdminAction } from '../administration/admin-action';
 import { SelectField } from '../administration/select-field';
 import { DUPLICATE_REASON_LABELS, KIND_LABELS, identification, partyPath } from './labels';
+import { ConsentFields } from '../privacy/consent-fields';
+import type { ConsentErrors } from '../privacy/consent-values';
 import { PartyFields, RoleChoices } from './party-form-fields';
 import {
   EMPTY_PARTY,
+  createBody,
   duplicateQuery,
   fieldErrors,
+  newPersonConsentErrors,
   partyBody,
   valuesOf,
   type FieldErrors,
   type PartyFormValues,
 } from './party-form-values';
-import { PARTY_KEYS, useDuplicates } from './queries';
+import { PARTY_KEYS, useAuthorizationNotices, useDuplicates } from './queries';
 
 const REASON = 'Los datos de terceros quedan en la auditoría.';
 
@@ -56,9 +60,8 @@ function useSaveParty(party: PartyDetail | null, onSaved: (id: string) => void) 
   return useAdminAction<PartyFormValues, string>({
     run: async (values, csrfToken) => {
       if (party === null) {
-        const body = { ...partyBody(values), roles: values.roles, status: values.status };
         const created = await api.post('/v1/parties', {
-          body,
+          body: createBody(values),
           schema: createdResponseSchema,
           csrfToken,
         });
@@ -157,11 +160,35 @@ function FormButtons(props: { readonly pending: boolean; readonly creating: bool
   );
 }
 
+/** Autorización de la persona nueva (B17), con los textos vigentes. */
+function NewPersonConsent(props: {
+  readonly values: PartyFormValues;
+  readonly errors: ConsentErrors;
+  readonly onChange: (values: PartyFormValues) => void;
+}): JSX.Element {
+  const notices = useAuthorizationNotices(true);
+  if (notices.data === undefined) {
+    return <p className="text-sm text-muted-foreground">Cargando el texto de autorización…</p>;
+  }
+  return (
+    <ConsentFields
+      idPrefix="tercero-autorizacion"
+      notices={notices.data.data}
+      values={props.values.consent}
+      errors={props.errors}
+      onChange={(consent) => {
+        props.onChange({ ...props.values, consent });
+      }}
+    />
+  );
+}
+
 /** Estado del formulario: valores, problemas por campo, búsqueda de duplicados y guardado. */
 function usePartyForm({ party, onSaved }: PartyFormProps) {
   const router = useRouter();
   const [values, setValues] = useState(party === null ? EMPTY_PARTY : valuesOf(party));
   const [errors, setErrors] = useState<FieldErrors>({});
+  const [consentProblems, setConsentProblems] = useState<ConsentErrors>({});
   const [probe, setProbe] = useState('');
   const save = useSaveParty(party, (id) => {
     if (onSaved === undefined) router.push(partyPath(id));
@@ -173,12 +200,14 @@ function usePartyForm({ party, onSaved }: PartyFormProps) {
   const submit = (event: SubmitEvent<HTMLFormElement>): void => {
     event.preventDefault();
     const found = fieldErrors(values);
+    const consent = newPersonConsentErrors(values, party === null);
     setErrors(found);
-    if (Object.keys(found).length > 0) return;
+    setConsentProblems(consent);
+    if (Object.keys(found).length + Object.keys(consent).length > 0) return;
     refreshProbe();
     save.execute(values);
   };
-  return { values, setValues, errors, probe, refreshProbe, save, submit };
+  return { values, setValues, errors, consentProblems, probe, refreshProbe, save, submit };
 }
 
 /** Registrar o editar un tercero (ficha 17.3, numeral 16.4: patrón de formulario). */
@@ -188,7 +217,7 @@ export function PartyForm(props: PartyFormProps): JSX.Element {
   return (
     <form noValidate onSubmit={form.submit} className="flex flex-col gap-4">
       {form.save.error === null ? null : <FormError error={form.save.error} />}
-      {Object.keys(form.errors).length > 0 ? (
+      {Object.keys(form.errors).length + Object.keys(form.consentProblems).length > 0 ? (
         <p role="alert" className="text-sm font-medium text-destructive">
           Revise los datos marcados antes de guardar.
         </p>
@@ -201,6 +230,13 @@ export function PartyForm(props: PartyFormProps): JSX.Element {
         onProbe={form.refreshProbe}
       />
       {creating ? <CreateOnlyFields values={form.values} onChange={form.setValues} /> : null}
+      {creating && form.values.kind === 'person' ? (
+        <NewPersonConsent
+          values={form.values}
+          errors={form.consentProblems}
+          onChange={form.setValues}
+        />
+      ) : null}
       <DuplicateWarning query={form.probe} />
       <FormButtons pending={form.save.pending} creating={creating} />
       {form.save.dialog}

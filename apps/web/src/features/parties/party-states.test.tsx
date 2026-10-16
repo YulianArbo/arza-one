@@ -40,9 +40,23 @@ const PERSON = {
   check_digit: null,
   status: 'blocked',
   status_reason: 'Lista restrictiva',
-  data_purpose: 'COMMERCIAL',
-  data_authorization: 'written',
-  data_authorized_on: '2026-01-15',
+  authorizations: [
+    {
+      id: '01999a00-0000-7000-8000-00000000f501',
+      notice: {
+        id: '01999a00-0000-7000-8000-00000000f401',
+        key: 'authorization_contact',
+        label: 'Autorización de contactos',
+        version_number: 2,
+        title: 'Autorización de contactos',
+      },
+      purposes: ['COMMERCIAL'],
+      channel: 'written',
+      granted_on: '2026-01-15',
+      status: 'active',
+      revoked_at: null,
+    },
+  ],
   role_history: [],
   roles: [],
   due_diligence: { state: 'none', next_review_on: null },
@@ -77,8 +91,10 @@ describe('ficha de una persona', () => {
       [`GET /v1/parties/${PERSON_ID}/contacts`]: () => json(CONTACTS),
     });
     renderParty(PERSON_ID);
-    expect(await screen.findByText('Documento firmado, 15/01/2026')).toBeVisible();
-    expect(await screen.findByText('Relación comercial')).toBeVisible();
+    expect(
+      await screen.findByText('Relación comercial · Documento firmado · 15/01/2026'),
+    ).toBeVisible();
+    expect(screen.getByText('Autorización de contactos, versión 2')).toBeVisible();
     expect(screen.getByText('Lista restrictiva')).toBeVisible();
     expect(screen.getByText('Sin conocimiento del tercero')).toBeVisible();
     expect(screen.getByRole('button', { name: 'Desbloquear' })).toBeVisible();

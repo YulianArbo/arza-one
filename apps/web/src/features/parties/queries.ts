@@ -4,6 +4,7 @@ import {
   bankAccountListResponseSchema,
   contactListResponseSchema,
   dueDiligenceListResponseSchema,
+  noticeListResponseSchema,
   partyDetailSchema,
   partyListResponseSchema,
   partySearchResponseSchema,
@@ -11,6 +12,7 @@ import {
   type BankAccountListResponse,
   type ContactListResponse,
   type DueDiligenceListResponse,
+  type NoticeListResponse,
   type PartyDetail,
   type PartyListResponse,
   type PartySearchResponse,
@@ -33,7 +35,19 @@ export const PARTY_KEYS = {
   accounts: (id: string) => ['parties', id, 'bank-accounts'] as const,
   reviews: (id: string) => ['parties', id, 'due-diligence'] as const,
   timeline: (id: string, cursor: string | null) => ['parties', id, 'timeline', cursor] as const,
+  notices: ['parties', 'authorization-notices'] as const,
 };
+
+/** Textos de autorización vigentes para el formulario de una persona (B17). */
+export function useAuthorizationNotices(enabled: boolean): UseQueryResult<NoticeListResponse> {
+  const api = useApiClient();
+  return useQuery({
+    queryKey: PARTY_KEYS.notices,
+    queryFn: ({ signal }) =>
+      api.get('/v1/parties/authorization-notices', { schema: noticeListResponseSchema, signal }),
+    enabled,
+  });
+}
 
 export interface PartyFilters {
   readonly q: string;

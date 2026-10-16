@@ -57,9 +57,7 @@ export const ORGANIZATION: PartyDetail = partyDetailSchema.parse({
   trade_name: 'Andina',
   address: 'Calle 10 # 20-30',
   status_reason: null,
-  data_purpose: null,
-  data_authorization: null,
-  data_authorized_on: null,
+  authorizations: [],
   role_history: [
     { role: 'customer', since: '2026-01-15', is_active: true },
     { role: 'supplier', since: '2025-03-01', is_active: false },
@@ -88,6 +86,23 @@ export const DUPLICATE_SUMMARY = {
 };
 
 const PARTY_LIST = { data: [summary, PERSON_SUMMARY], next_cursor: null };
+
+export const NOTICE_ID = '01999a00-0000-7000-8000-00000000f401';
+
+/** Texto de autorización publicado (B17), ficticio. */
+export const AUTHORIZATION_NOTICE = {
+  id: NOTICE_ID,
+  key: 'authorization_contact',
+  label: 'Autorización de contactos',
+  version_number: 2,
+  title: 'Autorización de tratamiento de datos de contactos',
+  body: 'Texto ficticio de la autorización para las pruebas de las pantallas de terceros.',
+  purposes: ['COMMERCIAL'],
+  status: 'published',
+  effective_from: '2026-10-01T13:00:00.000Z',
+  created_at: '2026-09-30T13:00:00.000Z',
+  version: 2,
+} as const;
 
 export const CONTACTS = {
   data: [
@@ -167,7 +182,7 @@ export const TIMELINE = {
   next_cursor: null,
 };
 
-const catalog = (key: string, items: readonly (readonly [string, string])[]) => ({
+export const catalog = (key: string, items: readonly (readonly [string, string])[]): object => ({
   key,
   name: key,
   description: null,
@@ -211,6 +226,8 @@ export function serveParties(permissions: object, extra: Routes = {}): SentReque
     'GET /v1/catalogs/identification_types': () => json(CATALOGS.identification_types),
     'GET /v1/catalogs/personal_data_purposes': () => json(CATALOGS.personal_data_purposes),
     'GET /v1/catalogs/banks': () => json(CATALOGS.banks),
+    'GET /v1/parties/authorization-notices': () => json({ data: [AUTHORIZATION_NOTICE] }),
+    'GET /v1/files': () => json({ data: [] }),
     ...extra,
   });
 }

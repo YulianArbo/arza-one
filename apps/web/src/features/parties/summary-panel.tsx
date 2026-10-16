@@ -8,9 +8,9 @@ import { useApiClient } from '../../lib/api/api-provider';
 import { formatDate, formatDateTime } from '../../lib/format/date-time';
 import { FormError } from '../access/form-alert';
 import { useAdminAction } from '../administration/admin-action';
-import { useCatalog } from '../organization/queries';
 import { usePermissions } from '../session/permissions';
-import { AUTHORIZATION_LABELS, KIND_LABELS, ROLE_LABELS, identification } from './labels';
+import { AuthorizationsCard } from './authorizations-card';
+import { KIND_LABELS, ROLE_LABELS, identification } from './labels';
 import { PARTY_KEYS } from './queries';
 
 function Row({ label, value }: { readonly label: string; readonly value: string }): JSX.Element {
@@ -23,8 +23,6 @@ function Row({ label, value }: { readonly label: string; readonly value: string 
 }
 
 function DataCard({ party }: { readonly party: PartyDetail }): JSX.Element {
-  const purposes = useCatalog('personal_data_purposes').data?.items ?? [];
-  const purpose = purposes.find((item) => item.code === party.data_purpose)?.label;
   return (
     <Card>
       <CardHeader>
@@ -44,15 +42,6 @@ function DataCard({ party }: { readonly party: PartyDetail }): JSX.Element {
           {party.status_reason === null ? null : (
             <Row label="Motivo del estado" value={party.status_reason} />
           )}
-          {party.kind === 'person' ? (
-            <>
-              <Row label="Finalidad de los datos" value={purpose ?? party.data_purpose ?? '—'} />
-              <Row
-                label="Autorización"
-                value={`${party.data_authorization === null ? '—' : AUTHORIZATION_LABELS[party.data_authorization]}, ${formatDate(party.data_authorized_on)}`}
-              />
-            </>
-          ) : null}
           <Row label="Registrado el" value={formatDateTime(party.created_at)} />
         </dl>
       </CardContent>
@@ -150,6 +139,7 @@ export function SummaryPanel({ party }: { readonly party: PartyDetail }): JSX.El
     <div className="grid gap-4 lg:grid-cols-2">
       <DataCard party={party} />
       <RolesCard party={party} />
+      {party.kind === 'person' ? <AuthorizationsCard party={party} /> : null}
     </div>
   );
 }

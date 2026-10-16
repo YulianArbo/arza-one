@@ -6,6 +6,7 @@ import { Screen } from '../../test-support/core-fixtures';
 import { apiError, json, renderWithApi } from '../../test-support/fake-api';
 import {
   DUPLICATE_SUMMARY,
+  NOTICE_ID,
   ORG_ID,
   SALES,
   permissionsOf,
@@ -84,6 +85,30 @@ describe('formulario del tercero', () => {
   });
 });
 
+/** Llena la autorización de la persona: texto, finalidad, canal, fecha y la casilla. */
+async function fillConsent(): Promise<void> {
+  await userEvent.selectOptions(
+    screen.getByLabelText('Texto de autorización'),
+    'Autorización de contactos (versión 2)',
+  );
+  expect(screen.getByRole('region', { name: /Texto de la autorización/ })).toBeVisible();
+  const accept = screen.getByLabelText(/La persona autorizó el tratamiento/);
+  expect(accept).not.toBeChecked();
+  await userEvent.click(screen.getByLabelText('Relación comercial'));
+  await userEvent.selectOptions(screen.getByLabelText('Cómo se obtuvo'), 'written');
+  await userEvent.type(screen.getByLabelText('Fecha de la autorización'), '2026-10-01');
+  await userEvent.click(accept);
+}
+
+const EXPECTED_CONSENT = {
+  notice_id: NOTICE_ID,
+  accepted: true,
+  purposes: ['COMMERCIAL'],
+  channel: 'written',
+  granted_on: '2026-10-01',
+  evidence_file_id: null,
+};
+
 describe('formulario del tercero (2)', () => {
   it('registra una persona con su autorización y abre su ficha', async () => {
     const sent = serveParties(SALES, {
@@ -99,10 +124,11 @@ describe('formulario del tercero (2)', () => {
     await userEvent.type(screen.getByLabelText('Apellidos'), 'Gómez');
     await userEvent.type(screen.getByLabelText('Número de documento'), '1020555001');
     await userEvent.click(screen.getByRole('button', { name: 'Guardar' }));
-    expect(await screen.findAllByText('Este dato es obligatorio.')).toHaveLength(3);
-    await userEvent.selectOptions(screen.getByLabelText('Finalidad'), 'COMMERCIAL');
-    await userEvent.selectOptions(screen.getByLabelText('Autorización'), 'written');
-    await userEvent.type(screen.getByLabelText('Fecha de la autorización'), '2026-10-01');
+    expect(
+      await screen.findByText('Marque la casilla de autorización para continuar.'),
+    ).toBeVisible();
+    expect(sent.some((r) => r.method === 'POST')).toBe(false);
+    await fillConsent();
     await userEvent.click(screen.getByLabelText('Cliente'));
     await userEvent.click(screen.getByRole('button', { name: 'Guardar' }));
     await vi.waitFor(() => {
@@ -111,11 +137,9 @@ describe('formulario del tercero (2)', () => {
     expect(sent.find((r) => r.method === 'POST')?.body).toMatchObject({
       kind: 'person',
       first_name: 'Laura',
-      id_type: 'CC',
-      check_digit: null,
       legal_name: null,
-      data_authorization: 'written',
       roles: ['customer'],
+      consent: EXPECTED_CONSENT,
     });
   });
 });

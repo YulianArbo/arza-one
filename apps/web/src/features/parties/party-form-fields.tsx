@@ -1,22 +1,17 @@
 'use client';
 
-import {
-  NIT_ID_TYPE,
-  dataAuthorizationSchema,
-  partyRoleSchema,
-  type PartyRole,
-} from '@arza/contracts';
+import { NIT_ID_TYPE, partyRoleSchema, type PartyRole } from '@arza/contracts';
 import type { JSX } from 'react';
 
 import { FormField } from '../access/form-field';
 import { SelectField } from '../administration/select-field';
 import { useCatalog } from '../organization/queries';
 import { CheckboxField } from '../organization/record-dialog';
-import { AUTHORIZATION_LABELS, ROLE_LABELS, optionsFrom } from './labels';
+import { ROLE_LABELS } from './labels';
 import type { FieldErrors, PartyFormValues } from './party-form-values';
 
-// Campos del formulario del tercero (B13): los de su tipo, el documento con su dígito de
-// verificación y, en las personas, la finalidad y la autorización de sus datos (ficha 17.3).
+// Campos del formulario del tercero (B13): los de su tipo y el documento con su dígito de
+// verificación. La autorización de la persona la pone el componente de privacidad (B17).
 
 interface FieldsProps {
   readonly values: PartyFormValues;
@@ -35,8 +30,7 @@ type TextKey =
   | 'email'
   | 'phone'
   | 'city'
-  | 'address'
-  | 'dataAuthorizedOn';
+  | 'address';
 
 interface TextProps {
   readonly form: FieldsProps;
@@ -45,17 +39,16 @@ interface TextProps {
   /** Campo del contrato cuyo problema se muestra aquí. */
   readonly field?: string;
   readonly hint?: string;
-  readonly type?: 'text' | 'date';
   /** Sirve para buscar duplicados al salir del campo. */
   readonly probe?: boolean;
 }
 
-function Text({ form, name, label, field, hint, type, probe }: TextProps): JSX.Element {
+function Text({ form, name, label, field, hint, probe }: TextProps): JSX.Element {
   return (
     <FormField
       id={`tercero-${name}`}
       label={label}
-      type={type ?? 'text'}
+      type="text"
       value={form.values[name]}
       error={field === undefined ? null : (form.errors[field] ?? null)}
       {...(hint === undefined ? {} : { hint })}
@@ -150,50 +143,6 @@ function ContactFields({ form }: { readonly form: FieldsProps }): JSX.Element {
   );
 }
 
-const AUTHORIZATION_OPTIONS = [
-  { value: '', label: 'Elija cómo se obtuvo' },
-  ...optionsFrom(dataAuthorizationSchema.options, AUTHORIZATION_LABELS),
-];
-
-/** Finalidad y autorización del tratamiento de datos de una persona (Ley 1581 de 2012). */
-function PersonalDataFields({ form }: { readonly form: FieldsProps }): JSX.Element {
-  const purposes = useCatalogOptions('personal_data_purposes', 'Elija la finalidad');
-  const { values, errors, onChange } = form;
-  return (
-    <fieldset className="grid gap-3 rounded-md border p-3 sm:grid-cols-3">
-      <legend className="px-1 text-sm font-medium">Tratamiento de sus datos personales</legend>
-      <SelectField
-        id="tercero-finalidad"
-        label="Finalidad"
-        options={purposes}
-        value={values.dataPurpose}
-        error={errors['data_purpose']}
-        onChange={(event) => {
-          onChange({ ...values, dataPurpose: event.target.value });
-        }}
-      />
-      <SelectField
-        id="tercero-autorizacion"
-        label="Autorización"
-        options={AUTHORIZATION_OPTIONS}
-        value={values.dataAuthorization}
-        error={errors['data_authorization']}
-        onChange={(event) => {
-          const value = dataAuthorizationSchema.safeParse(event.target.value);
-          onChange({ ...values, dataAuthorization: value.success ? value.data : '' });
-        }}
-      />
-      <Text
-        form={form}
-        name="dataAuthorizedOn"
-        label="Fecha de la autorización"
-        field="data_authorized_on"
-        type="date"
-      />
-    </fieldset>
-  );
-}
-
 /** Papeles con que nace el tercero; después se cambian desde su ficha. */
 export function RoleChoices(props: {
   readonly roles: readonly PartyRole[];
@@ -226,7 +175,6 @@ export function PartyFields(props: FieldsProps): JSX.Element {
       <NameFields form={props} />
       <DocumentFields form={props} />
       <ContactFields form={props} />
-      {props.values.kind === 'person' ? <PersonalDataFields form={props} /> : null}
     </>
   );
 }

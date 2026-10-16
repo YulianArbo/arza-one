@@ -30,9 +30,7 @@ const DETAIL = {
   trade_name: null,
   address: null,
   status_reason: null,
-  data_purpose: null,
-  data_authorization: null,
-  data_authorized_on: null,
+  authorizations: [],
   role_history: [{ role: 'customer', since: '2026-01-15', is_active: true }],
   due_diligence: { state: 'pending', next_review_on: null },
   created_at: '2026-01-15T14:00:00.000Z',
@@ -112,6 +110,26 @@ const PARTY_API: ApiRoutes = {
     'Comercial',
   ),
   '/v1/catalogs/banks': catalog('banks', 'BANCOLOMBIA', 'Bancolombia'),
+  '/v1/files': { body: { data: [] } },
+  '/v1/parties/authorization-notices': {
+    body: {
+      data: [
+        {
+          id: USER,
+          key: 'authorization_contact',
+          label: 'Autorización de contactos',
+          version_number: 1,
+          title: 'Autorización de tratamiento de datos de contactos',
+          body: 'Texto ficticio de la autorización para las pruebas en el navegador.',
+          purposes: ['COMMERCIAL'],
+          status: 'published',
+          effective_from: '2026-10-01T13:00:00.000Z',
+          created_at: '2026-09-30T13:00:00.000Z',
+          version: 2,
+        },
+      ],
+    },
+  },
 };
 
 const PAGES = [
@@ -158,6 +176,22 @@ test.describe('registro de un tercero', () => {
     await expect(
       page.getByText('El dígito de verificación no corresponde a ese NIT'),
     ).toBeVisible();
+  });
+});
+
+test.describe('registro de una persona', () => {
+  test('pide la autorización con la casilla sin marcar y es accesible', async ({ page }) => {
+    await mockApi(page, PARTY_API);
+    await page.goto('/app/terceros/nuevo');
+    await page.getByLabel('Tipo de tercero').selectOption('person');
+    await page
+      .getByLabel('Texto de autorización')
+      .selectOption({ label: 'Autorización de contactos (versión 1)' });
+    await expect(page.getByRole('region', { name: /Texto de la autorización/ })).toBeVisible();
+    await expect(page.getByLabel(/La persona autorizó el tratamiento/)).not.toBeChecked();
+    expect(await accessibilityViolations(page)).toEqual([]);
+    await page.getByRole('button', { name: 'Guardar' }).click();
+    await expect(page.getByText('Marque la casilla de autorización para continuar.')).toBeVisible();
   });
 });
 
