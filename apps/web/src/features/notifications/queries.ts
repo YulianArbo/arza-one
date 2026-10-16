@@ -19,7 +19,7 @@ import { useAdminAction, type AdminAction } from '../administration/admin-action
 // Consultas y acciones de los avisos (B16). La API decide qué avisos ve cada persona y cuándo:
 // un aviso diferido fuera de jornada no llega a la web antes del inicio de la siguiente.
 
-export const NTF_KEYS = {
+const NTF_KEYS = {
   all: ['ntf'] as const,
   list: (unread: boolean, limit: number) => ['ntf', 'notifications', unread, limit] as const,
   preferences: ['ntf', 'preferences'] as const,

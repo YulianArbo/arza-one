@@ -21,7 +21,7 @@ import { useSession } from '../session/session-provider';
 // Comentarios y adjuntos de cualquier registro (B16). El módulo dueño del registro decide en la
 // API quién los ve y quién escribe; la web solo muestra lo que la API entrega.
 
-export const RECORD_KEYS = {
+const RECORD_KEYS = {
   comments: (ref: RecordRef) => ['records', 'comments', ref.entity_type, ref.entity_id] as const,
   attachments: (ref: RecordRef) =>
     ['records', 'attachments', ref.entity_type, ref.entity_id] as const,

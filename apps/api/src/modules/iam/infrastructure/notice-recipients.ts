@@ -19,7 +19,6 @@ export async function noticeRecipients(
   tx: TenantTransaction,
   ids: readonly string[],
 ): Promise<NoticeRecipient[]> {
-  if (ids.length === 0) return [];
   const users = await tx.user.findMany({
     where: { id: { in: [...new Set(ids)] }, ...ACTIVE_PEOPLE },
     select: { id: true, email: true, displayName: true, kind: true },

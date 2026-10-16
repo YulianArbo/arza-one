@@ -11,6 +11,7 @@
         "src/modules/core/index.ts",
         "src/modules/doc/index.ts",
         "src/modules/wf/index.ts",
+        "src/modules/ntf/index.ts",
         "src/modules/iam/interface/cli/invite-main.ts",
         "src/modules/iam/interface/cli/reset-second-factor-main.ts",
         "src/modules/iam/interface/cli/assign-role-main.ts"
