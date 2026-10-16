@@ -28,6 +28,7 @@ import { SessionService } from '../application/session-service.js';
 import { SignInCompletion } from '../application/sign-in-completion.js';
 import { UserAdministration } from '../application/user-admin.js';
 import { UserDirectoryQuery } from '../application/user-directory.js';
+import { UserPositionUseCase } from '../application/user-position.js';
 import { VerificationFailures } from '../application/verification-failures.js';
 import { AuthController } from './auth.controller.js';
 import { DelegationsController } from './delegations.controller.js';
@@ -39,7 +40,7 @@ import { UsersController } from './users.controller.js';
 /**
  * M01 Identidad: cuentas, inicio de sesión, sesiones y contraseñas (B08); segundo factor,
  * sesiones activas, confirmación de identidad y avisos de seguridad (B09); roles, permisos,
- * delegaciones, administración de usuarios y revisión de accesos (B10).
+ * delegaciones, administración de usuarios y revisión de accesos (B10); cargo de cada persona.
  */
 @Module({
   controllers: [
@@ -74,6 +75,7 @@ import { UsersController } from './users.controller.js';
     SignInCompletion,
     UserAdministration,
     UserDirectoryQuery,
+    UserPositionUseCase,
     VerificationFailures,
     // Los secretos del segundo factor se cifran con FIELD_ENCRYPTION_KEY (capítulo 12.1).
     {

@@ -125,3 +125,19 @@ export function delegationInvalid(problem: DelegationProblem | 'not_held' | 'per
 export function userStateInvalid(message: string): AppError {
   return new AppError(HttpStatus.CONFLICT, ACCESS_ERROR_CODES.userStateInvalid, message);
 }
+
+export function positionNotFound(): AppError {
+  return new AppError(
+    HttpStatus.NOT_FOUND,
+    ACCESS_ERROR_CODES.positionNotFound,
+    'El cargo no existe en el organigrama de la empresa.',
+  );
+}
+
+export function positionInactive(): AppError {
+  return new AppError(
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    ACCESS_ERROR_CODES.positionInactive,
+    'Ese cargo está inactivo. Actívelo en Organización o elija otro.',
+  );
+}

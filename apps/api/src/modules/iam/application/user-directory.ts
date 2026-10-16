@@ -5,6 +5,7 @@ import type {
   UserListQuery,
   UserListResponse,
   UserSecurity,
+  UserPosition,
   UserSummary,
 } from '@arza/contracts';
 
@@ -23,6 +24,7 @@ import {
   type UserWithRoles,
 } from '../infrastructure/user-directory-store.js';
 import { userNotFound } from './access-messages.js';
+import { POSITION_DIRECTORY, type PositionDirectory } from './position-directory.js';
 
 function kindOf(user: User): 'internal' | 'portal' {
   return user.kind === 'portal' ? 'portal' : 'internal';
@@ -66,6 +68,7 @@ export class UserDirectoryQuery {
   constructor(
     @Inject(DatabaseService) private readonly database: DatabaseService,
     @Inject(CLOCK) private readonly clock: Clock,
+    @Inject(POSITION_DIRECTORY) private readonly positions: PositionDirectory,
   ) {}
 
   async list(principal: Principal, query: UserListQuery): Promise<UserListResponse> {
@@ -86,6 +89,8 @@ export class UserDirectoryQuery {
       return {
         ...userSummaryOf(user),
         created_at: user.createdAt.toISOString(),
+        version: user.version,
+        position: await this.positionOf(tx, user),
         assignments: await this.assignmentsOf(tx, user),
         security: seesSecurity(ability) ? await this.securityOf(tx, user, now) : null,
       };
@@ -111,6 +116,14 @@ export class UserDirectoryQuery {
           by === undefined ? null : { id: by.id, email: by.email, display_name: by.displayName },
       };
     });
+  }
+
+  private async positionOf(tx: TenantTransaction, user: User): Promise<UserPosition | null> {
+    if (user.positionId === null) return null;
+    const position = await this.positions.find(tx, user.positionId);
+    return position === null
+      ? null
+      : { id: position.id, name: position.name, is_active: position.isActive };
   }
 
   private async securityOf(tx: TenantTransaction, user: User, now: Date): Promise<UserSecurity> {

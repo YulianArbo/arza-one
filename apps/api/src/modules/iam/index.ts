@@ -7,6 +7,11 @@ export {
   type AccountEmail,
   type AccountEmailDependencies,
 } from './application/account-email.js';
+export {
+  POSITION_DIRECTORY,
+  type PositionDirectory,
+  type PositionRecord,
+} from './application/position-directory.js';
 export { peopleById, usersInPosition } from './infrastructure/user-directory-store.js';
 export {
   activeInternalUserByEmail,

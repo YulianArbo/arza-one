@@ -11,6 +11,7 @@ import { TenantAndSitesUseCase } from '../application/tenant-and-sites.js';
 import { CompanyController } from './company.controller.js';
 import { ListsController } from './lists.controller.js';
 import { SettingsController } from './settings.controller.js';
+import { PositionDirectoryModule } from './position-directory.module.js';
 import { StructureController } from './structure.controller.js';
 
 /**
@@ -18,6 +19,7 @@ import { StructureController } from './structure.controller.js';
  * consecutivos, parámetros con vigencia, festivos y días hábiles.
  */
 @Module({
+  imports: [PositionDirectoryModule],
   controllers: [CompanyController, StructureController, ListsController, SettingsController],
   providers: [
     TenantAndSitesUseCase,
