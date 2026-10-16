@@ -6,11 +6,15 @@ export interface MailMessage {
   readonly to: string;
   readonly subject: string;
   readonly text: string;
+  /** Versión HTML con el marco institucional (avisos, B16). */
+  readonly html?: string;
 }
 
-/** Envío de correo. Las plantillas y las preferencias de aviso llegan en B16. */
+/** Envío de correo. */
 export interface Mailer {
   send(message: MailMessage): Promise<void>;
+  /** Igual que send, y devuelve el identificador que le dio el servidor de correo. */
+  sendWithId(message: MailMessage): Promise<string | null>;
   close(): void;
 }
 
@@ -46,7 +50,12 @@ export class SmtpMailer implements Mailer {
   }
 
   async send(message: MailMessage): Promise<void> {
-    await this.transport.sendMail(message);
+    await this.sendWithId(message);
+  }
+
+  async sendWithId(message: MailMessage): Promise<string | null> {
+    const info: { messageId?: unknown } = await this.transport.sendMail(message);
+    return typeof info.messageId === 'string' ? info.messageId : null;
   }
 
   close(): void {

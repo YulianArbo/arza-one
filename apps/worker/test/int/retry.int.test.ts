@@ -41,6 +41,7 @@ const flakyMailer = {
     sent.push(message);
     return Promise.resolve();
   },
+  sendWithId: async () => Promise.reject(new Error('no se usa en esta prueba')),
 };
 
 beforeAll(async () => {

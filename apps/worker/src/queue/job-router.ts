@@ -8,6 +8,10 @@ import {
 } from '../jobs/audit-chain-check.js';
 import { processExampleEmail, type ExampleEmailDependencies } from '../jobs/example-email.js';
 import { processFileScan, type FileScanJobDependencies } from '../jobs/file-scan.js';
+import {
+  processNoticeDispatch,
+  type NoticeDispatchJobDependencies,
+} from '../jobs/notice-dispatch.js';
 import { processOverdueCheck, type OverdueCheckJobDependencies } from '../jobs/overdue-check.js';
 
 /** Lo que un procesador necesita saber del trabajo. */
@@ -22,7 +26,8 @@ export type JobDependencies = ExampleEmailDependencies &
   AccountEmailJobDependencies &
   AuditChainCheckDependencies &
   FileScanJobDependencies &
-  OverdueCheckJobDependencies;
+  OverdueCheckJobDependencies &
+  NoticeDispatchJobDependencies;
 
 /** Procesadores de cada trabajo, por su nombre. Cada bloque agrega los suyos. */
 function handlers(deps: JobDependencies): ReadonlyMap<string, JobHandler> {
@@ -50,6 +55,12 @@ function handlers(deps: JobDependencies): ReadonlyMap<string, JobHandler> {
       JOBS.wfOverdueCheck.name,
       async () => {
         await processOverdueCheck(deps);
+      },
+    ],
+    [
+      JOBS.ntfDispatch.name,
+      async () => {
+        await processNoticeDispatch(deps);
       },
     ],
   ]);
