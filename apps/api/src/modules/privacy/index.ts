@@ -6,9 +6,8 @@ export {
   consentsOfParty,
   grantConsent,
   publishedAuthorizationNotices,
-  type ConsentSource,
 } from './application/consent-grant.js';
-export { actorOf, type PrivacyActor } from './application/privacy-support.js';
+export { actorOf } from './application/privacy-support.js';
 export {
   PARTY_DIRECTORY,
   type PartyDirectory,

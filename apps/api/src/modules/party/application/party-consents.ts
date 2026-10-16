@@ -20,7 +20,7 @@ import { ALL_PARTIES, findParty, partyName } from './party-support.js';
 // privacidad; aquí solo se decide quién puede pedirlos: quien ve o edita terceros.
 
 /** Terceros para privacidad (puerto PARTY_DIRECTORY): también los retirados y fusionados. */
-export async function describeParties(
+async function describeParties(
   tx: TenantTransaction,
   ids: readonly string[],
 ): Promise<Map<string, PartyRecord>> {

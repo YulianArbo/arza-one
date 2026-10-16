@@ -31,7 +31,7 @@ import { PARTY_KEYS, queryString } from '../parties/queries';
 
 // Consultas y acciones de privacidad (B17). La API revisa el permiso y el aislamiento en cada una.
 
-export const PRIVACY_KEYS = {
+const PRIVACY_KEYS = {
   all: ['privacy'] as const,
   notices: ['privacy', 'notices'] as const,
   consents: (status: string, cursor: string | null) =>

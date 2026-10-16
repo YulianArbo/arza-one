@@ -69,10 +69,10 @@ function useGrant(partyId: string, onDone: () => void) {
 }
 
 function GrantForm(props: { readonly partyId: string; readonly onDone: () => void }) {
-  const notices = useAuthorizationNotices(true);
   const [values, setValues] = useState<ConsentValues>(EMPTY_CONSENT);
   const [errors, setErrors] = useState<ConsentErrors>({});
   const grant = useGrant(props.partyId, props.onDone);
+  const notices = useAuthorizationNotices(grant.error);
   const submit = (event: SubmitEvent<HTMLFormElement>): void => {
     event.preventDefault();
     const found = consentErrors(values);

@@ -164,9 +164,10 @@ function FormButtons(props: { readonly pending: boolean; readonly creating: bool
 function NewPersonConsent(props: {
   readonly values: PartyFormValues;
   readonly errors: ConsentErrors;
+  readonly saveError: unknown;
   readonly onChange: (values: PartyFormValues) => void;
 }): JSX.Element {
-  const notices = useAuthorizationNotices(true);
+  const notices = useAuthorizationNotices(props.saveError);
   if (notices.data === undefined) {
     return <p className="text-sm text-muted-foreground">Cargando el texto de autorización…</p>;
   }
@@ -234,6 +235,7 @@ export function PartyForm(props: PartyFormProps): JSX.Element {
         <NewPersonConsent
           values={form.values}
           errors={form.consentProblems}
+          saveError={form.save.error}
           onChange={form.setValues}
         />
       ) : null}

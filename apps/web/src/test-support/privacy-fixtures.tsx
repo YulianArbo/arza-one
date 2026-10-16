@@ -7,11 +7,11 @@ import { RequireSession } from '../features/session/session-provider';
 import { SESSION, json, mockApi, type SentRequest } from './fake-api';
 import { catalog } from './party-fixtures';
 
-export const PUBLISHED_ID = '01999a00-0000-7000-8000-00000000d001';
+const PUBLISHED_ID = '01999a00-0000-7000-8000-00000000d001';
 export const DRAFT_ID = '01999a00-0000-7000-8000-00000000d002';
 export const CONSENT_ID = '01999a00-0000-7000-8000-00000000d101';
 export const ACTIVITY_ID = '01999a00-0000-7000-8000-00000000d201';
-export const PROCESSOR_ID = '01999a00-0000-7000-8000-00000000d301';
+const PROCESSOR_ID = '01999a00-0000-7000-8000-00000000d301';
 export const ORG_ID = '01999a00-0000-7000-8000-00000000d401';
 const PERSON_ID = '01999a00-0000-7000-8000-00000000d402';
 
@@ -50,7 +50,7 @@ export function notice(overrides: object = {}): Record<string, unknown> {
   };
 }
 
-export const NOTICES = {
+const NOTICES = {
   data: [
     notice({ id: DRAFT_ID, version_number: 2, status: 'draft', effective_from: null, version: 1 }),
     notice({}),

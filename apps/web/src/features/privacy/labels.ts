@@ -10,7 +10,7 @@ import type {
 
 type Tone = 'neutral' | 'success' | 'warning' | 'destructive' | 'info';
 
-export const PRIVACY_PATH = '/app/privacidad';
+const PRIVACY_PATH = '/app/privacidad';
 
 export const PRIVACY_PATHS = {
   home: PRIVACY_PATH,

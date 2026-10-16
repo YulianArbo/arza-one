@@ -49,7 +49,7 @@ export function noticeView(row: PrivacyNotice): Notice {
 }
 
 /** Las finalidades encajan con la clase de texto y siguen activas en el catálogo. */
-export async function assertPurposes(
+async function assertPurposes(
   tx: TenantTransaction,
   key: NoticeKey,
   purposes: readonly string[],
