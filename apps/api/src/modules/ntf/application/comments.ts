@@ -14,7 +14,7 @@ import { DatabaseService } from '../../../platform/database/database.service.js'
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
 import { addOutboxEvent } from '../../../platform/outbox/outbox.js';
-import { noticeRecipients } from '../../iam/index.js';
+import { activeInternalUserByEmail } from '../../iam/index.js';
 import { auditNtf } from './ntf-audit.js';
 import { commentNotFound, mentionInvalid } from './ntf-messages.js';
 import { peopleViews, personIn } from './people.js';
@@ -26,22 +26,26 @@ import { recordFor, refOf, type RecordAccess, type RecordFacts } from './record-
 
 export interface CommentInput extends RecordRef {
   readonly body: string;
-  readonly mention_ids: readonly string[];
+  readonly mention_emails: readonly string[];
 }
 
 /** Las personas mencionadas deben ser colaboradores activos de la empresa, y no quien escribe. */
+/**
+ * Las personas mencionadas, por su correo: deben ser colaboradores activos de la empresa, y no
+ * quien escribe. Así se menciona como se delega una tarea (B15), sin abrir el directorio.
+ */
 async function validMentions(
   tx: TenantTransaction,
   principal: Principal,
-  ids: readonly string[],
+  emails: readonly string[],
 ): Promise<string[]> {
-  const unique = [...new Set(ids)];
-  if (unique.includes(principal.userId)) throw mentionInvalid();
-  const people = await noticeRecipients(tx, unique);
-  if (people.length !== unique.length || people.some((person) => !person.collaborator)) {
-    throw mentionInvalid();
+  const ids = new Set<string>();
+  for (const email of new Set(emails)) {
+    const id = await activeInternalUserByEmail(tx, email);
+    if (id === null || id === principal.userId) throw mentionInvalid();
+    ids.add(id);
   }
-  return unique;
+  return [...ids];
 }
 
 /** Cada mención produce un aviso por el evento «comment.mentioned» de la bandeja de salida. */
@@ -111,7 +115,7 @@ export class CommentsUseCase {
     const access = this.accessOf(principal, ability);
     return this.database.withTenant(principal, async (tx) => {
       const record = await recordFor(tx, access, input, 'write');
-      const mentionIds = await validMentions(tx, principal, input.mention_ids);
+      const mentionIds = await validMentions(tx, principal, input.mention_emails);
       const comment = await tx.comment.create({
         data: {
           tenantId: principal.tenantId,

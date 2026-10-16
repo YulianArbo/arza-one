@@ -1,6 +1,6 @@
 'use client';
 
-import type { FileView } from '@arza/contracts';
+import type { DownloadLinkResponse, FileView } from '@arza/contracts';
 import { Badge, Button, EmptyState, TableCell, TableRow } from '@arza/ui';
 import { Paperclip } from 'lucide-react';
 import { useState, type JSX } from 'react';
@@ -23,14 +23,17 @@ import {
 import { useDownloadLink, useFiles } from './queries';
 
 /** Pide el enlace de cinco minutos y lo abre: la API entrega el archivo como adjunto. */
-function DownloadButton({ file }: { readonly file: FileView }): JSX.Element {
-  const requestLink = useDownloadLink();
+export function DownloadButton(props: {
+  readonly requestLink: () => Promise<DownloadLinkResponse>;
+  readonly label?: string;
+}): JSX.Element {
   const [error, setError] = useState<unknown>(null);
   const [pending, setPending] = useState(false);
   const download = (): void => {
     setPending(true);
     setError(null);
-    requestLink(file.id)
+    props
+      .requestLink()
       .then((link) => {
         window.open(link.url, '_self');
       })
@@ -42,7 +45,7 @@ function DownloadButton({ file }: { readonly file: FileView }): JSX.Element {
   return (
     <div className="flex flex-col gap-1">
       <Button size="sm" onClick={download} disabled={pending}>
-        {pending ? 'Preparando…' : 'Descargar'}
+        {pending ? 'Preparando…' : (props.label ?? 'Descargar')}
       </Button>
       {error === null ? null : <FormError error={error} />}
     </div>
@@ -61,6 +64,7 @@ function StatusCell({ file }: { readonly file: FileView }): JSX.Element {
 }
 
 function FileRow({ file }: { readonly file: FileView }): JSX.Element {
+  const requestLink = useDownloadLink();
   return (
     <TableRow>
       <TableCell>
@@ -84,7 +88,7 @@ function FileRow({ file }: { readonly file: FileView }): JSX.Element {
         {file.status === 'available' ? (
           <div className="flex flex-wrap gap-2">
             {canPreview(file) ? <FilePreview file={file} /> : null}
-            <DownloadButton file={file} />
+            <DownloadButton requestLink={async () => requestLink(file.id)} />
           </div>
         ) : null}
       </TableCell>

@@ -8,6 +8,7 @@ import type { JSX } from 'react';
 import { PageHeader } from '../../components/app-shell/page-header';
 import { formatDateTime } from '../../lib/format/date-time';
 import { QueryState } from '../administration/query-state';
+import { RecordActivity } from '../records/record-activity';
 import { SimpleTable } from '../administration/simple-table';
 import { TASK_STATUS_LABELS, TASK_STATUS_TONES, WF_PATHS, personName } from './labels';
 import { useInstanceAction } from './mutations';
@@ -82,6 +83,10 @@ function InstanceBody({ instance }: { readonly instance: InstanceView }): JSX.El
         </SimpleTable>
       </section>
       <WorkflowHistory history={instance.history} />
+      <RecordActivity
+        record={{ entity_type: 'wf_instance', entity_id: instance.id }}
+        writePermissions={['wf.task.work']}
+      />
     </div>
   );
 }

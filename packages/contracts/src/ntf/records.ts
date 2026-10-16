@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { allowedFileTypeSchema } from '../doc/files.js';
+import { emailSchema } from '../iam/auth.js';
 
 // Contratos de los comentarios con menciones y los adjuntos de cualquier registro (M04, B16;
 // ficha 17.5). Quien puede ver el registro ve sus comentarios y adjuntos; para escribir, además,
@@ -48,11 +49,11 @@ export type CommentList = z.infer<typeof commentListSchema>;
 
 export const createCommentRequestSchema = recordRefSchema.extend({
   body: z.string().trim().min(1).max(4000),
-  mention_ids: z
-    .array(z.uuid())
+  mention_emails: z
+    .array(emailSchema)
     .max(MAX_MENTIONS)
     .default([])
-    .describe('Colaboradores mencionados; cada uno recibe un aviso'),
+    .describe('Correos de los colaboradores mencionados; cada uno recibe un aviso'),
 });
 
 export type CreateCommentRequest = z.input<typeof createCommentRequestSchema>;

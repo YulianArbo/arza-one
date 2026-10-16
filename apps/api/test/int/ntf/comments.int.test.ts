@@ -28,7 +28,7 @@ describe('comentar un tercero con menciones', () => {
   it('el comentario se lista con su autor y la mención produce un aviso', async () => {
     const { ref, owner } = await scenario.party();
     const mentioned = await scenario.people('mencionado', ['COLABORADOR']);
-    const id = await comment(owner, ref, { mention_ids: [mentioned.id] });
+    const id = await comment(owner, ref, { mention_emails: [mentioned.email] });
     const list = commentListSchema.parse((await scenario.get(query(ref), owner.session)).body);
     expect(list.items.map((item) => item.id)).toContain(id);
     const mine = list.items.find((item) => item.id === id);
@@ -45,15 +45,16 @@ describe('comentar un tercero con menciones', () => {
     expect(await scenario.actionsBy(owner)).toContain('ntf.comment.create');
   });
 
-  it('no se puede mencionar a uno mismo, a alguien del portal ni de otra empresa', async () => {
+  it('no se menciona a uno mismo, al portal, a otra empresa ni a un correo desconocido', async () => {
     const { ref, owner } = await scenario.party();
     const portal = await scenario.person('portal-mencion', ['CLIENTE_ADMIN'], { kind: 'portal' });
     const outsider = await scenario.people('externo', ['COLABORADOR'], scenario.otherTenant.id);
-    for (const id of [owner.id, portal.id, outsider.id]) {
+    const unknown = 'nadie@demo.test';
+    for (const email of [owner.email, portal.email, outsider.email, unknown]) {
       const response = await scenario.post('/v1/comments', owner.session, {
         ...ref,
         body: 'Hola',
-        mention_ids: [id],
+        mention_emails: [email],
       });
       expect(errorCode(response)).toBe('NTF_MENTION_INVALID');
     }

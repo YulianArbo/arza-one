@@ -4,7 +4,8 @@ import { ThemeMenu } from '../theme-menu';
 import { AppBreadcrumb } from './app-breadcrumb';
 import { GlobalSearch } from './global-search';
 import { MobileNavigation } from './mobile-navigation';
-import { HelpMenu, NotificationsMenu, UserMenu } from './top-bar-menus';
+import { NotificationsMenu } from '../../features/notifications/notifications-menu';
+import { HelpMenu, UserMenu } from './top-bar-menus';
 
 /** Zona 2 de la figura 16.3: ruta, búsqueda global, avisos, ayuda y menú del usuario. */
 export function TopBar({ permissions }: { permissions: readonly string[] }): JSX.Element {

@@ -49,6 +49,7 @@ describe('ficha del tercero', () => {
       'Resumen',
       'Contactos',
       'Conocimiento',
+      'Comentarios y adjuntos',
       'Línea de tiempo',
     ]);
     expect(screen.getByText('Desde el 15/01/2026')).toBeVisible();

@@ -37,12 +37,14 @@ describe('contratos de los avisos', () => {
 
 describe('contratos de los comentarios', () => {
   it('un comentario sin menciones las deja vacías y limita cuántas', () => {
-    expect(createCommentRequestSchema.parse({ ...RECORD, body: 'Hola' }).mention_ids).toEqual([]);
-    const many = Array.from({ length: MAX_MENTIONS + 1 }, () => RECORD.entity_id);
+    expect(createCommentRequestSchema.parse({ ...RECORD, body: 'Hola' }).mention_emails).toEqual(
+      [],
+    );
+    const many = Array.from({ length: MAX_MENTIONS + 1 }, (_, i) => `p${String(i)}@demo.test`);
     const parsed = createCommentRequestSchema.safeParse({
       ...RECORD,
       body: 'Hola',
-      mention_ids: many,
+      mention_emails: many,
     });
     expect(parsed.success).toBe(false);
   });

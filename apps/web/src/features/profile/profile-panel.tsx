@@ -22,6 +22,7 @@ import { FormError } from '../access/form-alert';
 import { CurrentPasswordField } from '../access/current-password-field';
 import { NewPasswordFields, useNewPassword } from '../access/new-password-fields';
 import { SubmitButton } from '../access/submit-button';
+import { NTF_PATHS } from '../notifications/labels';
 import { SESSIONS_PATH } from '../session/access-routes';
 import { useSession } from '../session/session-provider';
 import { MyRolesCard } from './my-roles-card';
@@ -140,6 +141,23 @@ function SessionsCard(): JSX.Element {
   );
 }
 
+/** Enlace a «Preferencias de aviso» (B16). */
+function NotificationsCard(): JSX.Element {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Avisos</CardTitle>
+        <CardDescription>Decida qué avisos quiere recibir también por correo.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Button asChild variant="outline">
+          <Link href={NTF_PATHS.preferences}>Preferencias de aviso</Link>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 /** Mi perfil y seguridad (16.7): datos, contraseña, segundo factor, sesiones activas y roles. */
 export function ProfilePanel(): JSX.Element {
   return (
@@ -162,6 +180,7 @@ export function ProfilePanel(): JSX.Element {
       </Card>
       <SecondFactorCard />
       <SessionsCard />
+      <NotificationsCard />
       <MyRolesCard />
     </div>
   );

@@ -24,6 +24,7 @@ import {
 import { MergeDialog } from './merge-dialog';
 import { PartyForm } from './party-form';
 import { useParty } from './queries';
+import { RecordActivity } from '../records/record-activity';
 import { SectionTabs, type SectionTab } from './section-tabs';
 import { StatusActions } from './status-actions';
 import { SummaryPanel } from './summary-panel';
@@ -54,6 +55,9 @@ function Actions({ party }: { readonly party: PartyDetail }): JSX.Element {
   );
 }
 
+/** Quien crea o edita terceros puede comentarlos y adjuntarles archivos (la API lo revisa). */
+const PARTY_WRITE = ['party.create', 'party.update'] as const;
+
 function tabsOf(party: PartyDetail, canSeeAccounts: boolean): SectionTab[] {
   const tabs: (SectionTab | null)[] = [
     { id: 'resumen', label: 'Resumen', content: () => <SummaryPanel party={party} /> },
@@ -69,6 +73,16 @@ function tabsOf(party: PartyDetail, canSeeAccounts: boolean): SectionTab[] {
       id: 'conocimiento',
       label: 'Conocimiento',
       content: () => <DueDiligencePanel party={party} />,
+    },
+    {
+      id: 'comentarios',
+      label: 'Comentarios y adjuntos',
+      content: () => (
+        <RecordActivity
+          record={{ entity_type: 'party', entity_id: party.id }}
+          writePermissions={PARTY_WRITE}
+        />
+      ),
     },
     {
       id: 'linea-de-tiempo',

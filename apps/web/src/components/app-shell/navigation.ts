@@ -130,6 +130,7 @@ const MODULES: readonly NavigationItem[] = [
       'iam.delegation.manage',
       'iam.access_review.read',
       'wf.definition.manage',
+      'ntf.template.manage',
     ],
   },
   {
