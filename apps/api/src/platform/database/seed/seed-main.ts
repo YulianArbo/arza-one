@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { seedCore } from '../../../modules/core/index.js';
 import { seedAccessControl } from '../../../modules/iam/index.js';
 import { seedPartyDemo } from '../../../modules/party/index.js';
+import { seedNotificationTemplates } from '../../../modules/ntf/index.js';
 import { seedWorkflowDemo } from '../../../modules/wf/index.js';
 import { systemClock } from '../../clock/clock.js';
 import { DatabaseService } from '../database.service.js';
@@ -31,27 +32,14 @@ async function main(): Promise<void> {
       await seedDemo(database);
     }
     const tenants = withDemo ? [PLATFORM_TENANT, ...DEMO_TENANTS] : [PLATFORM_TENANT];
-    await seedAccessControl(
-      database,
-      tenants.map((tenant) => tenant.id),
-      systemClock,
-    );
-    await seedCore(
-      database,
-      tenants.map((tenant) => tenant.id),
-      systemClock,
-    );
+    const tenantIds = tenants.map((tenant) => tenant.id);
+    await seedAccessControl(database, tenantIds, systemClock);
+    await seedCore(database, tenantIds, systemClock);
+    await seedNotificationTemplates(database, tenantIds, systemClock);
     if (withDemo) {
-      await seedPartyDemo(
-        database,
-        DEMO_TENANTS.map((tenant) => tenant.id),
-        systemClock,
-      );
-      await seedWorkflowDemo(
-        database,
-        DEMO_TENANTS.map((tenant) => tenant.id),
-        systemClock,
-      );
+      const demoIds = DEMO_TENANTS.map((tenant) => tenant.id);
+      await seedPartyDemo(database, demoIds, systemClock);
+      await seedWorkflowDemo(database, demoIds, systemClock);
     }
     process.stdout.write(withDemo ? 'Semilla y datos ficticios listos.\n' : 'Semilla lista.\n');
   } finally {

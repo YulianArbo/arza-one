@@ -27,6 +27,10 @@
     "./wf": {
       "types": "./dist/modules/wf/index.d.ts",
       "default": "./dist/modules/wf/index.js"
+    },
+    "./ntf": {
+      "types": "./dist/modules/ntf/index.d.ts",
+      "default": "./dist/modules/ntf/index.js"
     }
   },
   "scripts": {
