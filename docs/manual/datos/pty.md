@@ -39,15 +39,16 @@ Registro único de cada persona u organización. Un duplicado fusionado conserva
 | `city`, `address`    | text     | Sí   |             | Ciudad y dirección                                                             |
 | `status`             | text     | No   | `active`    | `prospect`, `active`, `inactive` o `blocked`                                   |
 | `status_reason`      | text     | Sí   |             | Obligatorio si está bloqueado                                                  |
-| `data_purpose`       | text     | Sí   |             | Personas: código del catálogo `personal_data_purposes` (obligatorio)           |
-| `data_authorization` | text     | Sí   |             | Personas: `written`, `digital`, `verbal` o `contract` (obligatorio)            |
-| `data_authorized_on` | date     | Sí   |             | Personas: fecha de la autorización (obligatoria)                               |
 | `merged_into_id`     | uuid     | Sí   |             | Tercero en que se fusionó; exige `deleted_at` y no puede ser él mismo          |
 | control              |          |      |             | Columnas de control                                                            |
 
 Índices: únicos `(tenant_id, id)` y `(tenant_id, id_type, id_number)` (el documento no se repite
 en la empresa, ni siquiera con un duplicado fusionado); `(tenant_id, merged_into_id)`,
 `(tenant_id, status)`, `(tenant_id, email)` y `(tenant_id, phone)` para listar y buscar duplicados.
+
+Desde B17 la autorización de tratamiento de una persona no vive aquí: se registra en
+`prv_consents` con la versión exacta del texto aceptado ([prv.md](prv.md)). Las columnas
+`data_purpose`, `data_authorization` y `data_authorized_on` se trasladaron allá y se retiraron.
 
 La función `pty_nit_check_digit(text)` calcula el dígito de verificación con los pesos de la DIAN
 (3, 7, 13, 17, 19, 23, 29, 37, 41, 43, 47, 53, 59, 67, 71) y módulo 11. La web y la API usan el
