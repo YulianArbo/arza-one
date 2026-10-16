@@ -62,6 +62,11 @@ export interface CatalogSync {
   readonly ids: Map<string, string>;
   /** Cuántos permisos se agregaron, corrigieron y retiraron (0, 0, 0 si ya estaba al día). */
   readonly counts: { readonly added: number; readonly updated: number; readonly retired: number };
+  /**
+   * Intentó agregar permisos. Aunque otra carga simultánea los haya agregado primero (added en 0),
+   * el intento ya escribió en la transacción y debe quedar en la auditoría.
+   */
+  readonly attempted: boolean;
 }
 
 export async function syncPermissionCatalog(
@@ -92,6 +97,7 @@ export async function syncPermissionCatalog(
   return {
     ids: new Map(saved.map((row) => [row.code, row.id])),
     counts: { added, updated, retired },
+    attempted: missing.length > 0,
   };
 }
 
