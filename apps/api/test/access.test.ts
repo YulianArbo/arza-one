@@ -14,7 +14,7 @@ afterEach(async () => {
   app = undefined;
 });
 
-const DECLARATIONS = new Set(['public', 'signing_in', 'own_account', 'permission']);
+const DECLARATIONS = new Set(['public', 'signing_in', 'own_account', 'permission', 'record']);
 
 /** Rutas que no declaran cómo se accede a ellas. */
 function undeclared(routes: readonly RouteDeclaration[]): string[] {
@@ -89,6 +89,29 @@ describe('todas las rutas reales de la API declaran su acceso', () => {
       expect(path).toMatch(
         /^\/(health|version|v1\/auth\/(login|password\/\w+|invitation\/accept)|v1\/files\/(uploads|downloads)\/:token)$/,
       );
+    }
+  });
+});
+
+// B16: los comentarios y adjuntos dejan el permiso al módulo dueño del registro.
+describe('las rutas «según el registro»', () => {
+  let routes: RouteDeclaration[] = [];
+
+  beforeAll(async () => {
+    const real = await createTestApp();
+    routes = routeDeclarations(real);
+    await real.close();
+  });
+
+  afterAll(() => {
+    routes = [];
+  });
+
+  it('«según el registro» solo se usa en los comentarios y adjuntos', () => {
+    const record = routes.filter((route) => route.access === 'record');
+    expect(record.length).toBeGreaterThan(0);
+    for (const route of record) {
+      expect(route.path, route.route).toMatch(/^\/v1\/(comments|attachments)(\/|$)/);
     }
   });
 });

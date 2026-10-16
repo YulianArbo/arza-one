@@ -12,8 +12,9 @@ export const RECENT_AUTHENTICATION_KEY = 'arza:recent-authentication';
  * - signing_in: también una sesión que solo verificó la contraseña (el segundo paso, B09).
  * - own_account: sesión completa, sobre la cuenta propia (Mi perfil, mis sesiones, mis permisos).
  * - permission: sesión completa y el permiso del anexo G que declara la ruta (B10).
+ * - record: sesión completa; el permiso lo decide el módulo dueño del registro (B16).
  */
-export type AccessRule = 'public' | 'signing_in' | 'own_account' | 'permission';
+export type AccessRule = 'public' | 'signing_in' | 'own_account' | 'permission' | 'record';
 
 /** Ruta abierta sin sesión, como /health. Úsela solo cuando el manual lo prevea. */
 export function Public(): CustomDecorator {
@@ -46,6 +47,16 @@ export function RequirePermission(code: PermissionCode): MethodDecorator & Class
     SetMetadata(ACCESS_KEY, 'permission' satisfies AccessRule),
     SetMetadata(PERMISSION_KEY, code),
   );
+}
+
+/**
+ * Ruta sobre un registro de cualquier módulo, como sus comentarios y adjuntos (B16). El tipo de
+ * registro llega en la petición, así que el permiso no se puede fijar en la ruta: el caso de uso
+ * exige el permiso del anexo G que el módulo dueño define para ese tipo (403) y que la persona vea
+ * el registro (404). Solo bajo /v1/comments y /v1/attachments.
+ */
+export function RequireRecordAccess(): CustomDecorator {
+  return SetMetadata(ACCESS_KEY, 'record' satisfies AccessRule);
 }
 
 /**

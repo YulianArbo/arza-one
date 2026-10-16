@@ -14,7 +14,12 @@ import { AppError } from '../errors/app-error.js';
 import { ACCESS_KEY, type AccessRule } from './access.decorators.js';
 import { AUTHENTICATOR, attachPrincipal, type Authenticator } from './principal.js';
 
-const SESSION_RULES: ReadonlySet<AccessRule> = new Set(['signing_in', 'own_account', 'permission']);
+const SESSION_RULES: ReadonlySet<AccessRule> = new Set([
+  'signing_in',
+  'own_account',
+  'permission',
+  'record',
+]);
 
 /**
  * Autenticación, cerrada por defecto (numeral 13.1, paso 4): las rutas públicas pasan; las demás
