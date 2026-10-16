@@ -4,7 +4,7 @@ import type { Clock } from '../../../platform/clock/clock.js';
 import { recordAuditEvent } from '../../../platform/audit/audit-recorder.js';
 import type { DatabaseService } from '../../../platform/database/database.service.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
-import { fromCalendarDate } from '../../core/index.js';
+import { grantConsent, publishedAuthorizationNotices } from '../../privacy/index.js';
 
 // Terceros ficticios para probar el módulo en local (`pnpm db:seed:demo`, nunca en producción).
 // Incluye a propósito dos fichas de la misma organización escritas distinto, para ensayar la
@@ -44,8 +44,23 @@ async function createOrganizations(tx: TenantTransaction, tenantId: string, toda
   return ids;
 }
 
-/** Cada persona es el contacto principal y firmante de una organización. */
-async function createPeople(tx: TenantTransaction, tenantId: string, organizations: string[]) {
+/** El texto de autorización de contactos publicado (privacidad lo publica en la semilla ficticia). */
+async function contactNotice(tx: TenantTransaction): Promise<string> {
+  const notices = await publishedAuthorizationNotices(tx);
+  const notice = notices.find((candidate) => candidate.key === 'authorization_contact');
+  if (notice === undefined) throw new Error('Falta publicar la autorización de contactos.');
+  return notice.id;
+}
+
+/** Cada persona es el contacto principal y firmante de una organización, con su autorización. */
+async function createPeople(
+  tx: TenantTransaction,
+  tenantId: string,
+  organizations: string[],
+  at: Date,
+) {
+  const noticeId = await contactNotice(tx);
+  const actor = { tenantId, userId: null, principal: null, meta: null, at };
   for (const [index, [firstName, lastName, idNumber, email]] of PEOPLE.entries()) {
     const person = await tx.party.create({
       data: {
@@ -56,11 +71,17 @@ async function createPeople(tx: TenantTransaction, tenantId: string, organizatio
         idType: 'CC',
         idNumber,
         email,
-        dataPurpose: 'COMMERCIAL',
-        dataAuthorization: 'written',
-        dataAuthorizedOn: fromCalendarDate('2026-01-15'),
       },
     });
+    const grant = {
+      notice_id: noticeId,
+      accepted: true as const,
+      purposes: ['COMMERCIAL'],
+      channel: 'written' as const,
+      granted_on: '2026-01-15',
+      evidence_file_id: null,
+    };
+    await grantConsent(tx, actor, { partyId: person.id, grant, source: 'party_create' });
     const organizationId = organizations[index === 0 ? 0 : 2] ?? '';
     await tx.contact.create({
       data: { tenantId, organizationId, personId: person.id, isPrimary: true, canSign: true },
@@ -77,7 +98,8 @@ export async function seedPartyDemo(
   for (const tenantId of tenantIds) {
     await database.withTenant({ tenantId, userId: null }, async (tx) => {
       if ((await tx.party.count()) > 0) return;
-      await createPeople(tx, tenantId, await createOrganizations(tx, tenantId, clock.now()));
+      const organizations = await createOrganizations(tx, tenantId, clock.now());
+      await createPeople(tx, tenantId, organizations, clock.now());
       await recordAuditEvent(tx, {
         tenantId,
         occurredAt: clock.now(),

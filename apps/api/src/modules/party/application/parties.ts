@@ -17,6 +17,7 @@ import type { TenantTransaction } from '../../../platform/database/tenant-contex
 import { versionConflict } from '../../../platform/http/if-match.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
 import { bogotaToday, fromCalendarDate, isActiveCatalogCode } from '../../core/index.js';
+import { actorOf, grantConsent } from '../../privacy/index.js';
 import {
   catalogValueInvalid,
   kindChange,
@@ -45,10 +46,6 @@ function columnsOf(input: PartyData) {
     tradeName: input.trade_name,
     firstName: input.first_name,
     lastName: input.last_name,
-    dataPurpose: input.data_purpose,
-    dataAuthorization: input.data_authorization,
-    dataAuthorizedOn:
-      input.data_authorized_on === null ? null : fromCalendarDate(input.data_authorized_on),
   };
 }
 
@@ -62,21 +59,16 @@ function auditOf(party: Party) {
     email: party.email,
     city: party.city,
     status: party.status,
-    data_purpose: party.dataPurpose,
   };
 }
 
-/** Las opciones elegidas siguen activas en sus catálogos; las que no cambiaron no se revisan. */
+/** El tipo de documento sigue activo en su catálogo; si no cambió, no se revisa. */
 async function assertCatalogs(tx: TenantTransaction, input: PartyData, before: Party | null) {
   if (
     input.id_type !== before?.idType &&
     !(await isActiveCatalogCode(tx, 'identification_types', input.id_type))
   ) {
     throw catalogValueInvalid('El tipo de documento');
-  }
-  if (input.data_purpose === null || input.data_purpose === before?.dataPurpose) return;
-  if (!(await isActiveCatalogCode(tx, 'personal_data_purposes', input.data_purpose))) {
-    throw catalogValueInvalid('La finalidad del tratamiento');
   }
 }
 
@@ -142,6 +134,14 @@ export class PartiesUseCase {
         entityId: party.id,
         changes: { ...auditOf(party), roles },
       });
+      // Ningún formulario con datos personales se guarda sin su autorización (B17).
+      if (input.consent !== null) {
+        await grantConsent(tx, actorOf(principal, meta, actor.at), {
+          partyId: party.id,
+          grant: input.consent,
+          source: 'party_create',
+        });
+      }
       return party.id;
     });
   }
