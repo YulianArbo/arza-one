@@ -12,6 +12,7 @@ import {
   ROLES,
   detail,
 } from '../../test-support/admin-fixtures';
+import { POSITIONS, POS_MANAGER } from '../../test-support/core-fixtures';
 import {
   SESSION,
   apiError,
@@ -19,6 +20,7 @@ import {
   mockApi,
   noContent,
   renderWithApi,
+  type SentRequest,
 } from '../../test-support/fake-api';
 import { RequireSession } from '../session/session-provider';
 import { UserDetailPanel } from './user-detail';
@@ -41,6 +43,7 @@ function serve(permissions: object, user: object, extra: Record<string, () => Re
     'GET /v1/auth/session': () => json(SESSION),
     'GET /v1/me/permissions': () => json(permissions),
     'GET /v1/roles': () => json(ROLES),
+    'GET /v1/positions': () => json(POSITIONS),
     [`GET /v1/users/${LUIS_ID}`]: () => json(user),
     [`GET /v1/users/${ME_ID}`]: () => json(user),
     'GET /v1/me/mfa': () =>
@@ -88,9 +91,12 @@ describe('ficha de usuario según quién la mira', () => {
   it('en su propia ficha no puede cambiar sus roles ni actuar sobre su cuenta', async () => {
     serve(ADMIN_PERMISSIONS, detail({ id: ME_ID }));
     renderWithApi(<Screen id={ME_ID} />);
-    expect(await screen.findByText(/sus roles los cambia otro administrador/)).toBeVisible();
+    expect(
+      await screen.findByText(/sus roles y su cargo los cambia otro administrador/),
+    ).toBeVisible();
     expect(screen.queryByRole('button', { name: 'Retirar' })).toBeNull();
     expect(screen.queryByLabelText('Asignar un rol')).toBeNull();
+    expect(screen.queryByLabelText('Cargo')).toBeNull();
     expect(screen.queryByRole('button', { name: 'Bloquear la cuenta' })).toBeNull();
   });
 
@@ -171,5 +177,81 @@ describe('roles de la persona', () => {
     await vi.waitFor(() => {
       expect(sent.some((request) => request.path.endsWith('/actions/revoke'))).toBe(true);
     });
+  });
+});
+
+const DIRECTOR_POSITION = POSITIONS.data[0]?.id;
+
+function patches(sent: readonly SentRequest[]): SentRequest[] {
+  return sent.filter((request) => request.method === 'PATCH');
+}
+
+describe('cargo de la persona: elegir y guardar', () => {
+  it('ofrece los cargos activos y guarda el elegido con la versión que se vio', async () => {
+    const sent = serve(ADMIN_PERMISSIONS, detail(), {
+      [`PATCH /v1/users/${LUIS_ID}`]: () => noContent(),
+    });
+    renderWithApi(<Screen />);
+    expect(await screen.findByText('Sin cargo', { selector: 'p *, p' })).toBeVisible();
+    const select = await screen.findByLabelText('Cargo');
+    await vi.waitFor(() => {
+      expect(within(select).getByRole('option', { name: 'Director General' })).toBeInTheDocument();
+    });
+    expect(within(select).queryByRole('option', { name: /Gerente de Tecnología/ })).toBeNull();
+    const save = screen.getByRole('button', { name: 'Guardar el cargo' });
+    expect(save).toBeDisabled();
+    await userEvent.selectOptions(select, 'Director General');
+    await userEvent.click(save);
+    expect(await screen.findByText('Guardamos el cargo.')).toBeVisible();
+    const [patch] = patches(sent);
+    expect(patch?.body).toEqual({ position_id: DIRECTOR_POSITION });
+    expect(patch?.headers).toMatchObject({ 'If-Match': '"3"' });
+  });
+
+  it('muestra un cargo inactivo y permite quitarlo', async () => {
+    const position = { id: POS_MANAGER, name: 'Gerente de Tecnología', is_active: false };
+    const sent = serve(ADMIN_PERMISSIONS, detail({ position }), {
+      [`PATCH /v1/users/${LUIS_ID}`]: () => noContent(),
+    });
+    renderWithApi(<Screen />);
+    const select = await screen.findByLabelText('Cargo');
+    expect(select).toHaveDisplayValue('Gerente de Tecnología (cargo inactivo)');
+    await userEvent.selectOptions(select, 'Sin cargo');
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar el cargo' }));
+    await vi.waitFor(() => {
+      expect(patches(sent)[0]?.body).toEqual({ position_id: null });
+    });
+  });
+});
+
+describe('cargo de la persona: avisos y permisos', () => {
+  it('si otra persona cambió la ficha, muestra el aviso de la API', async () => {
+    serve(ADMIN_PERMISSIONS, detail(), {
+      [`PATCH /v1/users/${LUIS_ID}`]: () =>
+        apiError(409, 'VERSION_CONFLICT', 'Otra persona cambió este registro. Recargue.'),
+    });
+    renderWithApi(<Screen />);
+    const select = await screen.findByLabelText('Cargo');
+    await vi.waitFor(() => {
+      expect(within(select).getByRole('option', { name: 'Director General' })).toBeInTheDocument();
+    });
+    await userEvent.selectOptions(select, 'Director General');
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar el cargo' }));
+    expect(await screen.findByText('Otra persona cambió este registro. Recargue.')).toBeVisible();
+  });
+
+  it('quien solo lee usuarios ve el cargo, pero no lo cambia', async () => {
+    const position = { id: DIRECTOR_POSITION, name: 'Director General', is_active: true };
+    serve(DIRECTOR_PERMISSIONS, detail({ security: null, position }));
+    renderWithApi(<Screen />);
+    expect(await screen.findByText('Director General')).toBeVisible();
+    expect(screen.queryByLabelText('Cargo')).toBeNull();
+  });
+
+  it('las cuentas del portal no tienen cargo', async () => {
+    serve(ADMIN_PERMISSIONS, detail({ kind: 'portal' }));
+    renderWithApi(<Screen />);
+    expect(await screen.findByRole('heading', { name: 'Luis Gómez' })).toBeVisible();
+    expect(screen.queryByText(/Cargo actual/)).toBeNull();
   });
 });

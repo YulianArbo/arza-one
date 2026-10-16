@@ -6,6 +6,7 @@ import { accessibilityViolations, expect, test, useTheme } from './support/fixtu
 
 const LUIS = '01999a00-0000-7000-8000-00000000a002';
 const ROLE = '01999a00-0000-7000-8000-00000000c001';
+const POSITION = '01999a00-0000-7000-8000-00000000e201';
 
 const USER = {
   id: LUIS,
@@ -44,11 +45,28 @@ const ADMIN_API: ApiRoutes = {
     body: {
       ...USER,
       created_at: '2026-10-01T14:00:00.000Z',
+      version: 2,
+      position: { id: POSITION, name: 'Director General', is_active: true },
       assignments: [],
       security: { second_factor: true, mfa_required: true, active_sessions: 1, locked_until: null },
     },
   },
   '/v1/roles': { body: { data: [ROLE_SUMMARY] } },
+  // Cargos del organigrama para el selector «Cargo» de la ficha.
+  '/v1/positions': {
+    body: {
+      data: [
+        {
+          id: POSITION,
+          org_unit_id: '01999a00-0000-7000-8000-00000000e101',
+          name: 'Director General',
+          reports_to_id: null,
+          is_active: true,
+          version: 1,
+        },
+      ],
+    },
+  },
   [`/v1/roles/${ROLE}`]: {
     body: { ...ROLE_SUMMARY, permissions: [{ code: 'crm.lead.read', scope: 'all' }] },
   },
@@ -70,7 +88,7 @@ const ADMIN_API: ApiRoutes = {
 const PAGES = [
   { path: '/app/administracion', ready: 'Revisión de accesos' },
   { path: '/app/administracion/usuarios', ready: 'Luis Gómez' },
-  { path: `/app/administracion/usuarios/${LUIS}`, ready: 'Acciones sobre la cuenta' },
+  { path: `/app/administracion/usuarios/${LUIS}`, ready: 'Guardar el cargo' },
   { path: '/app/administracion/roles', ready: 'Gerente y analistas comerciales.' },
   { path: `/app/administracion/roles/${ROLE}`, ready: 'Los roles del sistema no se editan' },
   { path: '/app/administracion/roles/nuevo', ready: 'Crear el rol' },

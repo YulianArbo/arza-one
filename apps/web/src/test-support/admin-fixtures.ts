@@ -27,6 +27,7 @@ export const ADMIN_PERMISSIONS = {
   permissions: grants([
     'iam.user.read',
     'iam.user.invite',
+    'iam.user.update',
     'iam.user.lock',
     'iam.user.reset_mfa',
     'iam.role.read',
@@ -35,6 +36,7 @@ export const ADMIN_PERMISSIONS = {
     'iam.session.revoke',
     'iam.delegation.manage',
     'iam.access_review.read',
+    'core.org.read',
   ]),
 };
 
@@ -77,6 +79,8 @@ export function detail(overrides: Record<string, unknown> = {}): Record<string, 
   return {
     ...summary(),
     created_at: '2026-10-01T14:00:00.000Z',
+    version: 3,
+    position: null,
     assignments: [
       {
         id: ASSIGNMENT_ID,

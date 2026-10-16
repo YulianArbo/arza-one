@@ -59,6 +59,7 @@ const ACTION_LABELS: Readonly<Record<string, string>> = {
   'iam.invitation.accept': 'Activó su cuenta',
   'iam.user.lock': 'Bloqueó una cuenta',
   'iam.user.unlock': 'Desbloqueó una cuenta',
+  'iam.user.position': 'Cambió el cargo de una persona',
   'iam.user.reset_mfa': 'Reinició el segundo factor de una cuenta',
   'iam.role.create': 'Creó un rol',
   'iam.role.update': 'Editó un rol',
