@@ -1,12 +1,13 @@
 import { z } from 'zod';
 
-// Las semillas de acceso, del núcleo, los terceros ficticios y el flujo de prueba son de sus
+// Las semillas de acceso, del núcleo, privacidad, los terceros ficticios y el flujo de prueba son de sus
 // módulos: este punto de entrada las reúne con la de la plataforma, como app.module.ts reúne los
 // módulos.
 import { seedCore } from '../../../modules/core/index.js';
 import { seedAccessControl } from '../../../modules/iam/index.js';
 import { seedPartyDemo } from '../../../modules/party/index.js';
 import { seedNotificationTemplates } from '../../../modules/ntf/index.js';
+import { seedPrivacyDemo, seedPrivacyNotices } from '../../../modules/privacy/index.js';
 import { seedWorkflowDemo } from '../../../modules/wf/index.js';
 import { systemClock } from '../../clock/clock.js';
 import { DatabaseService } from '../database.service.js';
@@ -36,8 +37,11 @@ async function main(): Promise<void> {
     await seedAccessControl(database, tenantIds, systemClock);
     await seedCore(database, tenantIds, systemClock);
     await seedNotificationTemplates(database, tenantIds, systemClock);
+    await seedPrivacyNotices(database, tenantIds, systemClock);
     if (withDemo) {
       const demoIds = DEMO_TENANTS.map((tenant) => tenant.id);
+      // Los terceros ficticios llegan con su autorización: primero se publican los textos.
+      await seedPrivacyDemo(database, demoIds, systemClock);
       await seedPartyDemo(database, demoIds, systemClock);
       await seedWorkflowDemo(database, demoIds, systemClock);
     }
