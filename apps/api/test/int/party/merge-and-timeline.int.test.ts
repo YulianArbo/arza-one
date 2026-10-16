@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
 
 import { errorCode } from '../iam/support/iam-fixtures.js';
 import type { Person } from '../iam/support/access-scenario.js';
-import { PartyScenario, organizationBody, personBody } from './support/party-scenario.js';
+import { PartyScenario, organizationBody } from './support/party-scenario.js';
 
 // Contactos, fusión de duplicados y línea de tiempo (B13, ficha 17.3).
 
@@ -30,8 +30,8 @@ describe('contactos y firmantes', () => {
     const sales = await scenario.sales();
     const org = await scenario.party(sales);
     const [ana, luis] = [
-      await scenario.party(sales, personBody()),
-      await scenario.party(sales, personBody()),
+      await scenario.party(sales, await scenario.personWithConsent()),
+      await scenario.party(sales, await scenario.personWithConsent()),
     ];
     const path = `/v1/parties/${org}/contacts`;
     await scenario.create(path, sales, { person_id: ana, is_primary: true, can_sign: true });
@@ -57,7 +57,7 @@ describe('fusión de duplicados', () => {
     const keep = await scenario.party(finance, organizationBody({ roles: ['customer'] }));
     const duplicateBody = organizationBody({ roles: ['customer', 'supplier'] });
     const duplicate = await scenario.party(finance, duplicateBody);
-    const person = await scenario.party(finance, personBody());
+    const person = await scenario.party(finance, await scenario.personWithConsent());
     await scenario.create(`/v1/parties/${duplicate}/contacts`, finance, { person_id: person });
     await scenario.create(`/v1/parties/${duplicate}/bank-accounts`, finance, ACCOUNT);
     const merge = await scenario.post(`/v1/parties/${keep}/merge`, finance.session, {
@@ -107,7 +107,7 @@ describe('fusión de duplicados: reglas', () => {
   it('no fusiona un tercero consigo mismo ni una persona con una organización', async () => {
     const sales = await scenario.sales();
     const org = await scenario.party(sales);
-    const person = await scenario.party(sales, personBody());
+    const person = await scenario.party(sales, await scenario.personWithConsent());
     for (const duplicate of [org, person]) {
       const response = await scenario.post(`/v1/parties/${org}/merge`, sales.session, {
         duplicate_id: duplicate,
