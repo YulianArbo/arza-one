@@ -123,8 +123,17 @@ Los servicios locales se encienden con `pnpm infra:up` ([guía](../../docs/runbo
 | `POST /v1/tasks/{id}/actions/reassign`                                  | `wf.task.reassign`                              | La entrega a otra persona con un plazo nuevo                                                                                                                                                            |
 | `GET /v1/workflow-instances/{id}`                                       | `wf.task.work`                                  | Trámite: paso actual, acciones posibles, tareas e historial                                                                                                                                             |
 | `POST /v1/workflow-instances/{id}/actions/{action}`                     | `wf.task.work`                                  | Transición del flujo; una no definida responde 409 `WF_TRANSITION_NOT_ALLOWED`                                                                                                                          |
+| `GET /v1/me/notifications`                                              | Sesión                                          | Mis avisos ya entregados, los más recientes primero; `?unread=true` y el total sin leer                                                                                                                 |
+| `POST /v1/me/notifications/{id}/read` · `read-all`                      | Sesión                                          | Marca uno o todos sus avisos como leídos                                                                                                                                                                |
+| `GET /v1/me/notification-preferences` · `PUT`                           | Sesión                                          | Qué tipos de aviso recibe también por correo; los urgentes siempre llegan                                                                                                                               |
+| `GET /v1/notification-templates` · `PATCH /{kind}`                      | `ntf.template.manage`                           | Plantillas de aviso; cada cambio (If-Match) es una versión nueva. Datos no permitidos: 422 `NTF_TEMPLATE_INVALID`                                                                                       |
+| `GET /v1/comments` · `POST` · `DELETE /{id}`                            | Según el registro                               | Comentarios de un tercero o trámite (`?entity_type=&entity_id=`); menciones por correo; solo el autor retira                                                                                            |
+| `GET /v1/attachments` · `POST` · `DELETE /{id}`                         | Según el registro                               | Adjuntos de un registro: archivos propios ya revisados; solo quien adjuntó retira                                                                                                                       |
+| `POST /v1/attachments/{id}/download-link`                               | Según el registro                               | Enlace de descarga de cinco minutos para quien ve el registro                                                                                                                                           |
 
-«Sesión» quiere decir cualquier sesión completa, sobre la cuenta propia (`@OwnAccount()`). Un
+«Sesión» quiere decir cualquier sesión completa, sobre la cuenta propia (`@OwnAccount()`). «Según el
+registro» es `@RequireRecordAccess()` (B16): el permiso lo define el módulo dueño del registro
+(ver [ntf.md](../../docs/manual/datos/ntf.md)). Un
 permiso como `iam.user.read` quiere decir que la ruta lo exige (`@RequirePermission()`, B10): sin
 él responde 403 `PERMISSION_DENIED`. «A medias» quiere decir que también la atiende una sesión que solo verificó la contraseña
 (`@SigningIn()`); cualquier otra ruta le responde 403 `SECOND_FACTOR_REQUIRED`. «Confirmación» es
@@ -516,6 +525,28 @@ reaccione a los eventos `wf.instance.*` de la bandeja de salida. Nunca lea las t
 `pnpm db:seed:demo` carga en las empresas de demostración el flujo «Solicitud de prueba»: hasta
 $5.000.000 lo revisan en serie el jefe inmediato y Calidad; más, en paralelo, Dirección y
 Administrativo y financiero.
+
+## Avisos, comentarios y adjuntos (B16, módulo `src/modules/ntf`)
+
+Centro de avisos, correo con plantillas institucionales, preferencias y comentarios con menciones
+y adjuntos en cualquier registro (ficha 17.5, numeral 13.2). Las tablas están en
+[`ntf.md`](../../docs/manual/datos/ntf.md).
+
+| Regla                                        | Cómo se cumple                                                                                                                                                                                         |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Ningún evento se pierde                      | `publishOutboxEvents()` publica cada evento en su propia transacción (`FOR UPDATE SKIP LOCKED`): sus avisos y la marca de publicado se guardan juntos o nada; si el worker se detiene, sigue pendiente |
+| Un aviso fuera de jornada espera             | `nextBusinessMoment()` del núcleo: el mismo instante si cae en una jornada de un día hábil, o el inicio de la siguiente. Un aviso del sábado se entrega el lunes a las 8:00                            |
+| Excepciones                                  | La marca «urgente» de cada plantilla (Administración › Plantillas). Al empezar solo la alerta de seguridad es urgente; las personas del portal no son colaboradores y reciben todo al instante         |
+| Correo                                       | `sendDueNoticeEmails()` envía los correos cuya hora llegó, con reserva de 10 minutos y reintentos (1, 5, 15 y 60 minutos; al quinto fallo, `failed`). El worker pone el marco de `@arza/templates`     |
+| Comentarios y adjuntos de cualquier registro | `record-access.ts` le pregunta al módulo dueño si la persona ve el registro (`visiblePartyName()`, `visibleInstanceTitle()`); las rutas usan `@RequireRecordAccess()`                                  |
+
+**Para un módulo nuevo:** produzca avisos con un evento en la bandeja de salida y agregue su manejo
+en `event-notices.ts`, con su tipo, su plantilla y sus variables en `packages/contracts`. Para que
+sus registros tengan comentarios y adjuntos, agregue el tipo a `commentableEntityTypeSchema`, a la
+regla de la base de datos y a `RECORD_TYPES`, y ponga `<RecordActivity>` en su ficha.
+
+`pnpm db:seed` carga las plantillas de cada empresa (`seedNotificationTemplates()`); no toca las que
+ya existen.
 
 ## Imágenes Docker (B05 y B07)
 
