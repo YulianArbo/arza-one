@@ -1,3 +1,4 @@
+import { userDetailResponseSchema } from '@arza/contracts';
 import { describe, expect, it } from 'vitest';
 
 import { errorCode } from '../iam/support/iam-fixtures.js';
@@ -40,6 +41,39 @@ describe('aprobación en serie: jefe inmediato y luego Calidad', () => {
     expect(instance.state).toEqual({ key: 'done', label: 'Aprobada', kind: 'final' });
     expect(instance.completed_at).not.toBeNull();
     expect(await scenario.openTasks(id)).toEqual([]);
+  });
+});
+
+describe('jefe inmediato según el cargo asignado en la ficha de usuario', () => {
+  it('la aprobación del jefe llega a quien ocupa el cargo superior', async () => {
+    const admin = await scenario.admin();
+    const platform = await scenario.people('plataforma', ['ADMIN_PLATAFORMA']);
+    const flow = await scenario.publish(admin);
+    const requester = await scenario.people('solicitante-cargo', ['COLABORADOR']);
+    const boss = await scenario.people('jefe-cargo', ['COLABORADOR']);
+    const { top, below } = await scenario.bossAndAnalyst();
+    for (const [person, position] of [
+      [boss, top],
+      [requester, below],
+    ] as const) {
+      const card = await scenario.get(`/v1/users/${person.id}`, platform.session);
+      const { version } = userDetailResponseSchema.parse(card.body);
+      const body = { position_id: position };
+      const response = await scenario.patch(
+        `/v1/users/${person.id}`,
+        platform.session,
+        body,
+        version,
+      );
+      expect(response.status, response.text).toBe(204);
+    }
+    const id = await scenario.startAs(requester, flow.key);
+    const draft = await scenario.onlyOpenTask(id);
+    await scenario.act(requester, draft.id, 'complete', { action: 'submit' });
+    expect(await scenario.onlyOpenTask(id)).toMatchObject({
+      kind: 'approval',
+      assigneeId: boss.id,
+    });
   });
 });
 
