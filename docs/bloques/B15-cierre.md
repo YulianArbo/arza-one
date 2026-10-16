@@ -140,7 +140,8 @@ Luego, con Ana, en **Administración › Usuarios**, asígnele a **Finanzas Dos*
    condición» (el monto no pasa de 5.000.000). Escriba un comentario y pulse **«Enviar a
    revisión»**.
 4. En **Mis tareas** aparece la aprobación del jefe con el motivo **«Sin responsable»**: Ana no tiene
-   cargo en el organigrama (ver Pendientes), así que le llega a ella porque reasigna tareas.
+   cargo en el organigrama, así que le llega a ella porque reasigna tareas. (Para que le llegue al
+   jefe, asigne los cargos como explica [B15-cargos-cierre.md](B15-cargos-cierre.md).)
    Ábrala y pulse **«Aprobar»**.
 5. Salga y entre con **Finanzas Dos**. En **Mis tareas** aparece la tarea «Para su rol» (Calidad).
    Ábrala, pulse **«Tomar la tarea»** y luego **«Aprobar»**.
@@ -187,10 +188,8 @@ hábiles; el worker lo revisa cada 15 minutos).
 - **Avisos (B16):** el motor ya deja en la bandeja de salida «tarea asignada» y «tarea escalada».
   Convertirlos en avisos y correos, y el criterio «un aviso de un sábado se entrega el lunes a las
   8:00 a. m.», son de B16, como acordamos.
-- **Cargo de cada persona:** el organigrama de B12 tiene cargos y jefes, pero todavía **no hay una
-  pantalla para decir qué cargo ocupa cada persona**. Por eso, en su prueba la aprobación «del
-  jefe» llega como «Sin responsable». El motor ya la usa (lo prueban las pruebas automáticas);
-  falta la pantalla. Le propongo hacerla aparte (ver la tarea sugerida).
+- **Cargo de cada persona:** resuelto después del bloque. La ficha de usuario ya tiene el selector
+  **Cargo**; ver [B15-cargos-cierre.md](B15-cargos-cierre.md).
 - **`wf_sla_policies`:** con la mesa de ayuda (M08), como acordamos.
 - **El Auditor** ve el tablero, pero no abre el detalle de una tarea (ese detalle exige atender
   tareas). Mientras tanto ve cada paso en **Auditoría**.
