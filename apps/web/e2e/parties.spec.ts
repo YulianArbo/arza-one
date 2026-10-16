@@ -121,6 +121,7 @@ const PAGES = [
   { path: `/app/terceros/${ORG}`, ready: '•••• 6789', tab: 'Cuentas bancarias' },
   { path: `/app/terceros/${ORG}`, ready: 'Revisión de RUT y listas.', tab: 'Conocimiento' },
   { path: `/app/terceros/${ORG}`, ready: 'Registró un tercero', tab: 'Línea de tiempo' },
+  { path: `/app/terceros/${ORG}`, ready: 'Sin adjuntos', tab: 'Comentarios y adjuntos' },
 ] as const;
 
 for (const theme of ['light', 'dark'] as const) {
