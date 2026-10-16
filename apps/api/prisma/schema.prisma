@@ -16,18 +16,18 @@ datasource db {
 
 /// Empresas inquilinas (M00). La fila de una empresa solo es visible dentro de su propio contexto.
 model Tenant {
-  id              String           @id @default(uuid(7)) @db.Uuid
-  legalName       String           @map("legal_name")
-  tradeName       String?          @map("trade_name")
-  taxId           String           @unique @map("tax_id")
-  status          String           @default("active")
-  settings        Json             @default("{}")
-  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
-  createdBy       String?          @map("created_by") @db.Uuid
-  updatedAt       DateTime         @default(now()) @map("updated_at") @db.Timestamptz(6)
-  updatedBy       String?          @map("updated_by") @db.Uuid
-  version         Int              @default(1)
-  deletedAt       DateTime?        @map("deleted_at") @db.Timestamptz(6)
+  id              String               @id @default(uuid(7)) @db.Uuid
+  legalName       String               @map("legal_name")
+  tradeName       String?              @map("trade_name")
+  taxId           String               @unique @map("tax_id")
+  status          String               @default("active")
+  settings        Json                 @default("{}")
+  createdAt       DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?              @map("created_by") @db.Uuid
+  updatedAt       DateTime             @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy       String?              @map("updated_by") @db.Uuid
+  version         Int                  @default(1)
+  deletedAt       DateTime?            @map("deleted_at") @db.Timestamptz(6)
   outboxEvents    OutboxEvent[]
   users           User[]
   sessions        Session[]
@@ -59,6 +59,13 @@ model Tenant {
   bankAccounts    BankAccount[]
   dueDiligence    DueDiligence[]
   files           File[]
+  wfDefinitions   WorkflowDefinition[]
+  wfStates        WorkflowState[]
+  wfTransitions   WorkflowTransition[]
+  wfInstances     WorkflowInstance[]
+  wfHistory       WorkflowHistory[]
+  wfTasks         WorkflowTask[]
+  wfApprovals     WorkflowApproval[]
 
   @@map("core_tenants")
 }
@@ -860,4 +867,211 @@ model File {
   @@unique([storageKey])
   @@index([tenantId, createdBy, createdAt])
   @@map("doc_files")
+}
+
+// M04 Flujos y tareas (B15, ADR-011). Las personas se guardan por identificador, sin relación con
+// las tablas de identidad: el motor las consulta por el índice del módulo iam.
+
+model WorkflowDefinition {
+  id            String               @id @default(uuid(7)) @db.Uuid
+  tenantId      String               @map("tenant_id") @db.Uuid
+  key           String
+  versionNumber Int                  @map("version_number")
+  name          String
+  description   String?
+  entityType    String               @map("entity_type")
+  status        String               @default("draft")
+  publishedAt   DateTime?            @map("published_at") @db.Timestamptz(6)
+  publishedBy   String?              @map("published_by") @db.Uuid
+  createdAt     DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?              @map("created_by") @db.Uuid
+  updatedAt     DateTime             @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?              @map("updated_by") @db.Uuid
+  version       Int                  @default(1)
+  deletedAt     DateTime?            @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant               @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  states        WorkflowState[]
+  transitions   WorkflowTransition[]
+  instances     WorkflowInstance[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, key, versionNumber])
+  @@index([tenantId, status])
+  @@map("wf_definitions")
+}
+
+model WorkflowState {
+  id           String             @id @default(uuid(7)) @db.Uuid
+  tenantId     String             @map("tenant_id") @db.Uuid
+  definitionId String             @map("definition_id") @db.Uuid
+  position     Int
+  key          String
+  label        String
+  kind         String
+  slaHours     Int?               @map("sla_hours")
+  priority     String             @default("normal")
+  assignee     Json?
+  approval     Json?
+  createdAt    DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy    String?            @map("created_by") @db.Uuid
+  updatedAt    DateTime           @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy    String?            @map("updated_by") @db.Uuid
+  version      Int                @default(1)
+  deletedAt    DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  tenant       Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  definition   WorkflowDefinition @relation(fields: [tenantId, definitionId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([definitionId, key])
+  @@index([tenantId, definitionId])
+  @@map("wf_states")
+}
+
+model WorkflowTransition {
+  id                 String             @id @default(uuid(7)) @db.Uuid
+  tenantId           String             @map("tenant_id") @db.Uuid
+  definitionId       String             @map("definition_id") @db.Uuid
+  position           Int
+  fromState          String             @map("from_state")
+  toState            String             @map("to_state")
+  action             String
+  label              String
+  requiredPermission String?            @map("required_permission")
+  condition          Json?
+  requiresComment    Boolean            @default(false) @map("requires_comment")
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy          String?            @map("created_by") @db.Uuid
+  updatedAt          DateTime           @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy          String?            @map("updated_by") @db.Uuid
+  version            Int                @default(1)
+  deletedAt          DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  tenant             Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  definition         WorkflowDefinition @relation(fields: [tenantId, definitionId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([definitionId, fromState, action])
+  @@index([tenantId, definitionId])
+  @@map("wf_transitions")
+}
+
+model WorkflowInstance {
+  id           String             @id @default(uuid(7)) @db.Uuid
+  tenantId     String             @map("tenant_id") @db.Uuid
+  definitionId String             @map("definition_id") @db.Uuid
+  entityType   String             @map("entity_type")
+  entityId     String             @map("entity_id") @db.Uuid
+  title        String
+  currentState String             @map("current_state")
+  facts        Json               @default("{}")
+  startedBy    String?            @map("started_by") @db.Uuid
+  startedAt    DateTime           @map("started_at") @db.Timestamptz(6)
+  dueAt        DateTime?          @map("due_at") @db.Timestamptz(6)
+  completedAt  DateTime?          @map("completed_at") @db.Timestamptz(6)
+  createdAt    DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy    String?            @map("created_by") @db.Uuid
+  updatedAt    DateTime           @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy    String?            @map("updated_by") @db.Uuid
+  version      Int                @default(1)
+  deletedAt    DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  tenant       Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  definition   WorkflowDefinition @relation(fields: [tenantId, definitionId], references: [tenantId, id], onDelete: Restrict)
+  history      WorkflowHistory[]
+  tasks        WorkflowTask[]
+
+  @@unique([tenantId, id])
+  @@index([tenantId, definitionId])
+  @@index([tenantId, entityType, entityId])
+  @@index([tenantId, startedBy])
+  @@map("wf_instances")
+}
+
+model WorkflowHistory {
+  id         String           @id @default(uuid(7)) @db.Uuid
+  tenantId   String           @map("tenant_id") @db.Uuid
+  instanceId String           @map("instance_id") @db.Uuid
+  fromState  String?          @map("from_state")
+  toState    String           @map("to_state")
+  action     String
+  actorId    String?          @map("actor_id") @db.Uuid
+  onBehalfOf String?          @map("on_behalf_of") @db.Uuid
+  comment    String?
+  occurredAt DateTime         @map("occurred_at") @db.Timestamptz(6)
+  createdAt  DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?          @map("created_by") @db.Uuid
+  updatedAt  DateTime         @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?          @map("updated_by") @db.Uuid
+  version    Int              @default(1)
+  deletedAt  DateTime?        @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  instance   WorkflowInstance @relation(fields: [tenantId, instanceId], references: [tenantId, id], onDelete: Restrict)
+  tasks      WorkflowTask[]
+
+  @@unique([tenantId, id])
+  @@index([tenantId, instanceId, occurredAt])
+  @@map("wf_history")
+}
+
+model WorkflowTask {
+  id                 String             @id @default(uuid(7)) @db.Uuid
+  tenantId           String             @map("tenant_id") @db.Uuid
+  instanceId         String             @map("instance_id") @db.Uuid
+  entryId            String             @map("entry_id") @db.Uuid
+  stateKey           String             @map("state_key")
+  title              String
+  kind               String
+  sequence           Int                @default(0)
+  assigneeId         String?            @map("assignee_id") @db.Uuid
+  assigneeRole       String?            @map("assignee_role")
+  requiredPermission String?            @map("required_permission")
+  priority           String             @default("normal")
+  dueAt              DateTime?          @map("due_at") @db.Timestamptz(6)
+  status             String             @default("pending")
+  startedAt          DateTime?          @map("started_at") @db.Timestamptz(6)
+  completedAt        DateTime?          @map("completed_at") @db.Timestamptz(6)
+  completedBy        String?            @map("completed_by") @db.Uuid
+  delegatedFromId    String?            @map("delegated_from_id") @db.Uuid
+  escalatedToId      String?            @map("escalated_to_id") @db.Uuid
+  escalatedAt        DateTime?          @map("escalated_at") @db.Timestamptz(6)
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy          String?            @map("created_by") @db.Uuid
+  updatedAt          DateTime           @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy          String?            @map("updated_by") @db.Uuid
+  version            Int                @default(1)
+  deletedAt          DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  tenant             Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  instance           WorkflowInstance   @relation(fields: [tenantId, instanceId], references: [tenantId, id], onDelete: Restrict)
+  entry              WorkflowHistory    @relation(fields: [tenantId, entryId], references: [tenantId, id], onDelete: Restrict)
+  approvals          WorkflowApproval[]
+
+  @@unique([tenantId, id])
+  @@index([tenantId, instanceId])
+  @@index([tenantId, entryId])
+  @@index([tenantId, assigneeId, status])
+  @@index([tenantId, assigneeRole, status])
+  @@index([tenantId, escalatedToId, status])
+  @@index([tenantId, status, dueAt])
+  @@map("wf_tasks")
+}
+
+model WorkflowApproval {
+  id         String       @id @default(uuid(7)) @db.Uuid
+  tenantId   String       @map("tenant_id") @db.Uuid
+  taskId     String       @map("task_id") @db.Uuid
+  approverId String       @map("approver_id") @db.Uuid
+  onBehalfOf String?      @map("on_behalf_of") @db.Uuid
+  decision   String
+  comment    String?
+  decidedAt  DateTime     @map("decided_at") @db.Timestamptz(6)
+  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?      @map("created_by") @db.Uuid
+  updatedAt  DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?      @map("updated_by") @db.Uuid
+  version    Int          @default(1)
+  deletedAt  DateTime?    @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant       @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  task       WorkflowTask @relation(fields: [tenantId, taskId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, taskId])
+  @@map("wf_approvals")
 }

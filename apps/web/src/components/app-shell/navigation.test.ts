@@ -27,7 +27,13 @@ function visibleSlugs(granted: string[]): string[] {
 
 describe('menú por permisos (permiso denegado, 16.3)', () => {
   it('sin permisos solo muestra lo que todos pueden usar', () => {
-    expect(visibleSlugs([])).toEqual(['', 'mis-tareas', 'sistema-de-diseno']);
+    expect(visibleSlugs([])).toEqual(['', 'sistema-de-diseno']);
+  });
+
+  it('«Mis tareas» aparece a quien atiende tareas o ve el tablero (B15)', () => {
+    expect(visibleSlugs(['wf.task.work'])).toContain('mis-tareas');
+    expect(visibleSlugs(['wf.task.read_all'])).toContain('mis-tareas');
+    expect(visibleSlugs(['wf.definition.manage'])).toContain('administracion');
   });
 
   it('oculta un módulo cuando no se tiene ninguno de sus permisos', () => {

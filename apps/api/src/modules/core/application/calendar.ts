@@ -8,9 +8,11 @@ import { DatabaseService } from '../../../platform/database/database.service.js'
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
 import { addBusinessDays } from '../domain/business-days.js';
-import { fromCalendarDate, toCalendarDate } from '../domain/calendar-date.js';
+import { addBusinessHours, minutesOfDay } from '../domain/business-hours.js';
+import { bogotaToday, fromCalendarDate, toCalendarDate } from '../domain/calendar-date.js';
 import { auditCore } from './core-audit.js';
 import { holidayTaken, recordNotFound } from './core-messages.js';
+import { WORK_SCHEDULE } from './core-seed-data.js';
 import { workScheduleOn } from './parameters.js';
 
 /** Horario del numeral 17.1 si la empresa aún no tiene el parámetro: de lunes a viernes. */
@@ -37,15 +39,41 @@ export async function businessDeadline(
   days: number,
 ): Promise<string> {
   const schedule = await workScheduleOn(tx, from);
+  return addBusinessDays(from, days, {
+    workdays: new Set(schedule?.days ?? DEFAULT_WORKDAYS),
+    holidays: await holidaysFrom(tx, from),
+  });
+}
+
+/** Festivos desde el año de `from`: 365 días hábiles caben en menos de dos años de calendario. */
+async function holidaysFrom(tx: TenantTransaction, from: string): Promise<Set<string>> {
   const year = Number(from.slice(0, 4));
-  // 365 días hábiles caben en menos de dos años de calendario.
   const holidays = await tx.holiday.findMany({
     where: { deletedAt: null, holidayDate: yearRange(year, year + 2) },
     select: { holidayDate: true },
   });
-  return addBusinessDays(from, days, {
-    workdays: new Set(schedule?.days ?? DEFAULT_WORKDAYS),
-    holidays: new Set(holidays.map((holiday) => toCalendarDate(holiday.holidayDate))),
+  return new Set(holidays.map((holiday) => toCalendarDate(holiday.holidayDate)));
+}
+
+/**
+ * Instante en que se cumple un plazo de `hours` horas hábiles desde `from`, con las jornadas del
+ * horario laboral vigente ese día y los festivos de la empresa (ficha 17.5). Lo usa el motor de
+ * flujos para los vencimientos de las tareas.
+ */
+export async function businessHoursDeadline(
+  tx: TenantTransaction,
+  from: Date,
+  hours: number,
+): Promise<Date> {
+  const today = bogotaToday(from);
+  const schedule = (await workScheduleOn(tx, today)) ?? WORK_SCHEDULE;
+  return addBusinessHours(from, hours, {
+    workdays: new Set(schedule.days),
+    holidays: await holidaysFrom(tx, today),
+    shifts: [schedule.morning, schedule.afternoon].map((shift) => ({
+      start: minutesOfDay(shift.start),
+      end: minutesOfDay(shift.end),
+    })),
   });
 }
 

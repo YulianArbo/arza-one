@@ -47,6 +47,11 @@ describe('enrutador de trabajos', () => {
     );
   });
 
+  it('envía el escalamiento de tareas vencidas a su procesador', async () => {
+    const route = createJobRouter(unusedDeps);
+    await expect(route({ name: JOBS.wfOverdueCheck.name, data: {} })).rejects.toThrow('no se usa');
+  });
+
   it('rechaza sin reintento un trabajo sin procesador', async () => {
     const route = createJobRouter(unusedDeps);
     const failure = route({ name: 'desconocido.trabajo', data: {} });

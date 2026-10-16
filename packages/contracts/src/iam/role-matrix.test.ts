@@ -76,6 +76,14 @@ describe('matriz por módulo (numeral 15.3)', () => {
 });
 
 describe('permisos limitados y sensibles', () => {
+  it('cada rol que actúa en flujos atiende solo sus tareas; el auditor no las atiende', () => {
+    for (const role of INTERNAL_ROLE_CODES) {
+      const own = codesOf(role, true).includes('wf.task.work');
+      expect(codesOf(role, false)).not.toContain('wf.task.work');
+      expect(own).toBe(role !== 'AUDITOR');
+    }
+  });
+
   it('AUDITOR solo lee: ningún permiso de crear, operar ni aprobar', () => {
     const levels = new Map<string, string>(
       PERMISSIONS.map((permission) => [permission.code, permission.level]),

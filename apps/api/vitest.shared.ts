@@ -48,6 +48,7 @@ export const DATABASE_BOUND_FILES = [
   'src/modules/iam/infrastructure/assignment-store.ts',
   'src/modules/iam/infrastructure/role-store.ts',
   'src/modules/iam/infrastructure/user-directory-store.ts',
+  'src/modules/iam/infrastructure/people-directory.ts',
   // Auditoría y trazabilidad (B11): todo menos el formato CSV, que se prueba solo.
   'src/modules/audit/application/**/*.ts',
   'src/modules/audit/infrastructure/**/*.ts',
@@ -64,6 +65,10 @@ export const DATABASE_BOUND_FILES = [
   'src/modules/doc/application/**/*.ts',
   'src/modules/doc/infrastructure/**/*.ts',
   'src/modules/doc/interface/**/*.ts',
+  // Flujos y tareas (B15): todo menos el motor del dominio, que se prueba solo.
+  'src/modules/wf/application/**/*.ts',
+  'src/modules/wf/infrastructure/**/*.ts',
+  'src/modules/wf/interface/**/*.ts',
 ];
 
 /** Procesos que solo arrancan algo; se prueban a mano o como proceso real. */

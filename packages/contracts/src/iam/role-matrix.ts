@@ -80,6 +80,12 @@ const EXTRAS: Readonly<Partial<Record<InternalRoleCode, readonly PermissionCode[
 /** Solo por permiso nominal además del rol (numeral 15.4, clasificación): ningún rol lo trae. */
 export const NOMINAL_ONLY_PERMISSIONS: readonly PermissionCode[] = ['doc.restricted.read'];
 
+/**
+ * Permisos que nadie tiene sobre todo: cada persona atiende solo sus tareas (B15). Los reciben,
+ * limitados a lo propio, los roles que actúan en el módulo (C, A o P), no quien solo lee.
+ */
+const ALWAYS_OWN_PERMISSIONS: readonly PermissionCode[] = ['wf.task.work'];
+
 /** Un permiso de un rol; con own, limitado a lo propio. */
 export interface RoleGrant {
   readonly code: PermissionCode;
@@ -93,6 +99,9 @@ function lettersOf(group: string, role: InternalRoleCode): string {
 }
 
 function grantedByLetters(permission: PermissionDefinition, letters: string): RoleGrant | null {
+  if (ALWAYS_OWN_PERMISSIONS.includes(permission.code)) {
+    return /[CAP]/.test(letters) ? { code: permission.code, own: true } : null;
+  }
   const canRead = letters.includes('L') || letters.includes('C');
   const byLevel: Record<PermissionDefinition['level'], boolean> = {
     read: canRead,

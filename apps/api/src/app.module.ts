@@ -9,6 +9,7 @@ import { CoreModule } from './modules/core/index.js';
 import { DocModule } from './modules/doc/index.js';
 import { IamModule } from './modules/iam/index.js';
 import { PartyModule } from './modules/party/index.js';
+import { WfModule } from './modules/wf/index.js';
 import { AccessGuard } from './platform/access/access.guard.js';
 import { AuthorizationGuard } from './platform/access/authorization.guard.js';
 import { ClockModule } from './platform/clock/clock.js';
@@ -25,6 +26,9 @@ import { VALKEY, ValkeyModule } from './platform/valkey/valkey.module.js';
 import { VersionModule } from './platform/version/version.module.js';
 
 const MILLISECONDS_PER_SECOND = 1000;
+
+/** Módulos de negocio (capítulo 7), en el orden en que se construyeron. */
+const BUSINESS_MODULES = [IamModule, AuditModule, CoreModule, PartyModule, DocModule, WfModule];
 
 /**
  * Cadena de petición del numeral 13.1. Los guardas se ejecutan en el orden en que se registran:
@@ -56,11 +60,7 @@ export class AppModule {
         QueueModule,
         HealthModule,
         VersionModule,
-        IamModule,
-        AuditModule,
-        CoreModule,
-        PartyModule,
-        DocModule,
+        ...BUSINESS_MODULES,
       ],
       providers: [
         { provide: APP_GUARD, useClass: ThrottlerGuard },

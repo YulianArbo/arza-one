@@ -89,6 +89,7 @@ export const CORE_PERMISSION_GROUPS = [
       ['wf.definition.manage', 'manage', 'Administrar flujos'],
       ['wf.task.read_all', 'read', 'Ver las tareas de todas las personas'],
       ['wf.task.reassign', 'write', 'Reasignar tareas'],
+      ['wf.task.work', 'write', 'Atender sus tareas', OWN],
       ['ntf.template.manage', 'manage', 'Administrar plantillas de avisos'],
     ],
   },
