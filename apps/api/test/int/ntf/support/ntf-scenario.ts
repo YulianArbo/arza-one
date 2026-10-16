@@ -85,9 +85,7 @@ export class NtfScenario extends WfScenario {
     const events = await tenantScope(
       this.db,
       tenantId,
-    )((tx) =>
-      tx.auditEvent.findMany({ where: { actorId: person.id }, orderBy: { occurredAt: 'asc' } }),
-    );
+    )((tx) => tx.auditEvent.findMany({ where: { actorId: person.id }, orderBy: { seq: 'asc' } }));
     return events.map((event) => event.action);
   }
 }

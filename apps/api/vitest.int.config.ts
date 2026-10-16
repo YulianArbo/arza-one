@@ -8,6 +8,9 @@ export default defineConfig({
     include: ['test/int/**/*.int.test.ts'],
     globalSetup: ['test/int/support/global-setup.ts'],
     testTimeout: 30_000,
+    // Cada archivo abre sus propias conexiones a la misma base: con más de cuatro a la vez, en un
+    // equipo de ocho núcleos las transacciones de preparación esperan más de lo permitido (B16).
+    maxWorkers: 4,
     hookTimeout: 180_000,
     coverage: {
       provider: 'v8',
