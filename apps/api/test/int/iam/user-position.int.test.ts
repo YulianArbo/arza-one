@@ -63,7 +63,7 @@ function positionAudits(userId: string) {
   return scenario.inTenant((tx) =>
     tx.auditEvent.findMany({
       where: { entityId: userId, action: 'iam.user.position' },
-      orderBy: { occurredAt: 'asc' },
+      orderBy: { seq: 'asc' },
     }),
   );
 }

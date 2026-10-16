@@ -1,3 +1,3 @@
 # @arza/templates
 
-Plantillas de correo y de documentos PDF. Se construye en los bloques B16 y B20.
+Plantillas de correo y de documentos PDF. El correo institucional de los avisos llegó en B16; las plantillas de documentos PDF llegan en B20.

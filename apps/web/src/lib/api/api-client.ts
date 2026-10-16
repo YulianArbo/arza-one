@@ -45,6 +45,8 @@ export interface ApiClient {
   get<T>(path: string, options: GetOptions<T>): Promise<T>;
   post<T = void>(path: string, options: PostOptions<T>): Promise<T>;
   patch<T = void>(path: string, options: PatchOptions<T>): Promise<T>;
+  /** Reemplaza un recurso completo, como las preferencias propias. */
+  put<T = void>(path: string, options: PostOptions<T>): Promise<T>;
   /** Borrado lógico; la API responde 204. */
   delete(path: string, options: DeleteOptions): Promise<void>;
   /** POST que responde un archivo en lugar de JSON. */
@@ -65,14 +67,7 @@ const CSRF_HEADER = 'X-CSRF-Token';
 export function createApiClient(baseUrl: string, fetchImpl: typeof fetch = fetch): ApiClient {
   return {
     async get<T>(path: string, options: GetOptions<T>): Promise<T> {
-      const init = { method: 'GET', headers: { Accept: 'application/json' } };
-      const response = await send(fetchImpl, apiEndpoint(baseUrl, path), init, options.signal);
-      const body = await readJson(response);
-      const accepted = options.acceptedStatuses ?? [];
-      if (!response.ok && !accepted.includes(response.status)) {
-        throw toApiError(response, body);
-      }
-      return parseBody(response, body, options.schema);
+      return getJson(fetchImpl, apiEndpoint(baseUrl, path), options);
     },
 
     async post<T = void>(path: string, options: PostOptions<T>): Promise<T> {
@@ -81,6 +76,10 @@ export function createApiClient(baseUrl: string, fetchImpl: typeof fetch = fetch
 
     async patch<T = void>(path: string, options: PatchOptions<T>): Promise<T> {
       return sendWithBody(fetchImpl, apiEndpoint(baseUrl, path), 'PATCH', options);
+    },
+
+    async put<T = void>(path: string, options: PostOptions<T>): Promise<T> {
+      return sendWithBody(fetchImpl, apiEndpoint(baseUrl, path), 'PUT', options);
     },
 
     async delete(path: string, options: DeleteOptions): Promise<void> {
@@ -134,10 +133,21 @@ function fileNameOf(response: Response): string {
  * POST o PATCH con cuerpo JSON y, si hay sesión, el código antifalsificación; con la versión del
  * registro, la cabecera If-Match.
  */
+async function getJson<T>(fetchImpl: typeof fetch, url: URL, options: GetOptions<T>): Promise<T> {
+  const init = { method: 'GET', headers: { Accept: 'application/json' } };
+  const response = await send(fetchImpl, url, init, options.signal);
+  const body = await readJson(response);
+  const accepted = options.acceptedStatuses ?? [];
+  if (!response.ok && !accepted.includes(response.status)) {
+    throw toApiError(response, body);
+  }
+  return parseBody(response, body, options.schema);
+}
+
 async function sendWithBody<T>(
   fetchImpl: typeof fetch,
   url: URL,
-  method: 'POST' | 'PATCH',
+  method: 'POST' | 'PATCH' | 'PUT',
   options: PostOptions<T>,
 ): Promise<T> {
   const headers: Record<string, string> = {

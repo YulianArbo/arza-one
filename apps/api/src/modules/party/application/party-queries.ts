@@ -27,7 +27,13 @@ import {
   type PartyScope,
 } from './party-support.js';
 
-const WITH_ROLES = { roles: { where: { deletedAt: null }, orderBy: { since: 'asc' } } } as const;
+/** El historial de papeles, del más antiguo al más reciente; los del mismo día, en orden de registro. */
+const WITH_ROLES = {
+  roles: {
+    where: { deletedAt: null },
+    orderBy: [{ since: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
+  },
+} satisfies Prisma.PartyInclude;
 /** Terceros que se comparan uno a uno después del primer filtro en la base de datos. */
 const SEARCH_CANDIDATES = 50;
 

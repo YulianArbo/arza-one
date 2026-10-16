@@ -9,6 +9,7 @@ import {
   KeyRound,
   Landmark,
   ListChecks,
+  Mail,
   Network,
   Repeat,
   Settings2,
@@ -18,6 +19,7 @@ import {
 import Link from 'next/link';
 import type { JSX, ReactNode } from 'react';
 
+import { NTF_PATHS } from '../notifications/labels';
 import { usePermissions } from '../session/permissions';
 import { WF_PATHS } from '../workflows/labels';
 import { ADMIN_PATHS } from './labels';
@@ -65,6 +67,14 @@ const SECTIONS: readonly Section[] = [
     description: 'Estados, transiciones, aprobaciones y plazos de cada proceso, por versiones.',
     permission: 'wf.definition.manage',
     icon: <Workflow aria-hidden="true" />,
+  },
+  {
+    href: NTF_PATHS.templates,
+    title: 'Plantillas de aviso',
+    description:
+      'Asunto y texto de los avisos y correos, y cuáles son urgentes y no esperan a la jornada.',
+    permission: 'ntf.template.manage',
+    icon: <Mail aria-hidden="true" />,
   },
   {
     href: ADMIN_PATHS.company,

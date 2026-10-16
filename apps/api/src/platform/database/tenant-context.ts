@@ -43,7 +43,13 @@ export async function applyTenantContext(
  */
 export type UnauditedWrite =
   /** La última actividad de la sesión (last_seen_at), que mide la inactividad. */
-  'session_activity';
+  | 'session_activity'
+  /**
+   * La entrega de los avisos (B16): publicar un evento de la bandeja de salida, crear los avisos
+   * que se derivan de él y anotar el estado de cada correo. El hecho que se avisa ya quedó en la
+   * auditoría al ocurrir; ntf_deliveries es el registro de cada envío.
+   */
+  | 'notification_delivery';
 
 /**
  * Falla si la transacción escribió algo y no insertó un evento de auditoría ni de seguridad. Los

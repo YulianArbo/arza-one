@@ -48,7 +48,7 @@ async function recordCatalogSync(
   now: Date,
 ): Promise<void> {
   const { added, updated, retired } = sync.counts;
-  if (added + updated + retired === 0) return;
+  if (!sync.attempted && added + updated + retired === 0) return;
   await recordAuditEvent(tx, {
     tenantId,
     occurredAt: now,

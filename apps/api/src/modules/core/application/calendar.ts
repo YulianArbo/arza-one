@@ -77,6 +77,18 @@ export async function businessHoursDeadline(
   });
 }
 
+const MINUTE_MS = 60 * 1000;
+
+/**
+ * Primer instante dentro de la jornada desde `at`: el mismo `at` si cae en una jornada de un día
+ * hábil, o el inicio de la siguiente. Un aviso generado el sábado se entrega el lunes a las 8:00
+ * (ficha 17.5, PT-GTH-001). Un minuto hábil desde `at`, menos ese minuto, cae exactamente ahí.
+ */
+export async function nextBusinessMoment(tx: TenantTransaction, at: Date): Promise<Date> {
+  const oneMinuteLater = await businessHoursDeadline(tx, at, 1 / 60);
+  return new Date(oneMinuteLater.getTime() - MINUTE_MS);
+}
+
 /** Festivos de la empresa y cálculo de días hábiles (ficha 17.1). */
 @Injectable()
 export class CalendarUseCase {

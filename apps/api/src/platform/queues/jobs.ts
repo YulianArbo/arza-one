@@ -66,6 +66,12 @@ const fileScanJobSchema = tenantJobSchema.extend({ fileId: z.uuid() });
  */
 const wfOverdueCheckJobSchema = z.object({});
 
+/**
+ * Avisos (B16): publica la bandeja de salida y envía los correos cuya hora llegó. Es del sistema y
+ * no lleva empresa: el worker revisa cada empresa con eventos o correos pendientes.
+ */
+const ntfDispatchJobSchema = z.object({});
+
 export type TenantJob = z.infer<typeof tenantJobSchema>;
 export type ExampleEmailJob = z.infer<typeof exampleEmailJobSchema>;
 export type AccountEmailJob = z.infer<typeof accountEmailJobSchema>;
@@ -99,6 +105,11 @@ export const JOBS = {
     name: 'wf.overdue-check',
     schema: wfOverdueCheckJobSchema,
   },
+  ntfDispatch: {
+    queue: QUEUES.platform,
+    name: 'ntf.dispatch',
+    schema: ntfDispatchJobSchema,
+  },
 } as const;
 
 /** Trabajos programados: el worker los registra al arrancar (expresión cron, hora de Bogotá). */
@@ -106,6 +117,8 @@ export const SCHEDULED_JOBS = [
   { id: 'audit.chain-check.daily', job: JOBS.auditChainCheck, pattern: '0 3 * * *' },
   // Cada 15 minutos: una tarea vencida escala al jefe inmediato a lo sumo un cuarto de hora después.
   { id: 'wf.overdue-check.quarter-hour', job: JOBS.wfOverdueCheck, pattern: '*/15 * * * *' },
+  // Cada 15 segundos (el primer campo son los segundos): un aviso llega casi de inmediato.
+  { id: 'ntf.dispatch.every-15-seconds', job: JOBS.ntfDispatch, pattern: '*/15 * * * * *' },
 ] as const;
 
 export type JobDefinition = (typeof JOBS)[keyof typeof JOBS];

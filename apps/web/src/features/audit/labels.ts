@@ -106,6 +106,15 @@ const ACTION_LABELS: Readonly<Record<string, string>> = {
   'wf.task.delegate': 'Delegó una tarea',
   'wf.task.reassign': 'Reasignó una tarea',
   'wf.task.escalate': 'Escaló una tarea vencida al jefe inmediato',
+  'ntf.template.seed': 'Cargó las plantillas de aviso',
+  'ntf.template.update': 'Cambió una plantilla de aviso',
+  'ntf.notification.read': 'Leyó un aviso',
+  'ntf.notification.read_all': 'Marcó todos sus avisos como leídos',
+  'ntf.preference.update': 'Cambió sus preferencias de aviso',
+  'ntf.comment.create': 'Comentó un registro',
+  'ntf.comment.delete': 'Retiró un comentario',
+  'ntf.attachment.create': 'Adjuntó un archivo a un registro',
+  'ntf.attachment.delete': 'Retiró un adjunto',
   'audit.event.read': 'Consultó la auditoría',
   'audit.security.read': 'Consultó los eventos de seguridad',
   'audit.event.export': 'Exportó la auditoría',
@@ -190,6 +199,11 @@ const ENTITY_LABELS: Readonly<Record<string, string>> = {
   aud_events: 'Auditoría',
   aud_exports: 'Exportación',
   aud_security_events: 'Eventos de seguridad',
+  ntf_template: 'Plantilla de aviso',
+  ntf_notification: 'Aviso',
+  ntf_preference: 'Preferencias de aviso',
+  core_comment: 'Comentario',
+  core_attachment: 'Adjunto',
 };
 
 export function entityLabel(entityType: string): string {

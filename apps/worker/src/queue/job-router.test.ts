@@ -9,7 +9,10 @@ const unusedDeps: JobDependencies = {
     withTenant: async () => Promise.reject(new Error('no se usa')),
     withoutTenant: async () => Promise.reject(new Error('no se usa')),
   },
-  mailer: { send: async () => Promise.reject(new Error('no se usa')) },
+  mailer: {
+    send: async () => Promise.reject(new Error('no se usa')),
+    sendWithId: async () => Promise.reject(new Error('no se usa')),
+  },
   clock: { now: () => new Date() },
   appUrl: 'http://localhost:3000/app',
   storage: {

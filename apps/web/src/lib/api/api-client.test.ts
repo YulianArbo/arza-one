@@ -144,6 +144,19 @@ describe('cliente de la API: edición con versión (B10)', () => {
     expect(init?.headers).toMatchObject({ 'If-Match': '"3"', 'X-CSRF-Token': 'codigo' });
     expect(init?.body).toBe(JSON.stringify({ name: 'Nuevo' }));
   });
+
+  it('PUT reemplaza el recurso con el código antifalsificación (B16)', async () => {
+    const fetchImpl = vi.fn<typeof fetch>(() => Promise.resolve(jsonResponse(VERSION)));
+    const client = createApiClient(BASE_URL, fetchImpl);
+    await client.put('/v1/me/notification-preferences', {
+      body: { items: [] },
+      schema: versionResponseSchema,
+      csrfToken: 'codigo',
+    });
+    const init = fetchImpl.mock.calls[0]?.[1];
+    expect(init?.method).toBe('PUT');
+    expect(init?.headers).toMatchObject({ 'X-CSRF-Token': 'codigo' });
+  });
 });
 
 describe('cliente de la API: borrados (B12)', () => {

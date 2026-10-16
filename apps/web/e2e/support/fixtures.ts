@@ -11,14 +11,25 @@ const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
 const OWN_ORIGINS = new Set([new URL(E2E_WEB_URL).origin, new URL(E2E_API_URL).origin]);
 
+/**
+ * Lo que la estructura de cualquier pantalla pide (la campanita, B16) y las listas que cualquier
+ * ficha muestra (comentarios y adjuntos): vacías salvo que la prueba diga otra cosa.
+ */
+const EMPTY_LISTS: Readonly<Record<string, unknown>> = {
+  '/v1/me/notifications': { items: [], unread_count: 0 },
+  '/v1/comments': { items: [] },
+  '/v1/attachments': { items: [] },
+  '/v1/files': { data: [] },
+};
+
 interface Fixtures {
   /** Orígenes ajenos a la plataforma a los que la página intentó conectarse. */
   thirdPartyRequests: string[];
   /** Errores de la consola del navegador y excepciones de la página. */
   consoleErrors: string[];
   /**
-   * Simulación base de la API: sesión interna iniciada con todos los permisos (B10); lo demás,
-   * sin conexión.
+   * Simulación base de la API: sesión interna iniciada con todos los permisos (B10), sin avisos
+   * ni comentarios; lo demás, sin conexión.
    */
   baseApi: undefined;
 }
@@ -38,6 +49,8 @@ export const test = base.extend<Fixtures>({
           await fulfillJson(route, 200, INTERNAL_SESSION);
         } else if (path === '/v1/me/permissions') {
           await fulfillJson(route, 200, ALL_PERMISSIONS);
+        } else if (EMPTY_LISTS[path] !== undefined) {
+          await fulfillJson(route, 200, EMPTY_LISTS[path]);
         } else {
           await route.abort('connectionrefused');
         }

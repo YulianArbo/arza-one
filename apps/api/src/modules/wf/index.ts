@@ -12,3 +12,4 @@ export {
   type TransitionAsk,
 } from './application/workflow-engine.js';
 export { taskActorOf, type WfContext } from './application/wf-context.js';
+export { taskNoticeFacts, visibleInstanceTitle } from './application/wf-records.js';

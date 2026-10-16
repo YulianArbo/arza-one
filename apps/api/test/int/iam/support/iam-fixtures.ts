@@ -329,7 +329,7 @@ export function tenantScope(database: DatabaseService, tenantId: string) {
     database.withTenant({ tenantId, userId: null }, work);
 }
 
-/** Acciones de auditoría registradas sobre un registro, en orden. */
+/** Acciones de auditoría registradas sobre un registro, en el orden de la cadena (seq). */
 export async function auditActions(
   database: DatabaseService,
   tenantId: string,
@@ -338,7 +338,7 @@ export async function auditActions(
   const events = await tenantScope(
     database,
     tenantId,
-  )((tx) => tx.auditEvent.findMany({ where: { entityId }, orderBy: { occurredAt: 'asc' } }));
+  )((tx) => tx.auditEvent.findMany({ where: { entityId }, orderBy: { seq: 'asc' } }));
   return events.map((event) => `${event.action}:${event.result}`);
 }
 

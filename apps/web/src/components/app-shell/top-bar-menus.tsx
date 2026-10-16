@@ -9,30 +9,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@arza/ui';
-import { Bell, CircleHelp, CircleUser, LogOut, UserRound } from 'lucide-react';
+import { CircleHelp, CircleUser, LogOut, UserRound } from 'lucide-react';
 import Link from 'next/link';
 import { useState, type JSX } from 'react';
 
 import { PROFILE_PATH } from '../../features/session/access-routes';
 import { useSession } from '../../features/session/session-provider';
-
-/** Avisos de la zona 2. Se llenan con el módulo de notificaciones (B16). */
-export function NotificationsMenu(): JSX.Element {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Avisos">
-          <Bell aria-hidden="true" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel>Avisos</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem disabled>No tiene avisos nuevos.</DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
 
 /** Ayuda contextual: cada módulo enlazará aquí su procedimiento del SGC (16.3). */
 export function HelpMenu(): JSX.Element {

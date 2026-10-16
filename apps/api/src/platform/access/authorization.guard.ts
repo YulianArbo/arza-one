@@ -24,6 +24,7 @@ import { principalOf, type Principal } from './principal.js';
 /**
  * Autorización (numeral 13.1, paso 8): la ruta con @RequirePermission() exige ese permiso del
  * anexo G, calculado en cada petición con los roles vigentes de la persona; sin él responde 403.
+ * La de @RequireRecordAccess() recibe los permisos y su caso de uso decide (B16).
  * Luego, las acciones de alto riesgo exigen una confirmación de identidad reciente (B09). Va
  * después de la protección CSRF, así una petición falsificada no llega a consultar permisos.
  */
@@ -40,10 +41,12 @@ export class AuthorizationGuard implements CanActivate {
     const principal = principalOf(request);
     if (principal === undefined) return true;
     const rule = this.reflector.getAllAndOverride<AccessRule | undefined>(ACCESS_KEY, targets);
-    if (rule === 'permission') {
-      const code = this.reflector.getAllAndOverride<PermissionCode>(PERMISSION_KEY, targets);
+    if (rule === 'permission' || rule === 'record') {
       const ability = await this.authorizer.abilityFor(principal);
-      if (!hasPermission(ability, code)) throw permissionDenied();
+      if (rule === 'permission') {
+        const code = this.reflector.getAllAndOverride<PermissionCode>(PERMISSION_KEY, targets);
+        if (!hasPermission(ability, code)) throw permissionDenied();
+      }
       attachAbility(request, ability);
     }
     const recent = this.reflector.getAllAndOverride<boolean | undefined>(

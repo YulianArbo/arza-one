@@ -9,3 +9,9 @@ export {
 } from './application/file-scan.js';
 export { scanWithClamav, type ScanVerdict } from './infrastructure/clamav-scanner.js';
 export { fileStorageFrom } from './infrastructure/file-storage.js';
+export {
+  AttachedFileLinks,
+  attachedFiles,
+  isAttachableFile,
+  type AttachedFile,
+} from './application/attached-files.js';
