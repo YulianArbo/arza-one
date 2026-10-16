@@ -66,6 +66,12 @@ model Tenant {
   wfHistory       WorkflowHistory[]
   wfTasks         WorkflowTask[]
   wfApprovals     WorkflowApproval[]
+  ntfTemplates    NotificationTemplate[]
+  notifications   Notification[]
+  ntfDeliveries   NotificationDelivery[]
+  ntfPreferences  NotificationPreference[]
+  comments        Comment[]
+  attachments     Attachment[]
 
   @@map("core_tenants")
 }
@@ -1074,4 +1080,154 @@ model WorkflowApproval {
   @@unique([tenantId, id])
   @@unique([tenantId, taskId])
   @@map("wf_approvals")
+}
+
+// M04 Avisos, comentarios y adjuntos (B16, ficha 17.5). Las personas, los archivos y los registros
+// se guardan por identificador: el módulo los consulta por el índice de su dueño.
+
+/// Plantilla de un tipo de aviso. Cada cambio agrega una versión; vale la de número mayor.
+model NotificationTemplate {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  tenantId      String    @map("tenant_id") @db.Uuid
+  key           String
+  versionNumber Int       @map("version_number")
+  channel       String    @default("email")
+  subject       String
+  body          String
+  urgent        Boolean   @default(false)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?   @map("created_by") @db.Uuid
+  updatedAt     DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?   @map("updated_by") @db.Uuid
+  version       Int       @default(1)
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, key, versionNumber])
+  @@map("ntf_templates")
+}
+
+/// Aviso en la aplicación para una persona; aparece desde deliver_at.
+model Notification {
+  id         String                 @id @default(uuid(7)) @db.Uuid
+  tenantId   String                 @map("tenant_id") @db.Uuid
+  userId     String                 @map("user_id") @db.Uuid
+  eventId    String                 @map("event_id") @db.Uuid
+  kind       String
+  title      String
+  body       String
+  link       String?
+  deliverAt  DateTime               @map("deliver_at") @db.Timestamptz(6)
+  readAt     DateTime?              @map("read_at") @db.Timestamptz(6)
+  createdAt  DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?                @map("created_by") @db.Uuid
+  updatedAt  DateTime               @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?                @map("updated_by") @db.Uuid
+  version    Int                    @default(1)
+  deletedAt  DateTime?              @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  deliveries NotificationDelivery[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, eventId, userId])
+  @@index([tenantId, userId, deliverAt])
+  @@map("ntf_notifications")
+}
+
+/// Envío por correo de un aviso, con sus intentos.
+model NotificationDelivery {
+  id                String       @id @default(uuid(7)) @db.Uuid
+  tenantId          String       @map("tenant_id") @db.Uuid
+  notificationId    String       @map("notification_id") @db.Uuid
+  templateKey       String       @map("template_key")
+  templateVersion   Int          @map("template_version")
+  recipient         String
+  subject           String
+  body              String
+  link              String?
+  status            String       @default("pending")
+  deliverAt         DateTime     @map("deliver_at") @db.Timestamptz(6)
+  nextAttemptAt     DateTime     @map("next_attempt_at") @db.Timestamptz(6)
+  attempts          Int          @default(0)
+  providerMessageId String?      @map("provider_message_id")
+  sentAt            DateTime?    @map("sent_at") @db.Timestamptz(6)
+  error             String?
+  createdAt         DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy         String?      @map("created_by") @db.Uuid
+  updatedAt         DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy         String?      @map("updated_by") @db.Uuid
+  version           Int          @default(1)
+  deletedAt         DateTime?    @map("deleted_at") @db.Timestamptz(6)
+  tenant            Tenant       @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  notification      Notification @relation(fields: [tenantId, notificationId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, notificationId])
+  @@index([status, nextAttemptAt])
+  @@map("ntf_deliveries")
+}
+
+/// Preferencia de una persona por tipo de aviso y canal. Sin fila, el canal está activo.
+model NotificationPreference {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  tenantId  String    @map("tenant_id") @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  eventKey  String    @map("event_key")
+  channel   String    @default("email")
+  enabled   Boolean
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy String?   @map("created_by") @db.Uuid
+  updatedAt DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy String?   @map("updated_by") @db.Uuid
+  version   Int       @default(1)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, userId, eventKey, channel])
+  @@map("ntf_preferences")
+}
+
+/// Comentario sobre cualquier registro, con las personas que menciona.
+model Comment {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  entityType String    @map("entity_type")
+  entityId   String    @map("entity_id") @db.Uuid
+  body       String
+  visibility String    @default("internal")
+  mentionIds String[]  @map("mention_ids") @db.Uuid
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?   @map("created_by") @db.Uuid
+  updatedAt  DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?   @map("updated_by") @db.Uuid
+  version    Int       @default(1)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, entityType, entityId, createdAt])
+  @@map("core_comments")
+}
+
+/// Archivo adjunto a cualquier registro.
+model Attachment {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  entityType String    @map("entity_type")
+  entityId   String    @map("entity_id") @db.Uuid
+  fileId     String    @map("file_id") @db.Uuid
+  label      String
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?   @map("created_by") @db.Uuid
+  updatedAt  DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?   @map("updated_by") @db.Uuid
+  version    Int       @default(1)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, entityType, entityId, createdAt])
+  @@map("core_attachments")
 }
