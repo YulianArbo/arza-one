@@ -62,8 +62,18 @@ export const userSecuritySchema = z.object({
   locked_until: dateTime.nullable().describe('Bloqueo temporal por intentos fallidos'),
 });
 
+export const userPositionSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  is_active: z.boolean().describe('Falso si el cargo se inactivó después de asignarlo'),
+});
+
 export const userDetailResponseSchema = userSummarySchema.extend({
   created_at: dateTime,
+  version: z.number().int().describe('Versión de la ficha, para editarla (If-Match)'),
+  position: userPositionSchema
+    .nullable()
+    .describe('Cargo del organigrama que ocupa; de él sale su jefe inmediato. Null si no tiene'),
   assignments: z.array(roleAssignmentSchema),
   security: userSecuritySchema.nullable().describe('Null si su rol no puede verlos'),
 });
@@ -83,6 +93,11 @@ export const inviteUserResponseSchema = z.object({
 export const assignRoleRequestSchema = z.strictObject({
   role_id: z.uuid(),
   valid_until: dateTime.nullable().default(null).describe('Vence; null si no vence'),
+});
+
+/** Edición de la ficha de una persona interna; por ahora, su cargo. */
+export const updateUserRequestSchema = z.strictObject({
+  position_id: z.uuid().nullable().describe('Cargo activo del organigrama; null para quitarlo'),
 });
 
 export const delegationStatusSchema = z
@@ -139,7 +154,9 @@ export type UserListQuery = z.infer<typeof userListQuerySchema>;
 export type UserListResponse = z.infer<typeof userListResponseSchema>;
 export type RoleAssignment = z.infer<typeof roleAssignmentSchema>;
 export type UserSecurity = z.infer<typeof userSecuritySchema>;
+export type UserPosition = z.infer<typeof userPositionSchema>;
 export type UserDetailResponse = z.infer<typeof userDetailResponseSchema>;
+export type UpdateUserRequest = z.infer<typeof updateUserRequestSchema>;
 export type InviteUserRequest = z.infer<typeof inviteUserRequestSchema>;
 export type InviteUserResponse = z.infer<typeof inviteUserResponseSchema>;
 export type AssignRoleRequest = z.infer<typeof assignRoleRequestSchema>;

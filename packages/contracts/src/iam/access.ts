@@ -21,6 +21,8 @@ export const ACCESS_ERROR_CODES = {
   roleNotFound: 'ROLE_NOT_FOUND',
   assignmentNotFound: 'ROLE_ASSIGNMENT_NOT_FOUND',
   delegationNotFound: 'DELEGATION_NOT_FOUND',
+  positionNotFound: 'POSITION_NOT_FOUND',
+  positionInactive: 'POSITION_INACTIVE',
 } as const;
 
 export const permissionCodeSchema = z
