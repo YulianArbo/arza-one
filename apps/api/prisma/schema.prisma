@@ -16,62 +16,67 @@ datasource db {
 
 /// Empresas inquilinas (M00). La fila de una empresa solo es visible dentro de su propio contexto.
 model Tenant {
-  id              String               @id @default(uuid(7)) @db.Uuid
-  legalName       String               @map("legal_name")
-  tradeName       String?              @map("trade_name")
-  taxId           String               @unique @map("tax_id")
-  status          String               @default("active")
-  settings        Json                 @default("{}")
-  createdAt       DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
-  createdBy       String?              @map("created_by") @db.Uuid
-  updatedAt       DateTime             @default(now()) @map("updated_at") @db.Timestamptz(6)
-  updatedBy       String?              @map("updated_by") @db.Uuid
-  version         Int                  @default(1)
-  deletedAt       DateTime?            @map("deleted_at") @db.Timestamptz(6)
-  outboxEvents    OutboxEvent[]
-  users           User[]
-  sessions        Session[]
-  tokens          Token[]
-  loginAttempts   LoginAttempt[]
-  mfaFactors      MfaFactor[]
-  recoveryCodes   RecoveryCode[]
-  knownDevices    KnownDevice[]
-  roles           Role[]
-  rolePermissions RolePermission[]
-  userRoles       UserRole[]
-  delegations     Delegation[]
-  auditEvents     AuditEvent[]
-  auditChainHead  AuditChainHead?
-  auditExports    AuditExport[]
-  securityEvents  SecurityEvent[]
-  sites           Site[]
-  orgUnits        OrgUnit[]
-  positions       Position[]
-  costCenters     CostCenter[]
-  catalogs        Catalog[]
-  catalogItems    CatalogItem[]
-  sequences       Sequence[]
-  parameters      Parameter[]
-  holidays        Holiday[]
-  parties         Party[]
-  partyRoles      PartyRole[]
-  contacts        Contact[]
-  bankAccounts    BankAccount[]
-  dueDiligence    DueDiligence[]
-  files           File[]
-  wfDefinitions   WorkflowDefinition[]
-  wfStates        WorkflowState[]
-  wfTransitions   WorkflowTransition[]
-  wfInstances     WorkflowInstance[]
-  wfHistory       WorkflowHistory[]
-  wfTasks         WorkflowTask[]
-  wfApprovals     WorkflowApproval[]
-  ntfTemplates    NotificationTemplate[]
-  notifications   Notification[]
-  ntfDeliveries   NotificationDelivery[]
-  ntfPreferences  NotificationPreference[]
-  comments        Comment[]
-  attachments     Attachment[]
+  id                    String                   @id @default(uuid(7)) @db.Uuid
+  legalName             String                   @map("legal_name")
+  tradeName             String?                  @map("trade_name")
+  taxId                 String                   @unique @map("tax_id")
+  status                String                   @default("active")
+  settings              Json                     @default("{}")
+  createdAt             DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy             String?                  @map("created_by") @db.Uuid
+  updatedAt             DateTime                 @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy             String?                  @map("updated_by") @db.Uuid
+  version               Int                      @default(1)
+  deletedAt             DateTime?                @map("deleted_at") @db.Timestamptz(6)
+  outboxEvents          OutboxEvent[]
+  users                 User[]
+  sessions              Session[]
+  tokens                Token[]
+  loginAttempts         LoginAttempt[]
+  mfaFactors            MfaFactor[]
+  recoveryCodes         RecoveryCode[]
+  knownDevices          KnownDevice[]
+  roles                 Role[]
+  rolePermissions       RolePermission[]
+  userRoles             UserRole[]
+  delegations           Delegation[]
+  auditEvents           AuditEvent[]
+  auditChainHead        AuditChainHead?
+  auditExports          AuditExport[]
+  securityEvents        SecurityEvent[]
+  sites                 Site[]
+  orgUnits              OrgUnit[]
+  positions             Position[]
+  costCenters           CostCenter[]
+  catalogs              Catalog[]
+  catalogItems          CatalogItem[]
+  sequences             Sequence[]
+  parameters            Parameter[]
+  holidays              Holiday[]
+  parties               Party[]
+  partyRoles            PartyRole[]
+  contacts              Contact[]
+  bankAccounts          BankAccount[]
+  dueDiligence          DueDiligence[]
+  files                 File[]
+  wfDefinitions         WorkflowDefinition[]
+  wfStates              WorkflowState[]
+  wfTransitions         WorkflowTransition[]
+  wfInstances           WorkflowInstance[]
+  wfHistory             WorkflowHistory[]
+  wfTasks               WorkflowTask[]
+  wfApprovals           WorkflowApproval[]
+  ntfTemplates          NotificationTemplate[]
+  notifications         Notification[]
+  ntfDeliveries         NotificationDelivery[]
+  ntfPreferences        NotificationPreference[]
+  comments              Comment[]
+  attachments           Attachment[]
+  prvNotices            PrivacyNotice[]
+  prvConsents           PrivacyConsent[]
+  prvActivities         ProcessingActivity[]
+  prvProcessors         DataProcessor[]
+  prvActivityProcessors ActivityProcessor[]
 
   @@map("core_tenants")
 }
@@ -699,40 +704,37 @@ model Holiday {
 /// Terceros (M02): registro único de cada persona u organización con la que la empresa se
 /// relaciona. Un duplicado fusionado queda con merged_into_id y deleted_at; nunca se borra.
 model Party {
-  id                String         @id @default(uuid(7)) @db.Uuid
-  tenantId          String         @map("tenant_id") @db.Uuid
-  kind              String
-  legalName         String?        @map("legal_name")
-  tradeName         String?        @map("trade_name")
-  firstName         String?        @map("first_name")
-  lastName          String?        @map("last_name")
-  idType            String         @map("id_type")
-  idNumber          String         @map("id_number")
-  checkDigit        Int?           @map("check_digit") @db.SmallInt
-  email             String?
-  phone             String?
-  city              String?
-  address           String?
-  status            String         @default("active")
-  statusReason      String?        @map("status_reason")
-  dataPurpose       String?        @map("data_purpose")
-  dataAuthorization String?        @map("data_authorization")
-  dataAuthorizedOn  DateTime?      @map("data_authorized_on") @db.Date
-  mergedIntoId      String?        @map("merged_into_id") @db.Uuid
-  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
-  createdBy         String?        @map("created_by") @db.Uuid
-  updatedAt         DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
-  updatedBy         String?        @map("updated_by") @db.Uuid
-  version           Int            @default(1)
-  deletedAt         DateTime?      @map("deleted_at") @db.Timestamptz(6)
-  tenant            Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  mergedInto        Party?         @relation("PartyMerges", fields: [tenantId, mergedIntoId], references: [tenantId, id], onDelete: Restrict)
-  mergedParties     Party[]        @relation("PartyMerges")
-  roles             PartyRole[]
-  contacts          Contact[]      @relation("OrganizationContacts")
-  contactOf         Contact[]      @relation("PersonContacts")
-  bankAccounts      BankAccount[]
-  dueDiligence      DueDiligence[]
+  id            String         @id @default(uuid(7)) @db.Uuid
+  tenantId      String         @map("tenant_id") @db.Uuid
+  kind          String
+  legalName     String?        @map("legal_name")
+  tradeName     String?        @map("trade_name")
+  firstName     String?        @map("first_name")
+  lastName      String?        @map("last_name")
+  idType        String         @map("id_type")
+  idNumber      String         @map("id_number")
+  checkDigit    Int?           @map("check_digit") @db.SmallInt
+  email         String?
+  phone         String?
+  city          String?
+  address       String?
+  status        String         @default("active")
+  statusReason  String?        @map("status_reason")
+  mergedIntoId  String?        @map("merged_into_id") @db.Uuid
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?        @map("created_by") @db.Uuid
+  updatedAt     DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?        @map("updated_by") @db.Uuid
+  version       Int            @default(1)
+  deletedAt     DateTime?      @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  mergedInto    Party?         @relation("PartyMerges", fields: [tenantId, mergedIntoId], references: [tenantId, id], onDelete: Restrict)
+  mergedParties Party[]        @relation("PartyMerges")
+  roles         PartyRole[]
+  contacts      Contact[]      @relation("OrganizationContacts")
+  contactOf     Contact[]      @relation("PersonContacts")
+  bankAccounts  BankAccount[]
+  dueDiligence  DueDiligence[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, idType, idNumber])
@@ -1230,4 +1232,139 @@ model Attachment {
   @@unique([tenantId, id])
   @@index([tenantId, entityType, entityId, createdAt])
   @@map("core_attachments")
+}
+
+// Privacidad (M18, B17) ---------------------------------------------------------------------------
+
+/// Aviso o política de privacidad versionado. Lo publicado no cambia; al publicar una versión
+/// nueva de la misma clave, la anterior queda reemplazada (ficha 17.19, numeral 20.2).
+model PrivacyNotice {
+  id            String           @id @default(uuid(7)) @db.Uuid
+  tenantId      String           @map("tenant_id") @db.Uuid
+  key           String
+  versionNumber Int              @map("version_number")
+  title         String
+  body          String
+  purposes      String[]
+  status        String           @default("draft")
+  effectiveFrom DateTime?        @map("effective_from") @db.Timestamptz(6)
+  createdAt     DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?          @map("created_by") @db.Uuid
+  updatedAt     DateTime         @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?          @map("updated_by") @db.Uuid
+  version       Int              @default(1)
+  deletedAt     DateTime?        @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  consents      PrivacyConsent[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, key, versionNumber])
+  @@index([tenantId, key, status])
+  @@map("prv_notices")
+}
+
+/// Autorización de tratamiento de un titular, con la versión exacta del texto aceptado y su
+/// evidencia. No se borra ni se edita: solo se revoca una vez (Ley 1581, art. 9).
+model PrivacyConsent {
+  id               String        @id @default(uuid(7)) @db.Uuid
+  tenantId         String        @map("tenant_id") @db.Uuid
+  partyId          String        @map("party_id") @db.Uuid
+  noticeId         String        @map("notice_id") @db.Uuid
+  purposes         String[]
+  channel          String
+  grantedOn        DateTime      @map("granted_on") @db.Date
+  source           String
+  ipAddress        String?       @map("ip_address")
+  userAgent        String?       @map("user_agent")
+  evidenceFileId   String?       @map("evidence_file_id") @db.Uuid
+  revokedAt        DateTime?     @map("revoked_at") @db.Timestamptz(6)
+  revokedBy        String?       @map("revoked_by") @db.Uuid
+  revocationReason String?       @map("revocation_reason")
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy        String?       @map("created_by") @db.Uuid
+  updatedAt        DateTime      @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy        String?       @map("updated_by") @db.Uuid
+  version          Int           @default(1)
+  deletedAt        DateTime?     @map("deleted_at") @db.Timestamptz(6)
+  tenant           Tenant        @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  notice           PrivacyNotice @relation(fields: [tenantId, noticeId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, partyId])
+  @@index([tenantId, noticeId])
+  @@index([tenantId, createdAt])
+  @@map("prv_consents")
+}
+
+/// Registro de actividades de tratamiento: qué datos, de quién, para qué, con qué fundamento,
+/// por cuánto tiempo y con qué encargados (Ley 1581, art. 4).
+model ProcessingActivity {
+  id                     String              @id @default(uuid(7)) @db.Uuid
+  tenantId               String              @map("tenant_id") @db.Uuid
+  name                   String
+  purpose                String
+  dataCategories         String[]            @map("data_categories")
+  holderTypes            String[]            @map("holder_types")
+  legalBasis             String              @map("legal_basis")
+  retention              String
+  internationalTransfers String?             @map("international_transfers")
+  status                 String              @default("active")
+  createdAt              DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy              String?             @map("created_by") @db.Uuid
+  updatedAt              DateTime            @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy              String?             @map("updated_by") @db.Uuid
+  version                Int                 @default(1)
+  deletedAt              DateTime?           @map("deleted_at") @db.Timestamptz(6)
+  tenant                 Tenant              @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  processors             ActivityProcessor[]
+
+  @@unique([tenantId, id])
+  @@map("prv_processing_activities")
+}
+
+/// Encargado o proveedor con acceso a datos personales, con su contrato de transmisión
+/// (Ley 1581, arts. 17, 18 y 26).
+model DataProcessor {
+  id             String              @id @default(uuid(7)) @db.Uuid
+  tenantId       String              @map("tenant_id") @db.Uuid
+  partyId        String              @map("party_id") @db.Uuid
+  service        String
+  country        String
+  contractFileId String?             @map("contract_file_id") @db.Uuid
+  reviewOn       DateTime            @map("review_on") @db.Date
+  status         String              @default("active")
+  createdAt      DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy      String?             @map("created_by") @db.Uuid
+  updatedAt      DateTime            @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy      String?             @map("updated_by") @db.Uuid
+  version        Int                 @default(1)
+  deletedAt      DateTime?           @map("deleted_at") @db.Timestamptz(6)
+  tenant         Tenant              @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  activities     ActivityProcessor[]
+
+  @@unique([tenantId, id])
+  @@index([tenantId, partyId])
+  @@map("prv_processors")
+}
+
+/// Encargados que participan en cada actividad de tratamiento.
+model ActivityProcessor {
+  id          String             @id @default(uuid(7)) @db.Uuid
+  tenantId    String             @map("tenant_id") @db.Uuid
+  activityId  String             @map("activity_id") @db.Uuid
+  processorId String             @map("processor_id") @db.Uuid
+  createdAt   DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?            @map("created_by") @db.Uuid
+  updatedAt   DateTime           @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?            @map("updated_by") @db.Uuid
+  version     Int                @default(1)
+  deletedAt   DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  tenant      Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  activity    ProcessingActivity @relation(fields: [tenantId, activityId], references: [tenantId, id], onDelete: Restrict)
+  processor   DataProcessor      @relation(fields: [tenantId, processorId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, activityId, processorId])
+  @@index([tenantId, processorId])
+  @@map("prv_activity_processors")
 }

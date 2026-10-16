@@ -21,6 +21,7 @@ export const PARTY_ERROR_CODES = {
   reviewClosed: 'PARTY_REVIEW_CLOSED',
   nextReviewInvalid: 'PARTY_NEXT_REVIEW_INVALID',
   mergeInvalid: 'PARTY_MERGE_INVALID',
+  consentNotAllowed: 'PARTY_CONSENT_NOT_ALLOWED',
 } as const;
 
 /** Código del tipo de documento para el NIT en el catálogo «identification_types». */

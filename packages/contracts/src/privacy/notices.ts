@@ -15,6 +15,7 @@ export const PRIVACY_ERROR_CODES = {
   noticeNotPublished: 'PRIVACY_NOTICE_NOT_PUBLISHED',
   noticeOutdated: 'PRIVACY_NOTICE_OUTDATED',
   purposeInvalid: 'PRIVACY_PURPOSE_INVALID',
+  grantDateInvalid: 'PRIVACY_GRANT_DATE_INVALID',
   consentNotFound: 'PRIVACY_CONSENT_NOT_FOUND',
   consentRevoked: 'PRIVACY_CONSENT_REVOKED',
   evidenceInvalid: 'PRIVACY_EVIDENCE_INVALID',
@@ -137,6 +138,8 @@ export const noticeListQuerySchema = z.strictObject({
   key: noticeKeySchema.optional(),
   status: noticeStatusSchema.optional(),
 });
+
+export type NoticeListQuery = z.infer<typeof noticeListQuerySchema>;
 
 export const noticeListResponseSchema = z.object({
   data: z.array(noticeSchema).describe('Por clase y de la versión más nueva a la más vieja'),

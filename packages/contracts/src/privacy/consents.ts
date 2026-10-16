@@ -94,6 +94,8 @@ export const consentListQuerySchema = z.strictObject({
   cursor: z.uuid().optional().describe('next_cursor de la página anterior'),
 });
 
+export type ConsentListQuery = z.infer<typeof consentListQuerySchema>;
+
 export const consentListResponseSchema = z.object({
   data: z.array(consentSchema).describe('Las más recientes primero'),
   next_cursor: z.uuid().nullable(),
