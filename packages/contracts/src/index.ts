@@ -6,3 +6,4 @@ export * from './core/index.js';
 export * from './party/index.js';
 export * from './doc/index.js';
 export * from './wf/index.js';
+export * from './ntf/index.js';
