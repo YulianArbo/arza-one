@@ -19,6 +19,7 @@ const VALID = {
   S3_ACCESS_KEY: 'ficticia',
   S3_SECRET_KEY: 'ficticia',
   CLAMAV_HOST: 'localhost',
+  GOTENBERG_URL: 'http://localhost:3001',
 };
 
 function problemsOf(raw: Record<string, string | undefined>): readonly string[] {

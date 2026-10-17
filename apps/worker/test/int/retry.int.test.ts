@@ -59,6 +59,7 @@ beforeAll(async () => {
     appUrl: config.APP_URL,
     storage: fileStorageFrom(config),
     antivirus: async () => Promise.reject(new Error('no se usa en esta prueba')),
+    convert: async () => Promise.reject(new Error('no se usa en esta prueba')),
   });
   workers = startQueueWorkers(router, {
     connection: { ...connection, maxRetriesPerRequest: null },

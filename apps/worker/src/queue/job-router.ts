@@ -13,6 +13,7 @@ import {
   type NoticeDispatchJobDependencies,
 } from '../jobs/notice-dispatch.js';
 import { processOverdueCheck, type OverdueCheckJobDependencies } from '../jobs/overdue-check.js';
+import { processVersionRender, type VersionRenderJobDependencies } from '../jobs/version-render.js';
 
 /** Lo que un procesador necesita saber del trabajo. */
 interface IncomingJob {
@@ -26,43 +27,34 @@ export type JobDependencies = ExampleEmailDependencies &
   AccountEmailJobDependencies &
   AuditChainCheckDependencies &
   FileScanJobDependencies &
+  VersionRenderJobDependencies &
   OverdueCheckJobDependencies &
   NoticeDispatchJobDependencies;
+
+/** Procesador que recibe los datos del trabajo; su resultado no se usa. */
+function withData(process: (data: unknown) => Promise<unknown>): JobHandler {
+  return async (job) => {
+    await process(job.data);
+  };
+}
+
+/** Procesador de un trabajo del sistema, que no lleva datos. */
+function withoutData(process: () => Promise<unknown>): JobHandler {
+  return async () => {
+    await process();
+  };
+}
 
 /** Procesadores de cada trabajo, por su nombre. Cada bloque agrega los suyos. */
 function handlers(deps: JobDependencies): ReadonlyMap<string, JobHandler> {
   return new Map<string, JobHandler>([
-    [JOBS.exampleEmail.name, async (job) => processExampleEmail(job.data, deps)],
-    [
-      JOBS.accountEmail.name,
-      async (job) => {
-        await processAccountEmail(job.data, deps);
-      },
-    ],
-    [
-      JOBS.auditChainCheck.name,
-      async () => {
-        await processAuditChainCheck(deps);
-      },
-    ],
-    [
-      JOBS.fileScan.name,
-      async (job) => {
-        await processFileScan(job.data, deps);
-      },
-    ],
-    [
-      JOBS.wfOverdueCheck.name,
-      async () => {
-        await processOverdueCheck(deps);
-      },
-    ],
-    [
-      JOBS.ntfDispatch.name,
-      async () => {
-        await processNoticeDispatch(deps);
-      },
-    ],
+    [JOBS.exampleEmail.name, withData(async (data) => processExampleEmail(data, deps))],
+    [JOBS.accountEmail.name, withData(async (data) => processAccountEmail(data, deps))],
+    [JOBS.auditChainCheck.name, withoutData(async () => processAuditChainCheck(deps))],
+    [JOBS.fileScan.name, withData(async (data) => processFileScan(data, deps))],
+    [JOBS.versionRender.name, withData(async (data) => processVersionRender(data, deps))],
+    [JOBS.wfOverdueCheck.name, withoutData(async () => processOverdueCheck(deps))],
+    [JOBS.ntfDispatch.name, withoutData(async () => processNoticeDispatch(deps))],
   ]);
 }
 

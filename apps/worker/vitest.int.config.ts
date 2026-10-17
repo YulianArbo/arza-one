@@ -5,7 +5,11 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     include: ['test/int/**/*.int.test.ts'],
-    globalSetup: ['../api/test/int/support/global-setup.ts', 'test/int/support/mailpit-setup.ts'],
+    globalSetup: [
+      '../api/test/int/support/global-setup.ts',
+      'test/int/support/mailpit-setup.ts',
+      'test/int/support/gotenberg-setup.ts',
+    ],
     testTimeout: 60_000,
     hookTimeout: 180_000,
     // Los archivos comparten las colas de Valkey: se ejecutan uno tras otro.

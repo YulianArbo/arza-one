@@ -8,7 +8,7 @@ import {
   type OnApplicationBootstrap,
   type OnApplicationShutdown,
 } from '@nestjs/common';
-import { fileStorageFrom, scanWithClamav } from '@arza/api/doc';
+import { convertWithGotenberg, fileStorageFrom, scanWithClamav } from '@arza/api/doc';
 import { DatabaseService, JobQueue, SCHEDULED_JOBS, systemClock } from '@arza/api/platform';
 import { Redis } from 'ioredis';
 import type { Logger } from 'pino';
@@ -33,6 +33,9 @@ const SHUTDOWN_GRACE_MS = 25_000;
 
 /** Tiempo máximo del antivirus por archivo (hasta 20 MB). */
 const ANTIVIRUS_TIMEOUT_MS = 60_000;
+
+/** Tiempo máximo de Gotenberg para convertir un Word o un Excel a PDF. */
+const CONVERSION_TIMEOUT_MS = 120_000;
 
 /** Enciende los procesadores de las colas y el latido; los apaga en orden al detenerse. */
 @Injectable()
@@ -64,6 +67,11 @@ class WorkerRuntime implements OnApplicationBootstrap, OnApplicationShutdown {
             timeoutMs: ANTIVIRUS_TIMEOUT_MS,
           },
           content,
+        ),
+      convert: async (source) =>
+        convertWithGotenberg(
+          { url: this.config.GOTENBERG_URL, timeoutMs: CONVERSION_TIMEOUT_MS },
+          source,
         ),
     });
     this.queueWorkers = startQueueWorkers(router, {
