@@ -172,7 +172,8 @@ export class AcknowledgementsUseCase {
       const document = await findVisibleDocument(tx, reader, documentId);
       const version = await currentVersionOf(tx, document);
       if (version === null) throw notAcknowledgeable();
-      return { requested: await requestReading(tx, actor, { document, version }) };
+      const requested = await requestReading(tx, actor, { document, version }, { audited: true });
+      return { requested };
     });
   }
 }

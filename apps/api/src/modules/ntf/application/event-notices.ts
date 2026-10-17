@@ -154,7 +154,7 @@ const HANDLERS: Readonly<Record<string, Handler>> = {
   'comment.mentioned': onMention,
   'security.alert': onSecurityAlert,
   'doc.acknowledgement.requested': onReadingRequested,
-  'doc.change_request.decided': onRequestDecided,
+  'doc.request.decided': onRequestDecided,
 };
 
 /** Los avisos que produce el evento; ninguno si nadie se ocupa de él. */

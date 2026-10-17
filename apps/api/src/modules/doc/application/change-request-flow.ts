@@ -51,7 +51,7 @@ async function decide(
   });
   await addOutboxEvent(tx, {
     tenantId: context.tenantId,
-    eventType: 'doc.change_request.decided',
+    eventType: 'doc.request.decided',
     actorId: context.userId,
     occurredAt: context.at,
     payload: {

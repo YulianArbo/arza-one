@@ -33,15 +33,23 @@ async function intendedReaders(tx: TenantTransaction, documentId: string): Promi
   return [...readers.values()];
 }
 
-/** Deja pendientes las constancias que faltan y avisa a quienes aún no confirmaron. */
+/**
+ * Deja pendientes las constancias que faltan y avisa a quienes aún no confirmaron. Al publicar,
+ * un documento sin cargos destinatarios no deja nada; cuando una persona lo pide a propósito
+ * (`audited`), su pedido queda en la auditoría aunque no haya a quién avisar.
+ */
 export async function requestReading(
   tx: TenantTransaction,
   actor: DocActor,
   published: PublishedVersion,
+  options: { readonly audited: boolean } = { audited: false },
 ): Promise<number> {
   const { document, version } = published;
   const readers = await intendedReaders(tx, document.id);
-  if (readers.length === 0) return 0;
+  if (readers.length === 0) {
+    if (options.audited) await announce(tx, actor, published, []);
+    return 0;
+  }
   const base = { tenantId: actor.tenantId, documentId: document.id, versionId: version.id };
   await tx.docAcknowledgement.createMany({
     data: readers.map((reader) => ({ ...base, ...reader, requestedAt: actor.at })),
