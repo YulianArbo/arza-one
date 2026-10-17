@@ -20,7 +20,7 @@ import { FormError } from '../access/form-alert';
 import { useDownloadLink } from './queries';
 
 /** Dirección blob: del contenido, válida mientras se muestra; al quitarla se libera la memoria. */
-function useObjectUrl(blob: Blob | undefined): string | null {
+export function useObjectUrl(blob: Blob | undefined): string | null {
   const url = useMemo(() => (blob === undefined ? null : URL.createObjectURL(blob)), [blob]);
   useEffect(
     () => () => {
