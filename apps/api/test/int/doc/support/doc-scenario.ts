@@ -29,7 +29,7 @@ import { FileScenario, pdfFile, samplePdf, storage, type SampleFile } from './fi
 // reales, el núcleo y las carpetas iniciales sembrados, y la conversión a PDF con un convertidor
 // de prueba (la conversión real con Gotenberg se prueba en el worker).
 
-export const WORD = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+const WORD = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
 /** Un .docx mínimo: cabecera ZIP y el nombre de su parte principal, como lo reconoce el análisis. */
 export function wordFile(): SampleFile {

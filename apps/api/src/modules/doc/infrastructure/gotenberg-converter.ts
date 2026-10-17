@@ -1,7 +1,7 @@
 // Conversión a PDF con Gotenberg (capítulo 9, numeral 13.2): Word y Excel pasan por su ruta de
 // LibreOffice. Gotenberg vive dentro del servidor, sin acceso desde fuera; lo usa el worker.
 
-export interface GotenbergOptions {
+interface GotenbergOptions {
   readonly url: string;
   readonly timeoutMs: number;
 }

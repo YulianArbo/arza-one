@@ -29,7 +29,7 @@ interface Resolved {
   readonly file: File;
 }
 
-export function sha256Of(content: Buffer): string {
+function sha256Of(content: Buffer): string {
   return createHash('sha256').update(content).digest('hex');
 }
 

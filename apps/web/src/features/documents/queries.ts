@@ -37,7 +37,7 @@ import { useSession } from '../session/session-provider';
 // Consultas y acciones de documentos, versiones y expedientes (B18). La API revisa el permiso y el
 // aislamiento en cada una.
 
-export const DOC_KEYS = {
+const DOC_KEYS = {
   all: ['documents'] as const,
   folders: ['documents', 'folders'] as const,
   list: (folderId: string | null, q: string, cursor: string | null) =>

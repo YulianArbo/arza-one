@@ -5,18 +5,18 @@ import type { PermissionCode } from '@arza/contracts';
 import { SESSION, json, mockApi, type SentRequest } from './fake-api';
 import { catalog } from './party-fixtures';
 
-export const ROOT_ID = '01999a00-0000-7000-8000-00000000b001';
+const ROOT_ID = '01999a00-0000-7000-8000-00000000b001';
 export const FOLDER_ID = '01999a00-0000-7000-8000-00000000b002';
 export const DOCUMENT_ID = '01999a00-0000-7000-8000-00000000b101';
 export const VERSION_ID = '01999a00-0000-7000-8000-00000000b201';
 export const PDF_ID = '01999a00-0000-7000-8000-00000000b301';
 export const PROCESS_ID = '01999a00-0000-7000-8000-00000000b401';
-export const POSITION_ID = '01999a00-0000-7000-8000-00000000b402';
+const POSITION_ID = '01999a00-0000-7000-8000-00000000b402';
 export const LINK_ID = '01999a00-0000-7000-8000-00000000b501';
 export const UPLOAD_LINK = 'http://api.test/v1/files/uploads/llave';
-export const DOWNLOAD_LINK = 'http://api.test/v1/files/downloads/llave';
+const DOWNLOAD_LINK = 'http://api.test/v1/files/downloads/llave';
 
-export function docPermissions(codes: readonly PermissionCode[]): object {
+function docPermissions(codes: readonly PermissionCode[]): object {
   return {
     roles: [{ id: '01999a00-0000-7000-8000-00000000c040', code: 'CALIDAD', name: 'Calidad' }],
     permissions: codes.map((code) => ({ code, scope: 'all' })),
@@ -56,7 +56,7 @@ function folder(overrides: object): Record<string, unknown> {
   };
 }
 
-export const FOLDERS = {
+const FOLDERS = {
   data: [
     folder({}),
     folder({

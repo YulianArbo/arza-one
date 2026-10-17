@@ -72,7 +72,7 @@ export const ACTION_LABELS: Readonly<Record<Exclude<VersionAction, 'edit'>, stri
   obsolete: 'Declarar obsoleta',
 };
 
-export const CLASSIFICATION_HINTS: Readonly<Record<Classification, string>> = {
+const CLASSIFICATION_HINTS: Readonly<Record<Classification, string>> = {
   public: 'Lo puede ver cualquier persona de la empresa.',
   internal: 'Lo ven las personas de la empresa con acceso a documentos.',
   confidential: 'Cada descarga queda en el registro de accesos.',

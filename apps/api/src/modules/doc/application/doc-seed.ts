@@ -13,7 +13,7 @@ const QUALITY_ROOT = { code: 'SGC', name: 'Sistema de Gestión de Calidad' } as 
 const CASE_FILES_ROOT = { code: 'EXP', name: 'Expedientes' } as const;
 
 /** Código de la carpeta de un proceso dentro del SGC. */
-export function processFolderCode(processCode: string): string {
+function processFolderCode(processCode: string): string {
   return `${QUALITY_ROOT.code}-${processCode}`;
 }
 

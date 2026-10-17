@@ -60,7 +60,7 @@ export async function findVisibleDocument(
 }
 
 /** Quien ve todo o quien creó el documento ve también la versión en trámite. */
-export function seesOpenVersions(reader: DocReader): (doc: DocDocument) => boolean {
+function seesOpenVersions(reader: DocReader): (doc: DocDocument) => boolean {
   return (doc) => reader.readsAll || doc.createdBy === reader.userId;
 }
 
