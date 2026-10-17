@@ -52,6 +52,8 @@ describe('auditoría del ciclo', () => {
         'doc.document.create',
         'doc.version.create',
         'doc.version.submit',
+        // Desde B19: la revisión de Calidad antes de la aprobación de Dirección.
+        'doc.version.review',
         'doc.version.approve',
         'doc.version.publish',
       ].sort(),

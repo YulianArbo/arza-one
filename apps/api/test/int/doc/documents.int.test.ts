@@ -66,7 +66,8 @@ describe('ciclo de la versión', () => {
     const id = await scenario.createDocument(author);
     const current = await scenario.publishLatest(author, approver, id);
     expect(current.status).toBe('current');
-    expect(current.approved_by?.id).toBe(approver.id);
+    // Desde B19 aprueba Dirección en el trámite; Calidad revisa y publica.
+    expect(current.approved_by?.id).toBe((await scenario.director()).id);
     expect(current.effective_date).not.toBeNull();
     const document = await scenario.document(author, id);
     expect(document.status).toBe('current');

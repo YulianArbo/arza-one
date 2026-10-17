@@ -10,6 +10,7 @@ import type { TenantTransaction } from '../../../platform/database/tenant-contex
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
 import { positionsById } from '../../core/index.js';
 import { positionOfUser } from '../../iam/index.js';
+import { taskActorOf, type TaskActor } from '../../wf/index.js';
 
 // Piezas comunes de documentos, versiones y expedientes (B18).
 
@@ -28,8 +29,14 @@ export function actorOf(principal: Principal, meta: RequestMeta, at: Date): DocA
 
 export interface DocChange {
   readonly action: string;
-  readonly entityType: 'doc_folder' | 'doc_document' | 'doc_version' | 'doc_link';
-  readonly entityId: string;
+  readonly entityType:
+    | 'doc_folder'
+    | 'doc_document'
+    | 'doc_version'
+    | 'doc_link'
+    | 'doc_change_request'
+    | 'doc_acknowledgement';
+  readonly entityId: string | null;
   readonly changes: Prisma.InputJsonObject;
 }
 
@@ -83,12 +90,21 @@ export interface DocReader {
   readonly canApprove: boolean;
   readonly canPublish: boolean;
   readonly canObsolete: boolean;
+  readonly canDecideRequests: boolean;
+  /** Quién es la persona para el motor de flujos; se calcula solo si hace falta. */
+  readonly taskActor: (at: Date) => Promise<TaskActor>;
 }
 
 async function processOfUser(tx: TenantTransaction, userId: string): Promise<string | null> {
   const positionId = await positionOfUser(tx, userId);
   if (positionId === null) return null;
   return (await positionsById(tx, [positionId])).get(positionId)?.orgUnitId ?? null;
+}
+
+/** Calcula una sola vez, con el momento de la primera petición. */
+function once<T>(load: (at: Date) => Promise<T>): (at: Date) => Promise<T> {
+  let loaded: Promise<T> | null = null;
+  return (at) => (loaded ??= load(at));
 }
 
 export async function readerOf(
@@ -109,6 +125,8 @@ export async function readerOf(
     canApprove: hasPermission(ability, 'doc.version.approve'),
     canPublish: hasPermission(ability, 'doc.version.publish'),
     canObsolete: hasPermission(ability, 'doc.version.obsolete'),
+    canDecideRequests: hasPermission(ability, 'doc.change_request.decide'),
+    taskActor: once((at) => taskActorOf(tx, principal, ability, at)),
   };
 }
 

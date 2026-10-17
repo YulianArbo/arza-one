@@ -17,6 +17,7 @@ import {
   scanUploadedFile,
   scanWithClamav,
   seedDocFolders,
+  seedDocWorkflows,
   type VersionRenderResult,
 } from '../../../../src/modules/doc/index.js';
 import { systemClock } from '../../../../src/platform/clock/clock.js';
@@ -27,7 +28,10 @@ import { FileScenario, pdfFile, samplePdf, storage, type SampleFile } from './fi
 
 // Escenario de las pruebas de documentos y versiones (B18): la API completa con Garage y ClamAV
 // reales, el núcleo y las carpetas iniciales sembrados, y la conversión a PDF con un convertidor
-// de prueba (la conversión real con Gotenberg se prueba en el worker).
+// de prueba (la conversión real con Gotenberg se prueba en el worker). Desde B19 siembra los flujos
+// de la gestión documental; las versiones pasan por su trámite y un documento del SGC necesita una
+// Solicitud de Acción Documental aprobada, que estas ayudas dejan lista en la base cuando la prueba
+// no trata de la solicitud misma.
 
 const WORD = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
@@ -42,6 +46,16 @@ export function wordFile(): SampleFile {
 
 export type Step = 'submit' | 'reject' | 'approve' | 'publish' | 'obsolete';
 
+/** Lo que pide una solicitud aprobada de prueba. */
+export interface RequestFixture {
+  readonly action: 'create' | 'update' | 'obsolete';
+  readonly documentId?: string;
+  readonly docType?: string;
+  readonly processId?: string | null;
+}
+
+let requestNumber = Math.floor(Math.random() * 1_000_000);
+
 export class DocScenario extends FileScenario {
   private seeded = false;
   /** Empresa de cada persona de otra empresa, para analizar sus archivos donde corresponde. */
@@ -53,7 +67,42 @@ export class DocScenario extends FileScenario {
     const tenants = [this.tenant.id, this.otherTenant.id];
     await seedCore(apiDatabase(), tenants, systemClock);
     await seedDocFolders(apiDatabase(), tenants, systemClock);
+    await seedDocWorkflows(apiDatabase(), tenants, systemClock);
     this.seeded = true;
+  }
+
+  private directorPerson?: Promise<Person>;
+
+  /** Dirección aprueba las versiones en el trámite (B19); una sola persona por escenario. */
+  async director(): Promise<Person> {
+    this.directorPerson ??= this.person('direccion', ['DIRECCION']);
+    return this.directorPerson;
+  }
+
+  /** Una solicitud ya aprobada por otra persona, escrita en la base (B19). */
+  async approvedRequest(requester: Person, fixture: RequestFixture): Promise<string> {
+    requestNumber += 1;
+    const creates = fixture.action === 'create';
+    const tenantId = this.tenantOf.get(requester.id) ?? this.tenant.id;
+    const request = await this.db.withTenant({ tenantId, userId: null }, (tx) =>
+      tx.docChangeRequest.create({
+        data: {
+          tenantId,
+          code: `SAD-2026-${String(requestNumber).padStart(7, '0')}`,
+          action: fixture.action,
+          documentId: fixture.documentId ?? null,
+          docType: creates ? (fixture.docType ?? 'PR') : null,
+          processId: creates ? (fixture.processId ?? null) : null,
+          title: 'Solicitud de prueba',
+          justification: 'Solicitud aprobada para la prueba.',
+          status: 'approved',
+          requestedBy: requester.id,
+          decidedBy: uuidv7(),
+          decidedAt: this.clock.now(),
+        },
+      }),
+    );
+    return request.id;
   }
 
   async quality(label = 'calidad', tenantId = this.tenant.id): Promise<Person> {
@@ -104,7 +153,7 @@ export class DocScenario extends FileScenario {
     person: Person,
     overrides: Record<string, unknown> = {},
   ): Promise<Record<string, unknown>> {
-    return {
+    const body: Record<string, unknown> = {
       folder_id: await this.folderId('SGC-SGC'),
       doc_type: 'PR',
       is_controlled: true,
@@ -116,6 +165,11 @@ export class DocScenario extends FileScenario {
       change_summary: 'Creación del documento',
       ...overrides,
     };
+    if (body['is_controlled'] !== true || 'change_request_id' in overrides) return body;
+    const docType = typeof body['doc_type'] === 'string' ? body['doc_type'] : 'PR';
+    const processId = typeof body['process_id'] === 'string' ? body['process_id'] : null;
+    const fixture = { action: 'create', docType, processId } as const;
+    return { ...body, change_request_id: await this.approvedRequest(person, fixture) };
   }
 
   /** Versión nueva en borrador del documento, con un PDF recién subido. */
@@ -124,7 +178,18 @@ export class DocScenario extends FileScenario {
     documentId: string,
     overrides: Record<string, unknown> = {},
   ): Promise<string> {
+    const tenantId = this.tenantOf.get(person.id) ?? this.tenant.id;
+    const document = await this.db.withTenant({ tenantId, userId: null }, (tx) =>
+      tx.docDocument.findFirst({ where: { id: documentId } }),
+    );
+    const request =
+      document?.isControlled === true && !('change_request_id' in overrides)
+        ? {
+            change_request_id: await this.approvedRequest(person, { action: 'update', documentId }),
+          }
+        : {};
     const response = await this.post(`/v1/documents/${documentId}/versions`, person.session, {
+      ...request,
       title: 'Control de documentos',
       classification: 'internal',
       owner_position_id: null,
@@ -170,11 +235,17 @@ export class DocScenario extends FileScenario {
     );
   }
 
-  /** Lleva la versión más nueva del documento hasta vigente: elabora una persona, aprueba otra. */
+  /**
+   * Lleva la versión más nueva del documento hasta vigente por su trámite (B19): la envía quien la
+   * elaboró, Calidad (approver) la revisa, Dirección la aprueba y Calidad la publica.
+   */
   async publishLatest(author: Person, approver: Person, documentId: string): Promise<Version> {
     const sent = await this.step(author, await this.latest(author, documentId), 'submit');
     expect(sent.status, sent.text).toBe(204);
-    const approved = await this.step(approver, await this.latest(approver, documentId), 'approve');
+    const reviewed = await this.step(approver, await this.latest(approver, documentId), 'approve');
+    expect(reviewed.status, reviewed.text).toBe(204);
+    const director = await this.director();
+    const approved = await this.step(director, await this.latest(director, documentId), 'approve');
     expect(approved.status, approved.text).toBe(204);
     const published = await this.step(approver, await this.latest(approver, documentId), 'publish');
     expect(published.status, published.text).toBe(204);

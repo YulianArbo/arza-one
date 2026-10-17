@@ -23,6 +23,7 @@ import {
   type DocReader,
 } from './doc-support.js';
 import { findVisibleDocument, visibleDocument } from './documents.js';
+import { usableChangeRequest } from './change-request-rows.js';
 import { createVersionRow, draftContent, requestRender } from './version-rows.js';
 import { versionViews } from './version-views.js';
 
@@ -104,7 +105,7 @@ export class VersionsUseCase {
         where: { AND: [{ documentId }, visibleVersions(reader, document)] },
         orderBy: { number: 'desc' },
       });
-      return versionViews(tx, versions, reader);
+      return versionViews(tx, versions, reader, this.clock.now());
     });
   }
 
@@ -129,10 +130,22 @@ export class VersionsUseCase {
       });
       if (latest !== null && OPEN_STATUSES.some((s) => s === latest.status))
         throw versionInProgress();
+      const changeRequestId = await this.changeRequestFor(tx, document, input);
       const number = nextVersionNumber(latest?.number ?? null);
-      const draft = { documentId: document.id, number, input, source };
-      return (await createVersionRow(tx, actor, this.queue, draft)).id;
+      const draft = { documentId: document.id, code: document.code, changeRequestId, number };
+      return (await createVersionRow(tx, actor, this.queue, { ...draft, input, source })).id;
     });
+  }
+
+  /** Un documento del SGC cambia solo con una Solicitud de Acción Documental aprobada (B19). */
+  private async changeRequestFor(
+    tx: TenantTransaction,
+    document: DocDocument,
+    input: CreateVersionRequest,
+  ): Promise<string | null> {
+    if (!document.isControlled) return null;
+    const change = { action: 'update', documentId: document.id } as const;
+    return (await usableChangeRequest(tx, input.change_request_id, change)).id;
   }
 
   /** Corrige el borrador propio; si el documento nunca se publicó, sus datos lo acompañan. */

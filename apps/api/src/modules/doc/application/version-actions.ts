@@ -6,115 +6,97 @@ import {
   type RejectVersionRequest,
 } from '@arza/contracts';
 
-import type { DocDocument, DocVersion, Prisma } from '../../../generated/prisma/client.js';
-import type { AppAbility } from '../../../platform/access/ability.js';
+import type { DocDocument, DocVersion } from '../../../generated/prisma/client.js';
+import { hasPermission, type AppAbility } from '../../../platform/access/ability.js';
 import type { Principal } from '../../../platform/access/principal.js';
 import { CLOCK, type Clock } from '../../../platform/clock/clock.js';
 import { DatabaseService } from '../../../platform/database/database.service.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import { versionConflict } from '../../../platform/http/if-match.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
-import { bogotaToday, fromCalendarDate } from '../../core/index.js';
-import { allowedActions, VERSION_TRANSITIONS, type VersionStep } from '../domain/document-rules.js';
-import { selfApproval, transitionNotAllowed } from './doc-messages.js';
 import {
-  actorOf,
-  auditDoc,
-  lockDocument,
-  readerOf,
-  type DocActor,
-  type DocReader,
-} from './doc-support.js';
+  decideAsParticipant,
+  participationOf,
+  requestTransition,
+  type TaskActor,
+} from '../../wf/index.js';
+import { allowedActions, VERSION_TRANSITIONS, type VersionStep } from '../domain/document-rules.js';
+import { executeChangeRequest, usableChangeRequest } from './change-request-rows.js';
+import { selfApproval, transitionNotAllowed } from './doc-messages.js';
+import { actorOf, lockDocument, readerOf, type DocActor, type DocReader } from './doc-support.js';
+import { startVersionFlow } from './version-flow.js';
+import { auditStep, moveVersion } from './version-steps.js';
 import { findVisibleVersion } from './versions.js';
 
-// Pasos del ciclo de una versión (B18, ficha 17.4). Publicar deja obsoleta la vigente anterior en
-// la misma transacción: nunca hay dos vigentes. Quien elabora no aprueba ni devuelve. En B19
-// estos pasos los dará la Solicitud de Acción Documental con su flujo.
+// Pasos de una versión desde su ficha (B18, ficha 17.4; desde B19 con su trámite). Enviar,
+// devolver, aprobar y publicar son pasos del trámite en el motor de flujos: la versión los sigue en
+// la misma transacción (version-flow.ts), igual que cuando se dan desde «Mis tareas». Declarar
+// obsoleto un documento del SGC exige una Solicitud de Acción Documental de eliminación aprobada.
 
 export interface StepTarget {
   readonly id: string;
   readonly version: number;
 }
 
-interface StepContext {
+interface Step {
   readonly tx: TenantTransaction;
   readonly actor: DocActor;
+  readonly reader: DocReader;
+  readonly taskActor: TaskActor;
+  readonly ability: AppAbility;
   readonly document: DocDocument;
   readonly version: DocVersion;
 }
 
-function assertStep(step: VersionStep, version: DocVersion, reader: DocReader): void {
+async function assertStep(step: Step, name: VersionStep): Promise<void> {
+  const { version, reader } = step;
   const isAuthor = version.createdBy === reader.userId;
-  const status = versionStatusSchema.parse(version.status);
-  const state = { status, pdfReady: version.renderStatus === 'ready' };
-  if (allowedActions(state, { ...reader, isAuthor }).includes(step)) return;
-  const reviews = step === 'approve' || step === 'reject';
-  if (reviews && isAuthor && version.status === VERSION_TRANSITIONS[step].from)
+  const instanceId = version.workflowInstanceId;
+  const participation =
+    instanceId === null ? null : await participationOf(step.tx, instanceId, step.taskActor);
+  const state = {
+    status: versionStatusSchema.parse(version.status),
+    pdfReady: version.renderStatus === 'ready',
+    step: participation?.stateKey ?? null,
+  };
+  const actor = {
+    ...reader,
+    isAuthor,
+    attendsApproval: participation?.attendsApproval ?? false,
+    attendsAction: participation?.attendsAction ?? false,
+  };
+  if (allowedActions(state, actor).includes(name)) return;
+  const reviews = name === 'approve' || name === 'reject';
+  if (reviews && isAuthor && version.status === VERSION_TRANSITIONS[name].from)
     throw selfApproval();
   throw transitionNotAllowed();
 }
 
-async function moveVersion(
-  context: StepContext,
-  step: VersionStep,
-  data: Prisma.DocVersionUpdateManyMutationInput,
-): Promise<void> {
-  const { from, to } = VERSION_TRANSITIONS[step];
-  const { count } = await context.tx.docVersion.updateMany({
-    where: { id: context.version.id, status: from },
-    data: { ...data, status: to },
-  });
-  if (count === 0) throw transitionNotAllowed();
-}
-
-async function auditStep(
-  context: StepContext,
-  step: VersionStep,
-  changes: Prisma.InputJsonObject = {},
-): Promise<void> {
-  await auditDoc(context.tx, context.actor, {
-    action: `doc.version.${step}`,
-    entityType: 'doc_version',
-    entityId: context.version.id,
-    changes: {
-      code: context.document.code,
-      label: context.version.versionLabel,
-      from: VERSION_TRANSITIONS[step].from,
-      to: VERSION_TRANSITIONS[step].to,
-      ...changes,
-    },
+/** Mueve el trámite con una acción de un estado normal (enviar o publicar). */
+async function transition(step: Step, action: string, facts: Record<string, string> = {}) {
+  const instanceId = step.version.workflowInstanceId ?? (await ensureFlow(step));
+  await requestTransition(step.tx, step.actor, {
+    instanceId,
+    action,
+    comment: null,
+    facts,
+    actor: step.taskActor,
+    hasPermission: (code) => hasPermission(step.ability, code),
   });
 }
 
-/** La vigente anterior pasa a obsoleta y el documento toma los datos de la nueva. */
-async function publishVersion(context: StepContext, effectiveDate: string): Promise<void> {
-  const { tx, actor, document, version } = context;
-  const previous = await tx.docVersion.findFirst({
-    where: { documentId: document.id, status: 'current', deletedAt: null },
-  });
-  if (previous !== null) {
-    await tx.docVersion.update({
-      where: { id: previous.id },
-      data: { status: 'obsolete', obsoletedAt: actor.at },
-    });
-  }
-  await moveVersion(context, 'publish', {
-    publishedAt: actor.at,
-    effectiveDate: fromCalendarDate(effectiveDate),
-  });
-  await tx.docDocument.update({
-    where: { id: document.id },
-    data: {
-      status: 'current',
-      currentVersionId: version.id,
-      title: version.title,
-      classification: version.classification,
-      ownerPositionId: version.ownerPositionId,
-    },
-  });
-  await auditStep(context, 'publish', {
-    effective_date: effectiveDate,
-    replaced_label: previous?.versionLabel ?? null,
+/** Una versión elaborada antes de B19 no tiene trámite: lo recibe al enviarse. */
+async function ensureFlow(step: Step): Promise<string> {
+  const target = { version: step.version, code: step.document.code };
+  return startVersionFlow(step.tx, step.actor, target);
+}
+
+async function decide(step: Step, decision: 'approved' | 'rejected', comment: string | null) {
+  await decideAsParticipant(step.tx, step.actor, {
+    instanceId: step.version.workflowInstanceId ?? '',
+    actor: step.taskActor,
+    decision,
+    comment,
   });
 }
 
@@ -131,10 +113,9 @@ export class VersionActionsUseCase {
     target: StepTarget,
     meta: RequestMeta,
   ): Promise<void> {
-    await this.run(principal, ability, target, meta, 'submit', async (context) => {
-      await moveVersion(context, 'submit', { submittedAt: context.actor.at, reviewNote: null });
-      await auditStep(context, 'submit');
-    });
+    await this.run({ principal, ability, meta }, target, 'submit', (step) =>
+      transition(step, 'submit'),
+    );
   }
 
   async reject(
@@ -144,10 +125,9 @@ export class VersionActionsUseCase {
     input: RejectVersionRequest,
     meta: RequestMeta,
   ): Promise<void> {
-    await this.run(principal, ability, target, meta, 'reject', async (context) => {
-      await moveVersion(context, 'reject', { submittedAt: null, reviewNote: input.note });
-      await auditStep(context, 'reject', { note: input.note });
-    });
+    await this.run({ principal, ability, meta }, target, 'reject', (step) =>
+      decide(step, 'rejected', input.note),
+    );
   }
 
   async approve(
@@ -156,13 +136,9 @@ export class VersionActionsUseCase {
     target: StepTarget,
     meta: RequestMeta,
   ): Promise<void> {
-    await this.run(principal, ability, target, meta, 'approve', async (context) => {
-      await moveVersion(context, 'approve', {
-        approvedBy: principal.userId,
-        approvedAt: context.actor.at,
-      });
-      await auditStep(context, 'approve');
-    });
+    await this.run({ principal, ability, meta }, target, 'approve', (step) =>
+      decide(step, 'approved', null),
+    );
   }
 
   async publish(
@@ -172,9 +148,11 @@ export class VersionActionsUseCase {
     input: PublishVersionRequest,
     meta: RequestMeta,
   ): Promise<void> {
-    await this.run(principal, ability, target, meta, 'publish', async (context) => {
-      await publishVersion(context, input.effective_date ?? bogotaToday(context.actor.at));
-    });
+    const facts =
+      input.effective_date === undefined ? {} : { effective_date: input.effective_date };
+    await this.run({ principal, ability, meta }, target, 'publish', (step) =>
+      transition(step, 'publish', facts),
+    );
   }
 
   /** El documento deja de regir: su vigente pasa a obsoleta y ya no la descargan los usuarios. */
@@ -185,34 +163,43 @@ export class VersionActionsUseCase {
     input: ObsoleteVersionRequest,
     meta: RequestMeta,
   ): Promise<void> {
-    await this.run(principal, ability, target, meta, 'obsolete', async (context) => {
-      await moveVersion(context, 'obsolete', { obsoletedAt: context.actor.at });
-      await context.tx.docDocument.update({
-        where: { id: context.document.id },
-        data: { status: 'obsolete' },
+    await this.run({ principal, ability, meta }, target, 'obsolete', async (step) => {
+      const { tx, actor, document } = step;
+      const request = document.isControlled
+        ? await usableChangeRequest(tx, input.change_request_id, {
+            action: 'obsolete',
+            documentId: document.id,
+          })
+        : null;
+      await moveVersion(step, 'obsolete', { obsoletedAt: actor.at });
+      await tx.docDocument.update({ where: { id: document.id }, data: { status: 'obsolete' } });
+      await auditStep(step, 'obsolete', {
+        reason: input.reason,
+        change_request: request?.code ?? null,
       });
-      await auditStep(context, 'obsolete', { reason: input.reason });
+      if (request !== null) await executeChangeRequest(tx, actor, request.id);
     });
   }
 
-  /** Revisa el permiso y la versión vista, con el documento bloqueado, y da el paso. */
+  /** Revisa el permiso, el paso y la versión vista, con el documento bloqueado, y da el paso. */
   private async run(
-    principal: Principal,
-    ability: AppAbility,
+    request: { principal: Principal; ability: AppAbility; meta: RequestMeta },
     target: StepTarget,
-    meta: RequestMeta,
-    step: VersionStep,
-    apply: (context: StepContext) => Promise<void>,
+    name: VersionStep,
+    apply: (step: Step) => Promise<void>,
   ): Promise<void> {
+    const { principal, ability, meta } = request;
     const actor = actorOf(principal, meta, this.clock.now());
     await this.database.withTenant(principal, async (tx) => {
       const reader = await readerOf(tx, principal, ability);
       const found = await findVisibleVersion(tx, reader, target.id);
-      assertStep(step, found.version, reader);
+      const taskActor = await reader.taskActor(actor.at);
       await lockDocument(tx, actor.tenantId, found.document.id);
       const version = await tx.docVersion.findUniqueOrThrow({ where: { id: target.id } });
       if (version.version !== target.version) throw versionConflict();
-      await apply({ tx, actor, document: found.document, version });
+      const step = { tx, actor, reader, taskActor, ability, document: found.document, version };
+      await assertStep(step, name);
+      await apply(step);
     });
   }
 }

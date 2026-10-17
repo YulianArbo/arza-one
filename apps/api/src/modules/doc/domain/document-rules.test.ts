@@ -18,6 +18,8 @@ const NOBODY: VersionActor = {
   canApprove: false,
   canPublish: false,
   canObsolete: false,
+  attendsApproval: false,
+  attendsAction: false,
 };
 
 const AUTHOR: VersionActor = { ...NOBODY, isAuthor: true, canEdit: true, canSubmit: true };
@@ -48,6 +50,15 @@ describe('código de PR-SGC-001', () => {
       padding: 3,
     });
   });
+
+  it('sin proceso, un consecutivo solo del tipo (RIT-001)', () => {
+    expect(controlledCodeSequence('RIT', null)).toEqual({
+      key: 'doc.code.rit',
+      name: 'Documentos RIT',
+      prefix: 'RIT',
+      padding: 3,
+    });
+  });
 });
 
 describe('archivo fuente', () => {
@@ -68,31 +79,43 @@ describe('archivo fuente', () => {
 });
 
 describe('pasos posibles de una versión', () => {
+  const draft = { status: 'draft', pdfReady: true, step: 'drafting' } as const;
+  const inReview = { status: 'in_review', pdfReady: true, step: 'review' } as const;
+  const inApproval = { status: 'in_review', pdfReady: true, step: 'approval' } as const;
+  const approved = { status: 'approved', pdfReady: true, step: 'publication' } as const;
+  const current = { status: 'current', pdfReady: true, step: 'published' } as const;
+  const attending = { ...QUALITY, attendsApproval: true, attendsAction: true };
+
   it('quien elabora edita y envía a revisión cuando el PDF está listo', () => {
-    expect(allowedActions({ status: 'draft', pdfReady: true }, AUTHOR)).toEqual(['edit', 'submit']);
-    expect(allowedActions({ status: 'draft', pdfReady: false }, AUTHOR)).toEqual(['edit']);
+    expect(allowedActions(draft, AUTHOR)).toEqual(['edit', 'submit']);
+    expect(allowedActions({ ...draft, pdfReady: false }, AUTHOR)).toEqual(['edit']);
   });
 
   it('otra persona no edita ni envía el borrador ajeno', () => {
-    expect(allowedActions({ status: 'draft', pdfReady: true }, QUALITY)).toEqual([]);
+    expect(allowedActions(draft, attending)).toEqual([]);
   });
 
-  it('quien elabora no aprueba ni devuelve su propia versión', () => {
-    const author = { ...QUALITY, isAuthor: true };
-    expect(allowedActions({ status: 'in_review', pdfReady: true }, author)).toEqual([]);
-    expect(allowedActions({ status: 'in_review', pdfReady: true }, QUALITY)).toEqual([
-      'reject',
-      'approve',
-    ]);
+  it('quien elabora no aprueba ni devuelve su propia versión, aunque tenga la tarea', () => {
+    expect(allowedActions(inReview, { ...attending, isAuthor: true })).toEqual([]);
+    expect(allowedActions(inReview, attending)).toEqual(['reject', 'approve']);
   });
 
-  it('publicar y declarar obsoleta dependen del permiso', () => {
-    expect(allowedActions({ status: 'approved', pdfReady: true }, QUALITY)).toEqual(['publish']);
-    expect(allowedActions({ status: 'current', pdfReady: true }, QUALITY)).toEqual(['obsolete']);
-    expect(allowedActions({ status: 'current', pdfReady: true }, AUTHOR)).toEqual([]);
+  it('decide solo quien tiene abierta la tarea del paso y su permiso', () => {
+    expect(allowedActions(inReview, QUALITY)).toEqual([]);
+    const reviewerOnly = { ...attending, canApprove: false };
+    expect(allowedActions(inReview, reviewerOnly)).toEqual(['reject', 'approve']);
+    expect(allowedActions(inApproval, reviewerOnly)).toEqual([]);
+    expect(allowedActions({ ...inReview, step: null }, attending)).toEqual([]);
+  });
+
+  it('publicar exige la tarea de publicación; declarar obsoleta, el permiso', () => {
+    expect(allowedActions(approved, attending)).toEqual(['publish']);
+    expect(allowedActions(approved, QUALITY)).toEqual([]);
+    expect(allowedActions(current, QUALITY)).toEqual(['obsolete']);
+    expect(allowedActions(current, AUTHOR)).toEqual([]);
   });
 
   it('una versión obsoleta ya no admite pasos', () => {
-    expect(allowedActions({ status: 'obsolete', pdfReady: true }, QUALITY)).toEqual([]);
+    expect(allowedActions({ ...current, status: 'obsolete' }, attending)).toEqual([]);
   });
 });

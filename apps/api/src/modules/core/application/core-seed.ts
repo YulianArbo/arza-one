@@ -54,22 +54,26 @@ const workSchedule: SeedStep = async (tx, tenantId) => {
   return { key: 'work.schedule', valid_from: WORK_SCHEDULE_VALID_FROM };
 };
 
+/** Crea el catálogo con sus opciones; si ya existe, agrega solo las opciones que le faltan. */
 function catalogOf(seed: SeedCatalog): SeedStep {
   return async (tx, tenantId) => {
-    if ((await tx.catalog.count({ where: { key: seed.key } })) > 0) return null;
-    const catalog = await tx.catalog.create({
-      data: { tenantId, key: seed.key, name: seed.name, description: seed.description },
-    });
+    const existing = await tx.catalog.findFirst({ where: { key: seed.key } });
+    const catalog =
+      existing ??
+      (await tx.catalog.create({
+        data: { tenantId, key: seed.key, name: seed.name, description: seed.description },
+      }));
+    const known = new Set(
+      (await tx.catalogItem.findMany({ where: { catalogId: catalog.id } })).map((i) => i.code),
+    );
+    const missing = seed.items
+      .map(([code, label], index) => ({ code, label, sortOrder: (index + 1) * 10 }))
+      .filter((item) => !known.has(item.code));
+    if (missing.length === 0) return null;
     await tx.catalogItem.createMany({
-      data: seed.items.map(([code, label], index) => ({
-        tenantId,
-        catalogId: catalog.id,
-        code,
-        label,
-        sortOrder: (index + 1) * 10,
-      })),
+      data: missing.map((item) => ({ tenantId, catalogId: catalog.id, ...item })),
     });
-    return { catalog: seed.key, items: seed.items.length };
+    return { catalog: seed.key, items: missing.length };
   };
 }
 

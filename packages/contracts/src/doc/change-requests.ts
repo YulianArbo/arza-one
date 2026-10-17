@@ -23,6 +23,13 @@ export const CHANGE_REQUEST_STATUSES = {
 } as const;
 
 export type ChangeRequestAction = keyof typeof CHANGE_REQUEST_ACTIONS;
+
+/** Pasos que una persona da sobre la solicitud desde su ficha. */
+export const changeRequestStepSchema = z
+  .enum(['analyze', 'approve', 'reject'])
+  .describe('Empezar el análisis, aprobar o rechazar');
+
+export type ChangeRequestStep = z.infer<typeof changeRequestStepSchema>;
 export type ChangeRequestStatus = keyof typeof CHANGE_REQUEST_STATUSES;
 
 export const changeRequestActionSchema = z
@@ -61,6 +68,8 @@ export const changeRequestSchema = z.object({
   decision_note: z.string().nullable(),
   executed_at: dateTime.nullable(),
   workflow_instance_id: z.uuid().nullable().describe('Trámite en el motor de flujos'),
+  step: z.string().nullable().describe('Paso actual del trámite'),
+  actions: z.array(changeRequestStepSchema).describe('Pasos que la persona puede dar ahora'),
   version: z.number().int().positive(),
 });
 
@@ -102,7 +111,19 @@ export const createChangeRequestSchema = z
     if (!creates && value.document_id === null) issue('document_id', 'Elija el documento.');
   });
 
+export const changeRequestStepRequestSchema = z.strictObject({
+  comment: z
+    .string()
+    .trim()
+    .min(5)
+    .max(2000)
+    .nullable()
+    .default(null)
+    .describe('Obligatorio al rechazar'),
+});
+
 export type ChangeRequest = z.infer<typeof changeRequestSchema>;
+export type ChangeRequestStepRequest = z.infer<typeof changeRequestStepRequestSchema>;
 export type ChangeRequestListQuery = z.infer<typeof changeRequestListQuerySchema>;
 export type ChangeRequestListResponse = z.infer<typeof changeRequestListResponseSchema>;
 export type CreateChangeRequest = z.infer<typeof createChangeRequestSchema>;

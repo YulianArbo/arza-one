@@ -14,6 +14,7 @@ import { addOutboxEvent } from '../../../platform/outbox/outbox.js';
 import { businessHoursDeadline } from '../../core/index.js';
 import { firstApprovers, stateOf, type Flow } from '../domain/engine.js';
 import { OPEN_STATUSES } from '../domain/task-rules.js';
+import { notifyTransition } from './transition-listeners.js';
 import { auditWf, supervisorOf, type WfContext } from './wf-context.js';
 
 // El motor en ejecución (numeral 13.2): registra el historial, crea las tareas del nuevo estado y
@@ -240,5 +241,17 @@ export async function applyTransition(
   const target = { instance, stateKey: transition.to_state, entryId: entry.id };
   const moved = await enterState(tx, context, step.flow, target);
   await announceTransition(tx, context, instance, transition);
+  await notifyTransition(tx, context, {
+    instanceId: instance.id,
+    entityType: instance.entityType,
+    entityId: instance.entityId,
+    fromState: transition.from_state,
+    toState: transition.to_state,
+    action: transition.action,
+    comment: step.comment,
+    onBehalfOf: step.onBehalfOf,
+    facts: factsOf(moved),
+    completed: moved.completedAt !== null,
+  });
   return moved;
 }

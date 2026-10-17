@@ -1,4 +1,4 @@
-import { allowedFileTypeSchema, type CreateVersionRequest } from '@arza/contracts';
+import { allowedFileTypeSchema, type UpdateVersionRequest } from '@arza/contracts';
 import { v7 as uuidv7 } from 'uuid';
 
 import type { DocVersion, File } from '../../../generated/prisma/client.js';
@@ -7,14 +7,20 @@ import type { JobQueue } from '../../../platform/queues/job-queue.js';
 import { JOBS } from '../../../platform/queues/jobs.js';
 import { needsRendering, versionLabel } from '../domain/document-rules.js';
 import { auditDoc, type DocActor } from './doc-support.js';
+import { startVersionFlow } from './version-flow.js';
 
 // Escritura de una versión en borrador (B18), común al documento nuevo y a la versión nueva. Un
 // PDF es su propio PDF; Word y Excel quedan «convirtiendo» y el worker los pasa por Gotenberg.
+// Desde B19 la versión nace con su trámite de revisión en el motor de flujos.
 
 export interface VersionDraft {
   readonly documentId: string;
+  /** Código del documento, para el título del trámite. */
+  readonly code: string;
+  /** Solicitud de Acción Documental que origina la versión (B19); null fuera del SGC. */
+  readonly changeRequestId: string | null;
   readonly number: number;
-  readonly input: CreateVersionRequest;
+  readonly input: UpdateVersionRequest;
   readonly source: File;
 }
 
@@ -29,7 +35,7 @@ export interface DraftContent {
   readonly renderStatus: 'ready' | 'pending';
 }
 
-export function draftContent(input: CreateVersionRequest, source: File): DraftContent {
+export function draftContent(input: UpdateVersionRequest, source: File): DraftContent {
   const rendered = !needsRendering(allowedFileTypeSchema.parse(source.mimeType));
   return {
     title: input.title,
@@ -69,6 +75,7 @@ export async function createVersionRow(
       documentId: draft.documentId,
       number: draft.number,
       versionLabel: versionLabel(draft.number),
+      changeRequestId: draft.changeRequestId,
       ...draftContent(draft.input, draft.source),
     },
   });
@@ -81,8 +88,10 @@ export async function createVersionRow(
       label: version.versionLabel,
       source_file_id: draft.source.id,
       change_summary: version.changeSummary,
+      change_request_id: draft.changeRequestId,
     },
   });
+  await startVersionFlow(tx, actor, { version, code: draft.code });
   await requestRender(queue, actor, version);
   return version;
 }

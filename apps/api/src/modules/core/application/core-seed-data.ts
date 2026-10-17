@@ -96,6 +96,7 @@ export const CATALOGS: readonly SeedCatalog[] = [
       ['CT', 'Contrato'],
       ['OS', 'Orden de servicio'],
       ['AN', 'Anexo'],
+      ['RIT', 'Reglamento Interno de Trabajo'],
     ],
   },
 ];

@@ -73,6 +73,7 @@ export const versionSchema = z.object({
     .nullable()
     .describe('Solicitud de Acción Documental que la originó'),
   workflow_instance_id: z.uuid().nullable().describe('Trámite de revisión y aprobación'),
+  step: z.string().nullable().describe('Paso actual del trámite, como «Aprobación de Dirección»'),
   actions: z.array(versionActionSchema).describe('Pasos que la persona puede dar ahora'),
   version: z.number().int().positive(),
 });
