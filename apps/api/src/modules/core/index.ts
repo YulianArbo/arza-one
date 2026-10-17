@@ -18,5 +18,5 @@ export {
 } from './application/calendar.js';
 export { workScheduleOn } from './application/parameters.js';
 export { superiorPositionId } from './application/positions.js';
-export { isActiveCatalogCode } from './application/catalogs.js';
+export { catalogLabels, isActiveCatalogCode } from './application/catalogs.js';
 export { bogotaToday, fromCalendarDate, toCalendarDate } from './domain/calendar-date.js';

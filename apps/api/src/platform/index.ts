@@ -15,6 +15,7 @@ export {
   type AccountEmailJob,
   type ExampleEmailJob,
   type FileScanJob,
+  type VersionRenderJob,
   type JobDefinition,
   type TenantJob,
 } from './queues/jobs.js';

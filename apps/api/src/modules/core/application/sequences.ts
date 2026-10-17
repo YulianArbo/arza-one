@@ -17,6 +17,7 @@ import type { RequestMeta } from '../../../platform/http/request-meta.js';
 import { bogotaYear } from '../domain/calendar-date.js';
 import {
   NO_YEAR,
+  openFirstYear,
   openPlain,
   openYear,
   takeNextValue,
@@ -29,17 +30,20 @@ import type { Versioned } from './records.js';
 /**
  * Siguiente código de negocio de un tipo, como COT-2026-0001 (ADR-021). Se llama dentro de la
  * transacción del caso de uso que crea el registro: si esa transacción se revierte, el número no
- * se gasta. El año es el de Colombia; el primer código del año empieza en 1.
+ * se gasta. El año es el de Colombia; el primer código del año empieza en 1. Con la definición, el
+ * tipo se crea la primera vez que se usa (B18), como los consecutivos sin año.
  */
 export async function nextBusinessCode(
   tx: TenantTransaction,
   key: string,
   now: Date,
+  definition?: Omit<PlainSequence, 'key'>,
 ): Promise<string> {
   const year = bogotaYear(now);
   let taken = await takeNextValue(tx, key, year);
   if (taken === null) {
     await openYear(tx, key, year);
+    if (definition !== undefined) await openFirstYear(tx, { key, ...definition }, year);
     taken = await takeNextValue(tx, key, year);
   }
   if (taken === null) throw sequenceUnknown();
