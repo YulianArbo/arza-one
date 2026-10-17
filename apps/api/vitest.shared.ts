@@ -83,4 +83,5 @@ export const ENTRY_POINTS = [
   'src/main.ts',
   'src/platform/database/seed/seed-main.ts',
   'src/modules/iam/interface/cli/**',
+  'src/modules/doc/interface/cli/import-master-list-main.ts',
 ];

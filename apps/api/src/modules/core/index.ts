@@ -3,8 +3,9 @@
 // tablas core_ directamente.
 export { CoreModule } from './interface/core.module.js';
 export { seedCore } from './application/core-seed.js';
-export { nextBusinessCode, nextPlainCode } from './application/sequences.js';
+export { nextBusinessCode, nextPlainCode, raisePlainSequence } from './application/sequences.js';
 export {
+  activePositions,
   activeProcesses,
   orgUnitsById,
   positionsById,

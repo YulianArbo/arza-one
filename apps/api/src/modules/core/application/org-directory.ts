@@ -55,3 +55,12 @@ export async function positionsById(
   });
   return new Map(positions.map((position) => [position.id, position]));
 }
+
+/** Cargos activos de la empresa, en orden de nombre (B19: la carga inicial los busca por nombre). */
+export async function activePositions(tx: TenantTransaction): Promise<PositionSummary[]> {
+  return tx.position.findMany({
+    where: { isActive: true, deletedAt: null },
+    select: { id: true, name: true, orgUnitId: true, isActive: true },
+    orderBy: { name: 'asc' },
+  });
+}

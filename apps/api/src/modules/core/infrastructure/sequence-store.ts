@@ -72,3 +72,14 @@ export async function openPlain(tx: TenantTransaction, sequence: PlainSequence):
             ${sequence.prefix}, ${NO_YEAR}, false, ${sequence.padding})
     ON CONFLICT ("tenant_id", "key", "year") DO NOTHING`;
 }
+
+/** Sube el siguiente número del consecutivo sin año hasta el dado, si iba por debajo. */
+export async function raiseNextValue(
+  tx: TenantTransaction,
+  key: string,
+  atLeast: number,
+): Promise<void> {
+  await tx.$executeRaw`
+    UPDATE "core_sequences" SET "next_value" = GREATEST("next_value", ${atLeast})
+     WHERE "key" = ${key} AND "year" = ${NO_YEAR} AND "deleted_at" IS NULL`;
+}

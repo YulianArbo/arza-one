@@ -50,7 +50,7 @@ export function draftContent(input: UpdateVersionRequest, source: File): DraftCo
 
 /** Pide la conversión a PDF dentro de la transacción: si la cola no responde, nada cambia. */
 export async function requestRender(
-  queue: JobQueue,
+  queue: Pick<JobQueue, 'add'>,
   actor: DocActor,
   version: DocVersion,
 ): Promise<void> {
