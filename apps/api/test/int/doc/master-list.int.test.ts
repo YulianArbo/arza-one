@@ -66,7 +66,9 @@ describe('exportar el Listado Maestro', () => {
     const id = await scenario.createDocument(author, { title: 'Exportado; con separador' });
     await scenario.publishLatest(author, await scenario.quality('aprueba'), id);
     const { code } = await scenario.document(author, id);
-    const response = await scenario.get('/v1/master-list/export?q=Exportado', author.session);
+    const response = await scenario.post('/v1/master-list/export', author.session, {
+      q: 'Exportado',
+    });
     expect(response.status, response.text).toBe(200);
     expect(response.headers['content-type']).toContain('text/csv');
     expect(response.headers['content-disposition']).toMatch(/listado-maestro-\d{4}-\d{2}-\d{2}/u);
@@ -86,7 +88,7 @@ describe('exportar el Listado Maestro', () => {
 
   it('exportar exige el permiso de exportar documentos', async () => {
     const commercial = await scenario.person('comercial', ['COMERCIAL']);
-    expect(errorCode(await scenario.get('/v1/master-list/export', commercial.session))).toBe(
+    expect(errorCode(await scenario.post('/v1/master-list/export', commercial.session))).toBe(
       'PERMISSION_DENIED',
     );
     expect((await scenario.get('/v1/master-list', commercial.session)).status).toBe(200);

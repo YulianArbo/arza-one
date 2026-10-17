@@ -35,7 +35,7 @@ describe('permiso denegado', () => {
         await scenario.post('/v1/change-requests', person.session, {}),
         await scenario.post(`/v1/change-requests/${requestId}/actions/analyze`, person.session),
         await scenario.get('/v1/master-list', person.session),
-        await scenario.get('/v1/master-list/export', person.session),
+        await scenario.post('/v1/master-list/export', person.session),
         await scenario.get(`/v1/documents/${id}/acknowledgements`, person.session),
         await scenario.post(`/v1/documents/${id}/acknowledgements/mine`, person.session),
         await scenario.post(`/v1/documents/${id}/acknowledgement-requests`, person.session),

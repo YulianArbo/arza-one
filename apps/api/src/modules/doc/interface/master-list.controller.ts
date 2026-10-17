@@ -1,4 +1,15 @@
-import { Controller, Get, Header, HttpStatus, Inject, Query, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Header,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Post,
+  Query,
+  Res,
+} from '@nestjs/common';
 import { ApiOperation, ApiProduces, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { masterListQuerySchema, masterListResponseSchema } from '@arza/contracts';
 import type { Response } from 'express';
@@ -39,7 +50,8 @@ export class MasterListController {
   }
 
   @RequirePermission('doc.export')
-  @Get('export')
+  @Post('export')
+  @HttpCode(HttpStatus.OK)
   @Header('Content-Type', 'text/csv; charset=utf-8')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
@@ -52,7 +64,7 @@ export class MasterListController {
   async export(
     @CurrentPrincipal() principal: Principal,
     @CurrentAbility() ability: AppAbility,
-    @Query() query: MasterListQuery,
+    @Body() query: MasterListQuery,
     @Meta() meta: RequestMeta,
     @Res({ passthrough: true }) response: Response,
   ): Promise<string> {

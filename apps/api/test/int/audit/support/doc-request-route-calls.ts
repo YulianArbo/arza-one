@@ -61,6 +61,11 @@ export const DOC_REQUEST_ROUTE_CALLS: Record<string, RouteCall> = {
         .set('If-Match', `"${String(version)}"`),
     };
   },
+  'POST /v1/master-list/export': async (s) => {
+    await seeded(s);
+    const person = await quality(s);
+    return { test: s.post('/v1/master-list/export', person.session, {}) };
+  },
   'POST /v1/documents/{id}/acknowledgements/mine': async (s) => {
     const { author, id } = await versionAt(s, SGC_STEPS);
     return { test: s.post(`/v1/documents/${id}/acknowledgements/mine`, author.session) };

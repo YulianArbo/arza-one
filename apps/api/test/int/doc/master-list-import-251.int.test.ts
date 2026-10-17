@@ -85,7 +85,7 @@ describe('carga inicial del Listado Maestro (criterio del bloque)', () => {
   }, 300_000);
 
   it('la exportación trae las mismas 251 filas', async () => {
-    const response = await scenario.get('/v1/master-list/export', quality.session);
+    const response = await scenario.post('/v1/master-list/export', quality.session);
     expect(response.status, response.text).toBe(200);
     const lines = response.text.trim().split('\r\n');
     expect(lines).toHaveLength(252);
