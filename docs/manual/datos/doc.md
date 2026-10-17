@@ -3,12 +3,14 @@
 Tipos exactos, restricciones e índices de las tablas del dominio `doc_` (capítulo 12.3, ficha
 17.4). Se actualiza en el mismo pull request que cambia el modelo
 (`apps/api/prisma/schema.prisma`). Migraciones: `20261015000000_doc_files` (B14) y
-`20261019000000_doc_documents_versions_folders` (B18).
+`20261019000000_doc_documents_versions_folders` (B18) y
+`20261020000000_doc_change_requests_acknowledgements` (B19).
 
 Desde B18 existen las carpetas y expedientes (`doc_folders`), el documento lógico
 (`doc_documents`), sus versiones (`doc_versions`), los vínculos con registros de otros módulos
-(`doc_links`) y el registro de accesos a lo confidencial y restringido (`doc_access_log`). La
-solicitud de acción documental, la constancia de lectura y la retención llegan en B19 a B21.
+(`doc_links`) y el registro de accesos a lo confidencial y restringido (`doc_access_log`). Desde
+B19, la Solicitud de Acción Documental (`doc_change_requests`) y la constancia de lectura
+(`doc_acknowledgements`). La retención llega en B21.
 
 ## Reglas comunes
 
@@ -159,3 +161,92 @@ borran, y no llevan columnas de control.
 `doc.version.create · update · render (del sistema) · submit · reject · approve · publish ·
 obsolete · download_link` y `doc.link.create · delete`. Una huella alterada deja el evento de
 seguridad `doc.file.integrity_failed` (severidad alta).
+
+## doc_versions · Cambios de B19
+
+| Columna                | Tipo | Nulo | Por defecto | Regla                                                                                        |
+| ---------------------- | ---- | ---- | ----------- | -------------------------------------------------------------------------------------------- |
+| `origin`               | text | No   | `platform`  | `platform` (elaborada en ARZA ONE) o `import` (carga inicial del Listado Maestro). No cambia |
+| `change_request_id`    | uuid | Sí   |             | Solicitud que la originó; única por versión. No cambia                                        |
+| `workflow_instance_id` | uuid | Sí   |             | Su trámite de revisión en el motor de flujos; solo cambia en el borrador                      |
+
+Una versión `import` ya se aprobó en papel: no lleva aprobador (`approved_by` nulo) pero sí
+`approved_at` (la fecha del listado), no tiene solicitud ni trámite, y pasa del borrador a vigente
+cuando su PDF está listo. `doc_keep_versions` admite ese paso solo para ella.
+
+En `doc_documents`, un documento del SGC sin proceso solo puede ser del tipo `RIT` (Reglamento
+Interno de Trabajo) y su código es `TIPO-NNN` (`RIT-001`). El catálogo «Tipos de documento» suma
+`RIT`.
+
+## doc_change_requests · Solicitudes de Acción Documental (B19)
+
+FT-SGC-001: pedir crear, modificar o eliminar un documento del SGC. Ciclo: `filed` (radicada) →
+`in_analysis` → `approved` o `rejected` → `executed`. El trámite lo lleva el flujo
+`doc.change_request` del motor (ADR-023).
+
+| Columna                      | Tipo        | Nulo | Por defecto | Regla                                                                                     |
+| ---------------------------- | ----------- | ---- | ----------- | ----------------------------------------------------------------------------------------- |
+| `code`                       | text        | No   |             | `SAD-AAAA-NNNN`, del servicio de consecutivos; único por empresa                          |
+| `action`                     | text        | No   |             | `create`, `update` u `obsolete`                                                           |
+| `document_id`                | uuid        | Sí   |             | Documento afectado; en una creación, el que se creó con ella (se fija una sola vez)       |
+| `doc_type`, `process_id`     |             | Sí   |             | Solo en una creación: tipo y proceso del documento nuevo (el RIT no lleva proceso)        |
+| `title`                      | text        | No   |             | 3 a 200 caracteres                                                                        |
+| `justification`              | text        | No   |             | 10 a 2000 caracteres                                                                      |
+| `status`                     | text        | No   | `filed`     | Estado del ciclo                                                                          |
+| `requested_by`               | uuid        | No   |             | Quien la pidió                                                                            |
+| `workflow_instance_id`       | uuid        | Sí   |             | Su trámite; único                                                                         |
+| `decided_by`, `decided_at`   |             | Sí   |             | Desde aprobada o rechazada; `decided_by` distinto de `requested_by` (quien pide no decide) |
+| `decision_note`              | text        | Sí   |             | Obligatorio al rechazar; 5 a 2000 caracteres                                              |
+| `executed_at`                | timestamptz | Sí   |             | Solo en ejecutada                                                                         |
+| control                      |             |      |             | Columnas de control                                                                       |
+
+Disparador `doc_keep_change_requests`: lo que se pidió y quién no cambian; solo avanza por los
+pasos del ciclo y una decisión no cambia. Seguridad por fila; `app_user` sin `DELETE`.
+
+## doc_acknowledgements · Constancias de lectura (B19)
+
+Al publicar una versión, una fila pendiente por cada persona activa de los cargos destinatarios
+(los vinculados al documento con «Aplica a»). Quien confirma sin que se le pidiera queda con su
+cargo de ese momento.
+
+| Columna           | Tipo        | Nulo | Regla                                                  |
+| ----------------- | ----------- | ---- | ------------------------------------------------------ |
+| `document_id`     | uuid        | No   | El documento                                           |
+| `version_id`      | uuid        | No   | La versión vigente leída; única con `user_id`          |
+| `user_id`         | uuid        | No   | La persona                                             |
+| `position_id`     | uuid        | Sí   | Su cargo, para el informe por cargo                    |
+| `requested_at`    | timestamptz | Sí   | Cuándo se le pidió (la última vez)                     |
+| `acknowledged_at` | timestamptz | Sí   | Cuándo confirmó; al menos uno de los dos está presente |
+| control           |             |      | Columnas de control                                    |
+
+Disparador `doc_keep_acknowledgements`: una constancia confirmada no cambia.
+
+**Auditoría de B19:** `doc.change_request.create · analyze · approve · reject · execute`,
+`doc.version.review`, `doc.acknowledgement.request · confirm`, `doc.master_list.export` y, en la
+carga inicial, `doc.file.import`, `doc.document.import`, `doc.version.import` y `doc.import.run`.
+Bandeja de salida: `doc.acknowledgement.requested` y `doc.request.decided` (avisos
+`doc_read_requested` y `doc_request_decided`).
+
+## Carga inicial del Listado Maestro (RE-SGC-001)
+
+`pnpm doc:importar-listado --correo <calidad> --listado <archivo.csv> --archivos <carpeta>` revisa
+sin cambiar nada; con `--aplicar` carga. El CSV (punto y coma o comas, UTF-8) lleva un encabezado
+con estas columnas, sin importar tildes ni mayúsculas:
+
+| Columna       | Obligatoria | Contenido                                                                        |
+| ------------- | ----------- | -------------------------------------------------------------------------------- |
+| Código        | Sí          | `TIPO-PROCESO-NNN` (`PR-SGC-001`) o `RIT-NNN`                                    |
+| Nombre        | Sí          | Nombre del documento                                                             |
+| Versión       | Sí          | Número de 0 a 99 (`03`)                                                          |
+| Fecha         | Sí          | Desde cuándo rige, dd/mm/aaaa                                                    |
+| Tipo, Proceso | No          | Si vienen, deben coincidir con el código                                         |
+| Estado        | No          | Solo se cargan las filas «Vigente» (o vacías); las demás se informan             |
+| Responsable   | No          | Nombre del cargo responsable, tal como está en Administración › Cargos           |
+| Destinatarios | No          | Cargos que deben leerlo, separados por barra vertical o comas: quedan «Aplica a» |
+| Clasificación | No          | Pública, Interna (por defecto), Confidencial o Restringida                       |
+| Archivo       | No          | Nombre del archivo en la carpeta; si falta, el único que empiece por el código   |
+
+Cada documento pasa por el antivirus y la conversión a PDF del worker; el comando espera hasta 30
+minutos y se puede repetir: continúa donde quedó sin duplicar nada. Los consecutivos siguen después
+del número más alto cargado. Al final compara la plataforma con el listado y guarda el informe
+`informe-carga-listado-maestro-<fecha>.csv` junto al listado.
