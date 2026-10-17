@@ -13,12 +13,14 @@ const FOLDER = '01900000-0000-7000-8000-000000000001';
 const PROCESS = '01900000-0000-7000-8000-000000000002';
 const FILE = '01900000-0000-7000-8000-000000000003';
 const PARTY = '01900000-0000-7000-8000-000000000004';
+const REQUEST = '01900000-0000-7000-8000-000000000005';
 
 const DOCUMENT = {
   folder_id: FOLDER,
   doc_type: 'PR',
   is_controlled: true,
   process_id: PROCESS,
+  change_request_id: REQUEST,
   title: 'Control de documentos',
   classification: 'internal',
   owner_position_id: null,
@@ -27,14 +29,14 @@ const DOCUMENT = {
 };
 
 describe('código del documento (PR-SGC-001)', () => {
-  it('acepta TIPO-PROCESO-NNN y el código de expediente', () => {
-    for (const code of ['PR-SGC-001', 'PVE-SST-012', 'MN-TEC-002', 'DOC-2026-0001']) {
+  it('acepta TIPO-PROCESO-NNN, TIPO-NNN sin proceso (RIT-001) y el código de expediente', () => {
+    for (const code of ['PR-SGC-001', 'PVE-SST-012', 'MN-TEC-002', 'RIT-001', 'DOC-2026-0001']) {
       expect(documentCodeSchema.safeParse(code).success).toBe(true);
     }
   });
 
   it('rechaza códigos sin el formato', () => {
-    for (const code of ['PR-SGC-1', 'pr-sgc-001', 'RIT-001', 'DOC-26-0001']) {
+    for (const code of ['PR-SGC-1', 'pr-sgc-001', 'RIT-1', 'DOC-26-0001']) {
       expect(documentCodeSchema.safeParse(code).success).toBe(false);
     }
   });
@@ -47,8 +49,21 @@ describe('documento nuevo', () => {
     expect(createDocumentRequestSchema.safeParse(withoutProcess).success).toBe(false);
   });
 
-  it('un documento de expediente puede ir sin proceso', () => {
-    const record = { ...DOCUMENT, is_controlled: false, process_id: null };
+  it('el Reglamento Interno de Trabajo es del SGC y no lleva proceso', () => {
+    const rit = { ...DOCUMENT, doc_type: 'RIT', process_id: null };
+    expect(createDocumentRequestSchema.safeParse(rit).success).toBe(true);
+    expect(createDocumentRequestSchema.safeParse({ ...rit, process_id: PROCESS }).success).toBe(
+      false,
+    );
+  });
+
+  it('un documento del SGC nace de una solicitud de creación (B19)', () => {
+    const withoutRequest = { ...DOCUMENT, change_request_id: null };
+    expect(createDocumentRequestSchema.safeParse(withoutRequest).success).toBe(false);
+  });
+
+  it('un documento de expediente puede ir sin proceso ni solicitud', () => {
+    const record = { ...DOCUMENT, is_controlled: false, process_id: null, change_request_id: null };
     expect(createDocumentRequestSchema.safeParse(record).success).toBe(true);
   });
 

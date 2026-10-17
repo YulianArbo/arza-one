@@ -9,11 +9,27 @@ import { classificationSchema } from './folders.js';
 const dateTime = z.iso.datetime({ offset: true });
 const calendarDate = z.iso.date();
 
-/** Código de PR-SGC-001 (MN-SGC-001) o de un documento de expediente (DOC-2026-0001). */
+/**
+ * Código de PR-SGC-001 (MN-SGC-001), de un documento controlado sin proceso (RIT-001) o de un
+ * documento de expediente (DOC-2026-0001).
+ */
 export const documentCodeSchema = z
   .string()
-  .regex(/^([A-Z]{2,3}-[A-Z]{2,3}-\d{3,8}|DOC-\d{4}-\d{4,8})$/u)
+  .regex(/^([A-Z]{2,3}-[A-Z]{2,3}-\d{3,8}|[A-Z]{2,3}-\d{3,8}|DOC-\d{4}-\d{4,8})$/u)
   .describe('Código del documento');
+
+/** Tipos del SGC que no pertenecen a un proceso: el Reglamento Interno de Trabajo (B19). */
+export const TYPES_WITHOUT_PROCESS: readonly string[] = ['RIT'];
+
+/** Un documento del SGC lleva proceso, salvo los tipos que no pertenecen a uno. */
+export function processProblem(docType: string, processId: string | null): string | null {
+  const withoutProcess = TYPES_WITHOUT_PROCESS.includes(docType);
+  if (withoutProcess && processId !== null) return 'Este tipo de documento no lleva proceso.';
+  if (!withoutProcess && processId === null) {
+    return 'Un documento del SGC lleva el proceso al que pertenece.';
+  }
+  return null;
+}
 
 /** Código del catálogo «Tipos de documento» (document_types), como PR o PVE. */
 export const documentTypeSchema = z
@@ -90,12 +106,23 @@ export const createDocumentRequestSchema = z
     doc_type: documentTypeSchema,
     is_controlled: z.boolean().describe('Documento del SGC: lleva proceso y código PR-SGC-001'),
     process_id: z.uuid().nullable(),
+    change_request_id: z
+      .uuid()
+      .nullable()
+      .default(null)
+      .describe('Solicitud de creación aprobada; obligatoria en un documento del SGC (B19)'),
     ...versionContentFields,
   })
   .superRefine((value, context) => {
-    if (value.is_controlled && value.process_id === null) {
-      const message = 'Un documento del SGC lleva el proceso al que pertenece.';
-      context.addIssue({ code: 'custom', path: ['process_id'], message });
+    if (!value.is_controlled) return;
+    const message = processProblem(value.doc_type, value.process_id);
+    if (message !== null) context.addIssue({ code: 'custom', path: ['process_id'], message });
+    if (value.change_request_id === null) {
+      context.addIssue({
+        code: 'custom',
+        path: ['change_request_id'],
+        message: 'Un documento del SGC se crea desde una solicitud de creación aprobada.',
+      });
     }
   });
 

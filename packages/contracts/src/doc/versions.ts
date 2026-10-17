@@ -5,8 +5,9 @@ import { allowedFileTypeSchema, type AllowedFileType } from './files.js';
 import { classificationSchema } from './folders.js';
 
 // Contratos de las versiones (M03, B18; ficha 17.4): borrador → en revisión → aprobada →
-// vigente → obsoleta. Solo hay una vigente por documento; fuera del borrador nada cambia. En B19
-// estos pasos pasarán por la Solicitud de Acción Documental y su flujo.
+// vigente → obsoleta. Solo hay una vigente por documento; fuera del borrador nada cambia. Desde B19
+// la versión nueva de un documento del SGC nace de una Solicitud de Acción Documental aprobada y
+// su revisión, aprobación y publicación son pasos de un trámite del motor de flujos.
 
 const dateTime = z.iso.datetime({ offset: true });
 const calendarDate = z.iso.date();
@@ -26,7 +27,12 @@ export const versionActionSchema = z
   .enum(['edit', 'submit', 'reject', 'approve', 'publish', 'obsolete'])
   .describe('Paso que la persona puede dar sobre la versión');
 
+export const versionOriginSchema = z
+  .enum(['platform', 'import'])
+  .describe('Elaborada en la plataforma o traída en la carga inicial del Listado Maestro');
+
 export type VersionAction = z.infer<typeof versionActionSchema>;
+export type VersionOrigin = z.infer<typeof versionOriginSchema>;
 export type RenderStatus = z.infer<typeof renderStatusSchema>;
 
 const versionFile = z.object({
@@ -61,6 +67,12 @@ export const versionSchema = z.object({
   effective_date: calendarDate.nullable(),
   published_at: dateTime.nullable(),
   obsoleted_at: dateTime.nullable(),
+  origin: versionOriginSchema,
+  change_request: z
+    .object({ id: z.uuid(), code: z.string() })
+    .nullable()
+    .describe('Solicitud de Acción Documental que la originó'),
+  workflow_instance_id: z.uuid().nullable().describe('Trámite de revisión y aprobación'),
   actions: z.array(versionActionSchema).describe('Pasos que la persona puede dar ahora'),
   version: z.number().int().positive(),
 });
@@ -69,7 +81,16 @@ export const versionListResponseSchema = z.object({
   data: z.array(versionSchema).describe('Versiones que la persona puede ver, de la más nueva'),
 });
 
-export const createVersionRequestSchema = z.strictObject(versionContentFields);
+const changeRequestId = z
+  .uuid()
+  .nullable()
+  .default(null)
+  .describe('Solicitud de Acción Documental aprobada; obligatoria en un documento del SGC');
+
+export const createVersionRequestSchema = z.strictObject({
+  ...versionContentFields,
+  change_request_id: changeRequestId,
+});
 
 export const updateVersionRequestSchema = z.strictObject(versionContentFields);
 
@@ -85,6 +106,7 @@ export const publishVersionRequestSchema = z.strictObject({
 
 export const obsoleteVersionRequestSchema = z.strictObject({
   reason: note.describe('Por qué el documento deja de regir'),
+  change_request_id: changeRequestId,
 });
 
 export const versionDownloadRequestSchema = z.strictObject({

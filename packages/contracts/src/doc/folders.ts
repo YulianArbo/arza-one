@@ -19,6 +19,11 @@ export const DOC_ERROR_CODES = {
   pdfNotReady: 'DOC_PDF_NOT_READY',
   integrityFailed: 'DOC_INTEGRITY_FAILED',
   linkNotFound: 'DOC_LINK_NOT_FOUND',
+  changeRequestNotFound: 'DOC_CHANGE_REQUEST_NOT_FOUND',
+  changeRequestRequired: 'DOC_CHANGE_REQUEST_REQUIRED',
+  changeRequestInvalid: 'DOC_CHANGE_REQUEST_INVALID',
+  selfDecision: 'DOC_SELF_DECISION',
+  notAcknowledgeable: 'DOC_NOT_ACKNOWLEDGEABLE',
 } as const;
 
 /**
