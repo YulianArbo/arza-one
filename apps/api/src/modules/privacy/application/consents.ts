@@ -66,7 +66,7 @@ export class ConsentsUseCase {
       const page = rows.slice(0, query.limit);
       const last = page.at(-1);
       return {
-        data: await this.views(tx, page),
+        data: page.map(await this.viewer(tx, page)),
         next_cursor: rows.length > query.limit && last !== undefined ? last.id : null,
       };
     });
@@ -75,9 +75,7 @@ export class ConsentsUseCase {
   async get(principal: Principal, ability: AppAbility, id: string): Promise<Consent> {
     return this.database.withTenant(principal, async (tx) => {
       const row = await this.find(tx, scopeOf(principal, ability), id);
-      const [view] = await this.views(tx, [row]);
-      if (view === undefined) throw consentNotFound();
-      return view;
+      return (await this.viewer(tx, [row]))(row);
     });
   }
 
@@ -103,9 +101,7 @@ export class ConsentsUseCase {
         entityId: id,
         changes: { party_id: before.partyId, reason: input.reason },
       });
-      const [view] = await this.views(tx, [after]);
-      if (view === undefined) throw consentNotFound();
-      return view;
+      return (await this.viewer(tx, [after]))(after);
     });
   }
 
@@ -122,7 +118,11 @@ export class ConsentsUseCase {
     return row;
   }
 
-  private async views(tx: TenantTransaction, rows: readonly ConsentRow[]): Promise<Consent[]> {
+  /** Arma la vista de cada autorización con los nombres de titulares y personas de `rows`. */
+  private async viewer(
+    tx: TenantTransaction,
+    rows: readonly ConsentRow[],
+  ): Promise<(row: ConsentRow) => Consent> {
     const nameOf = await partyNames(
       tx,
       this.parties,
@@ -132,7 +132,7 @@ export class ConsentsUseCase {
       tx,
       rows.flatMap((row) => (row.createdBy === null ? [] : [row.createdBy])),
     );
-    return rows.map((row) => ({
+    return (row) => ({
       ...partyConsentView(row),
       party: { id: row.partyId, name: nameOf(row.partyId) },
       source: consentSourceSchema.parse(row.source),
@@ -145,6 +145,6 @@ export class ConsentsUseCase {
         file_id: row.evidenceFileId,
       },
       revocation_reason: row.revocationReason,
-    }));
+    });
   }
 }

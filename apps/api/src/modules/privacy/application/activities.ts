@@ -143,9 +143,7 @@ export class ActivitiesUseCase {
 
   async get(principal: Principal, id: string): Promise<Activity> {
     return this.database.withTenant(principal, async (tx) => {
-      const [view] = await this.views(tx, [await findActivity(tx, id)]);
-      if (view === undefined) throw activityNotFound();
-      return view;
+      return this.view(tx, await findActivity(tx, id));
     });
   }
 
@@ -198,10 +196,13 @@ export class ActivitiesUseCase {
           auditFields(after, input.processor_ids),
         ),
       });
-      const [view] = await this.views(tx, [await findActivity(tx, id)]);
-      if (view === undefined) throw activityNotFound();
-      return view;
+      return this.view(tx, await findActivity(tx, id));
     });
+  }
+
+  private async view(tx: TenantTransaction, row: ActivityRow): Promise<Activity> {
+    const partyIds = row.processors.map((link) => link.processor.partyId);
+    return activityView(row, await partyNames(tx, this.parties, partyIds));
   }
 
   private async views(tx: TenantTransaction, rows: readonly ActivityRow[]): Promise<Activity[]> {

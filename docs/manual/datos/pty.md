@@ -39,6 +39,9 @@ Registro único de cada persona u organización. Un duplicado fusionado conserva
 | `city`, `address`    | text     | Sí   |             | Ciudad y dirección                                                             |
 | `status`             | text     | No   | `active`    | `prospect`, `active`, `inactive` o `blocked`                                   |
 | `status_reason`      | text     | Sí   |             | Obligatorio si está bloqueado                                                  |
+| `data_purpose`       | text     | Sí   |             | Sin uso desde B17 (ver prv_consents); se borrará en una fase de contraer         |
+| `data_authorization` | text     | Sí   |             | Sin uso desde B17                                                                |
+| `data_authorized_on` | date     | Sí   |             | Sin uso desde B17                                                                |
 | `merged_into_id`     | uuid     | Sí   |             | Tercero en que se fusionó; exige `deleted_at` y no puede ser él mismo          |
 | control              |          |      |             | Columnas de control                                                            |
 
@@ -48,7 +51,8 @@ en la empresa, ni siquiera con un duplicado fusionado); `(tenant_id, merged_into
 
 Desde B17 la autorización de tratamiento de una persona no vive aquí: se registra en
 `prv_consents` con la versión exacta del texto aceptado ([prv.md](prv.md)). Las columnas
-`data_purpose`, `data_authorization` y `data_authorized_on` se trasladaron allá y se retiraron.
+`data_purpose`, `data_authorization` y `data_authorized_on` se trasladaron allá y quedan sin uso
+hasta una migración posterior de contraer (numeral 10.6); ya no son obligatorias.
 
 La función `pty_nit_check_digit(text)` calcula el dígito de verificación con los pesos de la DIAN
 (3, 7, 13, 17, 19, 23, 29, 37, 41, 43, 47, 53, 59, 67, 71) y módulo 11. La web y la API usan el

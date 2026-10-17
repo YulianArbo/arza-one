@@ -78,8 +78,9 @@ y deja revocar una sola vez. Índices: único `(tenant_id, id)`; `(tenant_id, pa
 
 **Traslado de B13.** Las personas que tenían `data_purpose`, `data_authorization` y
 `data_authorized_on` en `pty_parties` recibieron una autorización con esa finalidad, ese canal y
-esa fecha, ligada al texto «Registro anterior a B17» de su empresa, que nace reemplazado. Después
-se retiraron las tres columnas.
+esa fecha, ligada al texto «Registro anterior a B17» de su empresa, que nace reemplazado. El
+traslado corre empresa por empresa con la seguridad por fila activa. Las tres columnas se
+conservan sin uso (numeral 10.6): la versión anterior de la API las usa durante un despliegue.
 
 ## prv_processing_activities · Registro de actividades de tratamiento
 

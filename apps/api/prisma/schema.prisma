@@ -704,37 +704,42 @@ model Holiday {
 /// Terceros (M02): registro único de cada persona u organización con la que la empresa se
 /// relaciona. Un duplicado fusionado queda con merged_into_id y deleted_at; nunca se borra.
 model Party {
-  id            String         @id @default(uuid(7)) @db.Uuid
-  tenantId      String         @map("tenant_id") @db.Uuid
-  kind          String
-  legalName     String?        @map("legal_name")
-  tradeName     String?        @map("trade_name")
-  firstName     String?        @map("first_name")
-  lastName      String?        @map("last_name")
-  idType        String         @map("id_type")
-  idNumber      String         @map("id_number")
-  checkDigit    Int?           @map("check_digit") @db.SmallInt
-  email         String?
-  phone         String?
-  city          String?
-  address       String?
-  status        String         @default("active")
-  statusReason  String?        @map("status_reason")
-  mergedIntoId  String?        @map("merged_into_id") @db.Uuid
-  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
-  createdBy     String?        @map("created_by") @db.Uuid
-  updatedAt     DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
-  updatedBy     String?        @map("updated_by") @db.Uuid
-  version       Int            @default(1)
-  deletedAt     DateTime?      @map("deleted_at") @db.Timestamptz(6)
-  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  mergedInto    Party?         @relation("PartyMerges", fields: [tenantId, mergedIntoId], references: [tenantId, id], onDelete: Restrict)
-  mergedParties Party[]        @relation("PartyMerges")
-  roles         PartyRole[]
-  contacts      Contact[]      @relation("OrganizationContacts")
-  contactOf     Contact[]      @relation("PersonContacts")
-  bankAccounts  BankAccount[]
-  dueDiligence  DueDiligence[]
+  id                String         @id @default(uuid(7)) @db.Uuid
+  tenantId          String         @map("tenant_id") @db.Uuid
+  kind              String
+  legalName         String?        @map("legal_name")
+  tradeName         String?        @map("trade_name")
+  firstName         String?        @map("first_name")
+  lastName          String?        @map("last_name")
+  idType            String         @map("id_type")
+  idNumber          String         @map("id_number")
+  checkDigit        Int?           @map("check_digit") @db.SmallInt
+  email             String?
+  phone             String?
+  city              String?
+  address           String?
+  status            String         @default("active")
+  statusReason      String?        @map("status_reason")
+  /// Sin uso desde B17 (la autorización vive en prv_consents); se conservan para la versión
+  /// anterior durante el despliegue. shortcut: borrarlas en una migración con arza:contract.
+  dataPurpose       String?        @map("data_purpose")
+  dataAuthorization String?        @map("data_authorization")
+  dataAuthorizedOn  DateTime?      @map("data_authorized_on") @db.Date
+  mergedIntoId      String?        @map("merged_into_id") @db.Uuid
+  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy         String?        @map("created_by") @db.Uuid
+  updatedAt         DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy         String?        @map("updated_by") @db.Uuid
+  version           Int            @default(1)
+  deletedAt         DateTime?      @map("deleted_at") @db.Timestamptz(6)
+  tenant            Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  mergedInto        Party?         @relation("PartyMerges", fields: [tenantId, mergedIntoId], references: [tenantId, id], onDelete: Restrict)
+  mergedParties     Party[]        @relation("PartyMerges")
+  roles             PartyRole[]
+  contacts          Contact[]      @relation("OrganizationContacts")
+  contactOf         Contact[]      @relation("PersonContacts")
+  bankAccounts      BankAccount[]
+  dueDiligence      DueDiligence[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, idType, idNumber])

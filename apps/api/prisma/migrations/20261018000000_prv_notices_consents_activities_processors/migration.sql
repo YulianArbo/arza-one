@@ -320,51 +320,6 @@ CREATE TRIGGER "prv_activity_processors_control_columns"
     BEFORE INSERT OR UPDATE ON "prv_activity_processors"
     FOR EACH ROW EXECUTE FUNCTION "core_set_control_columns"();
 
--- Traslado de las autorizaciones de Terceros (B13) ------------------------------------------------
--- Cada persona que tenía finalidad, canal y fecha recibe una autorización ligada al texto
--- «Registro anterior a B17» de su empresa, que nace reemplazado para que nadie la use de nuevo.
--- El dueño de las tablas no ve filas con la seguridad por fila forzada y sin empresa fijada: se
--- suspende en pty_parties solo durante el traslado, dentro de esta misma transacción. Las tablas
--- prv_ todavía no la tienen activa.
-
-CREATE FUNCTION pg_temp.prv_uuid_v7() RETURNS UUID
-    LANGUAGE sql VOLATILE
-    AS $$ SELECT encode(set_bit(set_bit(overlay(uuid_send(gen_random_uuid())
-              PLACING substring(int8send((extract(epoch FROM clock_timestamp()) * 1000)::BIGINT) FROM 3)
-              FROM 1 FOR 6), 52, 1), 53, 1), 'hex')::UUID $$;
-
-ALTER TABLE "pty_parties" NO FORCE ROW LEVEL SECURITY;
-
-INSERT INTO "prv_notices" ("id", "tenant_id", "key", "version_number", "title", "body", "purposes",
-                           "status", "effective_from")
-SELECT pg_temp.prv_uuid_v7(), "tenant_id", 'authorization_prior', 1,
-       'Autorización registrada antes de B17',
-       'Autorización de tratamiento de datos obtenida antes de que ARZA ONE guardara el texto '
-       || 'aceptado. El canal y la fecha son los que se registraron en la ficha del tercero; el '
-       || 'soporte se conserva donde se archivó en su momento.',
-       array_agg(DISTINCT "data_purpose" ORDER BY "data_purpose"), 'replaced', min("created_at")
-FROM "pty_parties"
-WHERE "kind" = 'person' AND "data_authorization" IS NOT NULL
-GROUP BY "tenant_id";
-
-INSERT INTO "prv_consents" ("id", "tenant_id", "party_id", "notice_id", "purposes", "channel",
-                            "granted_on", "source")
-SELECT pg_temp.prv_uuid_v7(), p."tenant_id", p."id", n."id", ARRAY[p."data_purpose"],
-       p."data_authorization", p."data_authorized_on", 'prior_record'
-FROM "pty_parties" p
-JOIN "prv_notices" n ON n."tenant_id" = p."tenant_id" AND n."key" = 'authorization_prior'
-WHERE p."kind" = 'person' AND p."data_authorization" IS NOT NULL
-ORDER BY p."created_at";
-
-ALTER TABLE "pty_parties" FORCE ROW LEVEL SECURITY;
-
-ALTER TABLE "pty_parties" DROP CONSTRAINT "pty_parties_personal_data_check";
-
--- AlterTable
-ALTER TABLE "pty_parties" DROP COLUMN "data_authorization",
-DROP COLUMN "data_authorized_on",
-DROP COLUMN "data_purpose";
-
 -- Seguridad por fila (ADR-007) -----------------------------------------------------------------
 
 ALTER TABLE "prv_notices" ENABLE ROW LEVEL SECURITY;
@@ -396,6 +351,54 @@ ALTER TABLE "prv_activity_processors" FORCE ROW LEVEL SECURITY;
 CREATE POLICY "prv_activity_processors_tenant_isolation" ON "prv_activity_processors"
     USING ("tenant_id" = core_current_tenant_id())
     WITH CHECK ("tenant_id" = core_current_tenant_id());
+
+-- Traslado de las autorizaciones de Terceros (B13) ------------------------------------------------
+-- Cada persona que tenía finalidad, canal y fecha recibe una autorización ligada al texto
+-- «Registro anterior a B17» de su empresa, que nace reemplazado para que nadie la use de nuevo.
+-- Empresa por empresa, con app.tenant_id fijado, como la copia de la auditoría (B11): la seguridad
+-- por fila sigue activa y forzada en todas las tablas.
+
+CREATE FUNCTION pg_temp.prv_uuid_v7() RETURNS UUID
+    LANGUAGE sql VOLATILE
+    AS $$ SELECT encode(set_bit(set_bit(overlay(uuid_send(gen_random_uuid())
+              PLACING substring(int8send((extract(epoch FROM clock_timestamp()) * 1000)::BIGINT) FROM 3)
+              FROM 1 FOR 6), 52, 1), 53, 1), 'hex')::UUID $$;
+
+DO $$
+DECLARE
+    tenant UUID;
+BEGIN
+    FOR tenant IN SELECT id FROM core_tenants ORDER BY id LOOP
+        PERFORM set_config('app.tenant_id', tenant::text, true);
+        INSERT INTO "prv_notices" ("id", "tenant_id", "key", "version_number", "title", "body",
+                                   "purposes", "status", "effective_from")
+        SELECT pg_temp.prv_uuid_v7(), tenant, 'authorization_prior', 1,
+               'Autorización registrada antes de B17',
+               'Autorización de tratamiento de datos obtenida antes de que ARZA ONE guardara el texto '
+               || 'aceptado. El canal y la fecha son los que se registraron en la ficha del tercero; el '
+               || 'soporte se conserva donde se archivó en su momento.',
+               array_agg(DISTINCT "data_purpose" ORDER BY "data_purpose"), 'replaced', min("created_at")
+        FROM "pty_parties"
+        WHERE "kind" = 'person' AND "data_authorization" IS NOT NULL
+        HAVING count(*) > 0;
+
+        INSERT INTO "prv_consents" ("id", "tenant_id", "party_id", "notice_id", "purposes",
+                                    "channel", "granted_on", "source")
+        SELECT pg_temp.prv_uuid_v7(), tenant, p."id", n."id", ARRAY[p."data_purpose"],
+               p."data_authorization", p."data_authorized_on", 'prior_record'
+        FROM "pty_parties" p
+        JOIN "prv_notices" n ON n."key" = 'authorization_prior'
+        WHERE p."kind" = 'person' AND p."data_authorization" IS NOT NULL
+        ORDER BY p."created_at";
+    END LOOP;
+    PERFORM set_config('app.tenant_id', '', true);
+END;
+$$;
+
+-- Expandir y contraer (numeral 10.6): la versión anterior de la API todavía lee y escribe las tres
+-- columnas, así que se conservan sin uso y solo deja de exigirse que la persona las traiga. Se
+-- borrarán en una migración posterior marcada como fase de contraer.
+ALTER TABLE "pty_parties" DROP CONSTRAINT "pty_parties_personal_data_check";
 
 -- Permisos de la API ---------------------------------------------------------------------------
 -- Sin DELETE: el borrado es lógico. Un encargado que sale de una actividad se marca retirado.

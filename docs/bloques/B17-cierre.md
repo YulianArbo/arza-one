@@ -30,7 +30,7 @@ encargados de cada actividad). Diccionario en [`prv.md`](../manual/datos/prv.md)
 **Lo que cambió en Terceros:** los tres campos sueltos (finalidad, cómo se obtuvo y fecha) se
 reemplazaron por el componente. Las autorizaciones que ya existían **se trasladaron**, con su
 finalidad, canal y fecha, a la tabla nueva, ligadas a un texto especial «Registro anterior a B17».
-Ninguna se perdió.
+Ninguna se perdió. Las tres columnas viejas se conservan sin uso hasta un bloque posterior, porque la versión anterior de la API las sigue usando durante un despliegue.
 
 **Permisos:** no se creó ninguno; se usan los del anexo G que ya existían (`privacy.*`). Como
 aprobó, revocar usa «Gestionar solicitudes de titulares» (`privacy.request.manage`).
@@ -46,7 +46,7 @@ aprobó, revocar usa «Gestionar solicitudes de titulares» (`privacy.request.ma
 | Versiones                                | Publicar reemplaza la vigente; un borrador a la vez por texto; versión vieja en el formulario: «otra persona cambió…»                                                                                                          |
 | Revocatoria                              | Exige motivo; una sola vez; la autorización sigue existiendo como «Revocada»                                                                                                                                                   |
 | Registro y encargados                    | Encargado solo si es una organización de Terceros; el contrato solo si es un archivo propio revisado; los encargados de una actividad se quitan y vuelven a poner                                                              |
-| Traslado de B13                          | En su base local, con las 10 migraciones anteriores: las 4 personas ficticias quedaron con su autorización y las tres columnas viejas desaparecieron                                                                           |
+| Traslado de B13                          | En su base local, con las 10 migraciones anteriores: las 4 personas ficticias quedaron con su autorización; las tres columnas viejas quedaron sin uso                                                                          |
 | Pantallas                                | 21 pruebas de pantalla nuevas y 11 en un navegador real, sin fallas de accesibilidad en modo claro y oscuro                                                                                                                    |
 
 ### Permiso denegado, aislamiento entre empresas y auditoría
@@ -64,33 +64,41 @@ aprobó, revocar usa «Gestionar solicitudes de titulares» (`privacy.request.ma
 
 ### Resultado de `pnpm check`
 
-Green on 16/10/2026, step by step (see the notes):
+En verde el 16/10/2026, paso por paso (ver las notas):
 
-| Step               | Result                                                                                                                                                                                    |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Formatting         | No problems in the project files (note 1)                                                                                                                                                 |
-| Style and types    | No problems                                                                                                                                                                               |
-| Module boundaries  | No problems: `privacy` uses `core`, `doc` and `iam` only through their indexes; `party` uses `privacy` only through its index                                                             |
-| Unused code (knip) | No problems                                                                                                                                                                               |
-| Unit tests         | API 295, web 313, contracts 90, worker 38, UI 19, config 24, scripts 140, templates 4                                                                                                     |
-| Integration tests  | API 581 across 63 files (4 new for privacy), worker 20                                                                                                                                    |
-| Coverage           | Above what chapter 21 requires (API branches in integration: 85.12 %; web branches: 86.32 %; minimum 85 %)                                                                                |
-| Browser tests      | All 156, including 11 new ones (privacy and new-person authorization) in light and dark mode, with no accessibility failures                                                              |
-| Secret scan        | None found                                                                                                                                                                                |
-| Migrations         | From scratch in the integration test, no drift from the model; and **on top of the previous version** in your local database, which had the 10 earlier migrations and 4 fictitious people |
+| Paso                    | Resultado                                                                                                                                                                                                                                |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Formato                 | Sin problemas en los archivos del proyecto (nota 1)                                                                                                                                                                                      |
+| Estilo y tipos          | Sin problemas                                                                                                                                                                                                                            |
+| Fronteras entre módulos | Sin problemas: `privacy` usa `core`, `doc` e `iam` solo por sus índices; `party` usa `privacy` solo por su índice                                                                                                                        |
+| Código sin usar (knip)  | Sin problemas                                                                                                                                                                                                                            |
+| Pruebas unitarias       | API 295, web 313, contratos 90, worker 38, interfaz 19, configuración 24, guiones 140, plantillas 4                                                                                                                                      |
+| Pruebas de integración  | API 585 en 64 archivos (5 nuevos de privacidad), worker 20                                                                                                                                                                               |
+| Cobertura               | Por encima de lo que exige el capítulo 21 (ramas de la API en integración y de la web: mínimo 85 %)                                                                                                                                      |
+| Pruebas en navegador    | Las 156, incluidas 11 nuevas (privacidad y autorización de la persona nueva), en modo claro y oscuro, sin fallas de accesibilidad                                                                                                        |
+| Búsqueda de secretos    | Ninguno                                                                                                                                                                                                                                  |
+| Migraciones             | Desde cero en la prueba de integración, sin diferencias con el modelo; **sobre la versión anterior** en su base local (10 migraciones y 4 personas ficticias); y la revisión de compatibilidad de la integración continua, sin hallazgos |
 
-**Things you should know about this verification:**
+**Cosas que debe saber de esta verificación:**
 
-1. **The same third-party folders as in earlier blocks** (`apps/api/.agents`, `.claude`, `.windsurf`)
-   don't belong to the project; I checked formatting without them, and ran the tests one package at a time.
-2. **Three tests that already existed failed once due to timing** and passed on their own, with
-   no change: API startup (the freshly compiled program starts slowly on Windows the first
-   time), the worker's email to Mailpit, and the "new codes" one for the second factor (an
-   animation still in progress). None of them touches privacy.
-3. **Web branch coverage had dropped to 84.74 %** with the new screens. I didn't lower the bar:
-   I added tests for the cases that were missing (new version, editing a processor, an already
-   revoked authorization, an activity with processors and transfers).
-4. **The OpenAPI document** (`apps/api/openapi.json`) was regenerated with the 12 new routes.
+1. **Las mismas carpetas ajenas de bloques anteriores** (`apps/api/.agents`, `.claude`,
+   `.windsurf`) no son del proyecto; revisé el formato sin ellas y corrí las pruebas un paquete a
+   la vez.
+2. **Tres pruebas que ya existían fallaron una vez por tiempo** y pasaron solas, sin cambiarlas:
+   el arranque de la API (el programa recién compilado arranca lento en Windows la primera vez),
+   el correo del worker a Mailpit y la de «códigos nuevos» del segundo factor (una animación sin
+   terminar). Ninguna toca privacidad.
+3. **La cobertura de ramas bajó del 85 %** con el código nuevo: en la web (84,74 %) y en la
+   integración de la API en GitHub (84,71 %). No bajé la exigencia: agregué pruebas de los casos
+   que faltaban (versión nueva, editar un encargado, autorización revocada, actividad con
+   encargados, listados con filtros y páginas, y cargar la semilla dos veces).
+4. **La revisión de migraciones de GitHub** rechazó la primera versión por dos razones, con toda
+   la razón: apagaba por un momento la seguridad por fila para trasladar las autorizaciones viejas,
+   y borraba las tres columnas viejas en la misma versión. Ahora el traslado se hace empresa por
+   empresa con la seguridad por fila activa (como el traslado de la auditoría en B11), y las
+   columnas **se conservan sin uso** (numeral 10.6, «expandir, migrar, contraer»): la versión
+   anterior de la API las sigue usando durante un despliegue. Se borrarán en un bloque posterior.
+5. **El documento OpenAPI** (`apps/api/openapi.json`) se regeneró con las 12 rutas nuevas.
 
 ## Cómo lo prueba usted, paso a paso
 
@@ -180,6 +188,7 @@ vuelva a escribir `pnpm dev`.
   enlazar el usuario con su ficha de tercero, que llega con talento humano.
 - **Contrato del encargado como documento controlado:** hoy es un archivo (B14); cuando exista la
   gestión documental (B18) podrá apuntar al documento.
+- **Borrar las tres columnas viejas de Terceros** (`data_purpose`, `data_authorization`, `data_authorized_on`) en una migración posterior, marcada como fase de contraer.
 - **Subir el soporte desde el formulario:** hoy se sube en **Archivos** y luego se elige.
 
 ## Decisiones tomadas
