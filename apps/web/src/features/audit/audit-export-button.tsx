@@ -12,7 +12,7 @@ import { usePermissions } from '../session/permissions';
 import { AUDIT_KEYS, type AuditFilters } from './queries';
 
 /** Entrega el archivo al navegador para que la persona lo guarde. */
-function save(file: DownloadedFile): void {
+export function save(file: DownloadedFile): void {
   const url = URL.createObjectURL(file.content);
   const link = document.createElement('a');
   link.href = url;

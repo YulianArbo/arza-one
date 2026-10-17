@@ -6,6 +6,7 @@ import {
   DOCUMENT_ID,
   FOLDER_ID,
   PROCESS_ID,
+  REQUEST_ID,
   QUALITY,
   READER,
   UPLOAD_LINK,
@@ -163,6 +164,11 @@ describe('documento nuevo: guardado', () => {
     await screen.findByRole('option', { name: 'SGC · Gestión de la Calidad' });
     await userEvent.selectOptions(screen.getByLabelText('Tipo de documento'), 'PR');
     await userEvent.selectOptions(screen.getByLabelText('Proceso'), PROCESS_ID);
+    await screen.findByRole('option', { name: 'SAD-2026-0001 · Control de documentos' });
+    await userEvent.selectOptions(
+      screen.getByLabelText('Solicitud de Acción Documental aprobada'),
+      REQUEST_ID,
+    );
     await userEvent.type(screen.getByLabelText('Título'), 'Control de documentos');
     await userEvent.type(screen.getByLabelText('Qué cambia en esta versión'), 'Creación');
     await uploadSource();
@@ -175,6 +181,7 @@ describe('documento nuevo: guardado', () => {
         folder_id: FOLDER_ID,
         doc_type: 'PR',
         process_id: PROCESS_ID,
+        change_request_id: REQUEST_ID,
         source_file_id: NEW_FILE,
       },
     );

@@ -60,6 +60,10 @@ const DRAFT = {
   effective_date: null,
   published_at: null,
   obsoleted_at: null,
+  origin: 'platform',
+  change_request: null,
+  workflow_instance_id: null,
+  step: 'Elaboración',
   actions: ['edit'],
   version: 1,
 };

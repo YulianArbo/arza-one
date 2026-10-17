@@ -1,6 +1,11 @@
 'use client';
 
-import { classificationSchema, type CreateDocumentRequest } from '@arza/contracts';
+import {
+  classificationSchema,
+  processProblem,
+  type ChangeRequest,
+  type CreateDocumentRequest,
+} from '@arza/contracts';
 import { useRouter } from 'next/navigation';
 import { useCallback, useState, type JSX, type SubmitEvent } from 'react';
 
@@ -11,6 +16,7 @@ import { useCatalog, useOrgUnits } from '../organization/queries';
 import { CheckboxField, idOrNull, optionsOf } from '../organization/record-dialog';
 import { documentPath } from './labels';
 import { useCreateDocument, useFolders } from './queries';
+import { RequestSelect } from './request-select';
 import {
   EMPTY_VERSION,
   VersionFields,
@@ -19,13 +25,15 @@ import {
 } from './version-fields';
 
 // Documento nuevo (B18): nace con su versión 00 en borrador. El código lo pone el sistema al
-// guardar: TIPO-PROCESO-NNN en el SGC, sin saltos (PR-SGC-001).
+// guardar: TIPO-PROCESO-NNN en el SGC, sin saltos (PR-SGC-001). Desde B19 un documento del SGC se
+// crea con una Solicitud de Acción Documental de creación aprobada para ese tipo y proceso.
 
 interface DocumentValues extends VersionValues {
   readonly folder_id: string;
   readonly doc_type: string;
   readonly is_controlled: boolean;
   readonly process_id: string | null;
+  readonly change_request_id: string | null;
 }
 
 interface FieldsProps {
@@ -38,8 +46,10 @@ function problemsOf(values: DocumentValues): Record<string, string> {
   const errors = versionProblems(values);
   if (values.folder_id === '') errors['folder_id'] = 'Elija la carpeta del documento.';
   if (values.doc_type === '') errors['doc_type'] = 'Elija el tipo de documento.';
-  if (values.is_controlled && values.process_id === null) {
-    errors['process_id'] = 'Un documento del SGC lleva el proceso al que pertenece.';
+  const process = values.is_controlled ? processProblem(values.doc_type, values.process_id) : null;
+  if (process !== null) errors['process_id'] = process;
+  if (values.is_controlled && values.change_request_id === null) {
+    errors['change_request_id'] = 'Elija la solicitud de creación aprobada.';
   }
   return errors;
 }
@@ -50,6 +60,7 @@ function requestOf(values: DocumentValues, sourceFileId: string): CreateDocument
     doc_type: values.doc_type,
     is_controlled: values.is_controlled,
     process_id: values.process_id,
+    change_request_id: values.is_controlled ? values.change_request_id : null,
     title: values.title.trim(),
     classification: classificationSchema.parse(values.classification),
     owner_position_id: values.owner_position_id,
@@ -127,6 +138,26 @@ function ControlFields({ values, errors, onChange }: FieldsProps): JSX.Element {
   );
 }
 
+/** La solicitud de creación aprobada para este tipo y proceso (B19); solo en el SGC. */
+function CreationRequest({ values, errors, onChange }: FieldsProps): JSX.Element | null {
+  if (!values.is_controlled) return null;
+  return (
+    <RequestSelect
+      id="documento-solicitud"
+      action="create"
+      documentId={null}
+      matches={(request: ChangeRequest) =>
+        request.doc_type === values.doc_type && (request.process?.id ?? null) === values.process_id
+      }
+      value={values.change_request_id}
+      error={errors['change_request_id']}
+      onChange={(change_request_id) => {
+        onChange({ ...values, change_request_id });
+      }}
+    />
+  );
+}
+
 /** Valores, problemas y guardado; al guardar abre la ficha del documento. */
 function useDocumentForm(folderId: string | null) {
   const router = useRouter();
@@ -136,6 +167,7 @@ function useDocumentForm(folderId: string | null) {
     doc_type: '',
     is_controlled: true,
     process_id: null,
+    change_request_id: null,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const save = useCreateDocument((id) => {
@@ -166,6 +198,7 @@ export function DocumentForm({ folderId }: { readonly folderId: string | null })
       {save.error === null ? null : <FormError error={save.error} />}
       <PlacementFields values={values} errors={errors} onChange={setValues} />
       <ControlFields values={values} errors={errors} onChange={setValues} />
+      <CreationRequest values={values} errors={errors} onChange={setValues} />
       <VersionFields
         prefix="documento"
         values={values}
