@@ -61,6 +61,12 @@ const auditChainCheckJobSchema = z.object({});
 const fileScanJobSchema = tenantJobSchema.extend({ fileId: z.uuid() });
 
 /**
+ * Conversión a PDF del archivo fuente de una versión (B18, ficha 17.4) con Gotenberg. Solo lleva
+ * la versión; el worker lee lo demás de la base de datos y del almacenamiento.
+ */
+const versionRenderJobSchema = tenantJobSchema.extend({ versionId: z.uuid() });
+
+/**
  * Escalamiento de las tareas vencidas (B15, ficha 17.5). Es del sistema y no lleva empresa: el
  * worker revisa cada empresa que tiene tareas vencidas.
  */
@@ -77,6 +83,7 @@ export type ExampleEmailJob = z.infer<typeof exampleEmailJobSchema>;
 export type AccountEmailJob = z.infer<typeof accountEmailJobSchema>;
 export type AccountEmailPurpose = AccountEmailJob['purpose'];
 export type FileScanJob = z.infer<typeof fileScanJobSchema>;
+export type VersionRenderJob = z.infer<typeof versionRenderJobSchema>;
 
 /** Cada trabajo: su cola, su nombre y el esquema de sus datos. */
 export const JOBS = {
@@ -99,6 +106,11 @@ export const JOBS = {
     queue: QUEUES.platform,
     name: 'doc.file-scan',
     schema: fileScanJobSchema,
+  },
+  versionRender: {
+    queue: QUEUES.platform,
+    name: 'doc.version-render',
+    schema: versionRenderJobSchema,
   },
   wfOverdueCheck: {
     queue: QUEUES.platform,

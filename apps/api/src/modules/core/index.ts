@@ -3,7 +3,14 @@
 // tablas core_ directamente.
 export { CoreModule } from './interface/core.module.js';
 export { seedCore } from './application/core-seed.js';
-export { nextBusinessCode } from './application/sequences.js';
+export { nextBusinessCode, nextPlainCode } from './application/sequences.js';
+export {
+  activeProcesses,
+  orgUnitsById,
+  positionsById,
+  type OrgUnitRecord,
+  type PositionSummary,
+} from './application/org-directory.js';
 export {
   businessDeadline,
   businessHoursDeadline,
@@ -11,5 +18,5 @@ export {
 } from './application/calendar.js';
 export { workScheduleOn } from './application/parameters.js';
 export { superiorPositionId } from './application/positions.js';
-export { isActiveCatalogCode } from './application/catalogs.js';
+export { catalogLabels, isActiveCatalogCode } from './application/catalogs.js';
 export { bogotaToday, fromCalendarDate, toCalendarDate } from './domain/calendar-date.js';

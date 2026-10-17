@@ -15,7 +15,14 @@ import type { TenantTransaction } from '../../../platform/database/tenant-contex
 import { versionConflict } from '../../../platform/http/if-match.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
 import { bogotaYear } from '../domain/calendar-date.js';
-import { openYear, takeNextValue } from '../infrastructure/sequence-store.js';
+import {
+  NO_YEAR,
+  openFirstYear,
+  openPlain,
+  openYear,
+  takeNextValue,
+  type PlainSequence,
+} from '../infrastructure/sequence-store.js';
 import { auditCore } from './core-audit.js';
 import { codeTaken, recordNotFound, sequenceUnknown } from './core-messages.js';
 import type { Versioned } from './records.js';
@@ -23,21 +30,42 @@ import type { Versioned } from './records.js';
 /**
  * Siguiente código de negocio de un tipo, como COT-2026-0001 (ADR-021). Se llama dentro de la
  * transacción del caso de uso que crea el registro: si esa transacción se revierte, el número no
- * se gasta. El año es el de Colombia; el primer código del año empieza en 1.
+ * se gasta. El año es el de Colombia; el primer código del año empieza en 1. Con la definición, el
+ * tipo se crea la primera vez que se usa (B18), como los consecutivos sin año.
  */
 export async function nextBusinessCode(
   tx: TenantTransaction,
   key: string,
   now: Date,
+  definition?: Omit<PlainSequence, 'key'>,
 ): Promise<string> {
   const year = bogotaYear(now);
   let taken = await takeNextValue(tx, key, year);
   if (taken === null) {
     await openYear(tx, key, year);
+    if (definition !== undefined) await openFirstYear(tx, { key, ...definition }, year);
     taken = await takeNextValue(tx, key, year);
   }
   if (taken === null) throw sequenceUnknown();
   return formatBusinessCode(taken.prefix, year, taken.value, taken.padding);
+}
+
+/**
+ * Siguiente código de un consecutivo sin año, como PR-SGC-001 (B18, PR-SGC-001). El módulo que lo
+ * usa lo define; se crea la primera vez. Igual que nextBusinessCode, va dentro de la transacción
+ * que crea el registro: si se revierte, el número no se gasta.
+ */
+export async function nextPlainCode(
+  tx: TenantTransaction,
+  sequence: PlainSequence,
+): Promise<string> {
+  let taken = await takeNextValue(tx, sequence.key, NO_YEAR);
+  if (taken === null) {
+    await openPlain(tx, sequence);
+    taken = await takeNextValue(tx, sequence.key, NO_YEAR);
+  }
+  if (taken === null) throw sequenceUnknown();
+  return `${taken.prefix}-${String(taken.value).padStart(taken.padding, '0')}`;
 }
 
 function sequenceView(sequence: Sequence): SequenceView {
@@ -64,7 +92,7 @@ function sequenceAudit(sequence: Sequence) {
 }
 
 async function findSequence(tx: TenantTransaction, id: string): Promise<Sequence> {
-  const sequence = await tx.sequence.findFirst({ where: { id, deletedAt: null } });
+  const sequence = await tx.sequence.findFirst({ where: { id, yearly: true, deletedAt: null } });
   if (sequence === null) throw recordNotFound('El consecutivo');
   return sequence;
 }
@@ -77,11 +105,11 @@ export class SequencesUseCase {
     @Inject(CLOCK) private readonly clock: Clock,
   ) {}
 
-  /** Cada tipo con su año más reciente. */
+  /** Cada tipo con su año más reciente. Los consecutivos sin año los administra su módulo. */
   async list(principal: Principal): Promise<SequenceView[]> {
     const rows = await this.database.withTenant(principal, (tx) =>
       tx.sequence.findMany({
-        where: { deletedAt: null },
+        where: { yearly: true, deletedAt: null },
         orderBy: [{ key: 'asc' }, { year: 'desc' }],
       }),
     );

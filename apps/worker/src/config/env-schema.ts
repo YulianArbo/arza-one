@@ -26,6 +26,8 @@ export const workerEnvSchema = z.object({
   /** Antivirus ClamAV (capítulo 8). */
   CLAMAV_HOST: required,
   CLAMAV_PORT: positiveInteger.max(65_535).default(3310),
+  /** Conversión a PDF (Gotenberg, capítulo 9) de los archivos fuente de las versiones (B18). */
+  GOTENBERG_URL: z.url({ protocol: /^https?$/ }),
   /** Trabajos que el worker procesa a la vez en cada cola. */
   WORKER_CONCURRENCY: positiveInteger.max(50).default(5),
 });

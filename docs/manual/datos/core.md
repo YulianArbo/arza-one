@@ -135,14 +135,16 @@ opciones. Una opción no se borra: se inactiva.
 
 ### core_sequences · Consecutivos de negocio (ADR-021)
 
-Una fila por tipo y año. El código es `PREFIJO-AAAA-NNNN`; el año es el de Colombia.
+Una fila por tipo y año. El código es `PREFIJO-AAAA-NNNN`; el año es el de Colombia. Desde B18 hay
+consecutivos **sin año** (`yearly` falso, año 0), como los de PR-SGC-001: `PR-SGC-001`.
 
 | Columna      | Tipo    | Nulo | Por defecto | Regla                                         |
 | ------------ | ------- | ---- | ----------- | --------------------------------------------- |
 | `key`        | text    | No   |             | Como `crm.quote`; hasta 60 caracteres         |
 | `name`       | text    | No   |             | De 2 a 120 caracteres                         |
-| `prefix`     | text    | No   |             | De 2 a 6 letras mayúsculas                    |
-| `year`       | integer | No   |             | Entre 2000 y 2100                             |
+| `prefix`     | text    | No   |             | De 2 a 6 letras mayúsculas; sin año, dos partes como `PR-SGC` |
+| `year`       | integer | No   |             | Entre 2000 y 2100; 0 en los consecutivos sin año |
+| `yearly`     | boolean | No   | `true`      | Falso en los consecutivos sin año (B18)        |
 | `next_value` | integer | No   | `1`         | Número del siguiente registro; mayor que cero |
 | `padding`    | integer | No   | `4`         | Dígitos del número, entre 3 y 8               |
 
@@ -150,6 +152,10 @@ Una fila por tipo y año. El código es `PREFIJO-AAAA-NNNN`; el año es el de Co
 `UPDATE ... RETURNING` que bloquea la fila hasta el final de la transacción de quien pide el
 número: otra petición espera y recibe el siguiente; si la transacción se revierte, el número no
 se gasta. El primer número de un año nuevo copia el prefijo y los dígitos del año anterior.
+
+Los consecutivos sin año los crea su módulo la primera vez que los usa con `nextPlainCode()` (por
+ejemplo, la gestión documental crea `doc.code.pr.sgc`) y no aparecen en Administración ›
+Consecutivos: su prefijo forma parte del código del documento y no se edita.
 
 ### core_parameters · Parámetros con vigencia
 

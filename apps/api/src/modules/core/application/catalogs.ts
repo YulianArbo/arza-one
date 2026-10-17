@@ -69,6 +69,18 @@ export async function isActiveCatalogCode(
   return count > 0;
 }
 
+/** Nombre de cada opción de un catálogo, también de las inactivas que guardan los registros. */
+export async function catalogLabels(
+  tx: TenantTransaction,
+  key: string,
+): Promise<Map<string, string>> {
+  const items = await tx.catalogItem.findMany({
+    where: { deletedAt: null, catalog: { key, deletedAt: null } },
+    select: { code: true, label: true },
+  });
+  return new Map(items.map((item) => [item.code, item.label]));
+}
+
 /**
  * Catálogos administrables (ficha 17.1). La lista la crea el sistema y la empresa administra sus
  * opciones. Una opción no se borra, porque los registros la guardan: se inactiva y deja de

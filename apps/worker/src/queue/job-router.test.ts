@@ -17,9 +17,11 @@ const unusedDeps: JobDependencies = {
   appUrl: 'http://localhost:3000/app',
   storage: {
     read: async () => Promise.reject(new Error('no se usa')),
+    put: async () => Promise.reject(new Error('no se usa')),
     delete: async () => Promise.reject(new Error('no se usa')),
   },
   antivirus: async () => Promise.reject(new Error('no se usa')),
+  convert: async () => Promise.reject(new Error('no se usa')),
 };
 
 describe('enrutador de trabajos', () => {
@@ -46,6 +48,15 @@ describe('enrutador de trabajos', () => {
   it('envía el análisis de un archivo a su procesador', async () => {
     const route = createJobRouter(unusedDeps);
     await expect(route({ name: JOBS.fileScan.name, data: {} })).rejects.toThrow(
+      'Los datos del trabajo no son válidos',
+    );
+  });
+});
+
+describe('enrutador de trabajos de documentos y avisos', () => {
+  it('envía la conversión de una versión a PDF a su procesador', async () => {
+    const route = createJobRouter(unusedDeps);
+    await expect(route({ name: JOBS.versionRender.name, data: {} })).rejects.toThrow(
       'Los datos del trabajo no son válidos',
     );
   });

@@ -23,7 +23,8 @@ Las variables se leen del `.env` de la raíz (ver `.env.example`). Requiere `pnp
 `VALKEY_URL`, `APP_URL` (dominio de los enlaces de los correos), `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER` y `SMTP_PASSWORD` (opcionales), `MAIL_FROM` y
 `WORKER_CONCURRENCY` (trabajos a la vez por cola; 5 por defecto), y desde B14 `S3_ENDPOINT`, `S3_REGION`,
 `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` (almacenamiento de archivos), `CLAMAV_HOST` y
-`CLAMAV_PORT` (antivirus; 3310 por defecto). Si falta una o tiene formato
+`CLAMAV_PORT` (antivirus; 3310 por defecto), y desde B18 `GOTENBERG_URL` (conversión a PDF de las
+versiones de los documentos). Si falta una o tiene formato
 inválido, el worker no arranca y dice cuál, sin mostrar su valor. Usa el mismo validador de la API.
 
 ## Qué reutiliza de la API

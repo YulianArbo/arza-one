@@ -1,9 +1,10 @@
 import { z } from 'zod';
 
-// Las semillas de acceso, del núcleo, privacidad, los terceros ficticios y el flujo de prueba son de sus
+// Las semillas de acceso, del núcleo, documentos, privacidad, los terceros ficticios y el flujo de prueba son de sus
 // módulos: este punto de entrada las reúne con la de la plataforma, como app.module.ts reúne los
 // módulos.
 import { seedCore } from '../../../modules/core/index.js';
+import { seedDocFolders } from '../../../modules/doc/index.js';
 import { seedAccessControl } from '../../../modules/iam/index.js';
 import { seedPartyDemo } from '../../../modules/party/index.js';
 import { seedNotificationTemplates } from '../../../modules/ntf/index.js';
@@ -36,6 +37,7 @@ async function main(): Promise<void> {
     const tenantIds = tenants.map((tenant) => tenant.id);
     await seedAccessControl(database, tenantIds, systemClock);
     await seedCore(database, tenantIds, systemClock);
+    await seedDocFolders(database, tenantIds, systemClock);
     await seedNotificationTemplates(database, tenantIds, systemClock);
     await seedPrivacyNotices(database, tenantIds, systemClock);
     if (withDemo) {

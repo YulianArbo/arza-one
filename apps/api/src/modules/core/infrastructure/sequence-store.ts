@@ -12,6 +12,16 @@ export interface TakenNumber {
   readonly value: number;
 }
 
+/** Año que guardan los consecutivos sin año (B18). */
+export const NO_YEAR = 0;
+
+export interface PlainSequence {
+  readonly key: string;
+  readonly name: string;
+  readonly prefix: string;
+  readonly padding: number;
+}
+
 export async function takeNextValue(
   tx: TenantTransaction,
   key: string,
@@ -33,8 +43,32 @@ export async function openYear(tx: TenantTransaction, key: string, year: number)
     INSERT INTO "core_sequences" ("id", "tenant_id", "key", "name", "prefix", "year", "padding")
     SELECT ${uuidv7()}::uuid, "tenant_id", "key", "name", "prefix", ${year}, "padding"
       FROM "core_sequences"
-     WHERE "key" = ${key} AND "deleted_at" IS NULL
+     WHERE "key" = ${key} AND "yearly" AND "deleted_at" IS NULL
      ORDER BY "year" DESC
      LIMIT 1
+    ON CONFLICT ("tenant_id", "key", "year") DO NOTHING`;
+}
+
+/** Crea un consecutivo anual que aún no existe, en el año dado; si ya existe, no hace nada. */
+export async function openFirstYear(
+  tx: TenantTransaction,
+  sequence: PlainSequence,
+  year: number,
+): Promise<void> {
+  await tx.$executeRaw`
+    INSERT INTO "core_sequences" ("id", "tenant_id", "key", "name", "prefix", "year", "padding")
+    SELECT ${uuidv7()}::uuid, core_current_tenant_id(), ${sequence.key}, ${sequence.name},
+           ${sequence.prefix}, ${year}, ${sequence.padding}
+     WHERE NOT EXISTS (SELECT 1 FROM "core_sequences" WHERE "key" = ${sequence.key})
+    ON CONFLICT ("tenant_id", "key", "year") DO NOTHING`;
+}
+
+/** Crea el consecutivo sin año la primera vez que se usa; si ya existe, no hace nada. */
+export async function openPlain(tx: TenantTransaction, sequence: PlainSequence): Promise<void> {
+  await tx.$executeRaw`
+    INSERT INTO "core_sequences"
+           ("id", "tenant_id", "key", "name", "prefix", "year", "yearly", "padding")
+    VALUES (${uuidv7()}::uuid, core_current_tenant_id(), ${sequence.key}, ${sequence.name},
+            ${sequence.prefix}, ${NO_YEAR}, false, ${sequence.padding})
     ON CONFLICT ("tenant_id", "key", "year") DO NOTHING`;
 }

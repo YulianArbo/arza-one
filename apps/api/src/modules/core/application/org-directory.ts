@@ -1,0 +1,57 @@
+import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
+
+// Consultas del organigrama para otros módulos (B18): procesos y cargos por identificador. Los
+// documentos los guardan por identificador y piden aquí su código y su nombre.
+
+export interface OrgUnitRecord {
+  readonly id: string;
+  readonly code: string;
+  readonly name: string;
+  readonly kind: 'process' | 'area';
+  readonly isActive: boolean;
+}
+
+export interface PositionSummary {
+  readonly id: string;
+  readonly name: string;
+  readonly orgUnitId: string;
+  readonly isActive: boolean;
+}
+
+/** Procesos y áreas que existen (también los inactivos), por identificador. */
+export async function orgUnitsById(
+  tx: TenantTransaction,
+  ids: readonly string[],
+): Promise<Map<string, OrgUnitRecord>> {
+  if (ids.length === 0) return new Map();
+  const units = await tx.orgUnit.findMany({
+    where: { id: { in: [...new Set(ids)] }, deletedAt: null },
+    select: { id: true, code: true, name: true, kind: true, isActive: true },
+  });
+  return new Map(
+    units.map((unit) => [unit.id, { ...unit, kind: unit.kind === 'area' ? 'area' : 'process' }]),
+  );
+}
+
+/** Procesos activos del mapa de procesos, en orden de código. */
+export async function activeProcesses(tx: TenantTransaction): Promise<OrgUnitRecord[]> {
+  const units = await tx.orgUnit.findMany({
+    where: { kind: 'process', isActive: true, deletedAt: null },
+    select: { id: true, code: true, name: true, isActive: true },
+    orderBy: { code: 'asc' },
+  });
+  return units.map((unit) => ({ ...unit, kind: 'process' }));
+}
+
+/** Cargos que existen (también los inactivos), por identificador. */
+export async function positionsById(
+  tx: TenantTransaction,
+  ids: readonly string[],
+): Promise<Map<string, PositionSummary>> {
+  if (ids.length === 0) return new Map();
+  const positions = await tx.position.findMany({
+    where: { id: { in: [...new Set(ids)] }, deletedAt: null },
+    select: { id: true, name: true, orgUnitId: true, isActive: true },
+  });
+  return new Map(positions.map((position) => [position.id, position]));
+}

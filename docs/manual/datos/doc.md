@@ -2,11 +2,13 @@
 
 Tipos exactos, restricciones e índices de las tablas del dominio `doc_` (capítulo 12.3, ficha
 17.4). Se actualiza en el mismo pull request que cambia el modelo
-(`apps/api/prisma/schema.prisma`). Migración: `20261015000000_doc_files` (B14).
+(`apps/api/prisma/schema.prisma`). Migraciones: `20261015000000_doc_files` (B14) y
+`20261019000000_doc_documents_versions_folders` (B18).
 
-Por ahora solo existe `doc_files`, el archivo físico. Las carpetas, los documentos, sus versiones y
-`doc_access_log` llegan con el bloque de documentos; mientras tanto, el registro de accesos a los
-archivos es la auditoría (`aud_events`).
+Desde B18 existen las carpetas y expedientes (`doc_folders`), el documento lógico
+(`doc_documents`), sus versiones (`doc_versions`), los vínculos con registros de otros módulos
+(`doc_links`) y el registro de accesos a lo confidencial y restringido (`doc_access_log`). La
+solicitud de acción documental, la constancia de lectura y la retención llegan en B19 a B21.
 
 ## Reglas comunes
 
@@ -61,3 +63,99 @@ corresponde al contenido que pasó por el antivirus.
    disponible que la persona puede ver.
 
 Los enlaces viven en Valkey (`doc:file-link:<huella de la llave>`) y se borran solos al vencer.
+
+## doc_folders · Carpetas y expedientes (B18)
+
+Árbol de carpetas del explorador. Un **expediente** (`case_file`) es la carpeta de un registro de
+otro módulo; por ahora, de un tercero. La semilla crea `SGC` («Sistema de Gestión de Calidad»), una
+carpeta `SGC-<proceso>` por proceso y `EXP` («Expedientes»).
+
+| Columna          | Tipo | Nulo | Por defecto | Regla                                                                                  |
+| ---------------- | ---- | ---- | ----------- | -------------------------------------------------------------------------------------- |
+| `parent_id`      | uuid | Sí   |             | Carpeta que la contiene; null en la raíz. No cambia                                    |
+| `code`           | text | Sí   |             | Solo las del sistema (`SGC`, `SGC-COM`, `EXP`); único por empresa                      |
+| `name`           | text | No   |             | 2 a 120 caracteres                                                                     |
+| `kind`           | text | No   | `folder`    | `folder` o `case_file`. No cambia                                                      |
+| `entity_type`    | text | Sí   |             | `party` en un expediente. Único con `entity_id` por empresa: un expediente por tercero |
+| `entity_id`      | uuid | Sí   |             | El tercero, por identificador (sin relación con las tablas `pty_`)                     |
+| `classification` | text | No   | `internal`  | Clasificación sugerida para sus documentos                                             |
+| control          |      |      |             | Columnas de control                                                                    |
+
+Disparador `doc_keep_folders`: una carpeta no cambia de lugar, de código ni de registro.
+
+## doc_documents · Documentos (B18)
+
+| Columna              | Tipo    | Nulo | Por defecto | Regla                                                                                    |
+| -------------------- | ------- | ---- | ----------- | ---------------------------------------------------------------------------------------- |
+| `folder_id`          | uuid    | No   |             | Carpeta del documento. No cambia                                                         |
+| `code`               | text    | No   |             | SGC: `TIPO-PROCESO-NNN` (PR-SGC-001); expediente: `DOC-AAAA-NNNN`. Único; no cambia      |
+| `title`              | text    | No   |             | 3 a 200 caracteres; el de la versión vigente                                             |
+| `doc_type`           | text    | No   |             | Catálogo `document_types`: MN, PR, PL, PT, IN, MP, DC, PVE, FT, RE, CT, OS, AN           |
+| `process_id`         | uuid    | Sí   |             | Proceso del núcleo; obligatorio en los del SGC                                           |
+| `classification`     | text    | No   |             | `public`, `internal`, `confidential` o `restricted`                                      |
+| `status`             | text    | No   | `draft`     | `draft` (sin publicar), `current` (vigente) u `obsolete`                                 |
+| `current_version_id` | uuid    | Sí   |             | Última versión publicada; null solo mientras el documento está `draft`                   |
+| `owner_position_id`  | uuid    | Sí   |             | Cargo responsable                                                                        |
+| `is_controlled`      | boolean | No   |             | Documento controlado del SGC                                                             |
+| control              |         |      |             | Columnas de control                                                                      |
+
+Disparador `doc_keep_documents`: el código, el tipo, el proceso y la carpeta no cambian; con una
+versión publicada, el título, la clasificación y el responsable solo cambian al publicar otra
+versión (ficha 17.4: un documento vigente es inmutable).
+
+## doc_versions · Versiones (B18)
+
+Ciclo: `draft` → `in_review` → `approved` → `current` → `obsolete`; desde `in_review` se puede
+devolver a `draft`.
+
+| Columna                                     | Tipo        | Nulo | Por defecto | Regla                                                              |
+| ------------------------------------------- | ----------- | ---- | ----------- | ------------------------------------------------------------------ |
+| `document_id`                               | uuid        | No   |             | El documento                                                       |
+| `number`                                    | integer     | No   |             | 0 a 99; único por documento                                        |
+| `version_label`                             | text        | No   |             | `number` con dos dígitos: 00, 01…                                  |
+| `status`                                    | text        | No   | `draft`     | Estado del ciclo                                                   |
+| `source_file_id`                            | uuid        | No   |             | Archivo fuente (PDF, Word o Excel) en `doc_files`                  |
+| `pdf_file_id`                               | uuid        | Sí   |             | Su PDF: el mismo archivo si es PDF; el que genera Gotenberg si no  |
+| `render_status`                             | text        | No   | `pending`   | `pending`, `ready` o `failed`; fuera del borrador siempre `ready`  |
+| `title`, `classification`, `owner_position_id` |          |      |             | Datos que el documento toma al publicarla                          |
+| `change_summary`                            | text        | No   |             | Qué cambia; 3 a 1000 caracteres                                    |
+| `review_note`                               | text        | Sí   |             | Motivo de la última devolución                                     |
+| `submitted_at`                              | timestamptz | Sí   |             | Presente fuera del borrador                                        |
+| `approved_by`, `approved_at`                |             | Sí   |             | Desde aprobada; `approved_by` distinto de `created_by`             |
+| `effective_date`, `published_at`            |             | Sí   |             | En vigente y obsoleta                                              |
+| `obsoleted_at`                              | timestamptz | Sí   |             | Solo en obsoleta                                                   |
+| control                                     |             |      |             | Columnas de control; `created_by` es quien elaboró la versión      |
+
+Disparador `doc_keep_versions`: solo los pasos del ciclo; fuera del borrador el contenido, el
+archivo y el PDF no cambian; por documento hay a lo más una versión `current` y una en trámite
+(`draft`, `in_review` o `approved`). El caso de uso además bloquea el documento mientras crea o
+publica una versión.
+
+## doc_links · Vínculos (B18)
+
+| Columna       | Tipo | Nulo | Regla                                                      |
+| ------------- | ---- | ---- | ---------------------------------------------------------- |
+| `document_id` | uuid | No   | El documento                                               |
+| `entity_type` | text | No   | `position`, `process` o `party`                            |
+| `entity_id`   | uuid | No   | El registro, por identificador. Único con el documento     |
+| `relation`    | text | No   | `applies_to`, `supports` o `related`                       |
+| control       |      |      | Retirar un vínculo es lógico; volver a vincular lo revive  |
+
+## doc_access_log · Registro de accesos (B18)
+
+Una fila por cada descarga de un documento confidencial o restringido y por cada consulta de uno
+restringido (numeral 15.4). `app_user` solo puede agregar y leer: las filas no cambian ni se
+borran, y no llevan columnas de control.
+
+| Columna       | Tipo        | Nulo | Regla                 |
+| ------------- | ----------- | ---- | --------------------- |
+| `document_id` | uuid        | No   | El documento          |
+| `version_id`  | uuid        | Sí   | La versión descargada |
+| `user_id`     | uuid        | No   | Quién                 |
+| `action`      | text        | No   | `view` o `download`   |
+| `occurred_at` | timestamptz | No   | Cuándo                |
+
+**Auditoría de B18:** `doc.folder.create · update`, `doc.document.create · view`,
+`doc.version.create · update · render (del sistema) · submit · reject · approve · publish ·
+obsolete · download_link` y `doc.link.create · delete`. Una huella alterada deja el evento de
+seguridad `doc.file.integrity_failed` (severidad alta).

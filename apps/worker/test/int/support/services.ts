@@ -21,6 +21,7 @@ declare module 'vitest' {
       readonly secretAccessKey: string;
     };
     antivirus: { readonly host: string; readonly port: number };
+    gotenbergUrl: string;
   }
 }
 
@@ -49,6 +50,7 @@ export function workerConfig(valkeyDatabase: number): WorkerEnv {
     S3_SECRET_KEY: storage.secretAccessKey,
     CLAMAV_HOST: antivirus.host,
     CLAMAV_PORT: String(antivirus.port),
+    GOTENBERG_URL: inject('gotenbergUrl'),
   });
 }
 
