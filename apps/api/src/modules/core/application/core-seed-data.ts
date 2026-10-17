@@ -77,6 +77,27 @@ export const CATALOGS: readonly SeedCatalog[] = [
       ['MARKETING', 'Envío de información comercial'],
     ],
   },
+  {
+    key: 'document_types',
+    name: 'Tipos de documento',
+    description:
+      'Primera parte del código de un documento del SGC (PR-SGC-001): TIPO-PROCESO-NNN. La usa la gestión documental.',
+    items: [
+      ['MN', 'Manual'],
+      ['PR', 'Procedimiento'],
+      ['PL', 'Plan'],
+      ['PT', 'Protocolo'],
+      ['IN', 'Instructivo'],
+      ['MP', 'Mapa'],
+      ['DC', 'Documento descriptivo'],
+      ['PVE', 'Programa de vigilancia epidemiológica'],
+      ['FT', 'Formato'],
+      ['RE', 'Registro'],
+      ['CT', 'Contrato'],
+      ['OS', 'Orden de servicio'],
+      ['AN', 'Anexo'],
+    ],
+  },
 ];
 
 /** Procesos del mapa de procesos, con el código que usan los módulos (capítulo 7.4). */

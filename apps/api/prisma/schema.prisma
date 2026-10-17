@@ -77,6 +77,11 @@ model Tenant {
   prvActivities         ProcessingActivity[]
   prvProcessors         DataProcessor[]
   prvActivityProcessors ActivityProcessor[]
+  docFolders            DocFolder[]
+  docDocuments          DocDocument[]
+  docVersions           DocVersion[]
+  docLinks              DocLink[]
+  docAccessLog          DocAccessLog[]
 
   @@map("core_tenants")
 }
@@ -639,7 +644,8 @@ model CatalogItem {
 }
 
 /// Consecutivos de negocio por tipo y año (ADR-021). next_value solo lo sube el servicio de
-/// consecutivos, con la fila bloqueada: sin saltos ni duplicados.
+/// consecutivos, con la fila bloqueada: sin saltos ni duplicados. Los consecutivos sin año (B18,
+/// como PR-SGC-001) llevan yearly falso y el año 0, y los crea el módulo que los usa.
 model Sequence {
   id        String    @id @default(uuid(7)) @db.Uuid
   tenantId  String    @map("tenant_id") @db.Uuid
@@ -647,6 +653,7 @@ model Sequence {
   name      String
   prefix    String
   year      Int
+  yearly    Boolean   @default(true)
   nextValue Int       @default(1) @map("next_value")
   padding   Int       @default(4)
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -858,28 +865,177 @@ model DueDiligence {
 /// el worker lo analiza con el antivirus, revisa que su contenido sea del tipo declarado y calcula
 /// su huella SHA-256. Solo un archivo disponible se descarga (numeral 13.2, ADR-013).
 model File {
-  id         String    @id @default(uuid(7)) @db.Uuid
-  tenantId   String    @map("tenant_id") @db.Uuid
-  storageKey String    @map("storage_key")
-  fileName   String    @map("file_name")
-  mimeType   String    @map("mime_type")
-  sizeBytes  Int       @map("size_bytes")
+  id         String       @id @default(uuid(7)) @db.Uuid
+  tenantId   String       @map("tenant_id") @db.Uuid
+  storageKey String       @map("storage_key")
+  fileName   String       @map("file_name")
+  mimeType   String       @map("mime_type")
+  sizeBytes  Int          @map("size_bytes")
   sha256     String?
-  scanStatus String    @default("pending_upload") @map("scan_status")
+  scanStatus String       @default("pending_upload") @map("scan_status")
   rejection  String?
-  scannedAt  DateTime? @map("scanned_at") @db.Timestamptz(6)
-  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  createdBy  String?   @map("created_by") @db.Uuid
-  updatedAt  DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
-  updatedBy  String?   @map("updated_by") @db.Uuid
-  version    Int       @default(1)
-  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
-  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  scannedAt  DateTime?    @map("scanned_at") @db.Timestamptz(6)
+  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?      @map("created_by") @db.Uuid
+  updatedAt  DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?      @map("updated_by") @db.Uuid
+  version    Int          @default(1)
+  deletedAt  DateTime?    @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant       @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  sourceOf   DocVersion[] @relation("VersionSource")
+  renderOf   DocVersion[] @relation("VersionPdf")
 
   @@unique([tenantId, id])
   @@unique([storageKey])
   @@index([tenantId, createdBy, createdAt])
   @@map("doc_files")
+}
+
+/// Carpetas y expedientes (B18, ficha 17.4). Un expediente es la carpeta de un registro de otro
+/// módulo, por ahora de un tercero; se guarda por identificador, sin relación con sus tablas.
+model DocFolder {
+  id             String        @id @default(uuid(7)) @db.Uuid
+  tenantId       String        @map("tenant_id") @db.Uuid
+  parentId       String?       @map("parent_id") @db.Uuid
+  code           String?
+  name           String
+  kind           String        @default("folder")
+  entityType     String?       @map("entity_type")
+  entityId       String?       @map("entity_id") @db.Uuid
+  classification String        @default("internal")
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy      String?       @map("created_by") @db.Uuid
+  updatedAt      DateTime      @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy      String?       @map("updated_by") @db.Uuid
+  version        Int           @default(1)
+  deletedAt      DateTime?     @map("deleted_at") @db.Timestamptz(6)
+  tenant         Tenant        @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  parent         DocFolder?    @relation("FolderTree", fields: [tenantId, parentId], references: [tenantId, id], onDelete: Restrict)
+  children       DocFolder[]   @relation("FolderTree")
+  documents      DocDocument[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, entityType, entityId])
+  @@index([tenantId, parentId])
+  @@map("doc_folders")
+}
+
+/// Documento lógico (B18, ficha 17.4): código PR-SGC-001, datos de la versión vigente y su estado.
+/// El proceso y el cargo responsable son del núcleo y se guardan por identificador.
+model DocDocument {
+  id               String         @id @default(uuid(7)) @db.Uuid
+  tenantId         String         @map("tenant_id") @db.Uuid
+  folderId         String         @map("folder_id") @db.Uuid
+  code             String
+  title            String
+  docType          String         @map("doc_type")
+  processId        String?        @map("process_id") @db.Uuid
+  classification   String
+  status           String         @default("draft")
+  currentVersionId String?        @map("current_version_id") @db.Uuid
+  ownerPositionId  String?        @map("owner_position_id") @db.Uuid
+  isControlled     Boolean        @map("is_controlled")
+  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy        String?        @map("created_by") @db.Uuid
+  updatedAt        DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy        String?        @map("updated_by") @db.Uuid
+  version          Int            @default(1)
+  deletedAt        DateTime?      @map("deleted_at") @db.Timestamptz(6)
+  tenant           Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  folder           DocFolder      @relation(fields: [tenantId, folderId], references: [tenantId, id], onDelete: Restrict)
+  versions         DocVersion[]
+  links            DocLink[]
+  accessLog        DocAccessLog[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@index([tenantId, folderId])
+  @@index([tenantId, processId])
+  @@map("doc_documents")
+}
+
+/// Versión de un documento (B18, ficha 17.4): borrador → en revisión → aprobada → vigente →
+/// obsoleta. Lleva el archivo fuente, su PDF y los datos que el documento toma al publicarla. Una
+/// sola vigente por documento; fuera del borrador, la base de datos no deja cambiar su contenido.
+model DocVersion {
+  id              String         @id @default(uuid(7)) @db.Uuid
+  tenantId        String         @map("tenant_id") @db.Uuid
+  documentId      String         @map("document_id") @db.Uuid
+  number          Int
+  versionLabel    String         @map("version_label")
+  status          String         @default("draft")
+  sourceFileId    String         @map("source_file_id") @db.Uuid
+  pdfFileId       String?        @map("pdf_file_id") @db.Uuid
+  renderStatus    String         @default("pending") @map("render_status")
+  title           String
+  classification  String
+  ownerPositionId String?        @map("owner_position_id") @db.Uuid
+  changeSummary   String         @map("change_summary")
+  reviewNote      String?        @map("review_note")
+  submittedAt     DateTime?      @map("submitted_at") @db.Timestamptz(6)
+  approvedBy      String?        @map("approved_by") @db.Uuid
+  approvedAt      DateTime?      @map("approved_at") @db.Timestamptz(6)
+  effectiveDate   DateTime?      @map("effective_date") @db.Date
+  publishedAt     DateTime?      @map("published_at") @db.Timestamptz(6)
+  obsoletedAt     DateTime?      @map("obsoleted_at") @db.Timestamptz(6)
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?        @map("created_by") @db.Uuid
+  updatedAt       DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy       String?        @map("updated_by") @db.Uuid
+  version         Int            @default(1)
+  deletedAt       DateTime?      @map("deleted_at") @db.Timestamptz(6)
+  tenant          Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  document        DocDocument    @relation(fields: [tenantId, documentId], references: [tenantId, id], onDelete: Restrict)
+  sourceFile      File           @relation("VersionSource", fields: [tenantId, sourceFileId], references: [tenantId, id], onDelete: Restrict)
+  pdfFile         File?          @relation("VersionPdf", fields: [tenantId, pdfFileId], references: [tenantId, id], onDelete: Restrict)
+  accessLog       DocAccessLog[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, documentId, number])
+  @@index([tenantId, documentId, status])
+  @@map("doc_versions")
+}
+
+/// Vínculo de un documento con un registro de otro módulo (B18): un cargo, un proceso o un tercero.
+model DocLink {
+  id         String      @id @default(uuid(7)) @db.Uuid
+  tenantId   String      @map("tenant_id") @db.Uuid
+  documentId String      @map("document_id") @db.Uuid
+  entityType String      @map("entity_type")
+  entityId   String      @map("entity_id") @db.Uuid
+  relation   String
+  createdAt  DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?     @map("created_by") @db.Uuid
+  updatedAt  DateTime    @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?     @map("updated_by") @db.Uuid
+  version    Int         @default(1)
+  deletedAt  DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  document   DocDocument @relation(fields: [tenantId, documentId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, documentId, entityType, entityId])
+  @@index([tenantId, entityType, entityId])
+  @@map("doc_links")
+}
+
+/// Consultas y descargas de documentos confidenciales y restringidos (B18, numeral 15.4). Solo se
+/// agregan filas: nadie las cambia ni las borra.
+model DocAccessLog {
+  id         String      @id @default(uuid(7)) @db.Uuid
+  tenantId   String      @map("tenant_id") @db.Uuid
+  documentId String      @map("document_id") @db.Uuid
+  versionId  String?     @map("version_id") @db.Uuid
+  userId     String      @map("user_id") @db.Uuid
+  action     String
+  occurredAt DateTime    @map("occurred_at") @db.Timestamptz(6)
+  tenant     Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  document   DocDocument @relation(fields: [tenantId, documentId], references: [tenantId, id], onDelete: Restrict)
+  docVersion DocVersion? @relation(fields: [tenantId, versionId], references: [tenantId, id], onDelete: Restrict)
+
+  @@index([tenantId, documentId, occurredAt])
+  @@map("doc_access_log")
 }
 
 // M04 Flujos y tareas (B15, ADR-011). Las personas se guardan por identificador, sin relación con

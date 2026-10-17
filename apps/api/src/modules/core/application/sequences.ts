@@ -15,7 +15,13 @@ import type { TenantTransaction } from '../../../platform/database/tenant-contex
 import { versionConflict } from '../../../platform/http/if-match.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
 import { bogotaYear } from '../domain/calendar-date.js';
-import { openYear, takeNextValue } from '../infrastructure/sequence-store.js';
+import {
+  NO_YEAR,
+  openPlain,
+  openYear,
+  takeNextValue,
+  type PlainSequence,
+} from '../infrastructure/sequence-store.js';
 import { auditCore } from './core-audit.js';
 import { codeTaken, recordNotFound, sequenceUnknown } from './core-messages.js';
 import type { Versioned } from './records.js';
@@ -38,6 +44,24 @@ export async function nextBusinessCode(
   }
   if (taken === null) throw sequenceUnknown();
   return formatBusinessCode(taken.prefix, year, taken.value, taken.padding);
+}
+
+/**
+ * Siguiente código de un consecutivo sin año, como PR-SGC-001 (B18, PR-SGC-001). El módulo que lo
+ * usa lo define; se crea la primera vez. Igual que nextBusinessCode, va dentro de la transacción
+ * que crea el registro: si se revierte, el número no se gasta.
+ */
+export async function nextPlainCode(
+  tx: TenantTransaction,
+  sequence: PlainSequence,
+): Promise<string> {
+  let taken = await takeNextValue(tx, sequence.key, NO_YEAR);
+  if (taken === null) {
+    await openPlain(tx, sequence);
+    taken = await takeNextValue(tx, sequence.key, NO_YEAR);
+  }
+  if (taken === null) throw sequenceUnknown();
+  return `${taken.prefix}-${String(taken.value).padStart(taken.padding, '0')}`;
 }
 
 function sequenceView(sequence: Sequence): SequenceView {
@@ -64,7 +88,7 @@ function sequenceAudit(sequence: Sequence) {
 }
 
 async function findSequence(tx: TenantTransaction, id: string): Promise<Sequence> {
-  const sequence = await tx.sequence.findFirst({ where: { id, deletedAt: null } });
+  const sequence = await tx.sequence.findFirst({ where: { id, yearly: true, deletedAt: null } });
   if (sequence === null) throw recordNotFound('El consecutivo');
   return sequence;
 }
@@ -77,11 +101,11 @@ export class SequencesUseCase {
     @Inject(CLOCK) private readonly clock: Clock,
   ) {}
 
-  /** Cada tipo con su año más reciente. */
+  /** Cada tipo con su año más reciente. Los consecutivos sin año los administra su módulo. */
   async list(principal: Principal): Promise<SequenceView[]> {
     const rows = await this.database.withTenant(principal, (tx) =>
       tx.sequence.findMany({
-        where: { deletedAt: null },
+        where: { yearly: true, deletedAt: null },
         orderBy: [{ key: 'asc' }, { year: 'desc' }],
       }),
     );
