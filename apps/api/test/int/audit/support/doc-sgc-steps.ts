@@ -143,11 +143,7 @@ export async function newDocument(s: AccessScenario, person: Person): Promise<st
   return created(s.post('/v1/documents', person.session, await documentBody(s, person)));
 }
 
-export async function latest(
-  s: AccessScenario,
-  person: Person,
-  documentId: string,
-): Promise<Version> {
+async function latest(s: AccessScenario, person: Person, documentId: string): Promise<Version> {
   const response = await s.get(`/v1/documents/${documentId}/versions`, person.session);
   const [version] = versionListResponseSchema.parse(response.body).data;
   if (version === undefined) throw new Error('Sin versiones.');
@@ -169,7 +165,7 @@ export function step(
 /** Pasos del trámite (B19): enviar, revisar (Calidad), aprobar (Dirección) y publicar. */
 export type FlowStep = 'submit' | 'review' | 'approve' | 'publish';
 
-export interface Cast {
+interface Cast {
   readonly author: Person;
   readonly approver: Person;
   readonly director: Person;

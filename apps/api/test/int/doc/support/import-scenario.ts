@@ -24,7 +24,7 @@ interface QueuedJob {
 }
 
 /** Cola de prueba: guarda los trabajos para correrlos como el worker. */
-export class RecordingQueue {
+class RecordingQueue {
   readonly jobs: QueuedJob[] = [];
 
   add<Job extends JobDefinition>(job: Job, payload: z.input<Job['schema']>): Promise<string> {

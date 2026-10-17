@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 
+import { summaryLines } from '../../../src/modules/doc/interface/cli/import-report.js';
 import type { Person } from '../iam/support/access-scenario.js';
 import {
   ImportScenario,
@@ -62,6 +63,7 @@ describe('carga inicial del Listado Maestro (criterio del bloque)', () => {
     expect(report.waiting).toBe(0);
     expect(report.current).toBe(251);
     expect(report.differences).toEqual([]);
+    expect(summaryLines(report, true)).toContain('Vigentes cargados: 251');
     const listed = await scenario.masterList(quality);
     expect(listed).toHaveLength(251);
     const byCode = new Map(listed.map((entry) => [entry.code, entry]));

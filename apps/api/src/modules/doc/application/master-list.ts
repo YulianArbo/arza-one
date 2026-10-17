@@ -63,7 +63,7 @@ function entryOf(document: Document): MasterListEntry {
 }
 
 /** Las filas del listado, en orden de código. */
-export async function masterListEntries(
+async function masterListEntries(
   tx: TenantTransaction,
   reader: DocReader,
   query: MasterListQuery,
