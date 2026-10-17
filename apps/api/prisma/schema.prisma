@@ -82,6 +82,8 @@ model Tenant {
   docVersions           DocVersion[]
   docLinks              DocLink[]
   docAccessLog          DocAccessLog[]
+  docChangeRequests     DocChangeRequest[]
+  docAcknowledgements   DocAcknowledgement[]
 
   @@map("core_tenants")
 }
@@ -924,29 +926,31 @@ model DocFolder {
 /// Documento lógico (B18, ficha 17.4): código PR-SGC-001, datos de la versión vigente y su estado.
 /// El proceso y el cargo responsable son del núcleo y se guardan por identificador.
 model DocDocument {
-  id               String         @id @default(uuid(7)) @db.Uuid
-  tenantId         String         @map("tenant_id") @db.Uuid
-  folderId         String         @map("folder_id") @db.Uuid
+  id               String               @id @default(uuid(7)) @db.Uuid
+  tenantId         String               @map("tenant_id") @db.Uuid
+  folderId         String               @map("folder_id") @db.Uuid
   code             String
   title            String
-  docType          String         @map("doc_type")
-  processId        String?        @map("process_id") @db.Uuid
+  docType          String               @map("doc_type")
+  processId        String?              @map("process_id") @db.Uuid
   classification   String
-  status           String         @default("draft")
-  currentVersionId String?        @map("current_version_id") @db.Uuid
-  ownerPositionId  String?        @map("owner_position_id") @db.Uuid
-  isControlled     Boolean        @map("is_controlled")
-  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
-  createdBy        String?        @map("created_by") @db.Uuid
-  updatedAt        DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
-  updatedBy        String?        @map("updated_by") @db.Uuid
-  version          Int            @default(1)
-  deletedAt        DateTime?      @map("deleted_at") @db.Timestamptz(6)
-  tenant           Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  folder           DocFolder      @relation(fields: [tenantId, folderId], references: [tenantId, id], onDelete: Restrict)
+  status           String               @default("draft")
+  currentVersionId String?              @map("current_version_id") @db.Uuid
+  ownerPositionId  String?              @map("owner_position_id") @db.Uuid
+  isControlled     Boolean              @map("is_controlled")
+  createdAt        DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy        String?              @map("created_by") @db.Uuid
+  updatedAt        DateTime             @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy        String?              @map("updated_by") @db.Uuid
+  version          Int                  @default(1)
+  deletedAt        DateTime?            @map("deleted_at") @db.Timestamptz(6)
+  tenant           Tenant               @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  folder           DocFolder            @relation(fields: [tenantId, folderId], references: [tenantId, id], onDelete: Restrict)
   versions         DocVersion[]
   links            DocLink[]
   accessLog        DocAccessLog[]
+  changeRequests   DocChangeRequest[]
+  acknowledgements DocAcknowledgement[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, code])
@@ -959,42 +963,118 @@ model DocDocument {
 /// obsoleta. Lleva el archivo fuente, su PDF y los datos que el documento toma al publicarla. Una
 /// sola vigente por documento; fuera del borrador, la base de datos no deja cambiar su contenido.
 model DocVersion {
-  id              String         @id @default(uuid(7)) @db.Uuid
-  tenantId        String         @map("tenant_id") @db.Uuid
-  documentId      String         @map("document_id") @db.Uuid
-  number          Int
-  versionLabel    String         @map("version_label")
-  status          String         @default("draft")
-  sourceFileId    String         @map("source_file_id") @db.Uuid
-  pdfFileId       String?        @map("pdf_file_id") @db.Uuid
-  renderStatus    String         @default("pending") @map("render_status")
-  title           String
-  classification  String
-  ownerPositionId String?        @map("owner_position_id") @db.Uuid
-  changeSummary   String         @map("change_summary")
-  reviewNote      String?        @map("review_note")
-  submittedAt     DateTime?      @map("submitted_at") @db.Timestamptz(6)
-  approvedBy      String?        @map("approved_by") @db.Uuid
-  approvedAt      DateTime?      @map("approved_at") @db.Timestamptz(6)
-  effectiveDate   DateTime?      @map("effective_date") @db.Date
-  publishedAt     DateTime?      @map("published_at") @db.Timestamptz(6)
-  obsoletedAt     DateTime?      @map("obsoleted_at") @db.Timestamptz(6)
-  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
-  createdBy       String?        @map("created_by") @db.Uuid
-  updatedAt       DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
-  updatedBy       String?        @map("updated_by") @db.Uuid
-  version         Int            @default(1)
-  deletedAt       DateTime?      @map("deleted_at") @db.Timestamptz(6)
-  tenant          Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  document        DocDocument    @relation(fields: [tenantId, documentId], references: [tenantId, id], onDelete: Restrict)
-  sourceFile      File           @relation("VersionSource", fields: [tenantId, sourceFileId], references: [tenantId, id], onDelete: Restrict)
-  pdfFile         File?          @relation("VersionPdf", fields: [tenantId, pdfFileId], references: [tenantId, id], onDelete: Restrict)
-  accessLog       DocAccessLog[]
+  id                 String               @id @default(uuid(7)) @db.Uuid
+  tenantId           String               @map("tenant_id") @db.Uuid
+  documentId         String               @map("document_id") @db.Uuid
+  number             Int
+  versionLabel       String               @map("version_label")
+  status             String               @default("draft")
+  sourceFileId       String               @map("source_file_id") @db.Uuid
+  pdfFileId          String?              @map("pdf_file_id") @db.Uuid
+  renderStatus       String               @default("pending") @map("render_status")
+  title              String
+  classification     String
+  ownerPositionId    String?              @map("owner_position_id") @db.Uuid
+  changeSummary      String               @map("change_summary")
+  reviewNote         String?              @map("review_note")
+  submittedAt        DateTime?            @map("submitted_at") @db.Timestamptz(6)
+  approvedBy         String?              @map("approved_by") @db.Uuid
+  approvedAt         DateTime?            @map("approved_at") @db.Timestamptz(6)
+  effectiveDate      DateTime?            @map("effective_date") @db.Date
+  publishedAt        DateTime?            @map("published_at") @db.Timestamptz(6)
+  obsoletedAt        DateTime?            @map("obsoleted_at") @db.Timestamptz(6)
+  /// platform: elaborada en ARZA ONE; import: carga inicial del Listado Maestro (B19).
+  origin             String               @default("platform")
+  /// Solicitud de Acción Documental que la originó (B19).
+  changeRequestId    String?              @map("change_request_id") @db.Uuid
+  /// Trámite de revisión, aprobación y publicación en el motor de flujos (B19).
+  workflowInstanceId String?              @map("workflow_instance_id") @db.Uuid
+  createdAt          DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy          String?              @map("created_by") @db.Uuid
+  updatedAt          DateTime             @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy          String?              @map("updated_by") @db.Uuid
+  version            Int                  @default(1)
+  deletedAt          DateTime?            @map("deleted_at") @db.Timestamptz(6)
+  tenant             Tenant               @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  document           DocDocument          @relation(fields: [tenantId, documentId], references: [tenantId, id], onDelete: Restrict)
+  sourceFile         File                 @relation("VersionSource", fields: [tenantId, sourceFileId], references: [tenantId, id], onDelete: Restrict)
+  pdfFile            File?                @relation("VersionPdf", fields: [tenantId, pdfFileId], references: [tenantId, id], onDelete: Restrict)
+  changeRequest      DocChangeRequest?    @relation(fields: [tenantId, changeRequestId], references: [tenantId, id], onDelete: Restrict)
+  accessLog          DocAccessLog[]
+  acknowledgements   DocAcknowledgement[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, documentId, number])
+  @@unique([tenantId, changeRequestId])
+  @@unique([tenantId, workflowInstanceId])
   @@index([tenantId, documentId, status])
   @@map("doc_versions")
+}
+
+/// Solicitud de Acción Documental (B19, FT-SGC-001): pedir crear, modificar o eliminar un documento
+/// del SGC. Radicada → en análisis → aprobada o rechazada → ejecutada. El trámite lo lleva el motor
+/// de flujos; quien la pide nunca la decide.
+model DocChangeRequest {
+  id                 String       @id @default(uuid(7)) @db.Uuid
+  tenantId           String       @map("tenant_id") @db.Uuid
+  code               String
+  action             String
+  documentId         String?      @map("document_id") @db.Uuid
+  docType            String?      @map("doc_type")
+  processId          String?      @map("process_id") @db.Uuid
+  title              String
+  justification      String
+  status             String       @default("filed")
+  requestedBy        String       @map("requested_by") @db.Uuid
+  workflowInstanceId String?      @map("workflow_instance_id") @db.Uuid
+  decidedBy          String?      @map("decided_by") @db.Uuid
+  decidedAt          DateTime?    @map("decided_at") @db.Timestamptz(6)
+  decisionNote       String?      @map("decision_note")
+  executedAt         DateTime?    @map("executed_at") @db.Timestamptz(6)
+  createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy          String?      @map("created_by") @db.Uuid
+  updatedAt          DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy          String?      @map("updated_by") @db.Uuid
+  version            Int          @default(1)
+  deletedAt          DateTime?    @map("deleted_at") @db.Timestamptz(6)
+  tenant             Tenant       @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  document           DocDocument? @relation(fields: [tenantId, documentId], references: [tenantId, id], onDelete: Restrict)
+  versions           DocVersion[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, workflowInstanceId])
+  @@index([tenantId, status])
+  @@index([tenantId, documentId])
+  @@index([tenantId, requestedBy])
+  @@map("doc_change_requests")
+}
+
+/// Constancia de lectura (B19, ficha 17.4): al publicar, una fila pendiente por cada persona de los
+/// cargos destinatarios; queda confirmada cuando la persona declara que leyó la versión vigente.
+model DocAcknowledgement {
+  id             String      @id @default(uuid(7)) @db.Uuid
+  tenantId       String      @map("tenant_id") @db.Uuid
+  documentId     String      @map("document_id") @db.Uuid
+  versionId      String      @map("version_id") @db.Uuid
+  userId         String      @map("user_id") @db.Uuid
+  positionId     String?     @map("position_id") @db.Uuid
+  requestedAt    DateTime?   @map("requested_at") @db.Timestamptz(6)
+  acknowledgedAt DateTime?   @map("acknowledged_at") @db.Timestamptz(6)
+  createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy      String?     @map("created_by") @db.Uuid
+  updatedAt      DateTime    @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy      String?     @map("updated_by") @db.Uuid
+  version        Int         @default(1)
+  deletedAt      DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  tenant         Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  document       DocDocument @relation(fields: [tenantId, documentId], references: [tenantId, id], onDelete: Restrict)
+  docVersion     DocVersion  @relation(fields: [tenantId, versionId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, versionId, userId])
+  @@index([tenantId, userId, acknowledgedAt])
+  @@map("doc_acknowledgements")
 }
 
 /// Vínculo de un documento con un registro de otro módulo (B18): un cargo, un proceso o un tercero.
