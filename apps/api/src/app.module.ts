@@ -10,6 +10,7 @@ import { DocModule } from './modules/doc/index.js';
 import { IamModule } from './modules/iam/index.js';
 import { PartyModule } from './modules/party/index.js';
 import { NtfModule } from './modules/ntf/index.js';
+import { PrivacyModule } from './modules/privacy/index.js';
 import { WfModule } from './modules/wf/index.js';
 import { AccessGuard } from './platform/access/access.guard.js';
 import { AuthorizationGuard } from './platform/access/authorization.guard.js';
@@ -37,6 +38,7 @@ const BUSINESS_MODULES = [
   DocModule,
   WfModule,
   NtfModule,
+  PrivacyModule,
 ];
 
 /**

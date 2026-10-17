@@ -26,16 +26,23 @@ const ORGANIZATION = {
   check_digit: 4,
 } as const;
 
-const PERSON = {
+const PERSON_DATA = {
   kind: 'person',
   first_name: 'Laura',
   last_name: 'Gómez Ríos',
   id_type: 'CC',
   id_number: '1020304050',
-  data_purpose: 'COMMERCIAL',
-  data_authorization: 'written',
-  data_authorized_on: '2026-10-01',
 } as const;
+
+const CONSENT = {
+  notice_id: '019a0000-0000-7000-8000-000000000001',
+  accepted: true,
+  purposes: ['COMMERCIAL'],
+  channel: 'written',
+  granted_on: '2026-10-01',
+} as const;
+
+const PERSON = { ...PERSON_DATA, consent: CONSENT } as const;
 
 describe('dígito de verificación del NIT', () => {
   it.each(KNOWN_NITS)('el NIT %s tiene dígito %i', (nit, digit) => {
@@ -78,18 +85,31 @@ describe('ficha del tercero', () => {
   });
 
   it('solo el NIT lleva dígito de verificación', () => {
-    const result = updatePartyRequestSchema.safeParse({ ...PERSON, check_digit: 3 });
+    const result = updatePartyRequestSchema.safeParse({ ...PERSON_DATA, check_digit: 3 });
     expect(result.success).toBe(false);
     expect(result.error?.issues[0]?.path).toEqual(['check_digit']);
   });
+});
 
-  it('una persona sin finalidad o sin autorización no se registra', () => {
-    const withoutPurpose = { ...PERSON, data_purpose: undefined };
+describe('autorización de la persona', () => {
+  it('una persona sin autorización, sin la casilla o sin finalidad no se registra', () => {
+    const withoutConsent = createPartyRequestSchema.safeParse(PERSON_DATA);
+    expect(withoutConsent.error?.issues[0]?.path).toEqual(['consent']);
+    const unchecked = { ...PERSON, consent: { ...CONSENT, accepted: false } };
+    expect(createPartyRequestSchema.safeParse(unchecked).success).toBe(false);
+    const withoutPurpose = { ...PERSON, consent: { ...CONSENT, purposes: [] } };
     expect(createPartyRequestSchema.safeParse(withoutPurpose).success).toBe(false);
-    const withoutDate = { ...PERSON, data_authorized_on: undefined };
-    expect(createPartyRequestSchema.safeParse(withoutDate).success).toBe(false);
   });
 
+  it('una organización no lleva autorización y editar no la pide', () => {
+    const organization = createPartyRequestSchema.safeParse({ ...ORGANIZATION, consent: CONSENT });
+    expect(organization.error?.issues[0]?.path).toEqual(['consent']);
+    expect(updatePartyRequestSchema.safeParse(PERSON_DATA).success).toBe(true);
+    expect(updatePartyRequestSchema.safeParse(PERSON).success).toBe(false);
+  });
+});
+
+describe('documento de la ficha', () => {
   it('el documento se guarda en mayúsculas y sin espacios alrededor', () => {
     const parsed = createPartyRequestSchema.parse({
       ...PERSON,

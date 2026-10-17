@@ -15,6 +15,7 @@ import {
   Palette,
   ScrollText,
   Settings,
+  ShieldCheck,
   Users,
   type LucideIcon,
 } from 'lucide-react';
@@ -114,6 +115,17 @@ const MODULES: readonly NavigationItem[] = [
       'dashboard.compliance.read',
     ],
     block: 'B46',
+  },
+  {
+    slug: 'privacidad',
+    label: 'Privacidad',
+    icon: ShieldCheck,
+    permissions: [
+      'privacy.notice.manage',
+      'privacy.consent.read',
+      'privacy.activity.manage',
+      'privacy.processor.manage',
+    ],
   },
   {
     slug: 'administracion',

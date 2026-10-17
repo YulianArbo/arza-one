@@ -93,7 +93,7 @@ Los servicios locales se encienden con `pnpm infra:up` ([guía](../../docs/runbo
 | `GET /v1/business-days?from=&days=`                                     | `core.parameter.read`                           | Fecha en que vence un plazo en días hábiles                                                                                                                                                             |
 | `GET /v1/parties` · `GET /v1/parties/{id}`                              | `party.read`                                    | Terceros con búsqueda, filtros por papel y estado, y su ficha. El equipo de proyecto solo ve los que registró                                                                                           |
 | `GET /v1/parties/search`                                                | `party.read`                                    | Posibles duplicados: mismo documento, correo, teléfono o nombre                                                                                                                                         |
-| `POST /v1/parties` · `PATCH /{id}`                                      | `party.create` / `party.update`                 | Registra o edita un tercero; un documento repetido responde 409 `PARTY_DUPLICATE`                                                                                                                       |
+| `POST /v1/parties` · `PATCH /{id}`                                      | `party.create` / `party.update`                 | Registra o edita un tercero; una persona nueva trae su autorización (`consent`, B17). Documento repetido: 409 `PARTY_DUPLICATE`                                                                         |
 | `POST /v1/parties/{id}/actions/change-status`                           | `party.update`                                  | Activa, inactiva, bloquea (con motivo) o desbloquea, con la versión en `If-Match`                                                                                                                       |
 | `POST /v1/parties/{id}/roles` · `DELETE .../roles/{role}`               | `party.update`                                  | Agrega o termina un papel                                                                                                                                                                               |
 | `GET /v1/parties/{id}/contacts` · `POST` · `PATCH` · `DELETE`           | `party.read` / `party.update`                   | Contactos y firmantes de una organización                                                                                                                                                               |
@@ -129,6 +129,14 @@ Los servicios locales se encienden con `pnpm infra:up` ([guía](../../docs/runbo
 | `GET /v1/notification-templates` · `PATCH /{kind}`                      | `ntf.template.manage`                           | Plantillas de aviso; cada cambio (If-Match) es una versión nueva. Datos no permitidos: 422 `NTF_TEMPLATE_INVALID`                                                                                       |
 | `GET /v1/comments` · `POST` · `DELETE /{id}`                            | Según el registro                               | Comentarios de un tercero o trámite (`?entity_type=&entity_id=`); menciones por correo; solo el autor retira                                                                                            |
 | `GET /v1/attachments` · `POST` · `DELETE /{id}`                         | Según el registro                               | Adjuntos de un registro: archivos propios ya revisados; solo quien adjuntó retira                                                                                                                       |
+| `GET /v1/parties/authorization-notices`                                 | `party.read`                                    | Textos de autorización publicados, para el componente de autorización de los formularios (B17)                                                                                                          |
+| `POST /v1/parties/{id}/consents`                                        | `party.update`                                  | Autorización nueva de una persona con el texto vigente; un texto reemplazado mientras se llenaba responde 409 `PRIVACY_NOTICE_OUTDATED`                                                                 |
+| `GET /v1/notices` · `POST` · `GET /{id}` · `PATCH /{id}`                | `privacy.notice.manage`                         | Avisos y políticas con sus versiones; un borrador a la vez por clase (409 `PRIVACY_NOTICE_DRAFT_EXISTS`); lo publicado no cambia (409 `PRIVACY_NOTICE_NOT_EDITABLE`)                                    |
+| `POST /v1/notices/{id}/actions/publish`                                 | `privacy.notice.manage`                         | Publica el borrador (If-Match) y reemplaza la versión vigente de su clase                                                                                                                               |
+| `GET /v1/consents` · `GET /{id}`                                        | `privacy.consent.read`                          | Autorizaciones con su evidencia; `?party_id=&status=&notice_key=`. Quien solo ve lo propio ve las que registró                                                                                          |
+| `POST /v1/consents/{id}/actions/revoke`                                 | `privacy.request.manage`                        | Revoca una sola vez y con motivo; la autorización no se borra                                                                                                                                           |
+| `GET /v1/processing-activities` · `POST` · `GET /{id}` · `PATCH /{id}`  | `privacy.activity.manage`                       | Registro de actividades de tratamiento con sus encargados (If-Match al editar)                                                                                                                          |
+| `GET /v1/processors` · `POST` · `GET /{id}` · `PATCH /{id}`             | `privacy.processor.manage`                      | Encargados: una organización de Terceros, su país y su contrato de transmisión (`has_contract`)                                                                                                         |
 | `POST /v1/attachments/{id}/download-link`                               | Según el registro                               | Enlace de descarga de cinco minutos para quien ve el registro                                                                                                                                           |
 
 «Sesión» quiere decir cualquier sesión completa, sobre la cuenta propia (`@OwnAccount()`). «Según el
@@ -547,6 +555,29 @@ regla de la base de datos y a `RECORD_TYPES`, y ponga `<RecordActivity>` en su f
 
 `pnpm db:seed` carga las plantillas de cada empresa (`seedNotificationTemplates()`); no toca las que
 ya existen.
+
+## Privacidad (B17, módulo `src/modules/privacy`)
+
+Avisos y políticas versionados, autorizaciones de tratamiento con la versión aceptada, registro de
+actividades de tratamiento y encargados (ficha 17.19, numeral 20.1). Las tablas están en
+[`prv.md`](../../docs/manual/datos/prv.md).
+
+| Regla                                        | Cómo se cumple                                                                                                                                                                  |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ningún formulario se envía sin autorización  | El contrato del formulario exige `consent` con `accepted: true`; el caso de uso llama a `grantConsent()` en su misma transacción: si la autorización no vale, no se guarda nada |
+| Cada autorización guarda la versión aceptada | `prv_consents.notice_id` apunta a la versión exacta; el disparador `prv_keep_consents` solo acepta textos de autorización publicados e impide editarla                          |
+| Lo publicado no cambia                       | El disparador `prv_keep_notices`: borrador → publicado → reemplazado, uno de cada uno por clase; publicar toma un bloqueo por clase (`pg_advisory_xact_lock`)                   |
+| Sin dependencia circular con terceros        | Terceros usa el índice de privacidad; privacidad pide los nombres de los terceros por el puerto `PARTY_DIRECTORY`, que presta `PartyDirectoryModule`                            |
+
+**Para un formulario nuevo con datos personales:** agregue `consent: consentGrantSchema` a su
+contrato, muestre `<ConsentFields>` de `apps/web/src/features/privacy` con los textos de
+autorización publicados y llame a `grantConsent()` del índice de privacidad dentro de la
+transacción de su caso de uso, con su propio `source` (agréguelo al contrato y a la regla de la
+base de datos).
+
+`pnpm db:seed` carga en cada empresa un borrador provisional de cada texto
+(`seedPrivacyNotices()`), marcado «PENDIENTE DE CONCEPTO JURÍDICO»; mientras no se publique uno,
+no se pueden registrar personas. `pnpm db:seed:demo` los publica en las empresas de demostración.
 
 ## Imágenes Docker (B05 y B07)
 

@@ -22,7 +22,10 @@ describe('registro del tercero', () => {
   it('registra una organización y una persona con su autorización de datos', async () => {
     const sales = await scenario.sales();
     const org = await scenario.party(sales, organizationBody({ trade_name: 'Andina' }));
-    const person = await scenario.party(sales, personBody({ phone: '+57 310 555 0101' }));
+    const person = await scenario.party(
+      sales,
+      await scenario.personWithConsent({ phone: '+57 310 555 0101' }),
+    );
     const orgDetail = await scenario.detail(sales, org);
     expect(orgDetail).toMatchObject({
       kind: 'organization',
@@ -31,15 +34,21 @@ describe('registro del tercero', () => {
     });
     expect(orgDetail.due_diligence).toEqual({ state: 'none', next_review_on: null });
     const personDetail = await scenario.detail(sales, person);
-    expect(personDetail).toMatchObject({
-      kind: 'person',
-      data_purpose: 'COMMERCIAL',
-      data_authorization: 'written',
-      data_authorized_on: '2026-10-01',
-      phone: '+573105550101',
-    });
+    expect(personDetail).toMatchObject({ kind: 'person', phone: '+573105550101' });
+    expect(personDetail.authorizations).toMatchObject([
+      {
+        notice: { key: 'authorization_contact', version_number: 1 },
+        purposes: ['COMMERCIAL'],
+        channel: 'written',
+        granted_on: '2026-10-01',
+        status: 'active',
+      },
+    ]);
+    expect(orgDetail.authorizations).toEqual([]);
   });
+});
 
+describe('registro del tercero', () => {
   it('con documento repetido responde 409 y la búsqueda ofrece el existente', async () => {
     const sales = await scenario.sales();
     const body = organizationBody();
@@ -79,18 +88,17 @@ describe('registro del tercero: validaciones', () => {
     );
     await expect(insert).rejects.toThrow(/pty_parties_check_digit_check/);
   });
+});
 
+describe('registro del tercero: validaciones', () => {
   it('no acepta opciones que no están en los catálogos activos', async () => {
     const sales = await scenario.sales();
     const badType = await scenario.post(
       '/v1/parties',
       sales.session,
-      personBody({ id_type: 'XX' }),
+      await scenario.personWithConsent({ id_type: 'XX' }),
     );
     expect(errorCode(badType)).toBe('PARTY_CATALOG_VALUE_INVALID');
-    const badPurpose = personBody({ data_purpose: 'NOPE' });
-    const response = await scenario.post('/v1/parties', sales.session, badPurpose);
-    expect(errorCode(response)).toBe('PARTY_CATALOG_VALUE_INVALID');
   });
 });
 
@@ -138,7 +146,9 @@ describe('edición, estados y papeles', () => {
     expect(errorCode(asPerson)).toBe('PARTY_KIND_CHANGE');
     expect((await scenario.detail(sales, id)).city).toBe('Bogotá');
   });
+});
 
+describe('edición, estados y papeles', () => {
   it('sigue el flujo de estados y exige motivo para bloquear', async () => {
     const sales = await scenario.sales();
     const id = await scenario.party(sales, organizationBody({ status: 'prospect' }));

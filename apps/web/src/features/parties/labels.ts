@@ -1,7 +1,6 @@
 import type {
   BankAccountStatus,
   BankAccountType,
-  DataAuthorization,
   DueDiligenceState,
   DuplicateReason,
   PartyKind,
@@ -48,13 +47,6 @@ export const ROLE_LABELS: Readonly<Record<PartyRole, string>> = {
   employee: 'Colaborador',
   contact: 'Contacto',
   candidate: 'Candidato',
-};
-
-export const AUTHORIZATION_LABELS: Readonly<Record<DataAuthorization, string>> = {
-  written: 'Documento firmado',
-  digital: 'Formulario web o correo',
-  verbal: 'Verbal, con constancia',
-  contract: 'Cláusula del contrato',
 };
 
 export const RISK_LABELS: Readonly<Record<RiskLevel, string>> = {

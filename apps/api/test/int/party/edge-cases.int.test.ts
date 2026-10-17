@@ -3,7 +3,7 @@ import { v7 as uuidv7 } from 'uuid';
 import { describe, expect, it } from 'vitest';
 
 import { errorCode } from '../iam/support/iam-fixtures.js';
-import { PartyScenario, organizationBody, personBody } from './support/party-scenario.js';
+import { PartyScenario, organizationBody } from './support/party-scenario.js';
 
 // Casos límite de terceros (B13): registros que no existen, revisiones fuera de orden, contactos
 // que vuelven y fusión de dos personas.
@@ -46,7 +46,7 @@ describe('contactos que cambian', () => {
   it('una persona no tiene contactos y un contacto retirado vuelve con su misma ficha', async () => {
     const sales = await scenario.sales();
     const org = await scenario.party(sales);
-    const person = await scenario.party(sales, personBody());
+    const person = await scenario.party(sales, await scenario.personWithConsent());
     const asPerson = await scenario.post(`/v1/parties/${person}/contacts`, sales.session, {
       person_id: person,
     });
@@ -70,8 +70,8 @@ describe('fusión de dos personas', () => {
   it('la persona que se conserva queda como contacto de la organización', async () => {
     const sales = await scenario.sales();
     const org = await scenario.party(sales, organizationBody());
-    const keep = await scenario.party(sales, personBody());
-    const duplicate = await scenario.party(sales, personBody());
+    const keep = await scenario.party(sales, await scenario.personWithConsent());
+    const duplicate = await scenario.party(sales, await scenario.personWithConsent());
     await scenario.create(`/v1/parties/${org}/contacts`, sales, {
       person_id: duplicate,
       is_primary: true,

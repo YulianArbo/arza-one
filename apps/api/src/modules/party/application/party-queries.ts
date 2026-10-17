@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import {
-  dataAuthorizationSchema,
   partyRoleSchema,
+  type PartyConsent,
   type PartyDetail,
   type PartyListQuery,
   type PartyListResponse,
@@ -16,6 +16,7 @@ import { CLOCK, type Clock } from '../../../platform/clock/clock.js';
 import { DatabaseService } from '../../../platform/database/database.service.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import { bogotaToday, toCalendarDate } from '../../core/index.js';
+import { consentsOfParty } from '../../privacy/index.js';
 import { duplicateReasons, normalizeName, normalizePhone } from '../domain/duplicates.js';
 import { dueDiligenceState } from '../domain/reviews.js';
 import {
@@ -72,7 +73,12 @@ function candidateFilter(probe: PartySearchQuery): Prisma.PartyWhereInput[] {
   return filters;
 }
 
-function detailOf(party: Party & { roles: PartyRole[] }, today: string, latest: LatestRow) {
+function detailOf(
+  party: Party & { roles: PartyRole[] },
+  today: string,
+  latest: LatestRow,
+  authorizations: PartyConsent[],
+) {
   const state = dueDiligenceState(latest, today);
   const view: PartyDetail = {
     ...partySummaryView(party, party.roles),
@@ -82,13 +88,7 @@ function detailOf(party: Party & { roles: PartyRole[] }, today: string, latest: 
     trade_name: party.tradeName,
     address: party.address,
     status_reason: party.statusReason,
-    data_purpose: party.dataPurpose,
-    data_authorization:
-      party.dataAuthorization === null
-        ? null
-        : dataAuthorizationSchema.parse(party.dataAuthorization),
-    data_authorized_on:
-      party.dataAuthorizedOn === null ? null : toCalendarDate(party.dataAuthorizedOn),
+    authorizations,
     role_history: party.roles.map((row) => ({
       role: partyRoleSchema.parse(row.role),
       since: toCalendarDate(row.since),
@@ -219,7 +219,10 @@ export class PartyQueries {
         where: { partyId: id, deletedAt: null },
         orderBy: { since: 'asc' },
       });
-      return detailOf({ ...party, roles }, today, await latestReview(tx, id));
+      // Las autorizaciones de los duplicados fusionados siguen al tercero que se conservó.
+      const merged = await tx.party.findMany({ where: { mergedIntoId: id }, select: { id: true } });
+      const authorizations = await consentsOfParty(tx, [id, ...merged.map((row) => row.id)]);
+      return detailOf({ ...party, roles }, today, await latestReview(tx, id), authorizations);
     });
   }
 }

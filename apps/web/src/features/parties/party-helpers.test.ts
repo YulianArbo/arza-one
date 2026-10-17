@@ -2,7 +2,14 @@ import { describe, expect, it } from 'vitest';
 
 import { ORGANIZATION } from '../../test-support/party-fixtures';
 import { identification, statusActionLabel } from './labels';
-import { EMPTY_PARTY, duplicateQuery, fieldErrors, partyBody, valuesOf } from './party-form-values';
+import {
+  EMPTY_PARTY,
+  createBody,
+  duplicateQuery,
+  fieldErrors,
+  partyBody,
+  valuesOf,
+} from './party-form-values';
 import { queryString } from './queries';
 
 // Lógica de apoyo de las pantallas de terceros (B13).
@@ -37,8 +44,8 @@ describe('valores del formulario', () => {
       trade_name: null,
       first_name: 'Ana',
       check_digit: 4,
-      data_authorization: null,
     });
+    expect(createBody(values)['consent']).toBeNull();
     expect(partyBody({ ...values, idType: 'CC' })['check_digit']).toBeNull();
   });
 

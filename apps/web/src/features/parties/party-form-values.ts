@@ -1,16 +1,23 @@
 import {
   NIT_ID_TYPE,
   createPartyRequestSchema,
-  type DataAuthorization,
   type PartyDetail,
   type PartyKind,
   type PartyRole,
 } from '@arza/contracts';
 
+import {
+  EMPTY_CONSENT,
+  consentBody,
+  consentErrors,
+  type ConsentErrors,
+  type ConsentValues,
+} from '../privacy/consent-values';
 import { queryString } from './queries';
 
 // Valores del formulario del tercero y su paso al contrato (B13). El mismo esquema del contrato
-// valida en la pantalla lo que la API vuelve a validar.
+// valida en la pantalla lo que la API vuelve a validar. Una persona nueva lleva su autorización de
+// tratamiento (B17), con el componente de privacidad.
 
 export interface PartyFormValues {
   readonly kind: PartyKind;
@@ -25,9 +32,7 @@ export interface PartyFormValues {
   readonly phone: string;
   readonly city: string;
   readonly address: string;
-  readonly dataPurpose: string;
-  readonly dataAuthorization: DataAuthorization | '';
-  readonly dataAuthorizedOn: string;
+  readonly consent: ConsentValues;
   readonly roles: readonly PartyRole[];
   readonly status: 'active' | 'prospect';
 }
@@ -45,9 +50,7 @@ export const EMPTY_PARTY: PartyFormValues = {
   phone: '',
   city: '',
   address: '',
-  dataPurpose: '',
-  dataAuthorization: '',
-  dataAuthorizedOn: '',
+  consent: EMPTY_CONSENT,
   roles: [],
   status: 'active',
 };
@@ -66,9 +69,7 @@ export function valuesOf(party: PartyDetail): PartyFormValues {
     phone: party.phone ?? '',
     city: party.city ?? '',
     address: party.address ?? '',
-    dataPurpose: party.data_purpose ?? '',
-    dataAuthorization: party.data_authorization ?? '',
-    dataAuthorizedOn: party.data_authorized_on ?? '',
+    consent: EMPTY_CONSENT,
     roles: party.roles,
     status: 'active',
   };
@@ -95,9 +96,16 @@ export function partyBody(values: PartyFormValues): Record<string, unknown> {
     trade_name: person ? null : text(values.tradeName),
     first_name: person ? text(values.firstName) : null,
     last_name: person ? text(values.lastName) : null,
-    data_purpose: person ? text(values.dataPurpose) : null,
-    data_authorization: person && values.dataAuthorization !== '' ? values.dataAuthorization : null,
-    data_authorized_on: person ? text(values.dataAuthorizedOn) : null,
+  };
+}
+
+/** Registro nuevo: los datos, los papeles, el estado y, si es persona, su autorización. */
+export function createBody(values: PartyFormValues): Record<string, unknown> {
+  return {
+    ...partyBody(values),
+    roles: values.roles,
+    status: values.status,
+    consent: values.kind === 'person' ? consentBody(values.consent) : null,
   };
 }
 
@@ -111,28 +119,27 @@ const FIELD_MESSAGES: Readonly<Record<string, string>> = {
   check_digit: 'Escriba el dígito de verificación del NIT.',
   email: 'Escriba un correo válido, por ejemplo nombre@empresa.com.',
   phone: 'Escriba solo números, con el indicativo si es del exterior.',
-  data_purpose: 'Elija para qué se usarán los datos.',
-  data_authorization: 'Elija cómo se obtuvo la autorización.',
-  data_authorized_on: 'Escriba la fecha de la autorización.',
 };
 
 export type FieldErrors = Readonly<Record<string, string>>;
 
-/** Problemas del formulario por campo, con el mismo esquema que usa la API. */
+/** Problemas de los datos por campo, con el mismo esquema que usa la API. */
 export function fieldErrors(values: PartyFormValues): FieldErrors {
-  const result = createPartyRequestSchema.safeParse({
-    ...partyBody(values),
-    roles: values.roles,
-    status: values.status,
-  });
+  const result = createPartyRequestSchema.safeParse({ ...createBody(values), consent: null });
   if (result.success) return {};
   const errors: Record<string, string> = {};
   for (const issue of result.error.issues) {
     const field = String(issue.path[0] ?? '');
+    if (field === 'consent') continue;
     const message = issue.code === 'custom' ? issue.message : FIELD_MESSAGES[field];
     errors[field] ??= message ?? 'Revise este dato.';
   }
   return errors;
+}
+
+/** Problemas de la autorización: solo al registrar una persona. */
+export function newPersonConsentErrors(values: PartyFormValues, creating: boolean): ConsentErrors {
+  return creating && values.kind === 'person' ? consentErrors(values.consent) : {};
 }
 
 /** Búsqueda de posibles duplicados con lo que ya se escribió. */

@@ -6,7 +6,12 @@ import { systemClock } from '../../../../src/platform/clock/clock.js';
 import { apiDatabase } from '../../support/integration-database.js';
 import { WEB_ORIGIN, freshIp, type SignedIn } from '../../iam/support/iam-fixtures.js';
 import type { AccessScenario } from '../../iam/support/access-scenario.js';
-import { organizationBody, personBody, uniqueNumber } from '../../party/support/party-scenario.js';
+import {
+  consentFor,
+  organizationBody,
+  personBody,
+  uniqueNumber,
+} from '../../party/support/party-scenario.js';
 
 // Llamadas del recorrido de escrituras (B11) para las rutas de terceros (B13). Lo que cada llamada
 // necesita se prepara en la base o por la API; la llamada final es la que se revisa.
@@ -114,19 +119,28 @@ const PARTY_CALLS: Record<string, RouteCall> = {
 const CONTACT_CALLS: Record<string, RouteCall> = {
   'POST /v1/parties/{id}/contacts': async (s) => {
     const { session, id } = await newParty(s);
-    const person = await created(s, '/v1/parties', session, personBody());
+    const person = await created(s, '/v1/parties', session, {
+      ...personBody(),
+      consent: await consentFor(s),
+    });
     return { test: s.post(`/v1/parties/${id}/contacts`, session, { person_id: person }) };
   },
   'PATCH /v1/parties/{id}/contacts/{contactId}': async (s) => {
     const { session, id } = await newParty(s);
-    const person = await created(s, '/v1/parties', session, personBody());
+    const person = await created(s, '/v1/parties', session, {
+      ...personBody(),
+      consent: await consentFor(s),
+    });
     const contact = await created(s, `/v1/parties/${id}/contacts`, session, { person_id: person });
     const body = { job_title: 'Gerente de compras', is_primary: true, can_sign: true };
     return { test: s.patch(`/v1/parties/${id}/contacts/${contact}`, session, body, 1) };
   },
   'DELETE /v1/parties/{id}/contacts/{contactId}': async (s) => {
     const { session, id } = await newParty(s);
-    const person = await created(s, '/v1/parties', session, personBody());
+    const person = await created(s, '/v1/parties', session, {
+      ...personBody(),
+      consent: await consentFor(s),
+    });
     const contact = await created(s, `/v1/parties/${id}/contacts`, session, { person_id: person });
     return { test: del(s, `/v1/parties/${id}/contacts/${contact}`, session, 1) };
   },

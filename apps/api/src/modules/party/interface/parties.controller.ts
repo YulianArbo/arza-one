@@ -17,8 +17,10 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   addPartyRoleRequestSchema,
   changePartyStatusRequestSchema,
+  consentGrantSchema,
   createPartyRequestSchema,
   mergePartiesRequestSchema,
+  noticeListResponseSchema,
   partyDetailSchema,
   partyListQuerySchema,
   partyListResponseSchema,
@@ -40,6 +42,7 @@ import { Meta, type RequestMeta } from '../../../platform/http/request-meta.js';
 import { ApiPermissionErrors } from '../../../platform/openapi/api-common-errors.js';
 import { MergeUseCase } from '../application/merge.js';
 import { PartiesUseCase } from '../application/parties.js';
+import { PartyConsentsUseCase } from '../application/party-consents.js';
 import { PartyQueries } from '../application/party-queries.js';
 import { TimelineUseCase } from '../application/timeline.js';
 import { ApiIfMatch, ApiPartyWriteErrors, PartyCreatedResponse } from './party-openapi.js';
@@ -57,6 +60,8 @@ class MergePartiesRequest extends createZodDto(mergePartiesRequestSchema) {}
 class TimelineQuery extends createZodDto(timelineQuerySchema) {}
 class TimelineResponse extends createZodDto(timelineResponseSchema) {}
 class PartyRoleParams extends createZodDto(partyRoleParamsSchema) {}
+class AuthorizationNoticesResponse extends createZodDto(noticeListResponseSchema) {}
+class GrantConsentRequest extends createZodDto(consentGrantSchema) {}
 
 /** Ficha única del tercero: listado, duplicados, estado, papeles, fusión y línea de tiempo (M02). */
 @ApiTags('Terceros')
@@ -68,6 +73,7 @@ export class PartiesController {
     @Inject(PartiesUseCase) private readonly parties: PartiesUseCase,
     @Inject(MergeUseCase) private readonly merges: MergeUseCase,
     @Inject(TimelineUseCase) private readonly timelines: TimelineUseCase,
+    @Inject(PartyConsentsUseCase) private readonly consents: PartyConsentsUseCase,
   ) {}
 
   @RequirePermission('party.read')
@@ -95,6 +101,40 @@ export class PartiesController {
     @Query() query: PartySearchQuery,
   ): Promise<PartySearchResponse> {
     return this.queries.search(principal, ability, query);
+  }
+
+  @RequirePermission('party.read')
+  @Get('authorization-notices')
+  @ApiOperation({
+    summary: 'Textos de autorización vigentes',
+    description: 'Los que muestra el formulario de una persona antes de marcar la casilla (B17).',
+  })
+  @ZodResponse({
+    status: HttpStatus.OK,
+    type: AuthorizationNoticesResponse,
+    description: 'Textos publicados',
+  })
+  async authorizationNotices(
+    @CurrentPrincipal() principal: Principal,
+  ): Promise<AuthorizationNoticesResponse> {
+    return { data: await this.consents.notices(principal) };
+  }
+
+  @RequirePermission('party.update')
+  @Post(':id/consents')
+  @ApiOperation({
+    summary: 'Registrar una autorización nueva de la persona',
+    description: 'Con la versión vigente del texto; por ejemplo, para otra finalidad.',
+  })
+  @ZodResponse({ status: HttpStatus.CREATED, type: PartyCreatedResponse, description: 'Creada' })
+  @ApiPartyWriteErrors()
+  async grantConsent(
+    @CurrentPrincipal() principal: Principal,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: GrantConsentRequest,
+    @Meta() meta: RequestMeta,
+  ): Promise<PartyCreatedResponse> {
+    return { id: await this.consents.grant(principal, id, body, meta) };
   }
 
   @RequirePermission('party.create')

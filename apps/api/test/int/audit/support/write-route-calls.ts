@@ -24,6 +24,7 @@ import { CORE_CALLS } from './core-route-calls.js';
 import { DOC_ROUTE_CALLS } from './doc-route-calls.js';
 import { NTF_ROUTE_CALLS } from './ntf-route-calls.js';
 import { PARTY_ROUTE_CALLS } from './party-route-calls.js';
+import { PRIVACY_ROUTE_CALLS } from './privacy-route-calls.js';
 import { WF_ROUTE_CALLS } from './wf-route-calls.js';
 
 // Una petición válida a cada ruta de la API que escribe (B11, criterio de la ficha 17.20). Cada
@@ -287,4 +288,5 @@ export const WRITE_ROUTE_CALLS: Readonly<Record<string, RouteCall>> = {
   ...DOC_ROUTE_CALLS,
   ...WF_ROUTE_CALLS,
   ...NTF_ROUTE_CALLS,
+  ...PRIVACY_ROUTE_CALLS,
 };

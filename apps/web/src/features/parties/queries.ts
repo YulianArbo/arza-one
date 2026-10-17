@@ -4,6 +4,8 @@ import {
   bankAccountListResponseSchema,
   contactListResponseSchema,
   dueDiligenceListResponseSchema,
+  noticeListResponseSchema,
+  PRIVACY_ERROR_CODES,
   partyDetailSchema,
   partyListResponseSchema,
   partySearchResponseSchema,
@@ -11,13 +13,16 @@ import {
   type BankAccountListResponse,
   type ContactListResponse,
   type DueDiligenceListResponse,
+  type NoticeListResponse,
   type PartyDetail,
   type PartyListResponse,
   type PartySearchResponse,
   type TimelineResponse,
 } from '@arza/contracts';
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import { useEffect } from 'react';
 
+import { ApiError } from '../../lib/api/api-error';
 import { useApiClient } from '../../lib/api/api-provider';
 
 // Consultas de terceros (B13). La API revisa el permiso y el aislamiento en cada una.
@@ -33,7 +38,28 @@ export const PARTY_KEYS = {
   accounts: (id: string) => ['parties', id, 'bank-accounts'] as const,
   reviews: (id: string) => ['parties', id, 'due-diligence'] as const,
   timeline: (id: string, cursor: string | null) => ['parties', id, 'timeline', cursor] as const,
+  notices: ['parties', 'authorization-notices'] as const,
 };
+
+/**
+ * Textos de autorización vigentes para el formulario de una persona (B17). Si al guardar la API
+ * dice que el texto cambió (`saveError`), se vuelven a pedir para mostrar el nuevo.
+ */
+export function useAuthorizationNotices(saveError: unknown): UseQueryResult<NoticeListResponse> {
+  const api = useApiClient();
+  const query = useQuery({
+    queryKey: PARTY_KEYS.notices,
+    queryFn: ({ signal }) =>
+      api.get('/v1/parties/authorization-notices', { schema: noticeListResponseSchema, signal }),
+  });
+  const { refetch } = query;
+  const outdated =
+    saveError instanceof ApiError && saveError.code === PRIVACY_ERROR_CODES.noticeOutdated;
+  useEffect(() => {
+    if (outdated) void refetch();
+  }, [outdated, saveError, refetch]);
+  return query;
+}
 
 export interface PartyFilters {
   readonly q: string;

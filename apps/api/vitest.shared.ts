@@ -73,6 +73,9 @@ export const DATABASE_BOUND_FILES = [
   'src/modules/iam/infrastructure/notice-recipients.ts',
   'src/modules/ntf/application/**/*.ts',
   'src/modules/ntf/interface/**/*.ts',
+  // Privacidad (B17): casos de uso y controladores.
+  'src/modules/privacy/application/**/*.ts',
+  'src/modules/privacy/interface/**/*.ts',
 ];
 
 /** Procesos que solo arrancan algo; se prueban a mano o como proceso real. */

@@ -27,6 +27,14 @@ export function kindChange(): AppError {
   );
 }
 
+export function consentNotAllowed(): AppError {
+  return new AppError(
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    PARTY_ERROR_CODES.consentNotAllowed,
+    'Solo las personas llevan autorización de tratamiento de datos.',
+  );
+}
+
 export function catalogValueInvalid(what: string): AppError {
   return new AppError(
     HttpStatus.UNPROCESSABLE_ENTITY,

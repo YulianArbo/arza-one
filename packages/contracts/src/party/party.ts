@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { consentGrantSchema, partyConsentSchema } from '../privacy/consents.js';
 import { NIT_NUMBER_PATTERN, isValidNit } from './nit.js';
 
 // Contratos de los terceros (M02, B13): ficha única de persona u organización, sus papeles,
@@ -20,6 +21,7 @@ export const PARTY_ERROR_CODES = {
   reviewClosed: 'PARTY_REVIEW_CLOSED',
   nextReviewInvalid: 'PARTY_NEXT_REVIEW_INVALID',
   mergeInvalid: 'PARTY_MERGE_INVALID',
+  consentNotAllowed: 'PARTY_CONSENT_NOT_ALLOWED',
 } as const;
 
 /** Código del tipo de documento para el NIT en el catálogo «identification_types». */
@@ -36,13 +38,6 @@ export const partyStatusSchema = z
 export const partyRoleSchema = z
   .enum(['customer', 'supplier', 'employee', 'contact', 'candidate'])
   .describe('Cliente, proveedor, colaborador, contacto o candidato');
-
-/** Cómo se obtuvo la autorización de tratamiento de datos (Ley 1581 de 2012, art. 9). */
-export const dataAuthorizationSchema = z
-  .enum(['written', 'digital', 'verbal', 'contract'])
-  .describe(
-    'Documento firmado, formulario o correo, verbal con constancia, o cláusula del contrato',
-  );
 
 export type PartyKind = z.infer<typeof partyKindSchema>;
 export type PartyStatus = z.infer<typeof partyStatusSchema>;
@@ -96,20 +91,13 @@ const partyDataFields = {
     .describe('Nombre comercial; organizaciones'),
   first_name: personName.nullable().default(null).describe('Nombres; personas'),
   last_name: personName.nullable().default(null).describe('Apellidos; personas'),
-  // Todo dato personal con su finalidad y su autorización (ficha 17.3, M18).
-  data_purpose: catalogCode
-    .nullable()
-    .default(null)
-    .describe('Personas: código del catálogo «Finalidades del tratamiento»'),
-  data_authorization: dataAuthorizationSchema.nullable().default(null).describe('Personas'),
-  data_authorized_on: calendarDate.nullable().default(null).describe('Personas: fecha'),
 };
 
 type PartyDataInput = z.infer<z.ZodObject<typeof partyDataFields>>;
 
 const REQUIRED_BY_KIND = {
   organization: ['legal_name'],
-  person: ['first_name', 'last_name', 'data_purpose', 'data_authorization', 'data_authorized_on'],
+  person: ['first_name', 'last_name'],
 } as const satisfies Record<PartyKind, readonly (keyof PartyDataInput)[]>;
 
 const FORBIDDEN_BY_KIND = {
@@ -117,7 +105,7 @@ const FORBIDDEN_BY_KIND = {
   person: ['legal_name', 'trade_name'],
 } as const satisfies Record<PartyKind, readonly (keyof PartyDataInput)[]>;
 
-/** Una organización lleva razón social; una persona, nombres, apellidos y su autorización. */
+/** Una organización lleva razón social; una persona, nombres y apellidos. */
 function checkKindFields(value: PartyDataInput, context: z.RefinementCtx): void {
   for (const field of REQUIRED_BY_KIND[value.kind]) {
     if (value[field] === null) {
@@ -175,13 +163,32 @@ function checkParty(value: PartyDataInput, context: z.RefinementCtx): void {
   checkIdentification(value, context);
 }
 
+/**
+ * Ningún formulario con datos personales se guarda sin autorización registrada (B17): la persona
+ * llega con la suya; la organización no lleva.
+ */
+function checkConsent(value: { kind: PartyKind; consent: unknown }, context: z.RefinementCtx) {
+  if (value.kind === 'person' && value.consent === null) {
+    const message = 'Registre la autorización de tratamiento de datos de la persona.';
+    context.addIssue({ code: 'custom', path: ['consent'], message });
+  }
+  if (value.kind === 'organization' && value.consent !== null) {
+    const message = 'Solo las personas llevan autorización de tratamiento de datos.';
+    context.addIssue({ code: 'custom', path: ['consent'], message });
+  }
+}
+
 export const createPartyRequestSchema = z
   .strictObject({
     ...partyDataFields,
     status: z.enum(['prospect', 'active']).default('active'),
     roles: z.array(partyRoleSchema).max(5).default([]),
+    consent: consentGrantSchema.nullable().default(null).describe('Personas: su autorización'),
   })
-  .superRefine(checkParty);
+  .superRefine((value, context) => {
+    checkParty(value, context);
+    checkConsent(value, context);
+  });
 
 /** Edición de los datos; el estado y los papeles cambian por sus propias acciones. */
 export const updatePartyRequestSchema = z.strictObject(partyDataFields).superRefine(checkParty);
@@ -232,9 +239,9 @@ export const partyDetailSchema = partySummarySchema.extend({
   trade_name: z.string().nullable(),
   address: z.string().nullable(),
   status_reason: z.string().nullable(),
-  data_purpose: z.string().nullable(),
-  data_authorization: dataAuthorizationSchema.nullable(),
-  data_authorized_on: calendarDate.nullable(),
+  authorizations: z
+    .array(partyConsentSchema)
+    .describe('Autorizaciones de tratamiento; las más recientes primero'),
   role_history: z.array(partyRoleRecordSchema),
   due_diligence: z.object({
     state: dueDiligenceStateSchema,
@@ -290,4 +297,3 @@ export type PartySearchQuery = z.infer<typeof partySearchQuerySchema>;
 export type DuplicateReason = z.infer<typeof duplicateReasonSchema>;
 export type PartySearchResponse = z.infer<typeof partySearchResponseSchema>;
 export type MergePartiesRequest = z.infer<typeof mergePartiesRequestSchema>;
-export type DataAuthorization = z.infer<typeof dataAuthorizationSchema>;
