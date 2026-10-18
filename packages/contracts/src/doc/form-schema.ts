@@ -31,10 +31,17 @@ export const formFieldTypeSchema = z
   .enum(Object.keys(FORM_FIELD_TYPES) as [FormFieldType, ...FormFieldType[]])
   .describe('Texto, texto largo, número, fecha, sí o no, lista, verificación o tabla');
 
+/** Variables que las plantillas de salida ya usan: un campo no puede llamarse así. */
+export const RESERVED_FIELD_KEYS: readonly string[] = ['formato', 'registro', 'empresa'];
+
 const keySchema = z
   .string()
   .regex(/^[a-z][a-z0-9_]{0,39}$/u, 'Use minúsculas, números y guion bajo; empiece por una letra.')
   .describe('Nombre interno del campo; es la variable de las plantillas');
+
+const fieldKeySchema = keySchema.refine((key) => !RESERVED_FIELD_KEYS.includes(key), {
+  message: 'Ese nombre interno está reservado (formato, registro, empresa).',
+});
 
 const label = (max: number) => z.string().trim().min(1).max(max);
 
@@ -50,7 +57,7 @@ function duplicates(keys: readonly string[]): string[] {
 
 export const formFieldSchema = z
   .strictObject({
-    key: keySchema,
+    key: fieldKeySchema,
     label: label(120),
     type: formFieldTypeSchema,
     required: z.boolean().default(false),

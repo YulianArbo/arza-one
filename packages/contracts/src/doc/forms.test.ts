@@ -84,6 +84,8 @@ describe('diseño del formato', () => {
     expect(formDefinitionSchema.safeParse(repeated).success).toBe(false);
     const field = { key: 'Campo Uno', label: 'Uno', type: 'text' };
     expect(formFieldSchema.safeParse(field).success).toBe(false);
+    const reserved = { key: 'empresa', label: 'Empresa', type: 'text' };
+    expect(formFieldSchema.safeParse(reserved).success).toBe(false);
   });
 });
 
