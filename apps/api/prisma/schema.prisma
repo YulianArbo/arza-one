@@ -84,6 +84,9 @@ model Tenant {
   docAccessLog          DocAccessLog[]
   docChangeRequests     DocChangeRequest[]
   docAcknowledgements   DocAcknowledgement[]
+  docOutputTemplates    DocOutputTemplate[]
+  docFormTemplates      DocFormTemplate[]
+  docFormRecords        DocFormRecord[]
 
   @@map("core_tenants")
 }
@@ -867,25 +870,28 @@ model DueDiligence {
 /// el worker lo analiza con el antivirus, revisa que su contenido sea del tipo declarado y calcula
 /// su huella SHA-256. Solo un archivo disponible se descarga (numeral 13.2, ADR-013).
 model File {
-  id         String       @id @default(uuid(7)) @db.Uuid
-  tenantId   String       @map("tenant_id") @db.Uuid
-  storageKey String       @map("storage_key")
-  fileName   String       @map("file_name")
-  mimeType   String       @map("mime_type")
-  sizeBytes  Int          @map("size_bytes")
-  sha256     String?
-  scanStatus String       @default("pending_upload") @map("scan_status")
-  rejection  String?
-  scannedAt  DateTime?    @map("scanned_at") @db.Timestamptz(6)
-  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  createdBy  String?      @map("created_by") @db.Uuid
-  updatedAt  DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
-  updatedBy  String?      @map("updated_by") @db.Uuid
-  version    Int          @default(1)
-  deletedAt  DateTime?    @map("deleted_at") @db.Timestamptz(6)
-  tenant     Tenant       @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  sourceOf   DocVersion[] @relation("VersionSource")
-  renderOf   DocVersion[] @relation("VersionPdf")
+  id          String              @id @default(uuid(7)) @db.Uuid
+  tenantId    String              @map("tenant_id") @db.Uuid
+  storageKey  String              @map("storage_key")
+  fileName    String              @map("file_name")
+  mimeType    String              @map("mime_type")
+  sizeBytes   Int                 @map("size_bytes")
+  sha256      String?
+  scanStatus  String              @default("pending_upload") @map("scan_status")
+  rejection   String?
+  scannedAt   DateTime?           @map("scanned_at") @db.Timestamptz(6)
+  createdAt   DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?             @map("created_by") @db.Uuid
+  updatedAt   DateTime            @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?             @map("updated_by") @db.Uuid
+  version     Int                 @default(1)
+  deletedAt   DateTime?           @map("deleted_at") @db.Timestamptz(6)
+  tenant      Tenant              @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  sourceOf    DocVersion[]        @relation("VersionSource")
+  renderOf    DocVersion[]        @relation("VersionPdf")
+  copyOf      DocVersion[]        @relation("VersionCopy")
+  templateOf  DocOutputTemplate[]
+  recordPdfOf DocFormRecord[]
 
   @@unique([tenantId, id])
   @@unique([storageKey])
@@ -951,6 +957,7 @@ model DocDocument {
   accessLog        DocAccessLog[]
   changeRequests   DocChangeRequest[]
   acknowledgements DocAcknowledgement[]
+  formTemplates    DocFormTemplate[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, code])
@@ -989,6 +996,8 @@ model DocVersion {
   changeRequestId    String?              @map("change_request_id") @db.Uuid
   /// Trámite de revisión, aprobación y publicación en el motor de flujos (B19).
   workflowInstanceId String?              @map("workflow_instance_id") @db.Uuid
+  /// Copia de consulta de la versión vigente: su PDF con el pie de copia no controlada (B20).
+  copyFileId         String?              @map("copy_file_id") @db.Uuid
   createdAt          DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
   createdBy          String?              @map("created_by") @db.Uuid
   updatedAt          DateTime             @default(now()) @map("updated_at") @db.Timestamptz(6)
@@ -999,6 +1008,7 @@ model DocVersion {
   document           DocDocument          @relation(fields: [tenantId, documentId], references: [tenantId, id], onDelete: Restrict)
   sourceFile         File                 @relation("VersionSource", fields: [tenantId, sourceFileId], references: [tenantId, id], onDelete: Restrict)
   pdfFile            File?                @relation("VersionPdf", fields: [tenantId, pdfFileId], references: [tenantId, id], onDelete: Restrict)
+  copyFile           File?                @relation("VersionCopy", fields: [tenantId, copyFileId], references: [tenantId, id], onDelete: Restrict)
   changeRequest      DocChangeRequest?    @relation(fields: [tenantId, changeRequestId], references: [tenantId, id], onDelete: Restrict)
   accessLog          DocAccessLog[]
   acknowledgements   DocAcknowledgement[]
@@ -1116,6 +1126,123 @@ model DocAccessLog {
 
   @@index([tenantId, documentId, occurredAt])
   @@map("doc_access_log")
+}
+
+/// Plantilla de salida (B20, numeral 13.2): HTML con variables {{nombre}} o Word con variables
+/// {nombre}. Cada publicación es una versión; publicada, no cambia.
+model DocOutputTemplate {
+  id            String            @id @default(uuid(7)) @db.Uuid
+  tenantId      String            @map("tenant_id") @db.Uuid
+  code          String
+  name          String
+  /// html o docx.
+  engine        String
+  outputVersion Int               @map("output_version")
+  status        String            @default("draft")
+  body          String?
+  fileId        String?           @map("file_id") @db.Uuid
+  variables     Json              @default("[]")
+  publishedAt   DateTime?         @map("published_at") @db.Timestamptz(6)
+  publishedBy   String?           @map("published_by") @db.Uuid
+  retiredAt     DateTime?         @map("retired_at") @db.Timestamptz(6)
+  createdAt     DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?           @map("created_by") @db.Uuid
+  updatedAt     DateTime          @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?           @map("updated_by") @db.Uuid
+  version       Int               @default(1)
+  deletedAt     DateTime?         @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  file          File?             @relation(fields: [tenantId, fileId], references: [tenantId, id], onDelete: Restrict)
+  formTemplates DocFormTemplate[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code, outputVersion])
+  @@index([tenantId, status])
+  @@map("doc_output_templates")
+}
+
+/// Formato digital (B20, ficha 17.4 y capítulo 18, forma B): una fila por versión de cada formato.
+/// Sus campos van en «schema» (jsonb validado contra formDefinitionSchema). Publicada, no cambia;
+/// solo pasa a retirada cuando se publica la siguiente.
+model DocFormTemplate {
+  id               String             @id @default(uuid(7)) @db.Uuid
+  tenantId         String             @map("tenant_id") @db.Uuid
+  code             String
+  name             String
+  formVersion      Int                @map("form_version")
+  status           String             @default("draft")
+  /// manual: lo diligencia una persona; system: lo llena la plataforma (FT-SGC-001).
+  fillMode         String             @default("manual") @map("fill_mode")
+  definition       Json               @map("schema")
+  layout           Json               @default("{}")
+  documentId       String?            @map("document_id") @db.Uuid
+  outputTemplateId String?            @map("output_template_id") @db.Uuid
+  /// Flujo de aprobación de los registros; null: el registro termina al enviarlo.
+  workflowKey      String?            @map("workflow_key")
+  classification   String             @default("internal")
+  entityType       String?            @map("entity_type")
+  publishedAt      DateTime?          @map("published_at") @db.Timestamptz(6)
+  publishedBy      String?            @map("published_by") @db.Uuid
+  retiredAt        DateTime?          @map("retired_at") @db.Timestamptz(6)
+  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy        String?            @map("created_by") @db.Uuid
+  updatedAt        DateTime           @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy        String?            @map("updated_by") @db.Uuid
+  version          Int                @default(1)
+  deletedAt        DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  tenant           Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  document         DocDocument?       @relation(fields: [tenantId, documentId], references: [tenantId, id], onDelete: Restrict)
+  outputTemplate   DocOutputTemplate? @relation(fields: [tenantId, outputTemplateId], references: [tenantId, id], onDelete: Restrict)
+  records          DocFormRecord[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code, formVersion])
+  @@unique([tenantId, id, formVersion])
+  @@index([tenantId, status])
+  @@map("doc_form_templates")
+}
+
+/// Registro diligenciado de un formato (B20): guarda para siempre la versión del formato con que se
+/// creó (template_id y template_version, que la base de datos amarra a esa misma versión) y los
+/// datos usados para su PDF. Borrador → en aprobación → terminado.
+model DocFormRecord {
+  id                 String          @id @default(uuid(7)) @db.Uuid
+  tenantId           String          @map("tenant_id") @db.Uuid
+  templateId         String          @map("template_id") @db.Uuid
+  templateVersion    Int             @map("template_version")
+  code               String
+  data               Json            @default("{}")
+  status             String          @default("draft")
+  classification     String          @default("internal")
+  entityType         String?         @map("entity_type")
+  entityId           String?         @map("entity_id") @db.Uuid
+  workflowInstanceId String?         @map("workflow_instance_id") @db.Uuid
+  submittedAt        DateTime?       @map("submitted_at") @db.Timestamptz(6)
+  approvedBy         String?         @map("approved_by") @db.Uuid
+  approvedAt         DateTime?       @map("approved_at") @db.Timestamptz(6)
+  returnNote         String?         @map("return_note")
+  completedAt        DateTime?       @map("completed_at") @db.Timestamptz(6)
+  /// none: sin terminar; pending, ready o failed: generación del PDF.
+  renderStatus       String          @default("none") @map("render_status")
+  pdfFileId          String?         @map("pdf_file_id") @db.Uuid
+  createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy          String?         @map("created_by") @db.Uuid
+  updatedAt          DateTime        @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy          String?         @map("updated_by") @db.Uuid
+  version            Int             @default(1)
+  deletedAt          DateTime?       @map("deleted_at") @db.Timestamptz(6)
+  tenant             Tenant          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  template           DocFormTemplate @relation(fields: [tenantId, templateId, templateVersion], references: [tenantId, id, formVersion], onDelete: Restrict)
+  pdfFile            File?           @relation(fields: [tenantId, pdfFileId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, workflowInstanceId])
+  @@index([tenantId, templateId])
+  @@index([tenantId, entityType, entityId])
+  @@index([tenantId, createdBy])
+  @@index([tenantId, renderStatus])
+  @@map("doc_form_records")
 }
 
 // M04 Flujos y tareas (B15, ADR-011). Las personas se guardan por identificador, sin relación con
