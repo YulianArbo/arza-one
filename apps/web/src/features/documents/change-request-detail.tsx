@@ -28,6 +28,7 @@ import {
   versionFormPath,
 } from './labels';
 import { useChangeRequest, useRequestStep } from './sgc-queries';
+import { recordPath } from '../forms/labels';
 
 // Ficha de una Solicitud de Acción Documental (B19, FT-SGC-001): qué pide, por qué, en qué paso
 // va, quién la decidió y, ya aprobada, cómo se ejecuta. El historial es el de su trámite.
@@ -194,6 +195,14 @@ function RequestView({ request }: { readonly request: ChangeRequest }): JSX.Elem
       <Facts request={request} />
       {request.decision_note === null ? null : (
         <p className="text-sm">Motivo de la decisión: «{request.decision_note}»</p>
+      )}
+      {request.form_record_id === null ? null : (
+        <Link
+          href={recordPath(request.form_record_id)}
+          className="text-sm text-primary hover:underline"
+        >
+          Ver el FT-SGC-001 de esta solicitud, con su PDF
+        </Link>
       )}
       <Steps request={request} />
       {request.workflow_instance_id === null ? null : (

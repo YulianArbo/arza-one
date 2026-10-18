@@ -12,6 +12,7 @@ import { RecordDialog, TextInput } from '../organization/record-dialog';
 import { ACTION_LABELS, versionFormPath } from './labels';
 import { useVersionStep, type StepRequest } from './queries';
 import { RequestSelect } from './request-select';
+import { VersionChecklist } from '../forms/version-checklist';
 
 // Botones de los pasos de una versión (B18): solo los que la API dice que la persona puede dar.
 // Desde B19 son los pasos de su trámite (revisión de Calidad, aprobación de Dirección y
@@ -153,6 +154,9 @@ export function VersionSteps(props: StepsProps): JSX.Element | null {
         >
           Editar borrador
         </Link>
+      ) : null}
+      {props.version.status === 'in_review' && actions.includes('approve') ? (
+        <VersionChecklist versionId={props.version.id} />
       ) : null}
       {(['submit', 'approve'] as const)
         .filter((step) => actions.includes(step))

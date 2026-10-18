@@ -78,6 +78,13 @@ const wfOverdueCheckJobSchema = z.object({});
  */
 const ntfDispatchJobSchema = z.object({});
 
+/**
+ * PDF de los formatos digitales (B20): genera el PDF de los registros diligenciados que terminaron
+ * y la copia de consulta de las versiones vigentes. Es del sistema y no lleva empresa: el worker
+ * revisa cada empresa con PDF pendientes.
+ */
+const docPdfRenderJobSchema = z.object({});
+
 export type TenantJob = z.infer<typeof tenantJobSchema>;
 export type ExampleEmailJob = z.infer<typeof exampleEmailJobSchema>;
 export type AccountEmailJob = z.infer<typeof accountEmailJobSchema>;
@@ -122,6 +129,11 @@ export const JOBS = {
     name: 'ntf.dispatch',
     schema: ntfDispatchJobSchema,
   },
+  docPdfRender: {
+    queue: QUEUES.platform,
+    name: 'doc.pdf-render',
+    schema: docPdfRenderJobSchema,
+  },
 } as const;
 
 /** Trabajos programados: el worker los registra al arrancar (expresión cron, hora de Bogotá). */
@@ -131,6 +143,8 @@ export const SCHEDULED_JOBS = [
   { id: 'wf.overdue-check.quarter-hour', job: JOBS.wfOverdueCheck, pattern: '*/15 * * * *' },
   // Cada 15 segundos (el primer campo son los segundos): un aviso llega casi de inmediato.
   { id: 'ntf.dispatch.every-15-seconds', job: JOBS.ntfDispatch, pattern: '*/15 * * * * *' },
+  // Cada 20 segundos: el PDF de un registro terminado queda listo casi de inmediato.
+  { id: 'doc.pdf-render.every-20-seconds', job: JOBS.docPdfRender, pattern: '*/20 * * * * *' },
 ] as const;
 
 export type JobDefinition = (typeof JOBS)[keyof typeof JOBS];

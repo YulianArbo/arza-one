@@ -21,12 +21,19 @@ import { findVisibleVersion } from './versions.js';
 
 // Descarga de una versión (B18, ficha 17.4): antes de entregar el enlace se recalcula la huella del
 // archivo guardado. Si no coincide, el archivo fue alterado: no se entrega y queda la alerta de
-// seguridad. Lo confidencial y lo restringido queda además en el registro de accesos.
+// seguridad. Lo confidencial y lo restringido queda además en el registro de accesos. Desde B20, el
+// PDF de la versión vigente es su copia de consulta, con el pie de copia no controlada.
 
 interface Resolved {
   readonly document: DocDocument;
   readonly version: DocVersion;
   readonly file: File;
+}
+
+/** La vigente se descarga como copia de consulta, con su pie, en cuanto el worker la genera (B20). */
+function pdfToDownload(version: DocVersion): string | null {
+  const copy = version.status === 'current' ? version.copyFileId : null;
+  return copy ?? version.pdfFileId;
 }
 
 function sha256Of(content: Buffer): string {
@@ -83,7 +90,7 @@ export class VersionDownloadsUseCase {
     const reader = await readerOf(tx, principal, ability);
     const { document, version } = await findVisibleVersion(tx, reader, versionId);
     if (request.file === 'source' && !reader.canEdit) throw permissionDenied();
-    const fileId = request.file === 'source' ? version.sourceFileId : version.pdfFileId;
+    const fileId = request.file === 'source' ? version.sourceFileId : pdfToDownload(version);
     const file =
       fileId === null
         ? null

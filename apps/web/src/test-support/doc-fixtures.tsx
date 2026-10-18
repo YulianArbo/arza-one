@@ -194,6 +194,7 @@ export function requestOf(overrides: object = {}): Record<string, unknown> {
     decision_note: null,
     executed_at: null,
     workflow_instance_id: null,
+    form_record_id: null,
     step: null,
     actions: [],
     version: 3,

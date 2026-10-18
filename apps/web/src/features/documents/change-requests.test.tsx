@@ -194,6 +194,18 @@ describe('ficha de la solicitud: decidida', () => {
     expect(await screen.findByRole('link', { name: 'Crear el documento' })).toBeVisible();
   });
 
+  it('decidida, enlaza su FT-SGC-001 con el PDF (B20)', async () => {
+    const formRecordId = '01999a00-0000-7000-8000-00000000e101';
+    serveDocuments(QUALITY_SGC, {
+      [REQUEST_PATH]: () => json(requestOf({ form_record_id: formRecordId })),
+    });
+    renderDetail();
+    const link = await screen.findByRole('link', {
+      name: 'Ver el FT-SGC-001 de esta solicitud, con su PDF',
+    });
+    expect(link).toHaveAttribute('href', `/app/documentos/registros/${formRecordId}`);
+  });
+
   it('una solicitud rechazada muestra el motivo de la decisión', async () => {
     const rejected = requestOf({ status: 'rejected', decision_note: 'No hace falta.' });
     serveDocuments(QUALITY_SGC, { [REQUEST_PATH]: () => json(rejected) });

@@ -6,3 +6,6 @@ export * from './links.js';
 export * from './change-requests.js';
 export * from './master-list.js';
 export * from './acknowledgements.js';
+export * from './form-schema.js';
+export * from './forms.js';
+export * from './output-templates.js';

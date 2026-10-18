@@ -5,6 +5,7 @@ import {
   Building2,
   CalendarDays,
   ClipboardCheck,
+  FileCode,
   Hash,
   KeyRound,
   Landmark,
@@ -19,6 +20,7 @@ import {
 import Link from 'next/link';
 import type { JSX, ReactNode } from 'react';
 
+import { OUTPUT_TEMPLATES_PATH } from '../forms/labels';
 import { NTF_PATHS } from '../notifications/labels';
 import { usePermissions } from '../session/permissions';
 import { WF_PATHS } from '../workflows/labels';
@@ -75,6 +77,14 @@ const SECTIONS: readonly Section[] = [
       'Asunto y texto de los avisos y correos, y cuáles son urgentes y no esperan a la jornada.',
     permission: 'ntf.template.manage',
     icon: <Mail aria-hidden="true" />,
+  },
+  {
+    href: OUTPUT_TEMPLATES_PATH,
+    title: 'Plantillas de salida',
+    description:
+      'Plantillas HTML o Word del PDF de los formatos digitales, con el encabezado institucional.',
+    permission: 'doc.form_template.manage',
+    icon: <FileCode aria-hidden="true" />,
   },
   {
     href: ADMIN_PATHS.company,

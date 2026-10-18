@@ -35,7 +35,10 @@ export interface DocChange {
     | 'doc_version'
     | 'doc_link'
     | 'doc_change_request'
-    | 'doc_acknowledgement';
+    | 'doc_acknowledgement'
+    | 'doc_form_template'
+    | 'doc_form_record'
+    | 'doc_output_template';
   readonly entityId: string | null;
   readonly changes: Prisma.InputJsonObject;
 }
