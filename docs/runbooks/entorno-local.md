@@ -6,14 +6,14 @@ producción (B07).
 
 ## Las piezas
 
-| Servicio   | Para qué                                      | Dirección en el equipo  | Memoria máxima |
-| ---------- | --------------------------------------------- | ----------------------- | -------------- |
-| PostgreSQL | Base de datos                                 | `localhost:5432`        | 2 GB           |
-| Valkey     | Colas de trabajos y límite de peticiones      | `localhost:6379`        | 256 MB         |
-| Garage     | Archivos privados (interfaz S3)               | `http://localhost:3900` | 512 MB         |
-| Gotenberg  | Conversión a PDF (se usa desde B20)           | `http://localhost:3001` | 768 MB         |
-| ClamAV     | Antivirus (se usa desde B14)                  | `localhost:3310`        | 1,2 GB         |
-| Mailpit    | Bandeja de correo falsa: nada sale a internet | `http://localhost:8025` | 128 MB         |
+| Servicio   | Para qué                                                   | Dirección en el equipo  | Memoria máxima |
+| ---------- | ---------------------------------------------------------- | ----------------------- | -------------- |
+| PostgreSQL | Base de datos                                              | `localhost:5432`        | 2 GB           |
+| Valkey     | Colas de trabajos y límite de peticiones                   | `localhost:6379`        | 256 MB         |
+| Garage     | Archivos privados (interfaz S3)                            | `http://localhost:3900` | 512 MB         |
+| Gotenberg  | Conversión a PDF (versiones desde B18, formatos desde B20) | `http://localhost:3001` | 768 MB         |
+| ClamAV     | Antivirus (se usa desde B14)                               | `localhost:3310`        | 1,2 GB         |
+| Mailpit    | Bandeja de correo falsa: nada sale a internet              | `http://localhost:8025` | 128 MB         |
 
 - Los puertos solo escuchan en el propio equipo (`127.0.0.1`), nunca en la red.
 - Si un puerto está ocupado, `pnpm env:local` escoge otro y lo anota en `.env`. Por ejemplo, con

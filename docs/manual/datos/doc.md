@@ -3,14 +3,17 @@
 Tipos exactos, restricciones e índices de las tablas del dominio `doc_` (capítulo 12.3, ficha
 17.4). Se actualiza en el mismo pull request que cambia el modelo
 (`apps/api/prisma/schema.prisma`). Migraciones: `20261015000000_doc_files` (B14) y
-`20261019000000_doc_documents_versions_folders` (B18) y
-`20261020000000_doc_change_requests_acknowledgements` (B19).
+`20261019000000_doc_documents_versions_folders` (B18),
+`20261020000000_doc_change_requests_acknowledgements` (B19) y
+`20261021000000_doc_forms_and_output_templates` (B20).
 
 Desde B18 existen las carpetas y expedientes (`doc_folders`), el documento lógico
 (`doc_documents`), sus versiones (`doc_versions`), los vínculos con registros de otros módulos
 (`doc_links`) y el registro de accesos a lo confidencial y restringido (`doc_access_log`). Desde
 B19, la Solicitud de Acción Documental (`doc_change_requests`) y la constancia de lectura
-(`doc_acknowledgements`). La retención llega en B21.
+(`doc_acknowledgements`). Desde B20, los formatos digitales (`doc_form_templates`), sus registros
+diligenciados (`doc_form_records`) y las plantillas de salida (`doc_output_templates`). La retención
+llega en B21.
 
 ## Reglas comunes
 
@@ -250,3 +253,123 @@ Cada documento pasa por el antivirus y la conversión a PDF del worker; el coman
 minutos y se puede repetir: continúa donde quedó sin duplicar nada. Los consecutivos siguen después
 del número más alto cargado. Al final compara la plataforma con el listado y guarda el informe
 `informe-carga-listado-maestro-<fecha>.csv` junto al listado.
+
+## Formatos digitales y generación de documentos (B20)
+
+Capítulo 18, formas B (formato digital) y D (plantilla de salida), y numeral 13.2. Las tres tablas
+tienen seguridad por fila forzada, columnas de control y `app_user` sin `DELETE`.
+
+### doc_output_templates · Plantillas de salida
+
+Una fila por versión de cada plantilla. Publicada, no cambia (disparador
+`doc_keep_output_templates`); al publicar la siguiente del mismo código, la anterior pasa a
+`retired`. Un solo borrador y una sola publicada por código (índices parciales).
+
+| Columna                        | Tipo  | Nulo | Por defecto | Regla                                                                  |
+| ------------------------------ | ----- | ---- | ----------- | ---------------------------------------------------------------------- |
+| `code`                         | text  | No   |             | `^[A-Z][A-Z0-9-]{2,39}$`; único con `output_version`                   |
+| `name`                         | text  | No   |             | 3 a 200 caracteres                                                     |
+| `engine`                       | text  | No   |             | `html` (variables `{{nombre}}`) o `docx` (variables `{nombre}`)        |
+| `output_version`               | int   | No   |             | 1, 2…                                                                  |
+| `status`                       | text  | No   | `draft`     | `draft`, `published` o `retired`                                       |
+| `body`                         | text  | Sí   |             | El HTML (solo `html`), hasta 200 000 caracteres                        |
+| `file_id`                      | uuid  | Sí   |             | El Word en `doc_files` (solo `docx`)                                   |
+| `variables`                    | jsonb | No   | `[]`        | Variables de primer nivel que usa, anotadas al guardar                 |
+| `published_at`, `published_by` |       | Sí   |             | Desde publicada; `published_by` nulo en las que publicó la semilla     |
+| `retired_at`                   |       | Sí   |             | Solo en retirada                                                       |
+
+### doc_form_templates · Formatos digitales
+
+Una fila por versión de cada formato. Sus campos van en `schema` (jsonb validado siempre con
+`formDefinitionSchema` de `packages/contracts`). La columna del manual «version» se llama
+`form_version`, porque `version` es la columna de control. Publicado, no cambia (disparador
+`doc_keep_form_templates`); al publicar la siguiente, la anterior pasa a `retired`.
+
+| Columna                        | Tipo  | Nulo | Por defecto | Regla                                                                                       |
+| ------------------------------ | ----- | ---- | ----------- | ------------------------------------------------------------------------------------------- |
+| `code`                         | text  | No   |             | Código del Listado Maestro: `TIPO-PROCESO-NNN`; único con `form_version`                    |
+| `name`                         | text  | No   |             | 3 a 200 caracteres                                                                          |
+| `form_version`                 | int   | No   |             | 1, 2…                                                                                       |
+| `status`                       | text  | No   | `draft`     | `draft`, `published` o `retired`                                                            |
+| `fill_mode`                    | text  | No   | `manual`    | `manual` (lo diligencia una persona) o `system` (lo llena la plataforma: FT-SGC-001)        |
+| `schema`                       | jsonb | No   |             | `{ sections: [{ key, title, fields: [...] }] }`                                             |
+| `layout`                       | jsonb | No   | `{}`        | `{ orientation: portrait \| landscape }`                                                    |
+| `document_id`                  | uuid  | Sí   |             | Su documento FT en el Listado Maestro                                                       |
+| `output_template_id`           | uuid  | Sí   |             | La versión exacta de su plantilla de salida; sin ella, la maqueta institucional             |
+| `workflow_key`                 | text  | Sí   |             | `doc.form_record.direction` o `doc.form_record.quality`; nulo: el registro termina al enviar |
+| `classification`               | text  | No   | `internal`  | `internal` o `confidential`                                                                 |
+| `entity_type`                  | text  | Sí   |             | `doc_version`, `party` o `doc_change_request` (este último solo en `system`)                |
+| `published_at`, `published_by` |       | Sí   |             | Desde publicado                                                                             |
+| `retired_at`                   |       | Sí   |             | Solo en retirado                                                                            |
+
+**Campos de un formato** (cada elemento de `fields`): `key` (nombre interno, minúsculas; no puede
+ser `formato`, `registro` ni `empresa`), `label`, `type` (`text`, `textarea`, `number`, `date`,
+`boolean`, `select`, `checklist`, `table`), `required`, `help`, `options` (lista), `items`
+(puntos de verificación, que se responden Cumple, No cumple o No aplica con su observación) y
+`columns` (de una tabla: `key`, `label`, `type` `text`, `number` o `date`).
+
+### doc_form_records · Registros diligenciados
+
+Un formato diligenciado. Ciclo: `draft` → `in_approval` (si su formato tiene flujo) →
+`completed`. Al terminar queda `render_status = pending` y el worker genera su PDF.
+
+| Columna                       | Tipo        | Nulo | Por defecto | Regla                                                                                         |
+| ----------------------------- | ----------- | ---- | ----------- | --------------------------------------------------------------------------------------------- |
+| `template_id`                 | uuid        | No   |             | La versión exacta del formato                                                                 |
+| `template_version`            | int         | No   |             | Su número; la llave foránea (`tenant_id`, `template_id`, `template_version`) los amarra       |
+| `code`                        | text        | No   |             | `FT-COM-002-AAAA-NNNN`, consecutivo anual propio de cada formato; único por empresa           |
+| `data`                        | jsonb       | No   | `{}`        | Valores por nombre interno; se validan con los campos de su versión                           |
+| `status`                      | text        | No   | `draft`     | `draft`, `in_approval` o `completed`                                                          |
+| `classification`              | text        | No   | `internal`  | La del formato al crearse                                                                     |
+| `entity_type`, `entity_id`    |             | Sí   |             | Registro al que pertenece; los dos o ninguno                                                  |
+| `workflow_instance_id`        | uuid        | Sí   |             | Su trámite de aprobación; único                                                               |
+| `submitted_at`                | timestamptz | Sí   |             | Desde enviado                                                                                 |
+| `approved_by`, `approved_at`  |             | Sí   |             | Solo terminado con aprobación; `approved_by` distinto de `created_by` (quien diligencia no aprueba) |
+| `return_note`                 | text        | Sí   |             | Motivo de la última devolución (5 a 2000 caracteres)                                          |
+| `completed_at`                | timestamptz | Sí   |             | Solo en terminado                                                                             |
+| `render_status`               | text        | No   | `none`      | `none` mientras no termina; luego `pending`, `ready` o `failed`                               |
+| `pdf_file_id`                 | uuid        | Sí   |             | El PDF en `doc_files`, con su huella; solo con `ready`                                        |
+
+Disparador `doc_keep_form_records`: el formato, su versión, el código, la clasificación, el
+registro de origen y quién lo diligenció nunca cambian; los datos solo en el borrador; terminado,
+solo se le agrega el PDF. Un registro FT-SGC-001 por solicitud (índice parcial).
+
+### doc_versions · Cambios de B20
+
+| Columna        | Tipo | Nulo | Regla                                                                                         |
+| -------------- | ---- | ---- | --------------------------------------------------------------------------------------------- |
+| `copy_file_id` | uuid | Sí   | Copia de consulta de la vigente: su PDF con el pie de copia no controlada. Se fija una sola vez |
+
+La descarga del PDF de una versión vigente entrega su copia de consulta en cuanto existe.
+
+### Consecutivos
+
+`core_sequences` admite como prefijo anual el código de un formato (`FT-COM-002`): la llave es
+`doc.form_record.ft_com_002`.
+
+### Generación en segundo plano
+
+La función `doc_tenants_with_pending_pdfs()` (SECURITY DEFINER, como `wf_tenants_with_overdue_tasks`)
+dice qué empresas tienen PDF pendientes; el trabajo programado `doc.pdf-render` (cada 20 s) trabaja
+en cada una con su contexto.
+
+### Variables de las plantillas de salida
+
+Cada campo por su nombre interno, ya impreso (fechas dd/mm/aaaa, «Sí» o «No»). Una tabla es una
+lista de filas con sus columnas (`{{#each compromisos}}{{actividad}}{{/each}}`); una verificación,
+una lista con `punto`, `resultado` y `observacion`. Además:
+
+| Variable                                          | Contenido                                  |
+| ------------------------------------------------- | ------------------------------------------ |
+| `formato.codigo`, `formato.nombre`                | Código y nombre del formato                |
+| `formato.version`, `formato.fecha`                | Versión (01) y fecha de publicación        |
+| `registro.codigo`, `registro.estado`              | Código y estado del registro               |
+| `registro.elaboro`, `registro.fecha`              | Quién lo diligenció y cuándo               |
+| `registro.aprobo`, `registro.fecha_aprobacion`    | Quién lo aprobó y cuándo                   |
+| `empresa.razon_social`, `empresa.nit`             | La empresa que emite el documento          |
+
+**Auditoría de B20:** `doc.form_template.create · update · publish · retire · seed`,
+`doc.output_template.create · update · publish · seed`, `doc.form_record.create · update · submit
+· approve · reject · complete · render · download_link` y `doc.version.copy`. Los eventos de un
+registro nunca guardan los valores diligenciados (pueden traer datos personales): solo el código,
+el formato, la versión y los nombres de los campos que cambiaron.
