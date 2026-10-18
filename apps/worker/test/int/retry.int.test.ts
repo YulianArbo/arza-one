@@ -60,6 +60,9 @@ beforeAll(async () => {
     storage: fileStorageFrom(config),
     antivirus: async () => Promise.reject(new Error('no se usa en esta prueba')),
     convert: async () => Promise.reject(new Error('no se usa en esta prueba')),
+    convertOffice: async () => Promise.reject(new Error('no se usa en esta prueba')),
+    convertHtml: async () => Promise.reject(new Error('no se usa en esta prueba')),
+    stamp: async () => Promise.reject(new Error('no se usa en esta prueba')),
   });
   workers = startQueueWorkers(router, {
     connection: { ...connection, maxRetriesPerRequest: null },

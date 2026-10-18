@@ -22,6 +22,9 @@ const unusedDeps: JobDependencies = {
   },
   antivirus: async () => Promise.reject(new Error('no se usa')),
   convert: async () => Promise.reject(new Error('no se usa')),
+  convertOffice: async () => Promise.reject(new Error('no se usa')),
+  convertHtml: async () => Promise.reject(new Error('no se usa')),
+  stamp: async () => Promise.reject(new Error('no se usa')),
 };
 
 describe('enrutador de trabajos', () => {
@@ -64,6 +67,11 @@ describe('enrutador de trabajos de documentos y avisos', () => {
   it('envía el escalamiento de tareas vencidas a su procesador', async () => {
     const route = createJobRouter(unusedDeps);
     await expect(route({ name: JOBS.wfOverdueCheck.name, data: {} })).rejects.toThrow('no se usa');
+  });
+
+  it('envía la generación de los PDF de los formatos a su procesador', async () => {
+    const route = createJobRouter(unusedDeps);
+    await expect(route({ name: JOBS.docPdfRender.name, data: {} })).rejects.toThrow('no se usa');
   });
 
   it('rechaza sin reintento un trabajo sin procesador', async () => {

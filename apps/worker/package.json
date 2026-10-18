@@ -16,6 +16,7 @@
     "@types/node": "^24.19.1",
     "@types/pg": "^8.23.1",
     "@vitest/coverage-v8": "^5.0.3",
+    "pdfjs-dist": "^6.4.299",
     "pg": "^8.23.1",
     "testcontainers": "^12.2.0",
     "typescript": "~6.0.3",

@@ -8,7 +8,13 @@ import {
   type OnApplicationBootstrap,
   type OnApplicationShutdown,
 } from '@nestjs/common';
-import { convertWithGotenberg, fileStorageFrom, scanWithClamav } from '@arza/api/doc';
+import {
+  convertHtmlWithGotenberg,
+  convertWithGotenberg,
+  fileStorageFrom,
+  scanWithClamav,
+  stampWithGotenberg,
+} from '@arza/api/doc';
 import { DatabaseService, JobQueue, SCHEDULED_JOBS, systemClock } from '@arza/api/platform';
 import { Redis } from 'ioredis';
 import type { Logger } from 'pino';
@@ -34,7 +40,7 @@ const SHUTDOWN_GRACE_MS = 25_000;
 /** Tiempo máximo del antivirus por archivo (hasta 20 MB). */
 const ANTIVIRUS_TIMEOUT_MS = 60_000;
 
-/** Tiempo máximo de Gotenberg para convertir un Word o un Excel a PDF. */
+/** Tiempo máximo de Gotenberg para convertir un Word, un Excel o una página HTML a PDF. */
 const CONVERSION_TIMEOUT_MS = 120_000;
 
 /** Enciende los procesadores de las colas y el latido; los apaga en orden al detenerse. */
@@ -53,6 +59,7 @@ class WorkerRuntime implements OnApplicationBootstrap, OnApplicationShutdown {
   ) {}
 
   onApplicationBootstrap(): void {
+    const gotenberg = { url: this.config.GOTENBERG_URL, timeoutMs: CONVERSION_TIMEOUT_MS };
     const router = createJobRouter({
       database: this.database,
       mailer: this.mailer,
@@ -68,11 +75,10 @@ class WorkerRuntime implements OnApplicationBootstrap, OnApplicationShutdown {
           },
           content,
         ),
-      convert: async (source) =>
-        convertWithGotenberg(
-          { url: this.config.GOTENBERG_URL, timeoutMs: CONVERSION_TIMEOUT_MS },
-          source,
-        ),
+      convert: async (source) => convertWithGotenberg(gotenberg, source),
+      convertOffice: async (source) => convertWithGotenberg(gotenberg, source),
+      convertHtml: async (document) => convertHtmlWithGotenberg(gotenberg, document),
+      stamp: async (pdf, text) => stampWithGotenberg(gotenberg, pdf, text),
     });
     this.queueWorkers = startQueueWorkers(router, {
       // BullMQ exige conexiones sin límite de reintentos por comando para esperar trabajos.

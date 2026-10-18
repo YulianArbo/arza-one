@@ -13,6 +13,7 @@ import {
   type NoticeDispatchJobDependencies,
 } from '../jobs/notice-dispatch.js';
 import { processOverdueCheck, type OverdueCheckJobDependencies } from '../jobs/overdue-check.js';
+import { processPdfRender, type PdfRenderJobDependencies } from '../jobs/pdf-render.js';
 import { processVersionRender, type VersionRenderJobDependencies } from '../jobs/version-render.js';
 
 /** Lo que un procesador necesita saber del trabajo. */
@@ -29,7 +30,8 @@ export type JobDependencies = ExampleEmailDependencies &
   FileScanJobDependencies &
   VersionRenderJobDependencies &
   OverdueCheckJobDependencies &
-  NoticeDispatchJobDependencies;
+  NoticeDispatchJobDependencies &
+  PdfRenderJobDependencies;
 
 /** Procesador que recibe los datos del trabajo; su resultado no se usa. */
 function withData(process: (data: unknown) => Promise<unknown>): JobHandler {
@@ -55,6 +57,7 @@ function handlers(deps: JobDependencies): ReadonlyMap<string, JobHandler> {
     [JOBS.versionRender.name, withData(async (data) => processVersionRender(data, deps))],
     [JOBS.wfOverdueCheck.name, withoutData(async () => processOverdueCheck(deps))],
     [JOBS.ntfDispatch.name, withoutData(async () => processNoticeDispatch(deps))],
+    [JOBS.docPdfRender.name, withoutData(async () => processPdfRender(deps))],
   ]);
 }
 
