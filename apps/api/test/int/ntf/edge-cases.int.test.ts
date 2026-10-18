@@ -70,7 +70,7 @@ describe('sin nada que cambiar', () => {
     const tenants = [scenario.tenant.id];
     await seedNotificationTemplates(apiDatabase(), tenants, scenario.clock);
     const versions = await scenario.inTenant((tx) => tx.notificationTemplate.count());
-    expect(versions).toBe(4);
+    expect(versions).toBe(6);
   });
 });
 

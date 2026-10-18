@@ -13,6 +13,7 @@ export const PDF_ID = '01999a00-0000-7000-8000-00000000b301';
 export const PROCESS_ID = '01999a00-0000-7000-8000-00000000b401';
 const POSITION_ID = '01999a00-0000-7000-8000-00000000b402';
 export const LINK_ID = '01999a00-0000-7000-8000-00000000b501';
+export const REQUEST_ID = '01999a00-0000-7000-8000-00000000b601';
 export const UPLOAD_LINK = 'http://api.test/v1/files/uploads/llave';
 const DOWNLOAD_LINK = 'http://api.test/v1/files/downloads/llave';
 
@@ -23,7 +24,7 @@ function docPermissions(codes: readonly PermissionCode[]): object {
   };
 }
 
-export const QUALITY = docPermissions([
+const QUALITY_CODES: readonly PermissionCode[] = [
   'doc.document.read',
   'doc.document.create',
   'doc.document.update',
@@ -35,6 +36,16 @@ export const QUALITY = docPermissions([
   'party.read',
   'core.org.read',
   'core.parameter.read',
+];
+
+export const QUALITY = docPermissions(QUALITY_CODES);
+
+/** Calidad con lo del control documental (B19): solicitudes y exportar el Listado Maestro. */
+export const QUALITY_SGC = docPermissions([
+  ...QUALITY_CODES,
+  'doc.change_request.create',
+  'doc.change_request.decide',
+  'doc.export',
 ]);
 
 export const READER = docPermissions(['doc.document.read', 'core.org.read']);
@@ -126,6 +137,10 @@ export function versionOf(overrides: object = {}): Record<string, unknown> {
     effective_date: '2026-10-16',
     published_at: '2026-10-16T13:05:00.000Z',
     obsoleted_at: null,
+    origin: 'platform',
+    change_request: null,
+    workflow_instance_id: null,
+    step: null,
     actions: ['obsolete'],
     version: 4,
     ...overrides,
@@ -160,6 +175,32 @@ const POSITIONS = {
   ],
 };
 
+/** Solicitud de Acción Documental de prueba (B19). */
+export function requestOf(overrides: object = {}): Record<string, unknown> {
+  return {
+    id: REQUEST_ID,
+    code: 'SAD-2026-0001',
+    action: 'create',
+    status: 'approved',
+    title: 'Control de documentos',
+    justification: 'El proceso necesita controlar sus documentos.',
+    document: null,
+    doc_type: 'PR',
+    process: { id: PROCESS_ID, code: 'SGC', name: 'Gestión de la Calidad' },
+    requested_by: { id: SESSION.user.id, name: 'Ana Pérez' },
+    requested_at: '2026-10-15T14:00:00.000Z',
+    decided_by: { id: '01999a00-0000-7000-8000-00000000a002', name: 'Carlos Ruiz' },
+    decided_at: '2026-10-15T15:00:00.000Z',
+    decision_note: null,
+    executed_at: null,
+    workflow_instance_id: null,
+    step: null,
+    actions: [],
+    version: 3,
+    ...overrides,
+  };
+}
+
 type Routes = Record<string, (request: SentRequest) => Response>;
 
 /** API simulada de documentos con la sesión de Ana y los permisos dados. */
@@ -178,6 +219,7 @@ export function serveDocuments(permissions: object, extra: Routes = {}): SentReq
     'GET /v1/org-units': () => json(ORG_UNITS),
     'GET /v1/positions': () => json(POSITIONS),
     'GET /v1/parties': () => json({ data: [], next_cursor: null }),
+    'GET /v1/change-requests': () => json({ data: [requestOf()], next_cursor: null }),
     'GET /v1/catalogs/document_types': () =>
       json(catalog('document_types', [['PR', 'Procedimiento']])),
     ...extra,

@@ -31,6 +31,16 @@ export const DEFAULT_TEMPLATES: Readonly<Record<NotificationKind, TemplateText>>
     body: 'Se registró una alerta de seguridad el {{fecha}} (hora de Colombia): {{alerta}}. Revísela en la auditoría de seguridad.',
     urgent: true,
   },
+  doc_read_requested: {
+    subject: 'Lea el documento {{documento}}',
+    body: 'Se publicó la versión {{version}} del documento {{documento}}. Léalo y confirme su lectura en ARZA ONE.',
+    urgent: false,
+  },
+  doc_request_decided: {
+    subject: 'Su solicitud documental {{solicitud}} fue {{decision}}',
+    body: 'La Solicitud de Acción Documental {{solicitud}} fue {{decision}}. Revise el detalle en ARZA ONE.',
+    urgent: false,
+  },
 };
 
 /** Variables que el texto usa y que este tipo de aviso no ofrece. */

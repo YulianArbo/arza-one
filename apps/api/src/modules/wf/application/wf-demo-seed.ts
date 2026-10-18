@@ -2,8 +2,7 @@ import type { StateInput, TransitionInput } from '@arza/contracts';
 
 import type { Clock } from '../../../platform/clock/clock.js';
 import type { DatabaseService } from '../../../platform/database/database.service.js';
-import { writeFlowParts } from '../infrastructure/flow-store.js';
-import { auditWf } from './wf-context.js';
+import { seedPublishedFlow } from './flow-seed.js';
 
 // Flujo de demostración «Solicitud de prueba» (B15), solo con los datos ficticios (`pnpm
 // db:seed:demo`, nunca en producción). Ensaya todo el motor: condición por monto, aprobación en
@@ -78,32 +77,19 @@ export async function seedWorkflowDemo(
   tenantIds: readonly string[],
   clock: Clock,
 ): Promise<void> {
+  const flow = {
+    key: KEY,
+    name: 'Solicitud de prueba',
+    description: `Hasta $${LIMIT.toLocaleString('es-CO')} la revisan el jefe y Calidad; más, Dirección y Finanzas.`,
+    entityType: KEY,
+    states: STATES,
+    transitions: TRANSITIONS,
+    auditAction: 'wf.demo.seed',
+  };
   for (const tenantId of tenantIds) {
     const context = { tenantId, userId: null, meta: null, at: clock.now() };
     await database.withTenant({ tenantId, userId: null }, async (tx) => {
-      if ((await tx.workflowDefinition.count({ where: { key: KEY } })) > 0) return;
-      const definition = await tx.workflowDefinition.create({
-        data: {
-          tenantId,
-          key: KEY,
-          versionNumber: 1,
-          name: 'Solicitud de prueba',
-          description: `Hasta $${LIMIT.toLocaleString('es-CO')} la revisan el jefe y Calidad; más, Dirección y Finanzas.`,
-          entityType: KEY,
-        },
-      });
-      const owner = { tenantId, definitionId: definition.id, now: context.at };
-      await writeFlowParts(tx, owner, { states: STATES, transitions: TRANSITIONS });
-      await tx.workflowDefinition.update({
-        where: { id: definition.id },
-        data: { status: 'published', publishedAt: context.at },
-      });
-      await auditWf(tx, context, {
-        action: 'wf.demo.seed',
-        entityType: 'wf_definition',
-        entityId: definition.id,
-        changes: { key: KEY, version: 1 },
-      });
+      await seedPublishedFlow(tx, context, flow);
     });
   }
 }

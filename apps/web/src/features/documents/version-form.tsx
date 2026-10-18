@@ -2,7 +2,7 @@
 
 import {
   classificationSchema,
-  type CreateVersionRequest,
+  type UpdateVersionRequest,
   type Document,
   type Version,
 } from '@arza/contracts';
@@ -16,10 +16,12 @@ import { SubmitButton } from '../access/submit-button';
 import { QueryState } from '../administration/query-state';
 import { documentPath } from './labels';
 import { useDocument, useSaveVersion, useVersions } from './queries';
+import { RequestSelect } from './request-select';
 import { VersionFields, versionProblems, type VersionValues } from './version-fields';
 
 // Versión nueva o corrección del borrador propio (B18). Una versión vigente no se modifica: los
-// cambios van en una versión nueva, que se publica cuando la aprueba otra persona.
+// cambios van en una versión nueva, que se publica cuando la aprueba otra persona. Desde B19 la
+// versión nueva de un documento del SGC lleva su Solicitud de Acción Documental aprobada.
 
 function initialValues(document: Document, draft: Version | undefined): VersionValues {
   return {
@@ -36,7 +38,8 @@ interface FormProps {
   readonly draft: Version | undefined;
 }
 
-function bodyOf(values: VersionValues, sourceFileId: string): CreateVersionRequest {
+/** Lo que se guarda; corregir el borrador no cambia su solicitud, así que no la lleva. */
+function bodyOf(values: VersionValues, sourceFileId: string): UpdateVersionRequest {
   return {
     title: values.title.trim(),
     classification: classificationSchema.parse(values.classification),
@@ -51,6 +54,8 @@ function useVersionForm({ document, draft }: FormProps) {
   const router = useRouter();
   const [values, setValues] = useState(() => initialValues(document, draft));
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [requestId, setRequestId] = useState<string | null>(null);
+  const needsRequest = draft === undefined && document.is_controlled;
   const save = useSaveVersion(document.id, () => {
     router.push(documentPath(document.id));
   });
@@ -64,20 +69,24 @@ function useVersionForm({ document, draft }: FormProps) {
   const submit = (event: SubmitEvent<HTMLFormElement>): void => {
     event.preventDefault();
     const found = versionProblems(values);
+    if (needsRequest && requestId === null) {
+      found['change_request_id'] = 'Elija la solicitud de modificación aprobada.';
+    }
     setErrors(found);
     if (Object.keys(found).length > 0 || values.source_file_id === null) return;
     const body = bodyOf(values, values.source_file_id);
     save.execute(
       draft === undefined
-        ? { versionId: null, body }
+        ? { versionId: null, body: { ...body, change_request_id: requestId } }
         : { versionId: draft.id, version: draft.version, body },
     );
   };
-  return { values, setValues, errors, save, onSource, submit };
+  const request = { needed: needsRequest, value: requestId, onChange: setRequestId };
+  return { values, setValues, errors, save, onSource, submit, request };
 }
 
 function VersionFormBody(props: FormProps): JSX.Element {
-  const { values, setValues, errors, save, onSource, submit } = useVersionForm(props);
+  const { values, setValues, errors, save, onSource, submit, request } = useVersionForm(props);
   const source = props.draft?.source_file ?? null;
   const current = source === null ? null : { id: source.id, fileName: source.file_name };
   return (
@@ -88,6 +97,16 @@ function VersionFormBody(props: FormProps): JSX.Element {
       aria-label="Versión del documento"
     >
       {save.error === null ? null : <FormError error={save.error} />}
+      {request.needed ? (
+        <RequestSelect
+          id="version-solicitud"
+          action="update"
+          documentId={props.document.id}
+          value={request.value}
+          error={errors['change_request_id']}
+          onChange={request.onChange}
+        />
+      ) : null}
       <VersionFields
         prefix="version"
         values={values}

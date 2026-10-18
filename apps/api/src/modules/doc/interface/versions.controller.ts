@@ -84,7 +84,8 @@ export class VersionsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'Enviar el borrador propio a revisión',
-    description: 'Con su PDF listo.',
+    description:
+      'Con su PDF listo. Es el primer paso de su trámite: la revisión le llega a Calidad.',
   })
   @ApiIfMatch()
   @ApiResponse(DONE)
@@ -109,7 +110,8 @@ export class VersionsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'Devolver la versión al borrador',
-    description: 'Con el motivo. Quien la elaboró no puede devolverla.',
+    description:
+      'Con el motivo. Decide la tarea de revisión o de aprobación que la persona atiende en el trámite. Quien la elaboró no puede devolverla.',
   })
   @ApiIfMatch()
   @ApiResponse(DONE)
@@ -129,7 +131,11 @@ export class VersionsController {
   @RequirePermission('doc.version.approve')
   @Post(':id/actions/approve')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Aprobar la versión', description: 'Quien la elaboró no la aprueba.' })
+  @ApiOperation({
+    summary: 'Aprobar la revisión o la versión',
+    description:
+      'Decide la tarea que la persona atiende en el trámite: la revisión de Calidad o la aprobación de Dirección. Quien la elaboró no la aprueba.',
+  })
   @ApiIfMatch()
   @ApiResponse(DONE)
   @ApiDocErrors()
@@ -153,7 +159,8 @@ export class VersionsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'Publicar la versión aprobada',
-    description: 'Queda vigente y la vigente anterior pasa a obsoleta: nunca hay dos vigentes.',
+    description:
+      'Quien atiende la publicación del trámite. Queda vigente, la anterior pasa a obsoleta (nunca hay dos vigentes) y se pide la lectura a los cargos destinatarios.',
   })
   @ApiIfMatch()
   @ApiResponse(DONE)
@@ -175,7 +182,8 @@ export class VersionsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'Declarar obsoleta la versión vigente',
-    description: 'El documento deja de regir; los usuarios ya no la descargan.',
+    description:
+      'El documento deja de regir; los usuarios ya no la descargan. En un documento del SGC exige una solicitud de eliminación aprobada.',
   })
   @ApiIfMatch()
   @ApiResponse(DONE)

@@ -47,7 +47,8 @@
     "db:seed:demo": "node --env-file-if-exists=../../.env dist/platform/database/seed/seed-main.js --demo",
     "iam:invitar": "node --env-file-if-exists=../../.env dist/modules/iam/interface/cli/invite-main.js",
     "iam:asignar-rol": "node --env-file-if-exists=../../.env dist/modules/iam/interface/cli/assign-role-main.js",
-    "iam:reiniciar-segundo-factor": "node --env-file-if-exists=../../.env dist/modules/iam/interface/cli/reset-second-factor-main.js"
+    "iam:reiniciar-segundo-factor": "node --env-file-if-exists=../../.env dist/modules/iam/interface/cli/reset-second-factor-main.js",
+    "doc:importar-listado": "node --env-file-if-exists=../../.env dist/modules/doc/interface/cli/import-master-list-main.js"
   },
   "devDependencies": {
     "@nestjs/testing": "~11.2.7",

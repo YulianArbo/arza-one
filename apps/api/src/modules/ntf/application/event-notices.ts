@@ -108,11 +108,53 @@ const onSecurityAlert: Handler = async (tx, event, now) => {
   }));
 };
 
+const readingRequestedSchema = z.object({
+  document_id: z.uuid(),
+  code: z.string(),
+  version_label: z.string(),
+  user_ids: z.array(z.uuid()),
+});
+const requestDecidedSchema = z.object({
+  request_id: z.uuid(),
+  code: z.string(),
+  requester_id: z.uuid(),
+  outcome: z.enum(['approved', 'rejected']),
+});
+
+/** B19: a cada persona de los cargos destinatarios se le pide leer la versión publicada. */
+const onReadingRequested: Handler = (_tx, event) => {
+  const payload = readingRequestedSchema.parse(event.payload);
+  const values = { documento: payload.code, version: payload.version_label };
+  const link = `/app/documentos/${payload.document_id}`;
+  const notices = payload.user_ids.map((userId): Notice => ({
+    userId,
+    kind: 'doc_read_requested',
+    values,
+    link,
+  }));
+  return Promise.resolve(notices);
+};
+
+/** B19: quien pidió el cambio documental sabe si se aprobó o se rechazó. */
+const onRequestDecided: Handler = (_tx, event) => {
+  const payload = requestDecidedSchema.parse(event.payload);
+  const decision = payload.outcome === 'approved' ? 'aprobada' : 'rechazada';
+  const notice: Notice = {
+    userId: payload.requester_id,
+    kind: 'doc_request_decided',
+    values: { solicitud: payload.code, decision },
+    link: `/app/documentos/solicitudes/${payload.request_id}`,
+  };
+  return Promise.resolve([notice]);
+};
+
 const HANDLERS: Readonly<Record<string, Handler>> = {
   'wf.task.assigned': onTaskAssigned,
   'wf.task.escalated': onTaskEscalated,
   'comment.mentioned': onMention,
   'security.alert': onSecurityAlert,
+  'doc.acknowledgement.requested': onReadingRequested,
+  'doc.request.decided': onRequestDecided,
 };
 
 /** Los avisos que produce el evento; ninguno si nadie se ocupa de él. */

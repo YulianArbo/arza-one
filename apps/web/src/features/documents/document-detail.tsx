@@ -10,10 +10,12 @@ import { QueryState } from '../administration/query-state';
 import { SectionTabs, type SectionTab } from '../parties/section-tabs';
 import { usePermissions } from '../session/permissions';
 import { DocumentLinks } from './document-links';
+import { ReadingPanel } from './reading-panel';
 import {
   DOCUMENTS_PATH,
   DOCUMENT_STATUS_LABELS,
   DOCUMENT_STATUS_TONES,
+  newRequestFor,
   versionFormPath,
 } from './labels';
 import { useDocument, useVersions } from './queries';
@@ -21,7 +23,7 @@ import { VersionList } from './version-list';
 import { VersionViewer } from './version-viewer';
 
 // Ficha y visor del documento (B18, numerales 16.3 y 16.4): encabezado con código, estado y
-// acciones; pestañas del documento, sus versiones y sus vínculos.
+// acciones; pestañas del documento, sus versiones, sus vínculos y (B19) la constancia de lectura.
 
 /** La versión que se muestra: la vigente, o la más nueva que la persona puede ver. */
 function shownVersion(document: Document, versions: readonly Version[]): Version | undefined {
@@ -50,6 +52,23 @@ function Summary({ document }: { readonly document: Document }): JSX.Element {
   );
 }
 
+/** Pedir un cambio (B19): un documento vigente del SGC solo cambia con una solicitud aprobada. */
+function RequestChangeLinks({ document }: { readonly document: Document }): JSX.Element | null {
+  const canRequest = usePermissions().can('doc.change_request.create');
+  if (!canRequest || !document.is_controlled || document.status !== 'current') return null;
+  const outline = buttonVariants({ variant: 'outline' });
+  return (
+    <>
+      <Link href={newRequestFor(document.id, 'update')} className={outline}>
+        Solicitar modificación
+      </Link>
+      <Link href={newRequestFor(document.id, 'obsolete')} className={outline}>
+        Solicitar eliminación
+      </Link>
+    </>
+  );
+}
+
 function NewVersionLink({ document }: { readonly document: Document }): JSX.Element | null {
   const canEdit = usePermissions().can('doc.document.update');
   if (!canEdit || document.open_version !== null) return null;
@@ -57,6 +76,15 @@ function NewVersionLink({ document }: { readonly document: Document }): JSX.Elem
     <Link href={versionFormPath(document.id)} className={buttonVariants()}>
       Nueva versión
     </Link>
+  );
+}
+
+function HeaderActions({ document }: { readonly document: Document }): JSX.Element {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <RequestChangeLinks document={document} />
+      <NewVersionLink document={document} />
+    </div>
   );
 }
 
@@ -86,6 +114,11 @@ function DocumentTabs(props: {
       label: 'Vínculos',
       content: () => <DocumentLinks documentId={props.document.id} />,
     },
+    {
+      id: 'lectura',
+      label: 'Lectura',
+      content: () => <ReadingPanel documentId={props.document.id} />,
+    },
   ];
   return <SectionTabs tabs={tabs} label="Secciones del documento" />;
 }
@@ -97,7 +130,7 @@ function DocumentView({ document }: { readonly document: Document }): JSX.Elemen
       <PageHeader
         title={`${document.code} · ${document.title}`}
         description="Solo hay una versión vigente. Una versión vigente no se modifica: los cambios van en una versión nueva."
-        action={<NewVersionLink document={document} />}
+        action={<HeaderActions document={document} />}
       />
       <div className="flex flex-wrap items-center gap-2">
         <Badge tone={DOCUMENT_STATUS_TONES[document.status]}>

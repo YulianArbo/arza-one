@@ -38,6 +38,14 @@ export const NOTIFICATION_KINDS = {
     label: 'Alerta de seguridad',
     variables: ['nombre', 'alerta', 'fecha'],
   },
+  doc_read_requested: {
+    label: 'Le pidieron leer un documento',
+    variables: ['nombre', 'documento', 'version'],
+  },
+  doc_request_decided: {
+    label: 'Se decidió su solicitud documental',
+    variables: ['nombre', 'solicitud', 'decision'],
+  },
 } as const satisfies Record<string, { label: string; variables: readonly string[] }>;
 
 export type NotificationKind = keyof typeof NOTIFICATION_KINDS;

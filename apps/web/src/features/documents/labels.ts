@@ -3,6 +3,8 @@ import {
   LINK_ENTITIES,
   LINK_RELATIONS,
   VERSION_SOURCE_TYPES,
+  type ChangeRequestStatus,
+  type ChangeRequestStep,
   type Classification,
   type DocumentStatus,
   type RenderStatus,
@@ -108,3 +110,32 @@ export function isSourceType(type: string): boolean {
 export function classificationHint(value: string): string | undefined {
   return Object.entries(CLASSIFICATION_HINTS).find(([key]) => key === value)?.[1];
 }
+
+// Control documental del SGC (B19): Listado Maestro y Solicitud de Acción Documental.
+
+export const MASTER_LIST_PATH = `${DOCUMENTS_PATH}/listado-maestro`;
+export const REQUESTS_PATH = `${DOCUMENTS_PATH}/solicitudes`;
+export const NEW_REQUEST_PATH = `${REQUESTS_PATH}/nueva`;
+
+export function requestPath(id: string): string {
+  return `${REQUESTS_PATH}/${id}`;
+}
+
+/** Solicitud nueva ya dirigida a un documento: modificarlo o eliminarlo. */
+export function newRequestFor(documentId: string, action: 'update' | 'obsolete'): string {
+  return `${NEW_REQUEST_PATH}?documento=${documentId}&accion=${action}`;
+}
+
+export const REQUEST_STATUS_TONES: Readonly<Record<ChangeRequestStatus, Tone>> = {
+  filed: 'info',
+  in_analysis: 'info',
+  approved: 'success',
+  rejected: 'destructive',
+  executed: 'neutral',
+};
+
+export const REQUEST_STEP_LABELS: Readonly<Record<ChangeRequestStep, string>> = {
+  analyze: 'Empezar el análisis',
+  approve: 'Aprobar',
+  reject: 'Rechazar',
+};

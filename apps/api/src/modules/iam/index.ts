@@ -13,6 +13,7 @@ export {
   type PositionRecord,
 } from './application/position-directory.js';
 export { peopleById, usersInPosition } from './infrastructure/user-directory-store.js';
+export { findLoginUser, type IdentityRef } from './infrastructure/identity-lookup.js';
 export {
   activeInternalUserByEmail,
   activeRoleCodes,

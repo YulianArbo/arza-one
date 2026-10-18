@@ -59,11 +59,13 @@ export interface CodeSequence {
   readonly padding: number;
 }
 
-export function controlledCodeSequence(docType: string, processCode: string): CodeSequence {
+/** Sin proceso (el RIT-001), el consecutivo es solo del tipo: RIT-001, RIT-002… */
+export function controlledCodeSequence(docType: string, processCode: string | null): CodeSequence {
+  const parts = processCode === null ? [docType] : [docType, processCode];
   return {
-    key: `doc.code.${docType.toLowerCase()}.${processCode.toLowerCase()}`,
-    name: `Documentos ${docType}-${processCode}`,
-    prefix: `${docType}-${processCode}`,
+    key: `doc.code.${parts.map((part) => part.toLowerCase()).join('.')}`,
+    name: `Documentos ${parts.join('-')}`,
+    prefix: parts.join('-'),
     padding: 3,
   };
 }
@@ -71,7 +73,10 @@ export function controlledCodeSequence(docType: string, processCode: string): Co
 /** Consecutivo anual de los documentos de expediente: DOC-2026-0001. */
 export const CASE_DOCUMENT_SEQUENCE = 'doc.case_document';
 
-/** Lo que la persona puede hacer, según sus permisos y si elaboró la versión. */
+/**
+ * Lo que la persona puede hacer, según sus permisos, si elaboró la versión y si atiende el paso
+ * actual del trámite (B19): tiene abierta la tarea de aprobación o la de publicación.
+ */
 export interface VersionActor {
   readonly isAuthor: boolean;
   readonly canEdit: boolean;
@@ -80,11 +85,23 @@ export interface VersionActor {
   readonly canApprove: boolean;
   readonly canPublish: boolean;
   readonly canObsolete: boolean;
+  readonly attendsApproval: boolean;
+  readonly attendsAction: boolean;
 }
 
 export interface VersionState {
   readonly status: VersionStatus;
   readonly pdfReady: boolean;
+  /** Estado del trámite en el motor de flujos; null si la versión aún no tiene trámite. */
+  readonly step: string | null;
+}
+
+/** Permiso con el que se decide cada estado de aprobación del trámite de una versión. */
+function decides(version: VersionState, actor: VersionActor): boolean {
+  if (actor.isAuthor || !actor.attendsApproval) return false;
+  if (version.step === 'review') return actor.canReview;
+  if (version.step === 'approval') return actor.canApprove;
+  return false;
 }
 
 function stepAllowed(step: VersionStep, version: VersionState, actor: VersionActor): boolean {
@@ -92,11 +109,10 @@ function stepAllowed(step: VersionStep, version: VersionState, actor: VersionAct
     case 'submit':
       return actor.isAuthor && actor.canSubmit && version.pdfReady;
     case 'reject':
-      return !actor.isAuthor && actor.canReview;
     case 'approve':
-      return !actor.isAuthor && actor.canApprove;
+      return decides(version, actor);
     case 'publish':
-      return actor.canPublish;
+      return actor.canPublish && actor.attendsAction;
     case 'obsolete':
       return actor.canObsolete;
   }

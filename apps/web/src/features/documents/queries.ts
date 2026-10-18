@@ -14,6 +14,7 @@ import {
   type CreateDocumentRequest,
   type CreateFolderRequest,
   type CreateVersionRequest,
+  type UpdateVersionRequest,
   type Document,
   type DocumentLinkListResponse,
   type DocumentListResponse,
@@ -180,7 +181,7 @@ export function useCreateDocument(
 
 type VersionSave =
   | { readonly versionId: null; readonly body: CreateVersionRequest }
-  | { readonly versionId: string; readonly version: number; readonly body: CreateVersionRequest };
+  | { readonly versionId: string; readonly version: number; readonly body: UpdateVersionRequest };
 
 export function useSaveVersion(
   documentId: string,

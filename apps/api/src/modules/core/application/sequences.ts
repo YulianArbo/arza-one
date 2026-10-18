@@ -20,6 +20,7 @@ import {
   openFirstYear,
   openPlain,
   openYear,
+  raiseNextValue,
   takeNextValue,
   type PlainSequence,
 } from '../infrastructure/sequence-store.js';
@@ -66,6 +67,20 @@ export async function nextPlainCode(
   }
   if (taken === null) throw sequenceUnknown();
   return `${taken.prefix}-${String(taken.value).padStart(taken.padding, '0')}`;
+}
+
+/**
+ * Deja el consecutivo sin año listo para seguir después de un número ya usado fuera de él, como
+ * los códigos de la carga inicial del Listado Maestro (B19): si PR-SGC-007 ya existe, el siguiente
+ * es PR-SGC-008. Nunca lo hace retroceder.
+ */
+export async function raisePlainSequence(
+  tx: TenantTransaction,
+  sequence: PlainSequence,
+  used: number,
+): Promise<void> {
+  await openPlain(tx, sequence);
+  await raiseNextValue(tx, sequence.key, used + 1);
 }
 
 function sequenceView(sequence: Sequence): SequenceView {

@@ -8,6 +8,7 @@ import {
   LINK_ID,
   PROCESS_ID,
   QUALITY,
+  REQUEST_ID,
   VERSION_ID,
   documentOf,
   serveDocuments,
@@ -116,9 +117,18 @@ describe('declarar obsoleta', () => {
     const dialog = await screen.findByRole('dialog');
     await userEvent.type(within(dialog).getByLabelText('Motivo'), 'Se reemplaza por el manual');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Declarar obsoleta' }));
+    expect(
+      await within(dialog).findByText('Elija la solicitud de eliminación aprobada.'),
+    ).toBeVisible();
+    await userEvent.selectOptions(
+      within(dialog).getByLabelText('Solicitud de Acción Documental aprobada'),
+      REQUEST_ID,
+    );
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Declarar obsoleta' }));
     await vi.waitFor(() => {
       expect(sent.find((r) => r.path.endsWith('/actions/obsolete'))?.body).toEqual({
         reason: 'Se reemplaza por el manual',
+        change_request_id: REQUEST_ID,
       });
     });
   });

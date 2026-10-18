@@ -34,6 +34,7 @@ import {
 } from './doc-support.js';
 import { documentViews } from './document-views.js';
 import { findFolder } from './folders.js';
+import { attachCreatedDocument, usableChangeRequest } from './change-request-rows.js';
 import { createVersionRow } from './version-rows.js';
 
 // Documentos (B18, ficha 17.4): el documento nace con su versión 00 en borrador y su código. Un
@@ -81,12 +82,30 @@ async function documentCode(
   actor: DocActor,
   input: CreateDocumentRequest,
 ): Promise<string> {
-  if (!input.is_controlled || input.process_id === null) {
+  if (!input.is_controlled) {
     if (input.process_id !== null) await activeProcess(tx, input.process_id);
     return nextBusinessCode(tx, CASE_DOCUMENT_SEQUENCE, actor.at, CASE_DOCUMENTS);
   }
+  if (input.process_id === null) {
+    return nextPlainCode(tx, controlledCodeSequence(input.doc_type, null));
+  }
   const process = await activeProcess(tx, input.process_id);
   return nextPlainCode(tx, controlledCodeSequence(input.doc_type, process.code));
+}
+
+/** Un documento del SGC nace de una solicitud de creación aprobada que pidió ese tipo y proceso. */
+async function creationRequest(
+  tx: TenantTransaction,
+  input: CreateDocumentRequest,
+): Promise<string | null> {
+  if (!input.is_controlled) return null;
+  const change = {
+    action: 'create',
+    documentId: null,
+    docType: input.doc_type,
+    processId: input.process_id,
+  } as const;
+  return (await usableChangeRequest(tx, input.change_request_id, change)).id;
 }
 
 @Injectable()
@@ -145,9 +164,13 @@ export class DocumentsUseCase {
       await assertDocumentType(tx, input.doc_type);
       await assertPosition(tx, input.owner_position_id);
       const source = await versionSource(tx, principal.userId, input.source_file_id);
+      const changeRequestId = await creationRequest(tx, input);
       const document = await this.createDocumentRow(tx, actor, input);
+      if (changeRequestId !== null) await attachCreatedDocument(tx, changeRequestId, document.id);
       await createVersionRow(tx, actor, this.queue, {
         documentId: document.id,
+        code: document.code,
+        changeRequestId,
         number: 0,
         input,
         source,
