@@ -1,2 +1,21 @@
-// Plantillas de correo (B16). Las de documentos PDF llegan en B20.
+// Plantillas de correo (B16) y de documentos PDF (B20): el marco institucional, la maqueta de los
+// formatos diligenciados y los motores de las plantillas de salida HTML y Word.
 export { noticeEmail, type NoticeEmailInput, type RenderedEmail } from './notice-email.js';
+export {
+  controlledCopyStamp,
+  institutionalFooter,
+  institutionalHeader,
+  UNCONTROLLED_COPY,
+  type CompanyIdentity,
+  type DocumentIdentity,
+} from './institutional.js';
+export { formDocumentBody, printPage, type RecordFacts } from './form-document.js';
+export { printedDate } from './form-values.js';
+export { templateContext, type TemplateContext } from './form-context.js';
+export {
+  htmlTemplatePage,
+  htmlTemplateVariables,
+  renderHtmlTemplate,
+  TemplateSyntaxError,
+} from './output-html.js';
+export { docxTemplateVariables, fillDocxTemplate } from './output-docx.js';
