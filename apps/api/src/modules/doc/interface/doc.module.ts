@@ -7,6 +7,8 @@ import { VALKEY } from '../../../platform/valkey/valkey.module.js';
 import { AcknowledgementsUseCase } from '../application/acknowledgements.js';
 import { AttachedFileLinks } from '../application/attached-files.js';
 import { ChangeRequestsUseCase } from '../application/change-requests.js';
+import { DispositionsUseCase } from '../application/dispositions.js';
+import { DocumentSearchUseCase } from '../application/document-search.js';
 import { followDocWorkflows } from '../application/doc-workflows.js';
 import { FILE_LINKS_BASE_URL, FileLinkIssuer } from '../application/file-link-issuer.js';
 import { DocumentLinksUseCase } from '../application/document-links.js';
@@ -17,6 +19,7 @@ import { FormTemplatesUseCase } from '../application/form-templates.js';
 import { FoldersUseCase } from '../application/folders.js';
 import { MasterListUseCase } from '../application/master-list.js';
 import { OutputTemplatesUseCase } from '../application/output-templates.js';
+import { RetentionRulesUseCase } from '../application/retention-rules.js';
 import { VersionActionsUseCase } from '../application/version-actions.js';
 import { VersionDownloadsUseCase } from '../application/version-downloads.js';
 import { VersionsUseCase } from '../application/versions.js';
@@ -24,6 +27,7 @@ import { FileLinks } from '../infrastructure/file-links.js';
 import { FileStorage, fileStorageFrom } from '../infrastructure/file-storage.js';
 import { AcknowledgementsController } from './acknowledgements.controller.js';
 import { ChangeRequestsController } from './change-requests.controller.js';
+import { DispositionsController } from './dispositions.controller.js';
 import { DocumentsController } from './documents.controller.js';
 import { FileLinksController } from './file-links.controller.js';
 import { FilesController } from './files.controller.js';
@@ -32,6 +36,7 @@ import { FormRecordsController } from './form-records.controller.js';
 import { FormTemplatesController } from './form-templates.controller.js';
 import { MasterListController } from './master-list.controller.js';
 import { OutputTemplatesController } from './output-templates.controller.js';
+import { RetentionRulesController } from './retention-rules.controller.js';
 import { VersionsController } from './versions.controller.js';
 
 /**
@@ -43,7 +48,9 @@ import { VersionsController } from './versions.controller.js';
  * Desde B19: Solicitud de Acción Documental, trámite de las versiones en el motor de flujos (el
  * módulo sigue sus pasos, ADR-023), constancia de lectura y Listado Maestro. Desde B20: formatos
  * digitales con su esquema versionado, registros diligenciados con su aprobación en el motor de
- * flujos y plantillas de salida HTML y Word; el worker genera los PDF.
+ * flujos y plantillas de salida HTML y Word; el worker genera los PDF. Desde B21: tabla de
+ * retención (RE-SGC-005), propuesta mensual de disposición con su trámite y su acta, y búsqueda de
+ * texto completo; el worker propone, ejecuta las propuestas aprobadas y extrae el texto de los PDF.
  */
 @Module({
   controllers: [
@@ -58,6 +65,8 @@ import { VersionsController } from './versions.controller.js';
     FormTemplatesController,
     FormRecordsController,
     OutputTemplatesController,
+    RetentionRulesController,
+    DispositionsController,
   ],
   providers: [
     FilesUseCase,
@@ -73,6 +82,9 @@ import { VersionsController } from './versions.controller.js';
     FormTemplatesUseCase,
     FormRecordsUseCase,
     OutputTemplatesUseCase,
+    RetentionRulesUseCase,
+    DispositionsUseCase,
+    DocumentSearchUseCase,
     FileLinkIssuer,
     AttachedFileLinks,
     { provide: FileStorage, useFactory: fileStorageFrom, inject: [CONFIG] },

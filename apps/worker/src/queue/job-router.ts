@@ -6,6 +6,14 @@ import {
   processAuditChainCheck,
   type AuditChainCheckDependencies,
 } from '../jobs/audit-chain-check.js';
+import {
+  processDispositionExecute,
+  type DispositionExecuteJobDependencies,
+} from '../jobs/disposition-execute.js';
+import {
+  processDispositionPropose,
+  type DispositionProposeJobDependencies,
+} from '../jobs/disposition-propose.js';
 import { processExampleEmail, type ExampleEmailDependencies } from '../jobs/example-email.js';
 import { processFileScan, type FileScanJobDependencies } from '../jobs/file-scan.js';
 import {
@@ -14,6 +22,7 @@ import {
 } from '../jobs/notice-dispatch.js';
 import { processOverdueCheck, type OverdueCheckJobDependencies } from '../jobs/overdue-check.js';
 import { processPdfRender, type PdfRenderJobDependencies } from '../jobs/pdf-render.js';
+import { processTextExtract, type TextExtractJobDependencies } from '../jobs/text-extract.js';
 import { processVersionRender, type VersionRenderJobDependencies } from '../jobs/version-render.js';
 
 /** Lo que un procesador necesita saber del trabajo. */
@@ -31,7 +40,10 @@ export type JobDependencies = ExampleEmailDependencies &
   VersionRenderJobDependencies &
   OverdueCheckJobDependencies &
   NoticeDispatchJobDependencies &
-  PdfRenderJobDependencies;
+  PdfRenderJobDependencies &
+  DispositionProposeJobDependencies &
+  DispositionExecuteJobDependencies &
+  TextExtractJobDependencies;
 
 /** Procesador que recibe los datos del trabajo; su resultado no se usa. */
 function withData(process: (data: unknown) => Promise<unknown>): JobHandler {
@@ -58,6 +70,9 @@ function handlers(deps: JobDependencies): ReadonlyMap<string, JobHandler> {
     [JOBS.wfOverdueCheck.name, withoutData(async () => processOverdueCheck(deps))],
     [JOBS.ntfDispatch.name, withoutData(async () => processNoticeDispatch(deps))],
     [JOBS.docPdfRender.name, withoutData(async () => processPdfRender(deps))],
+    [JOBS.docDispositionPropose.name, withoutData(async () => processDispositionPropose(deps))],
+    [JOBS.docDispositionExecute.name, withoutData(async () => processDispositionExecute(deps))],
+    [JOBS.docTextExtract.name, withoutData(async () => processTextExtract(deps))],
   ]);
 }
 

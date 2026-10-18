@@ -24,6 +24,7 @@ import {
   versionSource,
 } from './doc-references.js';
 import { documentNotFound } from './doc-messages.js';
+import { documentDisposed } from './retention-messages.js';
 import {
   actorOf,
   auditDoc,
@@ -57,6 +58,17 @@ export async function findVisibleDocument(
 ): Promise<DocDocument> {
   const document = await visibleDocument(tx, reader, id);
   if (document === null) throw documentNotFound();
+  return document;
+}
+
+/** Un documento que la persona ve y que aún tiene contenido: no se eliminó por disposición (B21). */
+export async function findChangeableDocument(
+  tx: TenantTransaction,
+  reader: DocReader,
+  id: string,
+): Promise<DocDocument> {
+  const document = await findVisibleDocument(tx, reader, id);
+  if (document.status === 'disposed') throw documentDisposed();
   return document;
 }
 

@@ -6,11 +6,19 @@ import type { StateInput, TransitionInput } from '@arza/contracts';
 
 export const CHANGE_REQUEST_FLOW = 'doc.change_request';
 export const VERSION_FLOW = 'doc.version';
+export const DISPOSITION_FLOW = 'doc.disposition';
 
 /** Estados del trámite de una solicitud y de una versión que el módulo reconoce. */
 export const CHANGE_REQUEST_STATES = {
   filed: 'filed',
   analysis: 'in_analysis',
+  approved: 'approved',
+  rejected: 'rejected',
+} as const;
+
+export const DISPOSITION_STATES = {
+  review: 'review',
+  approval: 'approval',
   approved: 'approved',
   rejected: 'rejected',
 } as const;
@@ -112,6 +120,39 @@ export const VERSION_FLOW_DATA = {
     }),
     step('publication', 'published', 'publish', 'Publicar', {
       required_permission: 'doc.version.publish',
+    }),
+  ],
+};
+
+/**
+ * Disposición final (B21, RE-SGC-005): Calidad revisa la propuesta del mes y la envía; Dirección
+ * la aprueba o la rechaza. Quien la envía no la decide.
+ */
+export const DISPOSITION_FLOW_DATA = {
+  key: DISPOSITION_FLOW,
+  name: 'Disposición final de documentos',
+  description:
+    'RE-SGC-005: Calidad revisa la propuesta mensual de disposición y la envía; Dirección la aprueba o la rechaza.',
+  entityType: DISPOSITION_FLOW,
+  states: [
+    state('review', 'Revisión de Calidad', 'initial', { sla_hours: 40, assignee: quality }),
+    state('approval', 'Aprobación de Dirección', 'approval', {
+      sla_hours: 24,
+      approval: { mode: 'serial', approvers: [direction] },
+    }),
+    state('approved', 'Aprobada', 'final', {}),
+    state('rejected', 'Rechazada', 'final', {}),
+  ],
+  transitions: [
+    step('review', 'approval', 'send', 'Enviar a aprobación', {
+      required_permission: 'doc.retention.manage',
+    }),
+    step('approval', 'approved', 'approve', 'Aprobar', {
+      required_permission: 'doc.disposition.approve',
+    }),
+    step('approval', 'rejected', 'reject', 'Rechazar', {
+      required_permission: 'doc.disposition.approve',
+      requires_comment: true,
     }),
   ],
 };

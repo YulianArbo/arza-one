@@ -33,7 +33,7 @@ class AlreadyDoneError extends Error {}
 
 /** Guarda el PDF y lo amarra a su registro en la misma transacción; si sobra, lo borra. */
 export async function storePdf(
-  deps: PdfRenderDependencies,
+  deps: Pick<PdfRenderDependencies, 'database' | 'clock' | 'storage'>,
   target: { readonly tenantId: string; readonly fileName: string; readonly content: Buffer },
   attach: (tx: TenantTransaction, fileId: string, at: Date) => Promise<boolean>,
 ): Promise<boolean> {
