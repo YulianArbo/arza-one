@@ -16,77 +16,81 @@ datasource db {
 
 /// Empresas inquilinas (M00). La fila de una empresa solo es visible dentro de su propio contexto.
 model Tenant {
-  id                    String                   @id @default(uuid(7)) @db.Uuid
-  legalName             String                   @map("legal_name")
-  tradeName             String?                  @map("trade_name")
-  taxId                 String                   @unique @map("tax_id")
-  status                String                   @default("active")
-  settings              Json                     @default("{}")
-  createdAt             DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
-  createdBy             String?                  @map("created_by") @db.Uuid
-  updatedAt             DateTime                 @default(now()) @map("updated_at") @db.Timestamptz(6)
-  updatedBy             String?                  @map("updated_by") @db.Uuid
-  version               Int                      @default(1)
-  deletedAt             DateTime?                @map("deleted_at") @db.Timestamptz(6)
-  outboxEvents          OutboxEvent[]
-  users                 User[]
-  sessions              Session[]
-  tokens                Token[]
-  loginAttempts         LoginAttempt[]
-  mfaFactors            MfaFactor[]
-  recoveryCodes         RecoveryCode[]
-  knownDevices          KnownDevice[]
-  roles                 Role[]
-  rolePermissions       RolePermission[]
-  userRoles             UserRole[]
-  delegations           Delegation[]
-  auditEvents           AuditEvent[]
-  auditChainHead        AuditChainHead?
-  auditExports          AuditExport[]
-  securityEvents        SecurityEvent[]
-  sites                 Site[]
-  orgUnits              OrgUnit[]
-  positions             Position[]
-  costCenters           CostCenter[]
-  catalogs              Catalog[]
-  catalogItems          CatalogItem[]
-  sequences             Sequence[]
-  parameters            Parameter[]
-  holidays              Holiday[]
-  parties               Party[]
-  partyRoles            PartyRole[]
-  contacts              Contact[]
-  bankAccounts          BankAccount[]
-  dueDiligence          DueDiligence[]
-  files                 File[]
-  wfDefinitions         WorkflowDefinition[]
-  wfStates              WorkflowState[]
-  wfTransitions         WorkflowTransition[]
-  wfInstances           WorkflowInstance[]
-  wfHistory             WorkflowHistory[]
-  wfTasks               WorkflowTask[]
-  wfApprovals           WorkflowApproval[]
-  ntfTemplates          NotificationTemplate[]
-  notifications         Notification[]
-  ntfDeliveries         NotificationDelivery[]
-  ntfPreferences        NotificationPreference[]
-  comments              Comment[]
-  attachments           Attachment[]
-  prvNotices            PrivacyNotice[]
-  prvConsents           PrivacyConsent[]
-  prvActivities         ProcessingActivity[]
-  prvProcessors         DataProcessor[]
-  prvActivityProcessors ActivityProcessor[]
-  docFolders            DocFolder[]
-  docDocuments          DocDocument[]
-  docVersions           DocVersion[]
-  docLinks              DocLink[]
-  docAccessLog          DocAccessLog[]
-  docChangeRequests     DocChangeRequest[]
-  docAcknowledgements   DocAcknowledgement[]
-  docOutputTemplates    DocOutputTemplate[]
-  docFormTemplates      DocFormTemplate[]
-  docFormRecords        DocFormRecord[]
+  id                      String                   @id @default(uuid(7)) @db.Uuid
+  legalName               String                   @map("legal_name")
+  tradeName               String?                  @map("trade_name")
+  taxId                   String                   @unique @map("tax_id")
+  status                  String                   @default("active")
+  settings                Json                     @default("{}")
+  createdAt               DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy               String?                  @map("created_by") @db.Uuid
+  updatedAt               DateTime                 @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy               String?                  @map("updated_by") @db.Uuid
+  version                 Int                      @default(1)
+  deletedAt               DateTime?                @map("deleted_at") @db.Timestamptz(6)
+  outboxEvents            OutboxEvent[]
+  users                   User[]
+  sessions                Session[]
+  tokens                  Token[]
+  loginAttempts           LoginAttempt[]
+  mfaFactors              MfaFactor[]
+  recoveryCodes           RecoveryCode[]
+  knownDevices            KnownDevice[]
+  roles                   Role[]
+  rolePermissions         RolePermission[]
+  userRoles               UserRole[]
+  delegations             Delegation[]
+  auditEvents             AuditEvent[]
+  auditChainHead          AuditChainHead?
+  auditExports            AuditExport[]
+  securityEvents          SecurityEvent[]
+  sites                   Site[]
+  orgUnits                OrgUnit[]
+  positions               Position[]
+  costCenters             CostCenter[]
+  catalogs                Catalog[]
+  catalogItems            CatalogItem[]
+  sequences               Sequence[]
+  parameters              Parameter[]
+  holidays                Holiday[]
+  parties                 Party[]
+  partyRoles              PartyRole[]
+  contacts                Contact[]
+  bankAccounts            BankAccount[]
+  dueDiligence            DueDiligence[]
+  files                   File[]
+  wfDefinitions           WorkflowDefinition[]
+  wfStates                WorkflowState[]
+  wfTransitions           WorkflowTransition[]
+  wfInstances             WorkflowInstance[]
+  wfHistory               WorkflowHistory[]
+  wfTasks                 WorkflowTask[]
+  wfApprovals             WorkflowApproval[]
+  ntfTemplates            NotificationTemplate[]
+  notifications           Notification[]
+  ntfDeliveries           NotificationDelivery[]
+  ntfPreferences          NotificationPreference[]
+  comments                Comment[]
+  attachments             Attachment[]
+  prvNotices              PrivacyNotice[]
+  prvConsents             PrivacyConsent[]
+  prvActivities           ProcessingActivity[]
+  prvProcessors           DataProcessor[]
+  prvActivityProcessors   ActivityProcessor[]
+  docFolders              DocFolder[]
+  docDocuments            DocDocument[]
+  docVersions             DocVersion[]
+  docLinks                DocLink[]
+  docAccessLog            DocAccessLog[]
+  docChangeRequests       DocChangeRequest[]
+  docAcknowledgements     DocAcknowledgement[]
+  docOutputTemplates      DocOutputTemplate[]
+  docFormTemplates        DocFormTemplate[]
+  docFormRecords          DocFormRecord[]
+  docRetentionRules       DocRetentionRule[]
+  docDispositionProposals DocDispositionProposal[]
+  docDispositions         DocDisposition[]
+  docVersionTexts         DocVersionText[]
 
   @@map("core_tenants")
 }
@@ -870,28 +874,29 @@ model DueDiligence {
 /// el worker lo analiza con el antivirus, revisa que su contenido sea del tipo declarado y calcula
 /// su huella SHA-256. Solo un archivo disponible se descarga (numeral 13.2, ADR-013).
 model File {
-  id          String              @id @default(uuid(7)) @db.Uuid
-  tenantId    String              @map("tenant_id") @db.Uuid
-  storageKey  String              @map("storage_key")
-  fileName    String              @map("file_name")
-  mimeType    String              @map("mime_type")
-  sizeBytes   Int                 @map("size_bytes")
-  sha256      String?
-  scanStatus  String              @default("pending_upload") @map("scan_status")
-  rejection   String?
-  scannedAt   DateTime?           @map("scanned_at") @db.Timestamptz(6)
-  createdAt   DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
-  createdBy   String?             @map("created_by") @db.Uuid
-  updatedAt   DateTime            @default(now()) @map("updated_at") @db.Timestamptz(6)
-  updatedBy   String?             @map("updated_by") @db.Uuid
-  version     Int                 @default(1)
-  deletedAt   DateTime?           @map("deleted_at") @db.Timestamptz(6)
-  tenant      Tenant              @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  sourceOf    DocVersion[]        @relation("VersionSource")
-  renderOf    DocVersion[]        @relation("VersionPdf")
-  copyOf      DocVersion[]        @relation("VersionCopy")
-  templateOf  DocOutputTemplate[]
-  recordPdfOf DocFormRecord[]
+  id            String                   @id @default(uuid(7)) @db.Uuid
+  tenantId      String                   @map("tenant_id") @db.Uuid
+  storageKey    String                   @map("storage_key")
+  fileName      String                   @map("file_name")
+  mimeType      String                   @map("mime_type")
+  sizeBytes     Int                      @map("size_bytes")
+  sha256        String?
+  scanStatus    String                   @default("pending_upload") @map("scan_status")
+  rejection     String?
+  scannedAt     DateTime?                @map("scanned_at") @db.Timestamptz(6)
+  createdAt     DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?                  @map("created_by") @db.Uuid
+  updatedAt     DateTime                 @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?                  @map("updated_by") @db.Uuid
+  version       Int                      @default(1)
+  deletedAt     DateTime?                @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  sourceOf      DocVersion[]             @relation("VersionSource")
+  renderOf      DocVersion[]             @relation("VersionPdf")
+  copyOf        DocVersion[]             @relation("VersionCopy")
+  templateOf    DocOutputTemplate[]
+  recordPdfOf   DocFormRecord[]
+  certificateOf DocDispositionProposal[]
 
   @@unique([tenantId, id])
   @@unique([storageKey])
@@ -944,6 +949,10 @@ model DocDocument {
   currentVersionId String?              @map("current_version_id") @db.Uuid
   ownerPositionId  String?              @map("owner_position_id") @db.Uuid
   isControlled     Boolean              @map("is_controlled")
+  /// Regla de retención propia del documento (B21): una excepción a la de su tipo y proceso.
+  retentionRuleId  String?              @map("retention_rule_id") @db.Uuid
+  /// Cuándo se eliminó su contenido por disposición final (B21); el estado es `disposed`.
+  disposedAt       DateTime?            @map("disposed_at") @db.Timestamptz(6)
   createdAt        DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
   createdBy        String?              @map("created_by") @db.Uuid
   updatedAt        DateTime             @default(now()) @map("updated_at") @db.Timestamptz(6)
@@ -958,11 +967,15 @@ model DocDocument {
   changeRequests   DocChangeRequest[]
   acknowledgements DocAcknowledgement[]
   formTemplates    DocFormTemplate[]
+  retentionRule    DocRetentionRule?    @relation(fields: [tenantId, retentionRuleId], references: [tenantId, id], onDelete: Restrict)
+  dispositions     DocDisposition[]
+  texts            DocVersionText[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, code])
   @@index([tenantId, folderId])
   @@index([tenantId, processId])
+  @@index([tenantId, retentionRuleId])
   @@map("doc_documents")
 }
 
@@ -1012,6 +1025,7 @@ model DocVersion {
   changeRequest      DocChangeRequest?    @relation(fields: [tenantId, changeRequestId], references: [tenantId, id], onDelete: Restrict)
   accessLog          DocAccessLog[]
   acknowledgements   DocAcknowledgement[]
+  text               DocVersionText?
 
   @@unique([tenantId, id])
   @@unique([tenantId, documentId, number])
@@ -1243,6 +1257,129 @@ model DocFormRecord {
   @@index([tenantId, createdBy])
   @@index([tenantId, renderStatus])
   @@map("doc_form_records")
+}
+
+/// Regla de retención (B21, RE-SGC-005): una serie documental con sus años en el archivo de gestión
+/// y en el central y su disposición final. Se aplica a los documentos de su tipo, de su proceso o de
+/// los dos (la más específica gana); un documento puede llevar otra como excepción.
+model DocRetentionRule {
+  id           String           @id @default(uuid(7)) @db.Uuid
+  tenantId     String           @map("tenant_id") @db.Uuid
+  code         String
+  name         String
+  docType      String?          @map("doc_type")
+  processId    String?          @map("process_id") @db.Uuid
+  activeYears  Int              @map("active_years")
+  archiveYears Int              @map("archive_years")
+  disposition  String
+  legalBasis   String           @map("legal_basis")
+  isActive     Boolean          @default(true) @map("is_active")
+  createdAt    DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy    String?          @map("created_by") @db.Uuid
+  updatedAt    DateTime         @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy    String?          @map("updated_by") @db.Uuid
+  version      Int              @default(1)
+  deletedAt    DateTime?        @map("deleted_at") @db.Timestamptz(6)
+  tenant       Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  documents    DocDocument[]
+  dispositions DocDisposition[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@index([tenantId, docType])
+  @@index([tenantId, processId])
+  @@map("doc_retention_rules")
+}
+
+/// Propuesta mensual de disposición final (B21): los documentos con la retención vencida. Calidad
+/// la revisa y la envía, otra persona la aprueba o la rechaza, y el worker ejecuta la aprobada y
+/// genera el acta. En revisión → en aprobación → aprobada o rechazada → ejecutada.
+model DocDispositionProposal {
+  id                 String           @id @default(uuid(7)) @db.Uuid
+  tenantId           String           @map("tenant_id") @db.Uuid
+  code               String
+  period             DateTime         @db.Date
+  status             String           @default("review")
+  workflowInstanceId String?          @map("workflow_instance_id") @db.Uuid
+  sentBy             String?          @map("sent_by") @db.Uuid
+  sentAt             DateTime?        @map("sent_at") @db.Timestamptz(6)
+  decidedBy          String?          @map("decided_by") @db.Uuid
+  decidedAt          DateTime?        @map("decided_at") @db.Timestamptz(6)
+  decisionNote       String?          @map("decision_note")
+  executedAt         DateTime?        @map("executed_at") @db.Timestamptz(6)
+  /// El acta de disposición en PDF.
+  certificateFileId  String?          @map("certificate_file_id") @db.Uuid
+  createdAt          DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy          String?          @map("created_by") @db.Uuid
+  updatedAt          DateTime         @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy          String?          @map("updated_by") @db.Uuid
+  version            Int              @default(1)
+  deletedAt          DateTime?        @map("deleted_at") @db.Timestamptz(6)
+  tenant             Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  certificateFile    File?            @relation(fields: [tenantId, certificateFileId], references: [tenantId, id], onDelete: Restrict)
+  items              DocDisposition[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, period])
+  @@unique([tenantId, workflowInstanceId])
+  @@index([tenantId, status])
+  @@map("doc_disposition_proposals")
+}
+
+/// Un documento de una propuesta de disposición (B21): eliminarlo, como dice su regla, o
+/// conservarlo para siempre por decisión de Calidad, con su motivo.
+model DocDisposition {
+  id              String                 @id @default(uuid(7)) @db.Uuid
+  tenantId        String                 @map("tenant_id") @db.Uuid
+  proposalId      String                 @map("proposal_id") @db.Uuid
+  documentId      String                 @map("document_id") @db.Uuid
+  retentionRuleId String                 @map("retention_rule_id") @db.Uuid
+  dueOn           DateTime               @map("due_on") @db.Date
+  action          String                 @default("destroy")
+  keepReason      String?                @map("keep_reason")
+  executedBy      String?                @map("executed_by") @db.Uuid
+  executedAt      DateTime?              @map("executed_at") @db.Timestamptz(6)
+  createdAt       DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?                @map("created_by") @db.Uuid
+  updatedAt       DateTime               @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy       String?                @map("updated_by") @db.Uuid
+  version         Int                    @default(1)
+  deletedAt       DateTime?              @map("deleted_at") @db.Timestamptz(6)
+  tenant          Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  proposal        DocDispositionProposal @relation(fields: [tenantId, proposalId], references: [tenantId, id], onDelete: Restrict)
+  document        DocDocument            @relation(fields: [tenantId, documentId], references: [tenantId, id], onDelete: Restrict)
+  retentionRule   DocRetentionRule       @relation(fields: [tenantId, retentionRuleId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, proposalId, documentId])
+  @@index([tenantId, documentId])
+  @@map("doc_dispositions")
+}
+
+/// Texto de una versión para la búsqueda de texto completo (B21, numeral 13.2): el worker lo saca de
+/// su PDF. La base de datos lo indexa en español y sin tildes (doc_version_texts_search_idx).
+model DocVersionText {
+  id         String      @id @default(uuid(7)) @db.Uuid
+  tenantId   String      @map("tenant_id") @db.Uuid
+  documentId String      @map("document_id") @db.Uuid
+  versionId  String      @map("version_id") @db.Uuid
+  status     String
+  content    String
+  createdAt  DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?     @map("created_by") @db.Uuid
+  updatedAt  DateTime    @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?     @map("updated_by") @db.Uuid
+  version    Int         @default(1)
+  deletedAt  DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  document   DocDocument @relation(fields: [tenantId, documentId], references: [tenantId, id], onDelete: Restrict)
+  versionRow DocVersion  @relation(fields: [tenantId, versionId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, versionId])
+  @@index([tenantId, documentId])
+  @@map("doc_version_texts")
 }
 
 // M04 Flujos y tareas (B15, ADR-011). Las personas se guardan por identificador, sin relación con
