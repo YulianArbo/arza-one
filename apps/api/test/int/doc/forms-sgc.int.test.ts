@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 
+import { ConversionRejectedError } from '../../../src/modules/doc/infrastructure/gotenberg-converter.js';
 import { errorCode } from '../iam/support/iam-fixtures.js';
 import type { Person } from '../iam/support/access-scenario.js';
 import { CHECKLIST_DATA, FormScenario } from './support/form-scenario.js';
@@ -118,5 +119,50 @@ describe('copia de consulta de la versión vigente', () => {
     expect(link.status, link.text).toBe(200);
     const downloaded = await scenario.fetchLink((link.body as { url: string }).url);
     expect(String(downloaded.body)).toContain('% sello');
+  });
+});
+
+describe('FT-SGC-001 de una solicitud rechazada', () => {
+  it('lleva el documento que pedía cambiar, la decisión y su motivo', async () => {
+    const requester = await scenario.quality('pide-cambio');
+    const { documentId, versionId } = await scenario.versionInReview(requester);
+    await publishWithChecklist(requester, documentId, versionId);
+    const document = await scenario.document(requester, documentId);
+    const update = { action: 'update', document_id: documentId, doc_type: null, process_id: null };
+    const id = await scenario.fileRequest(requester, { ...update, title: null });
+    const decider = await scenario.quality('rechaza');
+    expect((await scenario.requestStep(decider, id, 'analyze')).status).toBe(204);
+    const motive = 'El cambio no corresponde al alcance del proceso.';
+    expect((await scenario.requestStep(decider, id, 'reject', motive)).status).toBe(204);
+    const request = await scenario.changeRequest(decider, id);
+    const record = await scenario.record(decider, request.form_record_id ?? '');
+    expect(record.data).toMatchObject({
+      accion: 'Modificación',
+      documento: `${document.code} · ${document.title}`,
+      tipo: '',
+      proceso: '',
+      decision: 'Rechazada',
+      nota: motive,
+    });
+  });
+});
+
+describe('copia de consulta de un PDF protegido', () => {
+  it('si el PDF no admite el sello, la copia es el mismo PDF y la auditoría lo dice', async () => {
+    const author = await scenario.quality('copia-protegida');
+    const { documentId, versionId } = await scenario.versionInReview(author);
+    await publishWithChecklist(author, documentId, versionId);
+    const stamp = () => Promise.reject(new ConversionRejectedError(400));
+    expect((await scenario.renderPdfs({ stamp })).copies).toBeGreaterThanOrEqual(1);
+    const event = await scenario.inTenant((tx) =>
+      tx.auditEvent.findFirstOrThrow({
+        where: { action: 'doc.version.copy', entityId: versionId },
+      }),
+    );
+    expect(event.changes).toMatchObject({ stamped: false });
+    const version = await scenario.inTenant((tx) =>
+      tx.docVersion.findUniqueOrThrow({ where: { id: versionId } }),
+    );
+    expect(version.copyFileId).not.toBeNull();
   });
 });
