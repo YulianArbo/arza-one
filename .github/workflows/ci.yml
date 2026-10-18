@@ -2,6 +2,13 @@
 # Corre en cada pull request y en cada cambio a main. Las tareas van en paralelo; la tarea
 # «Verificaciones» resume todas y es la que la protección de main exige en verde.
 # La verificación 10 (OWASP ZAP) corre aparte, cada semana: ver zap-semanal.yml.
+#
+# Optimización de minutos (ADR-024): la tarea 0 decide qué corre sin quitar ninguna verificación.
+# - Pull request de código: tareas 1-9; los ensayos 11 y 12 solo si toca infraestructura.
+# - Fusión a main ya verificada en su pull request: seguridad y ensayos 11 y 12.
+# - Solo documentación: formato y seguridad.
+# Para volver a correr todo siempre: variable de repositorio CI_FULL_RUN=true (Settings → Secrets
+# and variables → Actions → Variables). Guía: docs/runbooks/integracion-continua.md.
 name: Integración continua
 
 on:
@@ -29,8 +36,37 @@ env:
   PRISMA_HIDE_UPDATE_MESSAGE: '1'
 
 jobs:
+  plan:
+    name: 0. Qué verificar en este cambio
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      # Leer si la fusión ya pasó «Verificaciones» en su pull request.
+      checks: read
+    outputs:
+      quality: ${{ steps.plan.outputs.quality }}
+      tests: ${{ steps.plan.outputs.tests }}
+      rehearsals: ${{ steps.plan.outputs.rehearsals }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+      - name: Decidir las tareas (ADR-024)
+        id: plan
+        env:
+          CI_FULL_RUN: ${{ vars.CI_FULL_RUN }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node infra/scripts/ci/plan-ci.ts "$BASE_SHA"
+
   quality:
     name: 1-3. Formato, análisis, tipos y fronteras
+    needs: plan
+    if: needs.plan.outputs.quality == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -59,6 +95,8 @@ jobs:
 
   unit:
     name: 4. Pruebas unitarias con cobertura
+    needs: plan
+    if: needs.plan.outputs.tests == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -73,6 +111,8 @@ jobs:
 
   integration:
     name: 5. Integración con base de datos, colas y correo reales
+    needs: plan
+    if: needs.plan.outputs.tests == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -83,6 +123,7 @@ jobs:
       - name: Pruebas con PostgreSQL 17, Valkey y Mailpit (aislamiento entre empresas y reintentos)
         run: pnpm test:int
 
+  # Corre siempre, incluso si el cambio es solo documentación (un secreto puede estar en cualquier archivo).
   security:
     name: 6. Secretos, seguridad y dependencias
     runs-on: ubuntu-24.04
@@ -125,6 +166,8 @@ jobs:
 
   migrations:
     name: 7. Migraciones desde cero y sobre la versión anterior
+    needs: plan
+    if: needs.plan.outputs.tests == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -141,24 +184,30 @@ jobs:
         run: bash infra/scripts/ci/migrations-upgrade.sh "$BASE_SHA"
       # «Desde cero» lo comprueba la tarea 5: global-setup.ts migra una base vacía.
 
+  # Las cuatro imágenes en una sola máquina: comparten capas de Docker y la base de Trivy, y se
+  # cobra una tarea en lugar de cuatro (ADR-024). Cada imagen se construye y analiza igual que antes.
   images:
-    name: 8. Imagen ${{ matrix.app }} y análisis con Trivy
+    name: 8. Imágenes api, web, worker y migrate y análisis con Trivy
+    needs: plan
+    if: needs.plan.outputs.tests == 'true'
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        # migrate: imagen de migraciones del despliegue (B07), etapa del Dockerfile de la API.
-        app: [api, web, worker, migrate]
+    timeout-minutes: 20
     env:
+      # migrate: imagen de migraciones del despliegue (B07), etapa del Dockerfile de la API.
+      APPS: api web worker migrate
       TRIVY_VERSION: 0.74.0
       TRIVY_SHA256: 2ae6fe3ee734b7fdf11335663e18c75ea12dccc76062f09f164a3b0f8be4371a
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Construir la imagen
-        run: bash infra/scripts/ci/build-image.sh "${{ matrix.app }}" "arza-one/${{ matrix.app }}:ci"
+      - name: Construir las imágenes
+        run: |
+          failed=""
+          for app in $APPS; do
+            bash infra/scripts/ci/build-image.sh "$app" "arza-one/$app:ci" || failed="$failed $app"
+          done
+          if [ -n "$failed" ]; then echo "No se pudo construir:$failed"; exit 1; fi
       - name: Instalar Trivy (versión fija y huella verificada)
         run: |
           mkdir -p "$RUNNER_TEMP/bin"
@@ -168,12 +217,25 @@ jobs:
           tar -xzf "$RUNNER_TEMP/trivy.tar.gz" -C "$RUNNER_TEMP/bin" trivy
           echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
       - name: Vulnerabilidades altas y críticas (informativo)
-        run: trivy image --quiet --severity HIGH,CRITICAL --ignore-unfixed "arza-one/${{ matrix.app }}:ci"
+        run: |
+          for app in $APPS; do
+            echo "::group::Imagen $app"
+            trivy image --quiet --severity HIGH,CRITICAL --ignore-unfixed "arza-one/$app:ci"
+            echo "::endgroup::"
+          done
       - name: Falla con una vulnerabilidad crítica con corrección disponible
-        run: trivy image --quiet --skip-db-update --severity CRITICAL --ignore-unfixed --exit-code 1 "arza-one/${{ matrix.app }}:ci"
+        run: |
+          failed=""
+          for app in $APPS; do
+            trivy image --quiet --skip-db-update --severity CRITICAL --ignore-unfixed --exit-code 1 \
+              "arza-one/$app:ci" || failed="$failed $app"
+          done
+          if [ -n "$failed" ]; then echo "Vulnerabilidad crítica con corrección en:$failed"; exit 1; fi
 
   e2e:
     name: 9. Pruebas en navegador y accesibilidad
+    needs: plan
+    if: needs.plan.outputs.tests == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -197,6 +259,8 @@ jobs:
 
   deploy-rehearsal:
     name: 11. Ensayo de despliegue y reversión automática
+    needs: plan
+    if: needs.plan.outputs.rehearsals == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     steps:
@@ -211,6 +275,8 @@ jobs:
 
   server-rehearsal:
     name: 12. Preparación y endurecimiento del servidor (Ubuntu 24.04)
+    needs: plan
+    if: needs.plan.outputs.rehearsals == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -230,6 +296,7 @@ jobs:
     if: always()
     needs:
       [
+        plan,
         quality,
         unit,
         integration,
@@ -243,13 +310,20 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
+      # «Omitida» solo es válido cuando la tarea 0 lo decidió (ADR-024); si la tarea 0 falla, todo
+      # falla. Cualquier otra tarea fallida o cancelada impide integrar, igual que antes.
       - name: Todas las verificaciones en verde
         env:
+          PLAN: ${{ needs.plan.result }}
           RESULTS: ${{ join(needs.*.result, ' ') }}
         run: |
-          echo "Resultados: $RESULTS"
+          echo "Plan: $PLAN · Resultados: $RESULTS"
+          if [ "$PLAN" != "success" ]; then
+            echo "No se pudo decidir qué verificar: el cambio no se puede integrar."
+            exit 1
+          fi
           for result in $RESULTS; do
-            if [ "$result" != "success" ]; then
+            if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
               echo "Al menos una verificación no pasó: el cambio no se puede integrar."
               exit 1
             fi

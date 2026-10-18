@@ -11,16 +11,50 @@ verde para permitir integrar.
 
 | #   | Tarea en GitHub                                          | Qué revisa                                                                                                                                                                                                            | Falla si…                                                                           |
 | --- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| 0   | Qué verificar en este cambio                             | Decide qué tareas corren (ver la sección siguiente y ADR-024)                                                                                                                                                         | No puede leer el repositorio (entonces nada se integra)                             |
 | 1-3 | Formato, análisis, tipos y fronteras                     | Mensajes de commit, Prettier, ESLint, TypeScript, dependency-cruiser y knip                                                                                                                                           | Hay una sola advertencia, un error de tipos o un módulo importa el interior de otro |
 | 4   | Pruebas unitarias con cobertura                          | Todas las pruebas unitarias                                                                                                                                                                                           | Falla una prueba o la cobertura baja de 90 % (capítulo 21)                          |
 | 5   | Integración con base de datos, colas y correo reales     | Pruebas contra PostgreSQL 17, Valkey y Mailpit desechables: aislamiento entre empresas, permisos, límite de peticiones, reintentos del worker; migraciones desde cero                                                 | Falla una prueba                                                                    |
 | 6   | Secretos, seguridad y dependencias                       | gitleaks (todo el historial), Semgrep (patrones inseguros) y osv-scanner (dependencias)                                                                                                                               | Hay un secreto, un hallazgo de severidad alta o una vulnerabilidad alta o crítica   |
 | 7   | Migraciones desde cero y sobre la versión anterior       | Que las migraciones nuevas no rompan la versión anterior; aplica las de `main` con datos ficticios y luego las nuevas                                                                                                 | Una migración ya integrada cambió, una nueva borra o renombra algo, o no aplica     |
-| 8   | Imagen api / web / worker / migrate y análisis con Trivy | Construye las imágenes Docker (migrate: la de migraciones del despliegue, B07) y busca vulnerabilidades                                                                                                               | Hay una vulnerabilidad crítica con corrección disponible                            |
+| 8   | Imágenes api, web, worker y migrate y análisis con Trivy | Construye las imágenes Docker (migrate: la de migraciones del despliegue, B07) y busca vulnerabilidades                                                                                                               | Hay una vulnerabilidad crítica con corrección disponible                            |
 | 9   | Pruebas en navegador y accesibilidad                     | Playwright y axe-core sobre la web compilada                                                                                                                                                                          | Falla un recorrido o hay una violación grave de accesibilidad                       |
 | 11  | Ensayo de despliegue y reversión automática              | [`rehearsal.sh`](../../infra/scripts/deploy/rehearsal.sh): la máquina de GitHub hace de servidor; publica una versión buena, revisa puertos y publica una dañada que debe revertirse sola (B07)                       | La versión buena no se publica, hay otro puerto abierto o la dañada no se revierte  |
 | 12  | Preparación y endurecimiento del servidor                | ShellCheck de los guiones de bash y [`infra/server/rehearsal.sh`](../../infra/server/rehearsal.sh): prepara la máquina de GitHub (Ubuntu 24.04) con `provision.sh` y comprueba SSH, root, contraseñas y puertos (B07) | Un guion tiene un error o un control del numeral 10.2 no se cumple                  |
 | 10  | OWASP ZAP (semanal)                                      | [`zap-semanal.yml`](../../.github/workflows/zap-semanal.yml): ataca una copia temporal de la web y la API                                                                                                             | Hay una alerta de riesgo alto                                                       |
+
+## Qué corre en cada cambio (ADR-024)
+
+Para no gastar minutos repitiendo verificaciones sobre el mismo código, la tarea
+**«0. Qué verificar en este cambio»** decide qué corre. Ninguna verificación se elimina; en la
+página de la ejecución, las que no hacían falta aparecen como omitidas (gris) y la tarea 0 explica
+por qué.
+
+| Cambio                                                | Qué corre                                        |
+| ----------------------------------------------------- | ------------------------------------------------ |
+| Pull request de código                                | Tareas 1 a 9 completas                           |
+| Pull request que toca infraestructura¹                | Tareas 1 a 9, más los ensayos 11 y 12            |
+| Fusión a `main` de un pull request ya verificado²     | Seguridad (6) y ensayos 11 y 12                  |
+| Solo documentación (`docs/` o archivos `.md`)         | Formato y mensajes de commit (1) y seguridad (6) |
+| Lanzada a mano, cambio directo a `main` o caso dudoso | Todo                                             |
+
+¹ `infra/`, `.github/`, cualquier `Dockerfile` o `package.json`, `pnpm-lock.yaml`,
+`pnpm-workspace.yaml`, `.nvmrc` o `.dockerignore`.
+² El código fusionado es idéntico a la punta del pull request (la rama estaba al día con `main`) y
+su tarea «Verificaciones» terminó en verde. Si no se puede comprobar, corre todo.
+
+Si el ensayo 11 o 12 falla al fusionar a `main`, el despliegue a pruebas no ocurre: corrija la
+causa en un pull request nuevo.
+
+### Volver a correr todo siempre
+
+Sin tocar el código, en GitHub: **Settings → Secrets and variables → Actions → pestaña Variables →
+New repository variable**, nombre `CI_FULL_RUN` y valor `true`. Desde ese momento todas las tareas
+corren en cada cambio, como antes de ADR-024. Para volver a la optimización, borre la variable o
+cambie su valor.
+
+Para correr todo una sola vez sobre una rama: **Actions → Integración continua → Run workflow** y
+elija la rama.
 
 La verificación 10 corre los lunes a la 1:00 a. m. (hora de Bogotá) y se puede lanzar a mano en
 GitHub: **Actions → Análisis dinámico semanal (OWASP ZAP) → Run workflow**. Analiza una copia
@@ -101,5 +135,9 @@ trimestre: cambie la versión y la huella en `ci.yml`, tomándola del archivo de
 ## Tiempo y minutos
 
 La meta es que todas las verificaciones terminen en menos de 15 minutos (B05). Cada tarea tiene un
-límite de 15 minutos. Un cambio nuevo en el mismo pull request cancela la ejecución anterior para
-no gastar minutos de la cuota de GitHub Actions.
+límite de 15 minutos (20 la de imágenes, que construye las cuatro). Un cambio nuevo en el mismo pull
+request cancela la ejecución anterior para no gastar minutos de la cuota de GitHub Actions.
+
+GitHub cobra cada tarea por separado y redondea cada una al minuto. Con ADR-024 un bloque gasta
+unos 58 minutos (pull request más fusión) en lugar de 116. El consumo del mes se consulta en
+GitHub: foto de perfil → **Settings → Billing and licensing → Usage**.
