@@ -6,6 +6,7 @@ import type { JSX } from 'react';
 import { PageHeader } from '../../../../components/app-shell/page-header';
 import { DocumentExplorer } from '../../../../features/documents/document-explorer';
 import { MASTER_LIST_PATH, REQUESTS_PATH } from '../../../../features/documents/labels';
+import { FORMS_PATH } from '../../../../features/forms/labels';
 import { RequirePermission } from '../../../../features/session/permissions';
 
 export const metadata: Metadata = { title: 'Documentos' };
@@ -23,6 +24,9 @@ export default function DocumentsPage(): JSX.Element {
             </Link>
             <Link href={REQUESTS_PATH} className={buttonVariants({ variant: 'outline' })}>
               Solicitudes
+            </Link>
+            <Link href={FORMS_PATH} className={buttonVariants({ variant: 'outline' })}>
+              Formatos digitales
             </Link>
           </div>
         }

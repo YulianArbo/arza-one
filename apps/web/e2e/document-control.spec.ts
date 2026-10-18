@@ -38,6 +38,7 @@ const REQUEST_VIEW = {
   decision_note: null,
   executed_at: null,
   workflow_instance_id: null,
+  form_record_id: null,
   step: 'En análisis',
   actions: ['approve', 'reject'],
   version: 2,
