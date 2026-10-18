@@ -31,7 +31,7 @@ export const DESIGNER = permissions([
 /** Quien solo consulta documentos. */
 export const FORM_READER = permissions(['doc.document.read']);
 
-export const DEFINITION = {
+const DEFINITION = {
   sections: [
     {
       key: 'general',

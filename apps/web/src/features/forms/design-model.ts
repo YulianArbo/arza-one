@@ -39,7 +39,7 @@ export interface DesignSection {
 
 let counter = 0;
 
-export function newUid(): string {
+function newUid(): string {
   counter += 1;
   return `d${String(counter)}`;
 }

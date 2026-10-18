@@ -193,7 +193,7 @@ const TECHNICAL_DELIVERY: FormDefinition = {
 };
 
 /** La Solicitud de Acción Documental la llena la plataforma con los datos de la solicitud. */
-export const CHANGE_REQUEST_FORM: FormDefinition = {
+const CHANGE_REQUEST_FORM: FormDefinition = {
   sections: [
     section('solicitud', 'Solicitud', [
       text('codigo', 'Código de la solicitud'),
