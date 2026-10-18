@@ -167,6 +167,8 @@ ALTER TABLE "doc_form_records" ADD CONSTRAINT "doc_form_records_tenant_id_pdf_fi
 -- Reglas de los datos -------------------------------------------------------------------------
 -- Los valores permitidos son los de packages/contracts/src/doc.
 
+-- Las versiones que publica la semilla (los formatos piloto) no tienen quien las publicó.
+
 -- Un solo borrador y una sola versión publicada por código.
 CREATE UNIQUE INDEX "doc_output_templates_one_draft_key" ON "doc_output_templates"("tenant_id", "code")
     WHERE "status" = 'draft' AND "deleted_at" IS NULL;
@@ -194,7 +196,7 @@ ALTER TABLE "doc_output_templates"
     ADD CONSTRAINT "doc_output_templates_status_check" CHECK ("status" IN ('draft', 'published', 'retired')),
     ADD CONSTRAINT "doc_output_templates_published_check" CHECK (
         ("status" = 'draft') = ("published_at" IS NULL)
-        AND ("published_at" IS NULL) = ("published_by" IS NULL)
+        AND ("published_at" IS NOT NULL OR "published_by" IS NULL)
         AND ("status" = 'retired') = ("retired_at" IS NOT NULL)),
     ADD CONSTRAINT "doc_output_templates_variables_check" CHECK (jsonb_typeof("variables") = 'array'),
     ADD CONSTRAINT "doc_output_templates_version_check" CHECK ("version" > 0);
@@ -219,7 +221,7 @@ ALTER TABLE "doc_form_templates"
         "fill_mode" = 'manual' OR ("entity_type" IS NOT NULL AND "workflow_key" IS NULL)),
     ADD CONSTRAINT "doc_form_templates_published_check" CHECK (
         ("status" = 'draft') = ("published_at" IS NULL)
-        AND ("published_at" IS NULL) = ("published_by" IS NULL)
+        AND ("published_at" IS NOT NULL OR "published_by" IS NULL)
         AND ("status" = 'retired') = ("retired_at" IS NOT NULL)),
     ADD CONSTRAINT "doc_form_templates_version_check" CHECK ("version" > 0);
 
@@ -249,6 +251,15 @@ ALTER TABLE "doc_form_records"
         AND (("status" = 'completed') = ("render_status" <> 'none'))
         AND (("render_status" = 'ready') = ("pdf_file_id" IS NOT NULL))),
     ADD CONSTRAINT "doc_form_records_version_check" CHECK ("version" > 0);
+
+-- Los registros de un formato llevan su propio consecutivo anual con el código del formato como
+-- prefijo: FT-COM-002-2026-0001.
+ALTER TABLE "core_sequences" DROP CONSTRAINT "core_sequences_prefix_check";
+
+ALTER TABLE "core_sequences"
+    ADD CONSTRAINT "core_sequences_prefix_check" CHECK (
+        ("yearly" AND "prefix" ~ '^([A-Z]{2,6}|[A-Z]{2,3}-[A-Z]{2,3}-[0-9]{3,8})$')
+        OR (NOT "yearly" AND "prefix" ~ '^[A-Z]{2,6}(-[A-Z]{2,6})?$'));
 
 -- Una versión publicada de una plantilla no cambia; solo pasa a retirada.
 CREATE FUNCTION "doc_keep_output_templates"() RETURNS TRIGGER

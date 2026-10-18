@@ -1,6 +1,7 @@
 // Interfaz pública de la gestión documental (M03). El worker analiza los archivos con
-// scanUploadedFile y convierte las versiones a PDF con renderVersionPdf (B18); los demás módulos
-// usan este índice, nunca las tablas doc_.
+// scanUploadedFile, convierte las versiones a PDF con renderVersionPdf (B18) y genera los PDF de
+// los registros diligenciados y las copias de consulta con renderPendingPdfs (B20); los demás
+// módulos usan este índice, nunca las tablas doc_.
 export { DocModule } from './interface/doc.module.js';
 export {
   FileNotReadyError,
@@ -12,6 +13,7 @@ export { scanWithClamav, type ScanVerdict } from './infrastructure/clamav-scanne
 export { fileStorageFrom } from './infrastructure/file-storage.js';
 export { seedDocFolders } from './application/doc-seed.js';
 export { seedDocWorkflows } from './application/doc-workflows.js';
+export { seedDocForms } from './application/form-seed.js';
 export {
   DOC_PARTY_LOOKUP,
   type DocParty,
@@ -22,7 +24,17 @@ export {
   type VersionRenderDependencies,
   type VersionRenderResult,
 } from './application/version-render.js';
-export { convertWithGotenberg } from './infrastructure/gotenberg-converter.js';
+export {
+  renderPendingPdfs,
+  renderTenantPdfs,
+  type PdfRenderDependencies,
+  type PdfRenderResult,
+} from './application/pdf-render.js';
+export {
+  convertHtmlWithGotenberg,
+  convertWithGotenberg,
+  stampWithGotenberg,
+} from './infrastructure/gotenberg-converter.js';
 export {
   AttachedFileLinks,
   attachedFiles,

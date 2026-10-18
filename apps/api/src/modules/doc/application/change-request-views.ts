@@ -26,6 +26,7 @@ interface Lookups {
   readonly processes: Awaited<ReturnType<typeof orgUnitsById>>;
   readonly documents: ReadonlyMap<string, { id: string; code: string; title: string }>;
   readonly steps: ReadonlyMap<string, Participation>;
+  readonly forms: ReadonlyMap<string, string>;
 }
 
 async function stepsOf(
@@ -60,11 +61,20 @@ async function lookups(
     where: { id: { in: documentIds } },
     select: { id: true, code: true, title: true },
   });
+  const forms = await tx.docFormRecord.findMany({
+    where: {
+      entityType: 'doc_change_request',
+      entityId: { in: requests.map((r) => r.id) },
+      deletedAt: null,
+    },
+    select: { id: true, entityId: true },
+  });
   return {
     people: new Map([...people].map(([id, person]) => [id, person.displayName ?? person.email])),
     processes: await orgUnitsById(tx, processIds),
     documents: new Map(documents.map((document) => [document.id, document])),
     steps: await stepsOf(tx, reader, requests, at),
+    forms: new Map(forms.flatMap((f) => (f.entityId === null ? [] : [[f.entityId, f.id]]))),
   };
 }
 
@@ -108,6 +118,7 @@ function view(request: DocChangeRequest, found: Lookups, reader: DocReader): Cha
     decision_note: request.decisionNote,
     executed_at: request.executedAt?.toISOString() ?? null,
     workflow_instance_id: request.workflowInstanceId,
+    form_record_id: found.forms.get(request.id) ?? null,
     step: step === undefined || step.completed ? null : step.stateLabel,
     actions: actionsFor(request, step, reader),
     version: request.version,

@@ -68,6 +68,10 @@ export const changeRequestSchema = z.object({
   decision_note: z.string().nullable(),
   executed_at: dateTime.nullable(),
   workflow_instance_id: z.uuid().nullable().describe('Trámite en el motor de flujos'),
+  form_record_id: z
+    .uuid()
+    .nullable()
+    .describe('Registro FT-SGC-001 con su PDF, cuando la solicitud ya se decidió (B20)'),
   step: z.string().nullable().describe('Paso actual del trámite'),
   actions: z.array(changeRequestStepSchema).describe('Pasos que la persona puede dar ahora'),
   version: z.number().int().positive(),

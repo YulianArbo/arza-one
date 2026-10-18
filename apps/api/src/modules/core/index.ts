@@ -18,6 +18,7 @@ export {
   nextBusinessMoment,
 } from './application/calendar.js';
 export { workScheduleOn } from './application/parameters.js';
+export { companyIdentity, type CompanyIdentity } from './application/company-identity.js';
 export { superiorPositionId } from './application/positions.js';
 export { catalogLabels, isActiveCatalogCode } from './application/catalogs.js';
 export { bogotaToday, fromCalendarDate, toCalendarDate } from './domain/calendar-date.js';

@@ -4,7 +4,7 @@ import { z } from 'zod';
 // módulos: este punto de entrada las reúne con la de la plataforma, como app.module.ts reúne los
 // módulos.
 import { seedCore } from '../../../modules/core/index.js';
-import { seedDocFolders, seedDocWorkflows } from '../../../modules/doc/index.js';
+import { seedDocFolders, seedDocForms, seedDocWorkflows } from '../../../modules/doc/index.js';
 import { seedAccessControl } from '../../../modules/iam/index.js';
 import { seedPartyDemo } from '../../../modules/party/index.js';
 import { seedNotificationTemplates } from '../../../modules/ntf/index.js';
@@ -39,6 +39,7 @@ async function main(): Promise<void> {
     await seedCore(database, tenantIds, systemClock);
     await seedDocFolders(database, tenantIds, systemClock);
     await seedDocWorkflows(database, tenantIds, systemClock);
+    await seedDocForms(database, tenantIds, systemClock);
     await seedNotificationTemplates(database, tenantIds, systemClock);
     await seedPrivacyNotices(database, tenantIds, systemClock);
     if (withDemo) {

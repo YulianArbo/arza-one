@@ -7,7 +7,9 @@ import {
   VERSION_FLOW,
   VERSION_FLOW_DATA,
 } from '../domain/doc-flows.js';
+import { FORM_RECORD_ENTITY } from '../domain/form-flows.js';
 import { followChangeRequestFlow } from './change-request-flow.js';
+import { followFormRecordFlow } from './form-record-flow.js';
 import { followVersionFlow } from './version-flow.js';
 
 // Los flujos de la gestión documental en el motor (B19): la semilla los publica en cada empresa la
@@ -28,8 +30,12 @@ export async function seedDocWorkflows(
   }
 }
 
-/** La solicitud y la versión siguen los pasos de su trámite en la misma transacción. */
+/**
+ * La solicitud, la versión y los registros diligenciados (B20) siguen los pasos de su trámite en
+ * la misma transacción.
+ */
 export function followDocWorkflows(): void {
   onWorkflowTransition(CHANGE_REQUEST_FLOW, followChangeRequestFlow);
   onWorkflowTransition(VERSION_FLOW, followVersionFlow);
+  onWorkflowTransition(FORM_RECORD_ENTITY, followFormRecordFlow);
 }

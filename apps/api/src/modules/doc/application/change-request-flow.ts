@@ -5,10 +5,11 @@ import type { TransitionNotice, WfContext } from '../../wf/index.js';
 import { CHANGE_REQUEST_STATES } from '../domain/doc-flows.js';
 import { auditDoc } from './doc-support.js';
 import { changeRequestNotFound, selfDecision } from './request-messages.js';
+import { recordChangeRequestForm } from './system-records.js';
 
 // El trámite de una Solicitud de Acción Documental (B19, ADR-023): cada paso del motor cambia la
 // solicitud en la misma transacción. Quien la pidió no la decide, ni a nombre de otra persona; al
-// decidirse, le llega un aviso.
+// decidirse, le llega un aviso y queda su FT-SGC-001 (B20).
 
 type Outcome = 'approved' | 'rejected';
 
@@ -61,6 +62,7 @@ async function decide(
       outcome: decision.outcome,
     },
   });
+  await recordChangeRequestForm(tx, context, decided);
 }
 
 /** Oyente del trámite de las solicitudes. */

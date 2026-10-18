@@ -7,11 +7,13 @@ import { startWorkflow, type TransitionNotice, type WfContext } from '../../wf/i
 import { VERSION_FLOW, VERSION_STATES } from '../domain/doc-flows.js';
 import { pdfNotReady, selfApproval, versionNotFound } from './doc-messages.js';
 import { lockDocument, type DocActor } from './doc-support.js';
+import { assertChecklistDone } from './system-records.js';
 import { auditStep, moveVersion, publishVersion, type StepContext } from './version-steps.js';
 
 // El trámite de una versión en el motor de flujos (B19, ADR-023): nace con la versión y cada paso
 // que da (desde la ficha o desde «Mis tareas») cambia la versión en la misma transacción. Quien
-// elabora la versión no la revisa, no la aprueba ni la devuelve, ni por delegación.
+// elabora la versión no la revisa, no la aprueba ni la devuelve, ni por delegación. Desde B20, aprobar
+// la revisión exige la Lista de Verificación Documental (FT-SGC-002) de la versión.
 
 const effectiveDateFact = z.iso.date();
 
@@ -54,6 +56,7 @@ async function applyStep(step: StepContext, notice: TransitionNotice): Promise<v
     await moveVersion(step, 'submit', { submittedAt: step.actor.at, reviewNote: null });
     await auditStep(step, 'submit');
   } else if (toState === VERSION_STATES.approval) {
+    await assertChecklistDone(step.tx, step.version.id);
     await auditStep(step, 'review');
   } else if (toState === VERSION_STATES.drafting) {
     const note = notice.comment ?? 'Devuelta para corregir.';
