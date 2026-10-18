@@ -88,6 +88,7 @@ function documentView(doc: DocDocument, found: Lookups, showOpen: boolean): Docu
     status: documentStatusSchema.parse(doc.status),
     current_version: versionReference(found.current.get(doc.id)),
     open_version: showOpen ? versionReference(found.open.get(doc.id)) : null,
+    disposed_at: doc.disposedAt?.toISOString() ?? null,
     created_at: doc.createdAt.toISOString(),
     version: doc.version,
   };

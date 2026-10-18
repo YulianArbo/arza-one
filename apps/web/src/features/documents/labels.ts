@@ -36,12 +36,14 @@ export const DOCUMENT_STATUS_LABELS: Readonly<Record<DocumentStatus, string>> = 
   draft: 'Sin publicar',
   current: 'Vigente',
   obsolete: 'Obsoleto',
+  disposed: 'Eliminado por disposición',
 };
 
 export const DOCUMENT_STATUS_TONES: Readonly<Record<DocumentStatus, Tone>> = {
   draft: 'warning',
   current: 'success',
   obsolete: 'neutral',
+  disposed: 'destructive',
 };
 
 export const VERSION_STATUS_LABELS: Readonly<Record<VersionStatus, string>> = {

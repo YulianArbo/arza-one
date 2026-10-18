@@ -9,3 +9,6 @@ export * from './acknowledgements.js';
 export * from './form-schema.js';
 export * from './forms.js';
 export * from './output-templates.js';
+export * from './retention.js';
+export * from './dispositions.js';
+export * from './search.js';
