@@ -3,6 +3,7 @@
 export { noticeEmail, type NoticeEmailInput, type RenderedEmail } from './notice-email.js';
 export {
   controlledCopyStamp,
+  framedPreview,
   institutionalFooter,
   institutionalHeader,
   UNCONTROLLED_COPY,

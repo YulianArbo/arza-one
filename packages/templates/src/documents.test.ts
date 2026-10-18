@@ -7,6 +7,7 @@ import {
   docxTemplateVariables,
   fillDocxTemplate,
   formDocumentBody,
+  framedPreview,
   htmlTemplateVariables,
   institutionalFooter,
   institutionalHeader,
@@ -120,6 +121,21 @@ describe('encabezado y pie institucionales', () => {
     expect(controlledCopyStamp({ code: 'PR-SGC-001', version: '03', date: '01/10/2026' })).toBe(
       'PR-SGC-001 · Versión 03 · Vigente desde 01/10/2026 · Copia no controlada cuando se imprime',
     );
+  });
+});
+
+describe('vista previa', () => {
+  it('pone el encabezado arriba y el pie abajo de la página, con la página 1 de 1', () => {
+    const preview = framedPreview({
+      header: institutionalHeader(DOCUMENT, COMPANY),
+      page: printPage('FT-COM-002', '<p>Contenido</p>'),
+      footer: institutionalFooter(COMPANY, null),
+    });
+    const header = preview.indexOf('Código: FT-COM-002');
+    expect(header).toBeGreaterThan(-1);
+    expect(preview.indexOf('Contenido')).toBeGreaterThan(header);
+    expect(preview.indexOf('Copia no controlada')).toBeGreaterThan(preview.indexOf('Contenido'));
+    expect(preview).toContain('Página: 1 de 1');
   });
 });
 

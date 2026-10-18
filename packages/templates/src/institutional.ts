@@ -54,7 +54,7 @@ export function institutionalHeader(document: DocumentIdentity, company: Company
   const row = [
     cell(logo, 'width:22%;text-align:center'),
     cell(
-      `<div style="font-size:7px;letter-spacing:1px">SISTEMA DE GESTIÓN DE CALIDAD</div><div style="font-size:11px;font-weight:700">${escapeHtml(document.name)}</div>`,
+      `<div style="font-size:7px">SISTEMA DE GESTIÓN DE CALIDAD</div><div style="font-size:11px;font-weight:700">${escapeHtml(document.name)}</div>`,
       'text-align:center',
     ),
     cell(data, 'width:26%;font-size:8px;line-height:1.35'),
@@ -81,4 +81,30 @@ export function institutionalFooter(company: CompanyIdentity, reference: string 
 /** Lo que va en el pie de la copia de consulta de un documento vigente. */
 export function controlledCopyStamp(document: Omit<DocumentIdentity, 'name'>): string {
   return `${document.code} · Versión ${document.version} · Vigente desde ${document.date} · ${UNCONTROLLED_COPY}`;
+}
+
+function bodyOf(html: string): string {
+  return /<body[^>]*>([\s\S]*)<\/body>/iu.exec(html)?.[1] ?? html;
+}
+
+/**
+ * Vista previa en pantalla: el encabezado, la página y el pie uno debajo del otro, como se verá la
+ * primera hoja del PDF. Los números de página quedan en 1.
+ */
+export function framedPreview(parts: {
+  readonly header: string;
+  readonly page: string;
+  readonly footer: string;
+}): string {
+  const header = bodyOf(parts.header)
+    .replace('<span class="pageNumber"></span>', '1')
+    .replace('<span class="totalPages"></span>', '1');
+  const frameStyle = 'margin:0 auto 12px;max-width:21.6cm';
+  const footer = bodyOf(parts.footer);
+  // Con funciones de reemplazo: un «$» en lo que escribió una persona no es un patrón.
+  return parts.page
+    .replace(/<body([^>]*)>/iu, (_tag, attributes: string) => {
+      return `<body${attributes}><div style="${frameStyle}">${header}</div><div style="padding:0 1.2cm">`;
+    })
+    .replace(/<\/body>/iu, () => `</div><div style="margin-top:16px">${footer}</div></body>`);
 }
