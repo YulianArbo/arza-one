@@ -24,6 +24,15 @@ export const DOC_ERROR_CODES = {
   changeRequestInvalid: 'DOC_CHANGE_REQUEST_INVALID',
   selfDecision: 'DOC_SELF_DECISION',
   notAcknowledgeable: 'DOC_NOT_ACKNOWLEDGEABLE',
+  formTemplateNotFound: 'DOC_FORM_TEMPLATE_NOT_FOUND',
+  formTemplateNotEditable: 'DOC_FORM_TEMPLATE_NOT_EDITABLE',
+  formRecordNotFound: 'DOC_FORM_RECORD_NOT_FOUND',
+  formRecordNotEditable: 'DOC_FORM_RECORD_NOT_EDITABLE',
+  formDataInvalid: 'DOC_FORM_DATA_INVALID',
+  outputTemplateNotFound: 'DOC_OUTPUT_TEMPLATE_NOT_FOUND',
+  outputTemplateNotEditable: 'DOC_OUTPUT_TEMPLATE_NOT_EDITABLE',
+  outputTemplateInvalid: 'DOC_OUTPUT_TEMPLATE_INVALID',
+  checklistRequired: 'DOC_CHECKLIST_REQUIRED',
 } as const;
 
 /**
