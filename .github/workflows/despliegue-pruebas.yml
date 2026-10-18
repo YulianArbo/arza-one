@@ -64,7 +64,8 @@ jobs:
         run: |
           bash infra/scripts/ci/build-image.sh "${{ matrix.app }}" "arza-one/${{ matrix.app }}:deploy" \
             "${{ vars.STAGING_PLATFORM || 'linux/amd64' }}"
-      # Las mismas imágenes de este commit ya pasaron Trivy en la integración continua (tarea 8).
+      # Las imágenes de este mismo código ya pasaron Trivy en la integración continua (tarea 8, en el
+      # pull request que lo llevó a main: ADR-024).
       - name: Publicar en el registro privado de GitHub
         env:
           REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
