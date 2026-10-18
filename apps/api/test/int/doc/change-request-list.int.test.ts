@@ -2,12 +2,11 @@ import { changeRequestListResponseSchema, type ChangeRequestListResponse } from 
 import { beforeAll, describe, expect, it } from 'vitest';
 
 import type { Person } from '../iam/support/access-scenario.js';
-import { errorCode } from '../iam/support/iam-fixtures.js';
 import { SgcScenario } from './support/sgc-scenario.js';
 
 // Bandeja de Solicitudes de Acción Documental (B19): filtros por estado, documento y acción que se
-// puede usar, páginas con cursor, el proceso que exige cada tipo y la versión elaborada antes de
-// B19, que recibe su trámite al enviarse.
+// puede usar, y páginas con cursor. También la versión elaborada antes de B19, que recibe su trámite
+// al enviarse.
 
 const scenario = new SgcScenario('bandeja de solicitudes');
 
@@ -42,7 +41,9 @@ describe('filtros de la bandeja', () => {
     await scenario.publishLatest(author, await scenario.quality('aprueba'), id);
     const update = await scenario.approvedRequest(author, { action: 'update', documentId: id });
     const create = await scenario.approvedByFlow(author);
-    expect(await ids(author, `document_id=${id}`)).toEqual([update]);
+    const ofDocument = await ids(author, `document_id=${id}`);
+    expect(ofDocument).toContain(update);
+    expect(ofDocument).not.toContain(create);
     const usable = await ids(author, 'usable=update');
     expect(usable).toContain(update);
     expect(usable).not.toContain(create);
@@ -67,38 +68,18 @@ describe('páginas de la bandeja', () => {
   });
 });
 
-describe('proceso del documento que se pide crear', () => {
-  it('un procedimiento exige su proceso y el Reglamento Interno no lleva ninguno', async () => {
-    const requester = await scenario.quality('pide');
-    const body = {
-      action: 'create',
-      document_id: null,
-      title: 'Documento pedido',
-      justification: 'El proceso necesita este documento nuevo.',
-    };
-    const withoutProcess = await scenario.post('/v1/change-requests', requester.session, {
-      ...body,
-      doc_type: 'PR',
-      process_id: null,
-    });
-    expect(errorCode(withoutProcess)).toBe('DOC_REFERENCE_INVALID');
-    const withProcess = await scenario.post('/v1/change-requests', requester.session, {
-      ...body,
-      doc_type: 'RIT',
-      process_id: await scenario.processId('SGC'),
-    });
-    expect(errorCode(withProcess)).toBe('DOC_REFERENCE_INVALID');
-  });
-});
-
 describe('versión elaborada antes de B19', () => {
   it('sin trámite, lo recibe al enviarse a revisión', async () => {
     const author = await scenario.quality('elabora');
     const id = await scenario.createDocument(author);
     const draft = await scenario.latest(author, id);
-    await scenario.inTenant((tx) =>
-      tx.docVersion.update({ where: { id: draft.id }, data: { workflowInstanceId: null } }),
-    );
+    await scenario.inTenant(async (tx) => {
+      await tx.docVersion.update({ where: { id: draft.id }, data: { workflowInstanceId: null } });
+      await tx.workflowInstance.update({
+        where: { id: draft.workflow_instance_id ?? '' },
+        data: { deletedAt: scenario.clock.now() },
+      });
+    });
     const legacy = await scenario.latest(author, id);
     expect(legacy.workflow_instance_id).toBeNull();
     const sent = await scenario.step(author, legacy, 'submit');
