@@ -72,7 +72,38 @@ terminados y copias de versiones vigentes). Ver [`apps/worker/README.md`](../../
 
 ### Resultado de `pnpm check`
 
-La verificación completa está en curso; aquí quedará su resultado paso a paso.
+En verde el 18/10/2026, paso por paso (ver las notas):
+
+| Paso                    | Resultado                                                                                       |
+| ----------------------- | ----------------------------------------------------------------------------------------------- |
+| Formato                 | Sin problemas                                                                                   |
+| Estilo y tipos          | Sin problemas                                                                                   |
+| Fronteras entre módulos | Sin problemas: documentos usa el motor de flujos y el núcleo solo por sus índices               |
+| Código sin usar (knip)  | Sin problemas (nota 2)                                                                          |
+| Pruebas unitarias       | Todas: API 326, web 381, worker 40, contratos 117, plantillas 15 y demás paquetes               |
+| Pruebas de integración  | API 753 en 86 archivos (6 archivos nuevos de formatos), worker 23 (con Gotenberg real)          |
+| Cobertura               | Sobre lo que exige el capítulo 21 (ramas de la API en integración: 85,27 %; de la web: 85,76 %) |
+| Pruebas en navegador    | 182, incluidas las nuevas de formatos digitales en modo claro y oscuro                          |
+| Búsqueda de secretos    | Ninguno                                                                                         |
+| Migraciones             | Desde cero en la prueba de integración, sin diferencias con el modelo                           |
+
+**Cosas que debe saber de esta verificación:**
+
+1. **Tres ajustes que salieron de la verificación**, sin bajar ningún umbral: un tipo mal
+   declarado en una prueba; tres ayudas marcadas como compartidas que solo se usaban en su archivo
+   (knip); y la cobertura de ramas de la API quedó en 83,49 % (mínimo 85 %). Agregué 14 pruebas
+   reales de casos que faltaban (contenido según el tipo de plantilla, un solo borrador por código,
+   ediciones con una versión vieja, el documento del Listado Maestro que no existe, el FT-SGC-001 de
+   una solicitud rechazada, el PDF protegido que no admite la leyenda, filtros y páginas de los
+   registros).
+2. **Pruebas en navegador:** la primera corrida no encontró el navegador del equipo de trabajo (un
+   asunto del equipo, no del código). Lo enlacé en el equipo, sin cambiar el proyecto, y repetí las
+   pruebas en navegador y la búsqueda de secretos sobre el mismo código: todas pasaron.
+3. **Para correr la integración en este equipo** se arrancó Docker a mano y Garage con una
+   configuración local sin IPv6 (no se guardó en el proyecto), como en bloques anteriores.
+4. **Migración sobre la versión anterior:** agrega tres tablas y una columna opcional, amplía la
+   regla de los consecutivos para aceptar los códigos `FT-…` y reemplaza el disparador de versiones
+   conservando todo lo de B19. No cambia datos existentes.
 
 ## Cómo lo prueba usted, paso a paso
 
@@ -232,4 +263,8 @@ ejemplo un Colaborador): **no lo ve** en la lista de registros.
 | `14d4fcc` | Pantallas: diseñador, diligenciamiento, registros, aprobación y plantillas de salida |
 | `895223c` | Nombres en español de los eventos de auditoría                                       |
 | `8c23972` | Diccionario de datos y guías de la API y del worker                                  |
-| `(este)`  | Cierre del bloque                                                                    |
+| `d09b7c1` | Cierre del bloque (borrador)                                                         |
+| `a5a8efe` | Tipo de una prueba de la plantilla Word                                              |
+| `56e6923` | Ayudas que solo usa su archivo (knip)                                                |
+| `a324077` | Pruebas de casos de formatos, plantillas, registros y copias                         |
+| `(este)`  | Resultado de la verificación en el cierre                                            |
