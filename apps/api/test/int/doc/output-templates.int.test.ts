@@ -100,7 +100,7 @@ describe('plantilla Word', () => {
     });
     const recordId = await scenario.fill(designer, 'FT-COM-002', REQUIREMENTS_DATA);
     expect((await scenario.recordStep(designer, recordId, 'submit')).status).toBe(204);
-    let filled = Buffer.alloc(0);
+    let filled: Buffer = Buffer.alloc(0);
     const convertOffice = (source: { content: Buffer }) => {
       filled = source.content;
       return Promise.resolve(Buffer.from('%PDF-1.4\n%Word convertido\n%%EOF'));
