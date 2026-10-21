@@ -15,6 +15,7 @@ export { fileStorageFrom } from './infrastructure/file-storage.js';
 export { seedDocFolders } from './application/doc-seed.js';
 export { seedDocWorkflows } from './application/doc-workflows.js';
 export { seedDocForms } from './application/form-seed.js';
+export { seedRetentionDemo } from './application/retention-demo-seed.js';
 export {
   DOC_PARTY_LOOKUP,
   type DocParty,

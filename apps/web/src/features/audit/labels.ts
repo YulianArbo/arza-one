@@ -128,6 +128,7 @@ const ACTION_LABELS: Readonly<Record<string, string>> = {
   'doc.retention_rule.create': 'Creó una regla de retención',
   'doc.retention_rule.update': 'Editó una regla de retención',
   'doc.retention_rule.import': 'Cargó la tabla de retención (RE-SGC-005)',
+  'doc.retention_rule.seed': 'Cargó la regla y los contratos ficticios de demostración',
   'doc.document.retention_rule': 'Cambió la regla de retención de un documento',
   'doc.document.dispose': 'Eliminó el contenido de un documento por disposición final',
   'doc.disposition.propose': 'Generó la propuesta de disposición del mes',

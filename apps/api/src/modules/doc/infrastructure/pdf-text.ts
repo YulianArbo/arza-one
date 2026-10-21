@@ -19,6 +19,8 @@ export async function extractPdfText(content: Buffer): Promise<string> {
     enableXfa: false,
     disableFontFace: true,
     useSystemFonts: false,
+    // Solo errores: sus avisos (fuentes que no hacen falta para el texto) no van a los registros.
+    verbosity: 0,
   });
   try {
     const document = await task.promise;

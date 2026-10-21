@@ -36,12 +36,10 @@ async function disposeDocument(
 ): Promise<void> {
   await lockDocument(tx, context.tenantId, item.documentId);
   const document = await tx.docDocument.findFirstOrThrow({ where: { id: item.documentId } });
-  if (document.status !== 'disposed') {
-    await tx.docDocument.update({
-      where: { id: document.id },
-      data: { status: 'disposed', disposedAt: context.at },
-    });
-  }
+  await tx.docDocument.update({
+    where: { id: document.id },
+    data: { status: 'disposed', disposedAt: context.at },
+  });
   const files = await versionFileIds(tx, [document.id]);
   await tx.file.updateMany({
     where: { id: { in: files }, scanStatus: 'available' },

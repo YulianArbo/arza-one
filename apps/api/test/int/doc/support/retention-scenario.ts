@@ -19,6 +19,8 @@ import {
   extractPdfText,
   extractPendingTexts,
 } from '../../../../src/modules/doc/index.js';
+import type { HtmlDocument } from '../../../../src/modules/doc/infrastructure/gotenberg-converter.js';
+import type { TenantTransaction } from '../../../../src/platform/database/tenant-context.js';
 import { apiDatabase } from '../../support/integration-database.js';
 import { WEB_ORIGIN, freshIp, type SignedIn } from '../../iam/support/iam-fixtures.js';
 import type { Person } from '../../iam/support/access-scenario.js';
@@ -32,7 +34,7 @@ import { SgcScenario } from './sgc-scenario.js';
 const YEAR = 365.25 * 24 * 60 * 60 * 1000;
 
 /** Un PDF de verdad, de una página, con el texto dado (en Latin-1, como lo escribe Helvetica). */
-function textPdf(text: string): Buffer {
+export function textPdf(text: string): Buffer {
   const escaped = text.replace(/[\\()]/gu, (char) => `\\${char}`);
   const stream = `BT /F1 12 Tf 72 720 Td (${escaped}) Tj ET`;
   const objects = [
@@ -53,6 +55,35 @@ function textPdf(text: string): Buffer {
   body += `xref\n0 ${String(objects.length + 1)}\n0000000000 65535 f \n${entries.join('')}`;
   body += `trailer\n<< /Size ${String(objects.length + 1)} /Root 1 0 R >>\nstartxref\n${String(xref)}\n%%EOF\n`;
   return Buffer.from(body, 'latin1');
+}
+
+/** La versión vigente de un documento de la carga inicial (B19), desde el 15/03/2025. */
+async function importedVersion(
+  tx: TenantTransaction,
+  input: { tenantId: string; documentId: string; fileId: string; label: string },
+): Promise<string> {
+  const effective = new Date('2025-03-15T15:00:00Z');
+  const version = await tx.docVersion.create({
+    data: {
+      tenantId: input.tenantId,
+      documentId: input.documentId,
+      number: Number(input.label),
+      versionLabel: input.label,
+      status: 'current',
+      origin: 'import',
+      sourceFileId: input.fileId,
+      pdfFileId: input.fileId,
+      renderStatus: 'ready',
+      title: 'Tabla de Retención',
+      classification: 'internal',
+      changeSummary: 'Carga inicial',
+      submittedAt: effective,
+      approvedAt: effective,
+      effectiveDate: effective,
+      publishedAt: effective,
+    },
+  });
+  return version.id;
 }
 
 export class RetentionScenario extends SgcScenario {
@@ -187,13 +218,51 @@ export class RetentionScenario extends SgcScenario {
     );
   }
 
-  /** Lo que hace el worker con «doc.disposition-execute», con un PDF de prueba como acta. */
-  async execute(): Promise<number> {
+  /**
+   * Lo que hace el worker con «doc.disposition-execute», con un PDF de prueba como acta. Si se da
+   * una lista, guarda en ella el documento que se habría convertido.
+   */
+  async execute(certificates: HtmlDocument[] = []): Promise<number> {
     return executeApprovedDispositions({
       database: apiDatabase(),
       clock: this.clock,
       storage: storage(),
-      convertHtml: async () => Promise.resolve(samplePdf('Acta de disposición')),
+      convertHtml: async (document) => {
+        certificates.push(document);
+        return Promise.resolve(samplePdf('Acta de disposición'));
+      },
+    });
+  }
+
+  /** Un documento del SGC de la carga inicial (B19), vigente con la versión dada. */
+  async importedDocument(person: Person, code: string, label: string): Promise<string> {
+    const fileId = await this.sourceFile(person);
+    const folderId = await this.folderId('SGC-SGC');
+    const processId = await this.processId('SGC');
+    return this.inTenant(async (tx) => {
+      const document = await tx.docDocument.create({
+        data: {
+          tenantId: this.tenant.id,
+          folderId,
+          code,
+          title: 'Tabla de Retención',
+          docType: code.slice(0, 2),
+          processId,
+          classification: 'internal',
+          isControlled: true,
+        },
+      });
+      const versionId = await importedVersion(tx, {
+        tenantId: this.tenant.id,
+        documentId: document.id,
+        fileId,
+        label,
+      });
+      await tx.docDocument.update({
+        where: { id: document.id },
+        data: { status: 'current', currentVersionId: versionId },
+      });
+      return document.id;
     });
   }
 

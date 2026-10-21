@@ -79,11 +79,11 @@ async function snippets(
 /** Los resultados con su fragmento; lo restringido nunca muestra su texto en la búsqueda. */
 async function hits(
   tx: TenantTransaction,
-  query: string | null,
+  query: string,
   page: readonly DocDocument[],
 ): Promise<DocumentSearchResponse['data']> {
   const withText = page.filter((doc) => doc.classification !== 'restricted').map((d) => d.id);
-  const texts = query === null ? new Map<string, string>() : await snippets(tx, query, withText);
+  const texts = await snippets(tx, query, withText);
   return page.map((doc) => ({
     id: doc.id,
     code: doc.code,
@@ -105,10 +105,12 @@ export class DocumentSearchUseCase {
     input: DocumentSearchQuery,
   ): Promise<DocumentSearchResponse> {
     const terms = searchTerms(input.q);
-    if (terms.query === null && terms.codePrefix === null) return { data: [] };
+    // Un texto con forma de código siempre trae palabras: sin palabras no hay nada que buscar.
+    const { query, codePrefix } = terms;
+    if (query === null) return { data: [] };
     return this.database.withTenant(principal, async (tx) => {
       const reader = await readerOf(tx, principal, ability);
-      const found = await candidates(tx, terms.query ?? '', terms.codePrefix);
+      const found = await candidates(tx, query, codePrefix);
       const rank = new Map(found.map((candidate) => [candidate.id, candidate.rank]));
       const visible = await tx.docDocument.findMany({
         where: {
@@ -124,7 +126,7 @@ export class DocumentSearchUseCase {
           (a, b) => (rank.get(b.id) ?? 0) - (rank.get(a.id) ?? 0) || a.code.localeCompare(b.code),
         )
         .slice(0, input.limit);
-      return { data: await hits(tx, terms.query, page) };
+      return { data: await hits(tx, query, page) };
     });
   }
 }

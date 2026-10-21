@@ -38,19 +38,25 @@ async function extracted(deps: TextExtractionDependencies, storageKey: string): 
 }
 
 async function pendingOf(deps: TextExtractionDependencies, tenantId: string) {
-  return deps.database.withTenant({ tenantId, userId: null }, (tx) =>
-    tx.docVersion.findMany({
-      where: {
-        status: 'current',
-        deletedAt: null,
-        text: { is: null },
-        pdfFile: { is: { scanStatus: 'available' } },
-      },
-      select: { id: true, documentId: true, pdfFile: { select: { storageKey: true } } },
-      orderBy: { id: 'asc' },
-      take: BATCH,
-    }),
-  );
+  return deps.database
+    .withTenant({ tenantId, userId: null }, (tx) =>
+      tx.docVersion.findMany({
+        where: {
+          status: 'current',
+          deletedAt: null,
+          text: { is: null },
+          pdfFile: { is: { scanStatus: 'available' } },
+        },
+        select: { id: true, documentId: true, pdfFile: { select: { storageKey: true } } },
+        orderBy: { id: 'asc' },
+        take: BATCH,
+      }),
+    )
+    .then((versions) =>
+      versions.flatMap(({ pdfFile, ...version }) =>
+        pdfFile === null ? [] : [{ ...version, storageKey: pdfFile.storageKey }],
+      ),
+    );
 }
 
 /** Extrae el texto pendiente de una empresa. Devuelve cuántas versiones guardó. */
@@ -60,8 +66,7 @@ async function extractTenantTexts(
 ): Promise<number> {
   let saved = 0;
   for (const version of await pendingOf(deps, tenantId)) {
-    if (version.pdfFile === null) continue;
-    const text = await extracted(deps, version.pdfFile.storageKey);
+    const text = await extracted(deps, version.storageKey);
     const at = deps.clock.now();
     const stored = await deps.database.withTenant({ tenantId, userId: null }, async (tx) => {
       const { count } = await tx.docVersionText.createMany({
