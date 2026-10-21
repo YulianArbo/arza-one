@@ -50,6 +50,8 @@ async function demoVersion(
       origin: 'import',
       sourceFileId: input.fileId,
       pdfFileId: input.fileId,
+      // Sin archivo en el almacenamiento no hay copia de consulta que generar.
+      copyFileId: input.fileId,
       renderStatus: 'ready',
       title: input.title,
       classification: 'internal',

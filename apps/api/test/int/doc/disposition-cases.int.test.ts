@@ -2,21 +2,26 @@ import { dispositionListResponseSchema, downloadLinkResponseSchema } from '@arza
 import { Readable } from 'node:stream';
 import { beforeAll, describe, expect, it } from 'vitest';
 
-import { proposeMonthlyDispositions, seedRetentionDemo } from '../../../src/modules/doc/index.js';
+import {
+  proposeMonthlyDispositions,
+  renderTenantPdfs,
+  seedRetentionDemo,
+} from '../../../src/modules/doc/index.js';
 import type { HtmlDocument } from '../../../src/modules/doc/infrastructure/gotenberg-converter.js';
 import { apiDatabase } from '../support/integration-database.js';
 import { errorCode } from '../iam/support/iam-fixtures.js';
 import type { Person } from '../iam/support/access-scenario.js';
-import { pdfFile, storage } from './support/file-scenario.js';
+import { pdfFile, samplePdf, storage } from './support/file-scenario.js';
 import { RetentionScenario, textPdf } from './support/retention-scenario.js';
 
 // Casos de la disposición final y de la búsqueda (B21): una propuesta en la que todo se conserva,
 // el acta con la versión vigente del RE-SGC-005, un acta alterada, un PDF sin texto, la lista por
-// estado y por páginas, el trabajo diario y los datos de demostración.
+// estado y por páginas, el trabajo diario, los datos de demostración y un contrato eliminado.
 
 const scenario = new RetentionScenario('disposición casos');
 const demo = new RetentionScenario('disposición demostración');
 const listScenario = new RetentionScenario('disposición lista');
+const caseFile = new RetentionScenario('disposición expediente');
 let quality: Person;
 let approver: Person;
 let director: Person;
@@ -139,5 +144,43 @@ describe('el trabajo diario y los datos de demostración', () => {
     expect(proposals).toHaveLength(1);
     const codes = proposals[0]?.items.map((item) => item.document.code).sort();
     expect(codes).toEqual(['DOC-2015-0001', 'DOC-2015-0002']);
+  });
+});
+
+/** Un contrato de expediente publicado hace diez años, con la regla de contratos vencida. */
+async function expiredContract(author: Person, approver: Person): Promise<string> {
+  await caseFile.rule(author, { doc_type: 'CT', name: 'Contratos' });
+  const id = await caseFile.createDocument(author, {
+    folder_id: await caseFile.folderId('EXP'),
+    doc_type: 'CT',
+    is_controlled: false,
+    process_id: null,
+  });
+  await caseFile.publishLatest(author, approver, id);
+  await caseFile.age(id, 10);
+  return id;
+}
+
+describe('un contrato de expediente eliminado', () => {
+  it('se elimina vigente y ya no queda pendiente de su copia de consulta', async () => {
+    await caseFile.seed();
+    const author = await caseFile.quality('calidad-expediente');
+    const id = await expiredContract(author, await caseFile.quality('aprueba-expediente'));
+    const proposal = (await caseFile.propose(author)).proposal_id ?? '';
+    await caseFile.dispositionStep(author, proposal, 'send');
+    await caseFile.dispositionStep(await caseFile.director(), proposal, 'approve');
+    await caseFile.execute();
+    expect((await caseFile.document(author, id)).status).toBe('disposed');
+    const pdf = async () => Promise.resolve(samplePdf('Copia'));
+    const deps = {
+      database: apiDatabase(),
+      clock: caseFile.clock,
+      storage: storage(),
+      convertHtml: pdf,
+      convertOffice: pdf,
+      stamp: pdf,
+    };
+    const result = await renderTenantPdfs(deps, caseFile.tenant.id);
+    expect(result).toMatchObject({ copies: 0, failed: 0 });
   });
 });

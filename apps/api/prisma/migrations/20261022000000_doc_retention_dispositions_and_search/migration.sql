@@ -605,6 +605,22 @@ CREATE FUNCTION "doc_tenants_with_pending_texts"() RETURNS SETOF UUID
                               WHERE t.tenant_id = v.tenant_id AND t.version_id = v.id)
           ORDER BY 1 $$;
 
+-- La copia de consulta (B20) solo se genera de una versión vigente con su PDF disponible: el de un
+-- documento eliminado por disposición final ya no existe.
+CREATE POLICY "doc_files_pdf_lookup" ON "doc_files"
+    FOR SELECT TO migration_user USING (true);
+
+CREATE OR REPLACE FUNCTION "doc_tenants_with_pending_pdfs"() RETURNS SETOF UUID
+    LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
+    AS $$ SELECT tenant_id FROM doc_form_records
+          WHERE render_status = 'pending' AND deleted_at IS NULL
+          UNION
+          SELECT v.tenant_id FROM doc_versions v
+          JOIN doc_files f ON f.tenant_id = v.tenant_id AND f.id = v.pdf_file_id
+          WHERE v.status = 'current' AND v.copy_file_id IS NULL AND v.deleted_at IS NULL
+              AND f.scan_status = 'available'
+          ORDER BY 1 $$;
+
 REVOKE EXECUTE ON FUNCTION "doc_tenants_with_published_documents"() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION "doc_tenants_with_published_documents"() TO app_user;
 REVOKE EXECUTE ON FUNCTION "doc_tenants_with_approved_dispositions"() FROM PUBLIC;
