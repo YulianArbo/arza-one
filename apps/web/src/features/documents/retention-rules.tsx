@@ -128,9 +128,28 @@ function Rules(props: {
   );
 }
 
+function UnassignedList(): JSX.Element {
+  const list = useUnassignedDocuments();
+  return (
+    <QueryState query={list} loadingLabel="Cargando los documentos sin regla">
+      {(data) => (
+        <ul className="mt-2 flex flex-col gap-1">
+          {data.data.map((row) => (
+            <li key={row.id}>
+              <Link href={documentPath(row.id)} className="text-primary hover:underline">
+                {row.code}
+              </Link>{' '}
+              · {row.title}
+            </li>
+          ))}
+        </ul>
+      )}
+    </QueryState>
+  );
+}
+
 /** Los documentos que aún no tienen regla, para corregirlos (evidencia del capítulo 18.2). */
 function Unassigned({ total }: { readonly total: number }): JSX.Element {
-  const list = useUnassignedDocuments();
   if (total === 0) {
     return (
       <p className="text-sm" role="status">
@@ -144,20 +163,7 @@ function Unassigned({ total }: { readonly total: number }): JSX.Element {
         {total === 1 ? 'Un documento no tiene' : `${String(total)} documentos no tienen`} regla de
         retención
       </summary>
-      <QueryState query={list} loadingLabel="Cargando los documentos sin regla">
-        {(data) => (
-          <ul className="mt-2 flex flex-col gap-1">
-            {data.data.map((row) => (
-              <li key={row.id}>
-                <Link href={documentPath(row.id)} className="text-primary hover:underline">
-                  {row.code}
-                </Link>{' '}
-                · {row.title}
-              </li>
-            ))}
-          </ul>
-        )}
-      </QueryState>
+      <UnassignedList />
     </details>
   );
 }
