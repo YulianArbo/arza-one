@@ -32,7 +32,7 @@ import { SgcScenario } from './sgc-scenario.js';
 const YEAR = 365.25 * 24 * 60 * 60 * 1000;
 
 /** Un PDF de verdad, de una página, con el texto dado (en Latin-1, como lo escribe Helvetica). */
-export function textPdf(text: string): Buffer {
+function textPdf(text: string): Buffer {
   const escaped = text.replace(/[\\()]/gu, (char) => `\\${char}`);
   const stream = `BT /F1 12 Tf 72 720 Td (${escaped}) Tj ET`;
   const objects = [

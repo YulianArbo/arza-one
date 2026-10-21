@@ -36,7 +36,7 @@ const MONTHS = [
 ];
 
 /** 2026-10-01 → «octubre de 2026». */
-export function periodLabel(period: string): string {
+function periodLabel(period: string): string {
   const month = MONTHS[Number(period.slice(5, 7)) - 1] ?? '';
   return `${month} de ${period.slice(0, 4)}`;
 }

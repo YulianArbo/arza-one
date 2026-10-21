@@ -22,7 +22,7 @@ export interface ProposalOutcome {
 }
 
 /** El mes de la propuesta: el primer día del mes de hoy en Bogotá. */
-export function periodOf(today: string): string {
+function periodOf(today: string): string {
   return `${today.slice(0, 8)}01`;
 }
 

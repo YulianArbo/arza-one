@@ -54,7 +54,7 @@ async function pendingOf(deps: TextExtractionDependencies, tenantId: string) {
 }
 
 /** Extrae el texto pendiente de una empresa. Devuelve cuántas versiones guardó. */
-export async function extractTenantTexts(
+async function extractTenantTexts(
   deps: TextExtractionDependencies,
   tenantId: string,
 ): Promise<number> {

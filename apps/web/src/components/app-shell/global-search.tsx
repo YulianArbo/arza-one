@@ -85,7 +85,7 @@ function usePartySearch(q: string, enabled: boolean): UseQueryResult<readonly Pa
 }
 
 /** El fragmento con las palabras encontradas resaltadas (la API las marca con [[ y ]]). */
-export function Snippet({ text }: { readonly text: string }): JSX.Element {
+function Snippet({ text }: { readonly text: string }): JSX.Element {
   const parts = text.split(/\[\[|\]\]/u);
   return (
     <span>

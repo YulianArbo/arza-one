@@ -144,7 +144,7 @@ async function issueCertificate(
 }
 
 /** Ejecuta una propuesta aprobada; false si ya no estaba aprobada (otra pasada la terminó). */
-export async function executeProposal(
+async function executeProposal(
   deps: DispositionExecutionDependencies,
   tenantId: string,
   proposalId: string,
