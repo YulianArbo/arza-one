@@ -100,6 +100,7 @@ export function documentOf(overrides: object = {}): Record<string, unknown> {
       effective_date: '2026-10-16',
     },
     open_version: null,
+    disposed_at: null,
     created_at: '2026-10-15T15:00:00.000Z',
     version: 2,
     ...overrides,

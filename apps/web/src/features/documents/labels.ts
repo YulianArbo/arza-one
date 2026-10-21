@@ -6,6 +6,7 @@ import {
   type ChangeRequestStatus,
   type ChangeRequestStep,
   type Classification,
+  type DispositionProposalStatus,
   type DocumentStatus,
   type RenderStatus,
   type VersionAction,
@@ -141,3 +142,36 @@ export const REQUEST_STEP_LABELS: Readonly<Record<ChangeRequestStep, string>> = 
   approve: 'Aprobar',
   reject: 'Rechazar',
 };
+
+// Retención y disposición final (B21): tabla de retención (RE-SGC-005) y propuestas mensuales.
+
+export const RETENTION_PATH = `${DOCUMENTS_PATH}/retencion`;
+export const DISPOSITIONS_PATH = `${DOCUMENTS_PATH}/disposicion`;
+
+export function dispositionPath(id: string): string {
+  return `${DISPOSITIONS_PATH}/${id}`;
+}
+
+export const DISPOSITION_STATUS_TONES: Readonly<Record<DispositionProposalStatus, Tone>> = {
+  review: 'info',
+  in_approval: 'warning',
+  approved: 'info',
+  rejected: 'destructive',
+  executed: 'success',
+};
+
+/** «2026-10-01» → «octubre de 2026». */
+export function periodLabel(period: string): string {
+  const date = new Date(`${period}T12:00:00Z`);
+  return new Intl.DateTimeFormat('es-CO', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'America/Bogota',
+  }).format(date);
+}
+
+/** Años de una regla, en palabras: «2 años en gestión y 8 en el archivo central». */
+export function retentionYears(active: number, archive: number): string {
+  const unit = (years: number) => (years === 1 ? 'año' : 'años');
+  return `${String(active)} ${unit(active)} en gestión y ${String(archive)} en el archivo central`;
+}

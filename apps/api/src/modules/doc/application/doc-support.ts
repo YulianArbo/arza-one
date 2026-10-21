@@ -41,8 +41,7 @@ export interface DocChange {
     | 'doc_output_template'
     | 'doc_retention_rule'
     | 'doc_disposition_proposal'
-    | 'doc_disposition'
-    | 'doc_version_text';
+    | 'doc_disposition';
   readonly entityId: string | null;
   readonly changes: Prisma.InputJsonObject;
 }
