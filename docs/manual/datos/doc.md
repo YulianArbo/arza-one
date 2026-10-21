@@ -4,16 +4,18 @@ Tipos exactos, restricciones e índices de las tablas del dominio `doc_` (capít
 17.4). Se actualiza en el mismo pull request que cambia el modelo
 (`apps/api/prisma/schema.prisma`). Migraciones: `20261015000000_doc_files` (B14) y
 `20261019000000_doc_documents_versions_folders` (B18),
-`20261020000000_doc_change_requests_acknowledgements` (B19) y
-`20261021000000_doc_forms_and_output_templates` (B20).
+`20261020000000_doc_change_requests_acknowledgements` (B19),
+`20261021000000_doc_forms_and_output_templates` (B20) y
+`20261022000000_doc_retention_dispositions_and_search` (B21).
 
 Desde B18 existen las carpetas y expedientes (`doc_folders`), el documento lógico
 (`doc_documents`), sus versiones (`doc_versions`), los vínculos con registros de otros módulos
 (`doc_links`) y el registro de accesos a lo confidencial y restringido (`doc_access_log`). Desde
 B19, la Solicitud de Acción Documental (`doc_change_requests`) y la constancia de lectura
 (`doc_acknowledgements`). Desde B20, los formatos digitales (`doc_form_templates`), sus registros
-diligenciados (`doc_form_records`) y las plantillas de salida (`doc_output_templates`). La retención
-llega en B21.
+diligenciados (`doc_form_records`) y las plantillas de salida (`doc_output_templates`). Desde B21, la
+tabla de retención (`doc_retention_rules`), la disposición final (`doc_disposition_proposals` y
+`doc_dispositions`) y el texto de las versiones para la búsqueda (`doc_version_texts`).
 
 ## Reglas comunes
 
@@ -373,3 +375,119 @@ una lista con `punto`, `resultado` y `observacion`. Además:
 · approve · reject · complete · render · download_link` y `doc.version.copy`. Los eventos de un
 registro nunca guardan los valores diligenciados (pueden traer datos personales): solo el código,
 el formato, la versión y los nombres de los campos que cambiaron.
+
+## Retención, disposición y búsqueda (B21)
+
+Tabla de retención RE-SGC-005, propuesta mensual de disposición con su acta y búsqueda de texto
+completo (ficha 17.4, numerales 12.1, 12.4 y 13.2). Las cuatro tablas siguen las reglas comunes:
+seguridad por fila forzada, columnas de control y permisos de `app_user` sin `DELETE`.
+
+### doc_retention_rules · Reglas de retención
+
+Una serie del RE-SGC-005. Se aplica a los documentos de su tipo, de su proceso o de los dos; si
+varias coinciden, gana la más específica (tipo y proceso, después solo tipo, después solo proceso).
+
+| Columna         | Tipo    | Nulo | Por defecto | Regla                                                                       |
+| --------------- | ------- | ---- | ----------- | --------------------------------------------------------------------------- |
+| `code`          | text    | No   |             | Código de la serie: letras, números y guiones (hasta 20). Único; no cambia |
+| `name`          | text    | No   |             | Serie documental, 3 a 200 caracteres                                        |
+| `doc_type`      | text    | Sí   |             | Tipo del catálogo `document_types`                                          |
+| `process_id`    | uuid    | Sí   |             | Proceso del núcleo. Tipo o proceso: por lo menos uno                        |
+| `active_years`  | integer | No   |             | Años en el archivo de gestión, 0 a 100                                      |
+| `archive_years` | integer | No   |             | Años en el archivo central, 0 a 100; la suma es por lo menos 1              |
+| `disposition`   | text    | No   |             | `destroy` (eliminar) o `keep` (conservación total)                          |
+| `legal_basis`   | text    | No   |             | Fundamento, 3 a 500 caracteres                                              |
+| `is_active`     | boolean | No   | true        | Una regla inactiva no se aplica                                             |
+| control         |         |      |             | Columnas de control                                                         |
+
+Índice único `doc_retention_rules_active_target_key`: una sola regla activa por tipo y proceso.
+
+`doc_documents` suma `retention_rule_id` (la regla de excepción del documento, que gana sobre las
+demás si está activa), `disposed_at` y el estado `disposed`.
+
+**Funciones de la retención** (respetan la seguridad por fila; las usan la API, el worker y los
+disparadores):
+
+- `doc_retention_rule_of(documento)`: la regla que se aplica.
+- `doc_retention_base_on(documento)`: desde cuándo corre el plazo, en fecha de Bogotá. Un documento
+  del SGC, desde que quedó obsoleto (uno vigente nunca vence); uno de expediente, desde su última
+  publicación. Sin fecha si es un borrador o ya se eliminó.
+- `doc_retention_due_on(documento)`: la fecha base más los años de gestión y del archivo central.
+
+### doc_disposition_proposals · Propuestas de disposición
+
+Una por mes y por empresa, con código `DIS-AAAA-NNNN` (consecutivo `doc.disposition`). Ciclo:
+`review` (Calidad la revisa) → `in_approval` → `approved` o `rejected`; la aprobada pasa a
+`executed` cuando el worker termina. El trámite es el flujo `doc.disposition` del motor.
+
+| Columna                       | Tipo        | Nulo | Regla                                                       |
+| ----------------------------- | ----------- | ---- | ----------------------------------------------------------- |
+| `code`                        | text        | No   | `DIS-AAAA-NNNN`. Único                                      |
+| `period`                      | date        | No   | Primer día del mes. Único por empresa                       |
+| `status`                      | text        | No   | Estado del ciclo                                            |
+| `workflow_instance_id`        | uuid        | Sí   | Trámite en el motor de flujos                               |
+| `sent_by`, `sent_at`          |             | Sí   | Quien la envió; presentes fuera de `review`                 |
+| `decided_by`, `decided_at`    |             | Sí   | Quien la decidió; distinto de `sent_by`                     |
+| `decision_note`               | text        | Sí   | Motivo; obligatorio al rechazar                             |
+| `executed_at`                 | timestamptz | Sí   | Solo en `executed`                                          |
+| `certificate_file_id`         | uuid        | Sí   | El acta en PDF (`doc_files`); obligatoria en `executed`     |
+| control                       |             |      | Columnas de control                                         |
+
+### doc_dispositions · Documentos de una propuesta
+
+| Columna                      | Tipo        | Nulo | Regla                                                                          |
+| ---------------------------- | ----------- | ---- | ------------------------------------------------------------------------------ |
+| `proposal_id`, `document_id` | uuid        | No   | Único por propuesta y documento                                                |
+| `retention_rule_id`          | uuid        | No   | La regla que venció                                                            |
+| `due_on`                     | date        | No   | Cuándo venció                                                                  |
+| `action`                     | text        | No   | `destroy` (como dice la regla) o `keep` (Calidad decidió conservarlo para siempre) |
+| `keep_reason`                | text        | Sí   | Obligatorio al conservar, 5 a 500 caracteres                                   |
+| `executed_by`, `executed_at` |             | Sí   | Cuándo se eliminó su contenido, con quien aprobó                               |
+| control                      |             |      | Columnas de control                                                            |
+
+Se agregan y se deciden solo mientras la propuesta está en `review`. Un documento que está en una
+propuesta no rechazada no se vuelve a proponer: el que se conservó queda conservado.
+
+**Protecciones de la base de datos.** `doc_keep_documents` solo deja pasar a `disposed` un
+documento cuya regla dice eliminar, ya venció y está para eliminar en una propuesta aprobada; un
+documento eliminado ya no cambia. `doc_keep_analyzed_files` solo deja marcar `disposed` los archivos
+(fuente, PDF y copia) de un documento eliminado. Al eliminar, el worker borra esos archivos de
+Garage; la ficha (código y nombre) queda como evidencia del acta.
+
+### doc_version_texts · Texto de las versiones
+
+| Columna       | Tipo | Nulo | Regla                                                                         |
+| ------------- | ---- | ---- | ----------------------------------------------------------------------------- |
+| `document_id` | uuid | No   | El documento                                                                  |
+| `version_id`  | uuid | No   | La versión. Única                                                             |
+| `status`      | text | No   | `ready` (con texto), `empty` (PDF sin texto), `failed` o `disposed`          |
+| `content`     | text | No   | Hasta 300 000 caracteres; vacío salvo en `ready`                              |
+| control       |      |      | Columnas de control                                                           |
+
+El texto no cambia; solo se borra cuando su documento se elimina. Índices GIN de búsqueda:
+`doc_version_texts_search_idx` (el texto) y `doc_documents_search_idx` (código y título), con la
+configuración `doc_spanish` (español con `unaccent`: «gestion» encuentra «gestión»).
+
+### Carga del RE-SGC-005
+
+`pnpm doc:importar-retencion --correo <correo> --tabla <archivo.csv> [--aplicar]`. El CSV (UTF-8,
+separado por punto y coma o por comas, como lo guarda Excel) lleva estas columnas, con estos
+encabezados (las tildes y las mayúsculas no importan):
+
+| Columna           | Obligatoria | Ejemplo                    |
+| ----------------- | ----------- | -------------------------- |
+| Código            | Sí          | CON-01                     |
+| Serie             | Sí          | Contratos con clientes     |
+| Tipo              | No          | CT                         |
+| Proceso           | No          | COM                        |
+| Años gestión      | Sí          | 2                          |
+| Años central      | Sí          | 8                          |
+| Disposición       | Sí          | Eliminar · Conservación total |
+| Fundamento        | Sí          | Ley 962 de 2005, art. 28   |
+
+Cada fila necesita el tipo, el proceso o los dos. Sin `--aplicar` solo revisa. Con `--aplicar` y
+sin problemas crea las reglas que faltan, todas en una transacción; las que ya existen no se tocan.
+
+**Auditoría de B21:** `doc.retention_rule.create · update · import`,
+`doc.document.retention_rule · dispose (del sistema)`, `doc.disposition.propose · item · send ·
+approve · reject · execute (del sistema) · download_link` y `doc.version.text` (del sistema).
