@@ -11,7 +11,7 @@ import type { RequestMeta } from '../../../platform/http/request-meta.js';
 import { positionsById } from '../../core/index.js';
 import { peopleById, positionOfUser } from '../../iam/index.js';
 import { actorOf, auditDoc, readerOf, type DocReader } from './doc-support.js';
-import { findVisibleDocument } from './documents.js';
+import { findChangeableDocument, findVisibleDocument } from './documents.js';
 import { requestReading } from './reading-requests.js';
 import { notAcknowledgeable } from './request-messages.js';
 
@@ -137,7 +137,7 @@ export class AcknowledgementsUseCase {
     const actor = actorOf(principal, meta, this.clock.now());
     await this.database.withTenant(principal, async (tx) => {
       const reader = await readerOf(tx, principal, ability);
-      const document = await findVisibleDocument(tx, reader, documentId);
+      const document = await findChangeableDocument(tx, reader, documentId);
       const version = await currentVersionOf(tx, document);
       if (version === null) throw notAcknowledgeable();
       const where = { versionId: version.id, userId: principal.userId, deletedAt: null };
@@ -169,7 +169,7 @@ export class AcknowledgementsUseCase {
     const actor = actorOf(principal, meta, this.clock.now());
     return this.database.withTenant(principal, async (tx) => {
       const reader = await readerOf(tx, principal, ability);
-      const document = await findVisibleDocument(tx, reader, documentId);
+      const document = await findChangeableDocument(tx, reader, documentId);
       const version = await currentVersionOf(tx, document);
       if (version === null) throw notAcknowledgeable();
       const requested = await requestReading(tx, actor, { document, version }, { audited: true });

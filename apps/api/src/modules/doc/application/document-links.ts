@@ -17,7 +17,7 @@ import type { RequestMeta } from '../../../platform/http/request-meta.js';
 import { orgUnitsById, positionsById } from '../../core/index.js';
 import { linkNotFound, referenceInvalid } from './doc-messages.js';
 import { actorOf, auditDoc, readerOf } from './doc-support.js';
-import { findVisibleDocument } from './documents.js';
+import { findChangeableDocument, findVisibleDocument } from './documents.js';
 import { DOC_PARTY_LOOKUP, type DocPartyLookup } from './party-lookup.js';
 
 // Vínculos de un documento (B18; numeral 18.2, paso 3): con un cargo, un proceso o un tercero. Los
@@ -65,7 +65,7 @@ export class DocumentLinksUseCase {
   ): Promise<string> {
     const actor = actorOf(principal, meta, this.clock.now());
     return this.database.withTenant(principal, async (tx) => {
-      await findVisibleDocument(tx, await readerOf(tx, principal, ability), documentId);
+      await findChangeableDocument(tx, await readerOf(tx, principal, ability), documentId);
       const target = (await this.lookup(tx, input.entity_type, [input.entity_id])).get(
         input.entity_id,
       );
@@ -94,7 +94,7 @@ export class DocumentLinksUseCase {
   ): Promise<void> {
     const actor = actorOf(principal, meta, this.clock.now());
     await this.database.withTenant(principal, async (tx) => {
-      await findVisibleDocument(tx, await readerOf(tx, principal, ability), target.documentId);
+      await findChangeableDocument(tx, await readerOf(tx, principal, ability), target.documentId);
       const { count } = await tx.docLink.updateMany({
         where: { id: target.linkId, documentId: target.documentId, deletedAt: null },
         data: { deletedAt: actor.at },

@@ -39,8 +39,8 @@ export const documentTypeSchema = z
   .describe('Tipo de documento del catálogo');
 
 export const documentStatusSchema = z
-  .enum(['draft', 'current', 'obsolete'])
-  .describe('Sin publicar, vigente u obsoleto');
+  .enum(['draft', 'current', 'obsolete', 'disposed'])
+  .describe('Sin publicar, vigente, obsoleto o eliminado por disposición final (B21)');
 
 export const versionStatusSchema = z
   .enum(['draft', 'in_review', 'approved', 'current', 'obsolete'])
@@ -74,6 +74,9 @@ export const documentSchema = z.object({
   status: documentStatusSchema,
   current_version: versionReference.nullable().describe('Última versión publicada'),
   open_version: versionReference.nullable().describe('Versión en trámite, si la hay'),
+  disposed_at: dateTime
+    .nullable()
+    .describe('Cuándo se eliminó su contenido por disposición final (B21)'),
   created_at: dateTime,
   version: z.number().int().positive(),
 });

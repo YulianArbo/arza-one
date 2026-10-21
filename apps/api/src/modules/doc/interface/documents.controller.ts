@@ -3,12 +3,14 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   HttpCode,
   HttpStatus,
   Inject,
   Param,
   ParseUUIDPipe,
   Post,
+  Put,
   Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -19,7 +21,11 @@ import {
   documentLinkListResponseSchema,
   documentListQuerySchema,
   documentListResponseSchema,
+  documentRetentionSchema,
   documentSchema,
+  documentSearchQuerySchema,
+  documentSearchResponseSchema,
+  setDocumentRetentionRuleSchema,
   versionListResponseSchema,
 } from '@arza/contracts';
 import { createZodDto, ZodResponse } from 'nestjs-zod';
@@ -28,12 +34,15 @@ import type { AppAbility } from '../../../platform/access/ability.js';
 import { RequirePermission } from '../../../platform/access/access.decorators.js';
 import { CurrentAbility } from '../../../platform/access/authorizer.js';
 import { CurrentPrincipal, type Principal } from '../../../platform/access/principal.js';
+import { versionFromIfMatch } from '../../../platform/http/if-match.js';
 import { Meta, type RequestMeta } from '../../../platform/http/request-meta.js';
 import { ApiPermissionErrors } from '../../../platform/openapi/api-common-errors.js';
 import { DocumentLinksUseCase } from '../application/document-links.js';
+import { DocumentSearchUseCase } from '../application/document-search.js';
 import { DocumentsUseCase } from '../application/documents.js';
+import { RetentionRulesUseCase } from '../application/retention-rules.js';
 import { VersionsUseCase } from '../application/versions.js';
-import { ApiDocErrors, DocCreatedResponse } from './doc-openapi.js';
+import { ApiDocErrors, ApiIfMatch, DocCreatedResponse } from './doc-openapi.js';
 
 class DocumentListQuery extends createZodDto(documentListQuerySchema) {}
 class DocumentListResponse extends createZodDto(documentListResponseSchema) {}
@@ -43,10 +52,17 @@ class VersionListResponse extends createZodDto(versionListResponseSchema) {}
 class CreateVersionRequest extends createZodDto(createVersionRequestSchema) {}
 class DocumentLinkListResponse extends createZodDto(documentLinkListResponseSchema) {}
 class CreateDocumentLinkRequest extends createZodDto(createDocumentLinkRequestSchema) {}
+class DocumentSearchQuery extends createZodDto(documentSearchQuerySchema) {}
+class DocumentSearchResponse extends createZodDto(documentSearchResponseSchema) {}
+class DocumentRetentionResponse extends createZodDto(documentRetentionSchema) {}
+class SetDocumentRetentionRule extends createZodDto(setDocumentRetentionRuleSchema) {}
 
 const UUID = new ParseUUIDPipe();
 
-/** Documentos (M03, B18): ficha, versiones y vínculos con otros registros. */
+/**
+ * Documentos (M03, B18): ficha, versiones y vínculos con otros registros. Desde B21, la búsqueda de
+ * texto completo y la regla de retención de cada documento.
+ */
 @ApiTags('Documentos')
 @Controller('v1/documents')
 @ApiPermissionErrors()
@@ -55,6 +71,8 @@ export class DocumentsController {
     @Inject(DocumentsUseCase) private readonly documents: DocumentsUseCase,
     @Inject(VersionsUseCase) private readonly versions: VersionsUseCase,
     @Inject(DocumentLinksUseCase) private readonly links: DocumentLinksUseCase,
+    @Inject(DocumentSearchUseCase) private readonly finder: DocumentSearchUseCase,
+    @Inject(RetentionRulesUseCase) private readonly retention: RetentionRulesUseCase,
   ) {}
 
   @RequirePermission('doc.document.read')
@@ -87,6 +105,60 @@ export class DocumentsController {
     @Meta() meta: RequestMeta,
   ): Promise<DocCreatedResponse> {
     return { id: await this.documents.create(principal, body, meta) };
+  }
+
+  @RequirePermission('doc.document.read')
+  @Get('search')
+  @ApiOperation({
+    summary: 'Buscar documentos por su texto',
+    description:
+      'En español y sin tildes, en el código, el título y el texto de la versión vigente. Solo devuelve documentos que la persona puede abrir; los restringidos, sin fragmento.',
+  })
+  @ZodResponse({ status: HttpStatus.OK, type: DocumentSearchResponse, description: 'Resultados' })
+  async search(
+    @CurrentPrincipal() principal: Principal,
+    @CurrentAbility() ability: AppAbility,
+    @Query() query: DocumentSearchQuery,
+  ): Promise<DocumentSearchResponse> {
+    return this.finder.search(principal, ability, query);
+  }
+
+  @RequirePermission('doc.document.read')
+  @Get(':id/retention-rule')
+  @ApiOperation({
+    summary: 'Retención de un documento',
+    description: 'Su regla (RE-SGC-005), desde cuándo corre el plazo y cuándo vence.',
+  })
+  @ZodResponse({ status: HttpStatus.OK, type: DocumentRetentionResponse, description: 'Retención' })
+  @ApiDocErrors()
+  async retentionOf(
+    @CurrentPrincipal() principal: Principal,
+    @CurrentAbility() ability: AppAbility,
+    @Param('id', UUID) id: string,
+  ): Promise<DocumentRetentionResponse> {
+    return this.retention.ofDocument(principal, ability, id);
+  }
+
+  @RequirePermission('doc.retention.manage')
+  @Put(':id/retention-rule')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Dar a un documento otra regla de retención',
+    description: 'Una excepción a la regla de su tipo y su proceso; null vuelve a esa regla.',
+  })
+  @ApiIfMatch()
+  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Hecho' })
+  @ApiDocErrors()
+  async setRetention(
+    @CurrentPrincipal() principal: Principal,
+    @CurrentAbility() ability: AppAbility,
+    @Param('id', UUID) id: string,
+    @Headers('if-match') ifMatch: string | undefined,
+    @Body() body: SetDocumentRetentionRule,
+    @Meta() meta: RequestMeta,
+  ): Promise<void> {
+    const target = { id, version: versionFromIfMatch(ifMatch) };
+    await this.retention.setForDocument({ principal, ability, meta }, target, body);
   }
 
   @RequirePermission('doc.document.read')

@@ -33,6 +33,12 @@ export const DOC_ERROR_CODES = {
   outputTemplateNotEditable: 'DOC_OUTPUT_TEMPLATE_NOT_EDITABLE',
   outputTemplateInvalid: 'DOC_OUTPUT_TEMPLATE_INVALID',
   checklistRequired: 'DOC_CHECKLIST_REQUIRED',
+  retentionRuleNotFound: 'DOC_RETENTION_RULE_NOT_FOUND',
+  retentionRuleConflict: 'DOC_RETENTION_RULE_CONFLICT',
+  dispositionNotFound: 'DOC_DISPOSITION_NOT_FOUND',
+  dispositionNotEditable: 'DOC_DISPOSITION_NOT_EDITABLE',
+  selfDisposition: 'DOC_SELF_DISPOSITION',
+  documentDisposed: 'DOC_DOCUMENT_DISPOSED',
 } as const;
 
 /**

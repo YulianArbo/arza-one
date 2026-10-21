@@ -34,6 +34,7 @@ const DOC = {
   status: 'draft',
   current_version: null,
   open_version: { id: VERSION, label: '00', status: 'draft', effective_date: null },
+  disposed_at: null,
   created_at: '2026-10-15T15:00:00.000Z',
   version: 1,
 };

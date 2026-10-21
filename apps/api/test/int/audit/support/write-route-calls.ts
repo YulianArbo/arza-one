@@ -24,6 +24,7 @@ import { CORE_CALLS } from './core-route-calls.js';
 import { DOC_DOCUMENT_ROUTE_CALLS } from './doc-document-route-calls.js';
 import { DOC_FORM_ROUTE_CALLS } from './doc-form-route-calls.js';
 import { DOC_REQUEST_ROUTE_CALLS } from './doc-request-route-calls.js';
+import { DOC_RETENTION_ROUTE_CALLS } from './doc-retention-route-calls.js';
 import { DOC_ROUTE_CALLS } from './doc-route-calls.js';
 import { NTF_ROUTE_CALLS } from './ntf-route-calls.js';
 import { PARTY_ROUTE_CALLS } from './party-route-calls.js';
@@ -292,6 +293,7 @@ export const WRITE_ROUTE_CALLS: Readonly<Record<string, RouteCall>> = {
   ...DOC_DOCUMENT_ROUTE_CALLS,
   ...DOC_REQUEST_ROUTE_CALLS,
   ...DOC_FORM_ROUTE_CALLS,
+  ...DOC_RETENTION_ROUTE_CALLS,
   ...WF_ROUTE_CALLS,
   ...NTF_ROUTE_CALLS,
   ...PRIVACY_ROUTE_CALLS,
