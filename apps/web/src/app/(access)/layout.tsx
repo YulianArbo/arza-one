@@ -14,7 +14,7 @@ export default function AccessLayout({ children }: { children: ReactNode }): JSX
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="flex items-center justify-between bg-sidebar px-4 py-3 sm:px-8">
-        <Link href="/" className="font-heading text-lg font-bold text-white">
+        <Link href="/" className="font-heading text-lg font-bold text-sidebar-foreground">
           ARZA ONE
         </Link>
         <ThemeMenu />

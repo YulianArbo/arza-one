@@ -9,7 +9,7 @@ export default function PublicHomePage(): JSX.Element {
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="flex items-center justify-between bg-sidebar px-4 py-3 sm:px-8">
-        <p className="font-heading text-lg font-bold text-white">ARZA ONE</p>
+        <p className="font-heading text-lg font-bold text-sidebar-foreground">ARZA ONE</p>
         <ThemeMenu />
       </header>
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center gap-6 px-4 py-12">

@@ -98,7 +98,11 @@
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-heading: 'Montserrat', 'Inter', system-ui, sans-serif;
 
-  /* Radio de 8 px y una sola sombra suave. El espaciado de Tailwind ya es de 4 px por paso. */
+  /*
+   * Radio de 8 px y una sola sombra suave. El espaciado de Tailwind ya es de 4 px por paso.
+   * B20A: las superficies se separan con borde fino; la sombra queda para lo que flota
+   * (menús, diálogos, hojas). Radios: 4 px etiquetas, 8 px controles y tarjetas, 12 px diálogos.
+   */
   --radius-sm: 0.25rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.5rem;
@@ -111,6 +115,11 @@
 @layer base {
   * {
     border-color: var(--border);
+  }
+
+  /* El foco del teclado nunca queda tapado por la barra superior fija (WCAG 2.2, 2.4.11). */
+  html {
+    scroll-padding-top: 4.5rem;
   }
 
   body {
