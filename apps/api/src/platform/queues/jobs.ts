@@ -99,6 +99,12 @@ const docDispositionExecuteJobSchema = z.object({});
  */
 const docTextExtractJobSchema = z.object({});
 
+/**
+ * Recordatorios de las actividades comerciales (B22): es del sistema y no lleva empresa; el worker
+ * revisa cada empresa con actividades por empezar.
+ */
+const crmActivityRemindJobSchema = z.object({});
+
 export type TenantJob = z.infer<typeof tenantJobSchema>;
 export type ExampleEmailJob = z.infer<typeof exampleEmailJobSchema>;
 export type AccountEmailJob = z.infer<typeof accountEmailJobSchema>;
@@ -163,6 +169,11 @@ export const JOBS = {
     name: 'doc.text-extract',
     schema: docTextExtractJobSchema,
   },
+  crmActivityRemind: {
+    queue: QUEUES.platform,
+    name: 'crm.activity-remind',
+    schema: crmActivityRemindJobSchema,
+  },
 } as const;
 
 /** Trabajos programados: el worker los registra al arrancar (expresión cron, hora de Bogotá). */
@@ -184,6 +195,9 @@ export const SCHEDULED_JOBS = [
   },
   // Cada minuto: una versión recién publicada se puede buscar por su texto poco después.
   { id: 'doc.text-extract.every-minute', job: JOBS.docTextExtract, pattern: '* * * * *' },
+  // Cada minuto: el recordatorio de una actividad llega 30 minutos antes de su hora, a lo sumo uno
+  // después.
+  { id: 'crm.activity-remind.every-minute', job: JOBS.crmActivityRemind, pattern: '* * * * *' },
 ] as const;
 
 export type JobDefinition = (typeof JOBS)[keyof typeof JOBS];

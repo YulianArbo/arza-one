@@ -75,12 +75,13 @@ describe('enrutador de trabajos de documentos y avisos', () => {
     await expect(route({ name: JOBS.docPdfRender.name, data: {} })).rejects.toThrow('no se usa');
   });
 
-  it('envía la propuesta, la ejecución de la disposición y el texto a sus procesadores', async () => {
+  it('envía la disposición, el texto y los recordatorios del CRM a sus procesadores', async () => {
     const route = createJobRouter(unusedDeps);
     for (const job of [
       JOBS.docDispositionPropose,
       JOBS.docDispositionExecute,
       JOBS.docTextExtract,
+      JOBS.crmActivityRemind,
     ]) {
       await expect(route({ name: job.name, data: {} })).rejects.toThrow('no se usa');
     }

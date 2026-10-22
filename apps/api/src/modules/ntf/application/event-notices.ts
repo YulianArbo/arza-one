@@ -148,6 +148,29 @@ const onRequestDecided: Handler = (_tx, event) => {
   return Promise.resolve([notice]);
 };
 
+const activityReminderSchema = z.object({
+  assignee_id: z.uuid(),
+  subject: z.string(),
+  record_code: z.string(),
+  due_at: z.iso.datetime({ offset: true }),
+});
+
+/** B22: el responsable de una actividad comercial recibe su recordatorio 30 minutos antes. */
+const onActivityReminder: Handler = (_tx, event) => {
+  const payload = activityReminderSchema.parse(event.payload);
+  const notice: Notice = {
+    userId: payload.assignee_id,
+    kind: 'crm_activity_due',
+    values: {
+      actividad: payload.subject,
+      registro: payload.record_code,
+      hora: bogotaDateTime(new Date(payload.due_at)),
+    },
+    link: '/app/comercial/actividades',
+  };
+  return Promise.resolve([notice]);
+};
+
 const HANDLERS: Readonly<Record<string, Handler>> = {
   'wf.task.assigned': onTaskAssigned,
   'wf.task.escalated': onTaskEscalated,
@@ -155,6 +178,7 @@ const HANDLERS: Readonly<Record<string, Handler>> = {
   'security.alert': onSecurityAlert,
   'doc.acknowledgement.requested': onReadingRequested,
   'doc.request.decided': onRequestDecided,
+  'crm.activity.reminder': onActivityReminder,
 };
 
 /** Los avisos que produce el evento; ninguno si nadie se ocupa de él. */
