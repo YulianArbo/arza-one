@@ -15,11 +15,15 @@ export default function PortalLayout({ children }: { children: ReactNode }): JSX
   return (
     <RequireSession kind="portal">
       <div className="flex min-h-dvh flex-col">
-        <header className="flex items-center justify-between border-b bg-card px-4 py-3 sm:px-8">
-          <p className="font-heading text-lg font-bold">Portal ARZA ONE</p>
-          <div className="flex items-center gap-1">
-            <ThemeMenu />
-            <UserMenu />
+        <header className="border-b bg-card">
+          <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-4 py-3">
+            <p className="font-heading text-lg font-bold">
+              ARZA ONE <span className="font-semibold text-primary">Clientes</span>
+            </p>
+            <div className="flex items-center gap-1">
+              <ThemeMenu />
+              <UserMenu />
+            </div>
           </div>
         </header>
         <main
