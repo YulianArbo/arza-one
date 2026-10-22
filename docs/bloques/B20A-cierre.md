@@ -118,4 +118,11 @@ En la rama `feat/b20a-homologacion-interfaz`:
 - `a597017` style(ui): visual foundations of the intermediate block B20A
 - `650cd3c` refactor(ui): shared form controls, table and pager in the design system
 - `88ae841` style(web): brand panel on sign-in, portal identity and design system examples
-- El commit de este cierre
+- `3b125db` docs(blocks): closure of the intermediate block B20A
+- `e49de46` integración de `main` con B21 (retención, disposición y búsqueda)
+- `060dbca` refactor(web): retention screens import the shared controls from the design system
+
+Al traer B21, sus pantallas de retención y disposición se adaptaron a los componentes compartidos.
+Se agregó la prueba de la pantalla de eventos de seguridad (`security-events.test.tsx`), que no
+tenía prueba propia, para mantener la cobertura de ramas de la web sobre 85 % (quedó en 85,13 %,
+398 pruebas).
