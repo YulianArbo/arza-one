@@ -2,10 +2,20 @@ import type { ComponentProps, JSX } from 'react';
 
 import { cn } from '../lib/cn.js';
 
+interface TableProps extends ComponentProps<'table'> {
+  /**
+   * Nombre de la zona que desplaza a lo ancho. Con él, la zona recibe el foco para recorrerla con
+   * las flechas del teclado (WCAG 2.1.1); úselo en las tablas con muchas columnas.
+   */
+  readonly scrollLabel?: string;
+}
+
 /** Tabla de datos. El contenedor desplaza a lo ancho en pantallas pequeñas. */
-export function Table({ className, ...props }: ComponentProps<'table'>): JSX.Element {
+export function Table({ className, scrollLabel, ...props }: TableProps): JSX.Element {
+  const region =
+    scrollLabel === undefined ? {} : { role: 'region', 'aria-label': scrollLabel, tabIndex: 0 };
   return (
-    <div className="relative w-full overflow-x-auto">
+    <div className="relative w-full overflow-x-auto" {...region}>
       <table className={cn('w-full caption-bottom text-sm tabular-nums', className)} {...props} />
     </div>
   );
