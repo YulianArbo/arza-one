@@ -68,8 +68,10 @@ export type PartyConsent = z.infer<typeof partyConsentSchema>;
 
 /** Origen del registro: el formulario que lo tomó o el traslado de los datos anteriores. */
 export const consentSourceSchema = z
-  .enum(['party_create', 'party_consent', 'prior_record'])
-  .describe('Alta del tercero, autorización nueva en su ficha o registro anterior a B17');
+  .enum(['party_create', 'party_consent', 'prior_record', 'crm_lead'])
+  .describe(
+    'Alta del tercero, autorización nueva en su ficha, registro anterior a B17 o prospecto del CRM (B22)',
+  );
 
 export const consentSchema = partyConsentSchema.extend({
   party: z.object({ id: z.uuid(), name: z.string().nullable() }),

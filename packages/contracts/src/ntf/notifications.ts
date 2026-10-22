@@ -46,6 +46,10 @@ export const NOTIFICATION_KINDS = {
     label: 'Se decidió su solicitud documental',
     variables: ['nombre', 'solicitud', 'decision'],
   },
+  crm_activity_due: {
+    label: 'Se acerca una actividad comercial',
+    variables: ['nombre', 'actividad', 'registro', 'hora'],
+  },
 } as const satisfies Record<string, { label: string; variables: readonly string[] }>;
 
 export type NotificationKind = keyof typeof NOTIFICATION_KINDS;
