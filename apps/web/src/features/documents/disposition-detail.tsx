@@ -1,7 +1,7 @@
 'use client';
 
 import { DISPOSITION_PROPOSAL_STATUSES, type DispositionProposalDetail } from '@arza/contracts';
-import { Badge } from '@arza/ui';
+import { Badge, SimpleTable } from '@arza/ui';
 import Link from 'next/link';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
@@ -11,7 +11,6 @@ import { formatDateTime } from '../../lib/format/date-time';
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { QueryState } from '../administration/query-state';
-import { SimpleTable } from '../administration/simple-table';
 import { DownloadButton } from '../files/file-list';
 import { RecordDialog } from '../organization/record-dialog';
 import { CommentField } from '../workflows/workflow-actions';

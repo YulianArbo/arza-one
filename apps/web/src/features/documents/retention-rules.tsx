@@ -1,7 +1,7 @@
 'use client';
 
 import { RETENTION_DISPOSITIONS, type RetentionRule } from '@arza/contracts';
-import { Badge, EmptyState, TableCell, TableRow } from '@arza/ui';
+import { Badge, EmptyState, SimpleTable, TableCell, TableRow } from '@arza/ui';
 import { Archive } from 'lucide-react';
 import Link from 'next/link';
 import type { JSX } from 'react';
@@ -10,7 +10,6 @@ import { ConfirmActionButton } from '../../components/confirm-action-button';
 import { PageHeader } from '../../components/app-shell/page-header';
 import { FormError } from '../access/form-alert';
 import { QueryState } from '../administration/query-state';
-import { SimpleTable } from '../administration/simple-table';
 import { ActiveBadge, RecordDialog } from '../organization/record-dialog';
 import { DISPOSITIONS_PATH, documentPath, retentionYears } from './labels';
 import {

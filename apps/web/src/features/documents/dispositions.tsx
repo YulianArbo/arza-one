@@ -1,7 +1,7 @@
 'use client';
 
 import { DISPOSITION_PROPOSAL_STATUSES, type DispositionProposal } from '@arza/contracts';
-import { Badge, Button, EmptyState, TableCell, TableRow } from '@arza/ui';
+import { Badge, Button, EmptyState, SelectField, SimpleTable, TableCell, TableRow } from '@arza/ui';
 import { Archive } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -11,8 +11,6 @@ import { PageHeader } from '../../components/app-shell/page-header';
 import { formatDateTime } from '../../lib/format/date-time';
 import { FormError } from '../access/form-alert';
 import { QueryState } from '../administration/query-state';
-import { SelectField } from '../administration/select-field';
-import { SimpleTable } from '../administration/simple-table';
 import { usePermissions } from '../session/permissions';
 import { DISPOSITION_STATUS_TONES, RETENTION_PATH, dispositionPath, periodLabel } from './labels';
 import { useDispositions, useProposeDispositions } from './retention-queries';
