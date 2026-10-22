@@ -15,7 +15,8 @@
         "src/modules/iam/interface/cli/invite-main.ts",
         "src/modules/iam/interface/cli/reset-second-factor-main.ts",
         "src/modules/iam/interface/cli/assign-role-main.ts",
-        "src/modules/doc/interface/cli/import-master-list-main.ts"
+        "src/modules/doc/interface/cli/import-master-list-main.ts",
+        "src/modules/doc/interface/cli/import-retention-main.ts"
       ],
       "ignoreDependencies": ["@prisma/client"]
     },

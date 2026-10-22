@@ -48,7 +48,8 @@
     "iam:invitar": "node --env-file-if-exists=../../.env dist/modules/iam/interface/cli/invite-main.js",
     "iam:asignar-rol": "node --env-file-if-exists=../../.env dist/modules/iam/interface/cli/assign-role-main.js",
     "iam:reiniciar-segundo-factor": "node --env-file-if-exists=../../.env dist/modules/iam/interface/cli/reset-second-factor-main.js",
-    "doc:importar-listado": "node --env-file-if-exists=../../.env dist/modules/doc/interface/cli/import-master-list-main.js"
+    "doc:importar-listado": "node --env-file-if-exists=../../.env dist/modules/doc/interface/cli/import-master-list-main.js",
+    "doc:importar-retencion": "node --env-file-if-exists=../../.env dist/modules/doc/interface/cli/import-retention-main.js"
   },
   "devDependencies": {
     "@nestjs/testing": "~11.2.7",
@@ -84,6 +85,7 @@
     "nestjs-pino": "^5.3.1",
     "nestjs-zod": "^5.5.0",
     "otpauth": "~9.5.2",
+    "pdfjs-dist": "^6.4.299",
     "pg": "^8.23.1",
     "pino": "^10.4.0",
     "pino-http": "^11.0.0",

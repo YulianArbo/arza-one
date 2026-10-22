@@ -8,6 +8,7 @@
     "test": "vitest run --coverage",
     "check:migrations": "node ci/check-migrations.ts",
     "check:vulnerabilities": "node ci/check-vulnerabilities.ts",
+    "plan:ci": "node ci/plan-ci.ts",
     "deploy:staging": "node deploy/deploy-main.ts",
     "check:ports": "node deploy/check-ports.ts"
   },

@@ -12,6 +12,7 @@ export default defineConfig({
         '**/*.test.ts',
         'ci/check-migrations.ts',
         'ci/check-vulnerabilities.ts',
+        'ci/plan-ci.ts',
         'local/dev-watch.ts',
         'local/env-local.ts',
         'local/infra.ts',

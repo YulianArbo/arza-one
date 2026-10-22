@@ -29,3 +29,4 @@ aprobación del Director General. El resumen oficial está en el numeral 8.4 del
 | [ADR-021](021-uuid-v7-consecutivos.md)                      | Identificadores UUID versión 7 y consecutivos de negocio separados                | Aceptada  |
 | [ADR-022](022-ia-por-pasarela.md)                           | Inteligencia artificial solo mediante pasarela con control de permisos y registro | Aceptada  |
 | [ADR-023](023-seguimiento-de-tramites-en-la-transaccion.md) | Los módulos siguen los pasos de sus trámites dentro de la misma transacción       | Propuesta |
+| [ADR-024](024-integracion-continua-sin-repeticiones.md)     | Integración continua sin repetir verificaciones sobre el mismo código             | Aceptada  |

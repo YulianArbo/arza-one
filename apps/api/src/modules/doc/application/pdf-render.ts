@@ -116,7 +116,14 @@ async function pendingOf(deps: PdfRenderDependencies, tenantId: string) {
       take: BATCH,
     }),
     versions: await tx.docVersion.findMany({
-      where: { status: 'current', copyFileId: null, pdfFileId: { not: null }, deletedAt: null },
+      // Solo con su PDF disponible: el de un documento eliminado por disposición final (B21) ya
+      // no existe y no tiene copia que generar.
+      where: {
+        status: 'current',
+        copyFileId: null,
+        pdfFile: { is: { scanStatus: 'available' } },
+        deletedAt: null,
+      },
       select: { id: true },
       orderBy: { id: 'asc' },
       take: BATCH,

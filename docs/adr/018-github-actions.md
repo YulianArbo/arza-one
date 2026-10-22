@@ -22,4 +22,5 @@ Gratuito dentro de la cuota. Las pruebas largas se pueden ejecutar en el equipo 
 
 ## Cumplimiento
 
-Flujos en `.github/workflows/`; bloque B05. Plantilla de pull request creada en B01.
+Flujos en `.github/workflows/`; bloque B05. Plantilla de pull request creada en B01. Qué tareas
+corren en cada cambio: ADR-024.

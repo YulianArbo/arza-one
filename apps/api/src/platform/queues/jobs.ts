@@ -85,6 +85,20 @@ const ntfDispatchJobSchema = z.object({});
  */
 const docPdfRenderJobSchema = z.object({});
 
+/**
+ * Disposición final (B21, numeral 12.4). La propuesta del mes de cada empresa con documentos de
+ * retención vencida (si aún no existe), y la ejecución de las propuestas aprobadas con su acta. Son
+ * del sistema y no llevan empresa. Ninguno elimina nada sin una propuesta aprobada.
+ */
+const docDispositionProposeJobSchema = z.object({});
+const docDispositionExecuteJobSchema = z.object({});
+
+/**
+ * Texto de las versiones vigentes para la búsqueda (B21, numeral 13.2). Es del sistema y no lleva
+ * empresa: el worker revisa cada empresa con versiones sin su texto.
+ */
+const docTextExtractJobSchema = z.object({});
+
 export type TenantJob = z.infer<typeof tenantJobSchema>;
 export type ExampleEmailJob = z.infer<typeof exampleEmailJobSchema>;
 export type AccountEmailJob = z.infer<typeof accountEmailJobSchema>;
@@ -134,6 +148,21 @@ export const JOBS = {
     name: 'doc.pdf-render',
     schema: docPdfRenderJobSchema,
   },
+  docDispositionPropose: {
+    queue: QUEUES.platform,
+    name: 'doc.disposition-propose',
+    schema: docDispositionProposeJobSchema,
+  },
+  docDispositionExecute: {
+    queue: QUEUES.platform,
+    name: 'doc.disposition-execute',
+    schema: docDispositionExecuteJobSchema,
+  },
+  docTextExtract: {
+    queue: QUEUES.platform,
+    name: 'doc.text-extract',
+    schema: docTextExtractJobSchema,
+  },
 } as const;
 
 /** Trabajos programados: el worker los registra al arrancar (expresión cron, hora de Bogotá). */
@@ -145,6 +174,16 @@ export const SCHEDULED_JOBS = [
   { id: 'ntf.dispatch.every-15-seconds', job: JOBS.ntfDispatch, pattern: '*/15 * * * * *' },
   // Cada 20 segundos: el PDF de un registro terminado queda listo casi de inmediato.
   { id: 'doc.pdf-render.every-20-seconds', job: JOBS.docPdfRender, pattern: '*/20 * * * * *' },
+  // Cada día a las 6:10: si aún no existe la propuesta del mes y hay vencidos, la crea (una al mes).
+  { id: 'doc.disposition-propose.daily', job: JOBS.docDispositionPropose, pattern: '10 6 * * *' },
+  // Cada minuto: una propuesta aprobada se ejecuta y deja su acta en poco tiempo.
+  {
+    id: 'doc.disposition-execute.every-minute',
+    job: JOBS.docDispositionExecute,
+    pattern: '* * * * *',
+  },
+  // Cada minuto: una versión recién publicada se puede buscar por su texto poco después.
+  { id: 'doc.text-extract.every-minute', job: JOBS.docTextExtract, pattern: '* * * * *' },
 ] as const;
 
 export type JobDefinition = (typeof JOBS)[keyof typeof JOBS];

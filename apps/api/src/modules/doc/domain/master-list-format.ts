@@ -18,6 +18,7 @@ export const DOCUMENT_STATUS_LABELS: Readonly<Record<DocumentStatus, string>> = 
   draft: 'Sin publicar',
   current: 'Vigente',
   obsolete: 'Obsoleto',
+  disposed: 'Eliminado por disposición',
 };
 
 /** 2026-10-17 → 17/10/2026. */

@@ -22,7 +22,7 @@ import {
   visibleVersions,
   type DocReader,
 } from './doc-support.js';
-import { findVisibleDocument, visibleDocument } from './documents.js';
+import { findChangeableDocument, findVisibleDocument, visibleDocument } from './documents.js';
 import { usableChangeRequest } from './change-request-rows.js';
 import { createVersionRow, draftContent, requestRender } from './version-rows.js';
 import { versionViews } from './version-views.js';
@@ -120,7 +120,7 @@ export class VersionsUseCase {
     const actor = actorOf(principal, meta, this.clock.now());
     return this.database.withTenant(principal, async (tx) => {
       const reader = await readerOf(tx, principal, ability);
-      const document = await findVisibleDocument(tx, reader, documentId);
+      const document = await findChangeableDocument(tx, reader, documentId);
       await assertPosition(tx, input.owner_position_id);
       const source = await versionSource(tx, principal.userId, input.source_file_id);
       await lockDocument(tx, actor.tenantId, document.id);

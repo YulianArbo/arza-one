@@ -11,6 +11,7 @@ import {
 import {
   convertHtmlWithGotenberg,
   convertWithGotenberg,
+  extractPdfText,
   fileStorageFrom,
   scanWithClamav,
   stampWithGotenberg,
@@ -79,6 +80,7 @@ class WorkerRuntime implements OnApplicationBootstrap, OnApplicationShutdown {
       convertOffice: async (source) => convertWithGotenberg(gotenberg, source),
       convertHtml: async (document) => convertHtmlWithGotenberg(gotenberg, document),
       stamp: async (pdf, text) => stampWithGotenberg(gotenberg, pdf, text),
+      extractText: extractPdfText,
     });
     this.queueWorkers = startQueueWorkers(router, {
       // BullMQ exige conexiones sin límite de reintentos por comando para esperar trabajos.

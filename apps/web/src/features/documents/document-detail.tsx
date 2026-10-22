@@ -11,6 +11,7 @@ import { SectionTabs, type SectionTab } from '../parties/section-tabs';
 import { usePermissions } from '../session/permissions';
 import { DocumentLinks } from './document-links';
 import { ReadingPanel } from './reading-panel';
+import { RetentionPanel } from './retention-panel';
 import {
   DOCUMENTS_PATH,
   DOCUMENT_STATUS_LABELS,
@@ -19,11 +20,13 @@ import {
   versionFormPath,
 } from './labels';
 import { useDocument, useVersions } from './queries';
+import { formatDateTime } from '../../lib/format/date-time';
 import { VersionList } from './version-list';
 import { VersionViewer } from './version-viewer';
 
 // Ficha y visor del documento (B18, numerales 16.3 y 16.4): encabezado con código, estado y
-// acciones; pestañas del documento, sus versiones, sus vínculos y (B19) la constancia de lectura.
+// acciones; pestañas del documento, sus versiones, sus vínculos, (B19) la constancia de lectura y
+// (B21) su retención. Un documento eliminado por disposición final conserva su ficha sin contenido.
 
 /** La versión que se muestra: la vigente, o la más nueva que la persona puede ver. */
 function shownVersion(document: Document, versions: readonly Version[]): Version | undefined {
@@ -71,7 +74,7 @@ function RequestChangeLinks({ document }: { readonly document: Document }): JSX.
 
 function NewVersionLink({ document }: { readonly document: Document }): JSX.Element | null {
   const canEdit = usePermissions().can('doc.document.update');
-  if (!canEdit || document.open_version !== null) return null;
+  if (!canEdit || document.open_version !== null || document.status === 'disposed') return null;
   return (
     <Link href={versionFormPath(document.id)} className={buttonVariants()}>
       Nueva versión
@@ -88,6 +91,33 @@ function HeaderActions({ document }: { readonly document: Document }): JSX.Eleme
   );
 }
 
+/** El contenido se borró por disposición final: queda la ficha como evidencia del acta. */
+function DisposedNotice({ document }: { readonly document: Document }): JSX.Element {
+  return (
+    <p role="status" className="rounded-md border p-4 text-sm">
+      Este documento se eliminó por disposición final el {formatDateTime(document.disposed_at)}. Su
+      contenido ya no existe; se conservan su código y su nombre como evidencia en el acta de
+      disposición.
+    </p>
+  );
+}
+
+function DocumentPane(props: {
+  readonly document: Document;
+  readonly shown: Version | undefined;
+}): JSX.Element {
+  return (
+    <div className="flex flex-col gap-6">
+      <Summary document={props.document} />
+      {props.document.status === 'disposed' ? (
+        <DisposedNotice document={props.document} />
+      ) : props.shown === undefined ? null : (
+        <VersionViewer version={props.shown} />
+      )}
+    </div>
+  );
+}
+
 function DocumentTabs(props: {
   readonly document: Document;
   readonly versions: readonly Version[];
@@ -97,12 +127,7 @@ function DocumentTabs(props: {
     {
       id: 'documento',
       label: 'Documento',
-      content: () => (
-        <div className="flex flex-col gap-6">
-          <Summary document={props.document} />
-          {shown === undefined ? null : <VersionViewer version={shown} />}
-        </div>
-      ),
+      content: () => <DocumentPane document={props.document} shown={shown} />,
     },
     {
       id: 'versiones',
@@ -118,6 +143,11 @@ function DocumentTabs(props: {
       id: 'lectura',
       label: 'Lectura',
       content: () => <ReadingPanel documentId={props.document.id} />,
+    },
+    {
+      id: 'retencion',
+      label: 'Retención',
+      content: () => <RetentionPanel document={props.document} />,
     },
   ];
   return <SectionTabs tabs={tabs} label="Secciones del documento" />;

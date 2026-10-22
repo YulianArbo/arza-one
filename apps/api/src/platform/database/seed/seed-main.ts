@@ -4,7 +4,12 @@ import { z } from 'zod';
 // módulos: este punto de entrada las reúne con la de la plataforma, como app.module.ts reúne los
 // módulos.
 import { seedCore } from '../../../modules/core/index.js';
-import { seedDocFolders, seedDocForms, seedDocWorkflows } from '../../../modules/doc/index.js';
+import {
+  seedDocFolders,
+  seedDocForms,
+  seedDocWorkflows,
+  seedRetentionDemo,
+} from '../../../modules/doc/index.js';
 import { seedAccessControl } from '../../../modules/iam/index.js';
 import { seedPartyDemo } from '../../../modules/party/index.js';
 import { seedNotificationTemplates } from '../../../modules/ntf/index.js';
@@ -48,6 +53,7 @@ async function main(): Promise<void> {
       await seedPrivacyDemo(database, demoIds, systemClock);
       await seedPartyDemo(database, demoIds, systemClock);
       await seedWorkflowDemo(database, demoIds, systemClock);
+      await seedRetentionDemo(database, demoIds, systemClock);
     }
     process.stdout.write(withDemo ? 'Semilla y datos ficticios listos.\n' : 'Semilla lista.\n');
   } finally {
