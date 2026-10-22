@@ -1,8 +1,8 @@
 'use client';
 
+import { FormField } from '@arza/ui';
 import { useState, type JSX } from 'react';
 
-import { FormField } from './form-field';
 import { NEW_PASSWORD_HINT, confirmationError, newPasswordError } from './password-checks';
 
 export interface NewPasswordState {

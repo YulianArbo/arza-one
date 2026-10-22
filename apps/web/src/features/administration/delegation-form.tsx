@@ -6,18 +6,25 @@ import {
   permissionDefinition,
   userListResponseSchema,
 } from '@arza/contracts';
-import { Button, Card, CardContent, CardHeader, CardTitle } from '@arza/ui';
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Checkbox,
+  FormField,
+  SelectField,
+} from '@arza/ui';
 import { useQuery } from '@tanstack/react-query';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
 import { useApiClient } from '../../lib/api/api-provider';
 import { FormError, FormSuccess } from '../access/form-alert';
-import { FormField } from '../access/form-field';
 import { usePermissions } from '../session/permissions';
 import { useAdminAction } from './admin-action';
 import { endOfBogotaDay, personName, startOfBogotaDay } from './labels';
 import { ADMIN_KEYS } from './queries';
-import { SelectField } from './select-field';
 
 interface FormValues {
   readonly from: string;
@@ -168,8 +175,7 @@ function ApprovalChoices({
       <legend className="mb-1 text-sm font-medium">Aprobaciones que se delegan</legend>
       {codes.map((code) => (
         <label key={code} className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
+          <Checkbox
             checked={values.permissions.includes(code)}
             onChange={(event) => {
               toggle(code, event.target.checked);

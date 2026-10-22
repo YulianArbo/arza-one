@@ -1,11 +1,10 @@
 'use client';
 
 import type { TaskView } from '@arza/contracts';
-import { Button, Card, CardContent, CardHeader, CardTitle } from '@arza/ui';
+import { Button, Card, CardContent, CardHeader, CardTitle, FormField } from '@arza/ui';
 import { useState, type JSX, type ReactNode, type SubmitEvent } from 'react';
 
 import { FormError } from '../access/form-alert';
-import { FormField } from '../access/form-field';
 import { usePermissions } from '../session/permissions';
 import { useTaskAction, withComment } from './mutations';
 import { CommentField, WorkflowActions } from './workflow-actions';

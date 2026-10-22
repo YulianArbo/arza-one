@@ -1,7 +1,7 @@
 'use client';
 
 import { createdResponseSchema, type PartyDetail } from '@arza/contracts';
-import { Alert, AlertDescription, AlertTitle, Button } from '@arza/ui';
+import { Alert, AlertDescription, AlertTitle, Button, SelectField } from '@arza/ui';
 import { CircleAlert } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -11,7 +11,6 @@ import { useApiClient } from '../../lib/api/api-provider';
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { useAdminAction } from '../administration/admin-action';
-import { SelectField } from '../administration/select-field';
 import { DUPLICATE_REASON_LABELS, KIND_LABELS, identification, partyPath } from './labels';
 import { ConsentFields } from '../privacy/consent-fields';
 import type { ConsentErrors } from '../privacy/consent-values';

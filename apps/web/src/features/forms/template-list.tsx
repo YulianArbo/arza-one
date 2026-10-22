@@ -1,14 +1,13 @@
 'use client';
 
 import { FORM_FLOWS, FORM_TEMPLATE_STATUSES, type FormTemplateSummary } from '@arza/contracts';
-import { Badge, buttonVariants, EmptyState, TableCell, TableRow } from '@arza/ui';
+import { Badge, buttonVariants, EmptyState, SimpleTable, TableCell, TableRow } from '@arza/ui';
 import { FileSpreadsheet } from 'lucide-react';
 import Link from 'next/link';
 import { useState, type JSX } from 'react';
 
 import { PageHeader } from '../../components/app-shell/page-header';
 import { QueryState } from '../administration/query-state';
-import { SimpleTable } from '../administration/simple-table';
 import { CheckboxField } from '../organization/record-dialog';
 import { usePermissions } from '../session/permissions';
 import {

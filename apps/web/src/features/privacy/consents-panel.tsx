@@ -6,17 +6,23 @@ import {
   type ConsentListResponse,
   type ConsentStatus,
 } from '@arza/contracts';
-import { Badge, EmptyState, TableCell, TableRow } from '@arza/ui';
+import {
+  Badge,
+  EmptyState,
+  Pager,
+  SelectField,
+  SimpleTable,
+  TableCell,
+  TableRow,
+  useCursorTrail,
+} from '@arza/ui';
 import Link from 'next/link';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
 import { formatDate, formatDateTime } from '../../lib/format/date-time';
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
-import { Pager, useCursorTrail } from '../administration/pager';
 import { QueryState } from '../administration/query-state';
-import { SelectField } from '../administration/select-field';
-import { SimpleTable } from '../administration/simple-table';
 import { useCatalog } from '../organization/queries';
 import { RecordDialog, TextInput } from '../organization/record-dialog';
 import { partyPath } from '../parties/labels';

@@ -1,7 +1,7 @@
 'use client';
 
 import type { Delegation } from '@arza/contracts';
-import { Badge, EmptyState, TableCell, TableRow } from '@arza/ui';
+import { Badge, EmptyState, SimpleTable, TableCell, TableRow } from '@arza/ui';
 import { Repeat } from 'lucide-react';
 import type { JSX } from 'react';
 
@@ -16,7 +16,6 @@ import { DelegationForm } from './delegation-form';
 import { DELEGATION_STATUS_LABELS, personName } from './labels';
 import { ADMIN_KEYS, useDelegations } from './queries';
 import { QueryState } from './query-state';
-import { SimpleTable } from './simple-table';
 
 function DelegationRow(props: {
   readonly delegation: Delegation;

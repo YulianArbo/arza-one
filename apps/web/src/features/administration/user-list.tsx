@@ -1,13 +1,22 @@
 'use client';
 
 import type { UserSummary } from '@arza/contracts';
-import { Badge, Button, EmptyState, TableCell, TableRow } from '@arza/ui';
+import {
+  Badge,
+  Button,
+  EmptyState,
+  FormField,
+  Pager,
+  SelectField,
+  SimpleTable,
+  TableCell,
+  TableRow,
+} from '@arza/ui';
 import { Users } from 'lucide-react';
 import Link from 'next/link';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
 import { formatDateTime } from '../../lib/format/date-time';
-import { FormField } from '../access/form-field';
 import { usePermissions } from '../session/permissions';
 import { InviteUserDialog } from './invite-user-dialog';
 import {
@@ -19,9 +28,6 @@ import {
 } from './labels';
 import { useUserPage, type UserFilters } from './queries';
 import { QueryState } from './query-state';
-import { SelectField } from './select-field';
-import { Pager } from './pager';
-import { SimpleTable } from './simple-table';
 
 const STATUS_OPTIONS = [
   { value: '', label: 'Todos' },
@@ -131,6 +137,7 @@ export function UserList(): JSX.Element {
             <Pager
               page={data}
               hasPrevious={cursors.length > 1}
+              pageNumber={cursors.length}
               onPrevious={() => {
                 setCursors(cursors.slice(0, -1));
               }}

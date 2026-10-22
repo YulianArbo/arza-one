@@ -1,5 +1,6 @@
 'use client';
 
+import { SelectField, Textarea } from '@arza/ui';
 import {
   OUTPUT_ENGINES,
   outputEngineSchema,
@@ -10,7 +11,6 @@ import { useState, type JSX, type SubmitEvent } from 'react';
 
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
-import { SelectField } from '../administration/select-field';
 import { SourceUpload } from '../documents/source-upload';
 import { TextInput } from '../organization/record-dialog';
 import { useCreateOutputTemplate, useUpdateOutputTemplate } from './queries';
@@ -102,7 +102,7 @@ function Content({ values, onChange }: FieldsProps): JSX.Element {
       <label htmlFor="plantilla-html" className="text-sm font-medium">
         HTML de la plantilla
       </label>
-      <textarea
+      <Textarea
         id="plantilla-html"
         rows={10}
         value={values.body}
@@ -110,7 +110,7 @@ function Content({ values, onChange }: FieldsProps): JSX.Element {
         onChange={(event) => {
           onChange({ ...values, body: event.target.value });
         }}
-        className="rounded-md border border-input bg-card px-3 py-2 font-mono text-xs"
+        className="font-mono text-xs"
       />
       <p id="plantilla-html-ayuda" className="text-xs text-muted-foreground">
         {VARIABLES_HINT}

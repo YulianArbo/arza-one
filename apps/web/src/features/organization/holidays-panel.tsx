@@ -1,7 +1,7 @@
 'use client';
 
 import { businessDaysResponseSchema, createdResponseSchema, type Holiday } from '@arza/contracts';
-import { Button, TableCell, TableRow } from '@arza/ui';
+import { Button, SelectField, SimpleTable, TableCell, TableRow } from '@arza/ui';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
 import { ConfirmActionButton } from '../../components/confirm-action-button';
@@ -10,8 +10,6 @@ import { formatDate } from '../../lib/format/date-time';
 import { FormError } from '../access/form-alert';
 import { useAdminAction } from '../administration/admin-action';
 import { QueryState } from '../administration/query-state';
-import { SelectField } from '../administration/select-field';
-import { SimpleTable } from '../administration/simple-table';
 import { usePermissions } from '../session/permissions';
 import { CORE_KEYS, useHolidays } from './queries';
 import { TextInput } from './record-dialog';

@@ -43,9 +43,16 @@ export {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './components/dropdown-menu.js';
+export { Checkbox, Radio } from './components/choice.js';
 export { Input } from './components/input.js';
 export { Label } from './components/label.js';
+export { Pager, useCursorTrail } from './components/pager.js';
+export { Select } from './components/select.js';
 export { Separator } from './components/separator.js';
+export { SimpleTable } from './components/simple-table.js';
+export { Textarea } from './components/textarea.js';
+export { FormField } from './fields/form-field.js';
+export { SelectField } from './fields/select-field.js';
 export {
   Sheet,
   SheetClose,

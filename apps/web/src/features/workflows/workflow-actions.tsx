@@ -1,7 +1,7 @@
 'use client';
 
 import type { AvailableAction } from '@arza/contracts';
-import { Button, Label } from '@arza/ui';
+import { Button, Label, Textarea } from '@arza/ui';
 import { useState, type JSX } from 'react';
 
 import { FormError } from '../access/form-alert';
@@ -29,7 +29,7 @@ export function CommentField(props: {
   return (
     <div className="flex flex-col gap-1.5">
       <Label htmlFor={props.id}>{props.label}</Label>
-      <textarea
+      <Textarea
         id={props.id}
         aria-describedby={`${props.id}-ayuda`}
         rows={3}
@@ -38,7 +38,6 @@ export function CommentField(props: {
         onChange={(event) => {
           props.onChange(event.target.value);
         }}
-        className="rounded-md border border-input bg-card px-3 py-2 text-sm"
       />
       <p id={`${props.id}-ayuda`} className="text-xs text-muted-foreground">
         {props.hint}

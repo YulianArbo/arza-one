@@ -1,5 +1,6 @@
 'use client';
 
+import { Checkbox, Select } from '@arza/ui';
 import {
   isPermissionCode,
   type GrantedPermission,
@@ -48,9 +49,8 @@ function PermissionRow(props: {
   return (
     <li className="flex flex-wrap items-center justify-between gap-2 py-1.5">
       <label htmlFor={id} className="flex items-start gap-2 text-sm">
-        <input
+        <Checkbox
           id={id}
-          type="checkbox"
           checked={scope !== undefined}
           disabled={readOnly}
           onChange={(event) => onChange?.(event.target.checked ? 'all' : null)}
@@ -61,16 +61,16 @@ function PermissionRow(props: {
         </span>
       </label>
       {scope !== undefined && permission.ownable ? (
-        <select
+        <Select
           aria-label={`Alcance de «${permission.description}»`}
-          className="h-8 rounded-md border border-input bg-card px-2 text-xs"
+          className="h-8 w-auto px-2 text-xs"
           value={scope}
           disabled={readOnly}
           onChange={(event) => onChange?.(event.target.value === 'own' ? 'own' : 'all')}
         >
           <option value="all">Todo</option>
           <option value="own">Solo lo propio</option>
-        </select>
+        </Select>
       ) : null}
     </li>
   );

@@ -1,11 +1,10 @@
 'use client';
 
 import type { Activity } from '@arza/contracts';
-import { Badge, EmptyState, TableCell, TableRow } from '@arza/ui';
+import { Badge, EmptyState, SimpleTable, TableCell, TableRow } from '@arza/ui';
 import type { JSX } from 'react';
 
 import { QueryState } from '../administration/query-state';
-import { SimpleTable } from '../administration/simple-table';
 import { ActiveBadge, RecordDialog } from '../organization/record-dialog';
 import { ActivityForm } from './activity-form';
 import { DATA_CATEGORY_LABELS, HOLDER_TYPE_LABELS } from './labels';

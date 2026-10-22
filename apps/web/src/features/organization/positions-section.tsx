@@ -1,7 +1,7 @@
 'use client';
 
 import { createdResponseSchema, positionSchema, type Position } from '@arza/contracts';
-import { DialogFooter, TableCell, TableRow } from '@arza/ui';
+import { DialogFooter, SelectField, SimpleTable, TableCell, TableRow } from '@arza/ui';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
 import { ConfirmActionButton } from '../../components/confirm-action-button';
@@ -9,8 +9,6 @@ import { useApiClient } from '../../lib/api/api-provider';
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { useAdminAction } from '../administration/admin-action';
-import { SelectField } from '../administration/select-field';
-import { SimpleTable } from '../administration/simple-table';
 import { CORE_KEYS } from './queries';
 import {
   ActiveBadge,

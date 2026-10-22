@@ -1,7 +1,5 @@
-import { Button } from '@arza/ui';
+import { Button, FormField } from '@arza/ui';
 import { useState, type JSX } from 'react';
-
-import { FormField } from '../access/form-field';
 
 interface CodeFieldProps {
   readonly id: string;

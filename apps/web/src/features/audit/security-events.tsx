@@ -1,15 +1,21 @@
 'use client';
 
 import type { SecurityEvent } from '@arza/contracts';
-import { Badge, EmptyState, TableCell, TableRow } from '@arza/ui';
+import {
+  Badge,
+  EmptyState,
+  Pager,
+  SelectField,
+  SimpleTable,
+  TableCell,
+  TableRow,
+  useCursorTrail,
+} from '@arza/ui';
 import { ShieldCheck } from 'lucide-react';
 import { useState, type JSX } from 'react';
 
 import { formatDateTime } from '../../lib/format/date-time';
-import { Pager, useCursorTrail } from '../administration/pager';
 import { QueryState } from '../administration/query-state';
-import { SelectField } from '../administration/select-field';
-import { SimpleTable } from '../administration/simple-table';
 import { SEVERITY_LABELS, SEVERITY_TONES, changesSummary } from './labels';
 import { useSecurityEvents } from './queries';
 

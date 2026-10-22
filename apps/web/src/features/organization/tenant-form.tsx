@@ -1,11 +1,11 @@
 'use client';
 
+import { FormField } from '@arza/ui';
 import { tenantProfileSchema, type TenantProfile } from '@arza/contracts';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
 import { useApiClient } from '../../lib/api/api-provider';
 import { FormError, FormSuccess } from '../access/form-alert';
-import { FormField } from '../access/form-field';
 import { SubmitButton } from '../access/submit-button';
 import { useAdminAction } from '../administration/admin-action';
 import { QueryState } from '../administration/query-state';

@@ -7,7 +7,7 @@ import {
   linkRelationSchema,
   type DocumentLink,
 } from '@arza/contracts';
-import { EmptyState, TableCell, TableRow } from '@arza/ui';
+import { EmptyState, SelectField, SimpleTable, TableCell, TableRow } from '@arza/ui';
 import { Link2 } from 'lucide-react';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
@@ -15,8 +15,6 @@ import { ConfirmActionButton } from '../../components/confirm-action-button';
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { QueryState } from '../administration/query-state';
-import { SelectField } from '../administration/select-field';
-import { SimpleTable } from '../administration/simple-table';
 import { useOrgUnits, usePositions } from '../organization/queries';
 import { RecordDialog } from '../organization/record-dialog';
 import { useParties } from '../parties/queries';

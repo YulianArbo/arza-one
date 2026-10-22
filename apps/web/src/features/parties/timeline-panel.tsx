@@ -1,12 +1,11 @@
 'use client';
 
 import type { TimelineEntry } from '@arza/contracts';
-import { EmptyState } from '@arza/ui';
+import { EmptyState, Pager, useCursorTrail } from '@arza/ui';
 import { History } from 'lucide-react';
 import type { JSX } from 'react';
 
 import { formatDateTime } from '../../lib/format/date-time';
-import { Pager, useCursorTrail } from '../administration/pager';
 import { QueryState } from '../administration/query-state';
 import { actionLabel, entityLabel } from '../audit/labels';
 import { useTimeline } from './queries';

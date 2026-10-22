@@ -6,7 +6,7 @@ import { cn } from '../lib/cn.js';
 export function Table({ className, ...props }: ComponentProps<'table'>): JSX.Element {
   return (
     <div className="relative w-full overflow-x-auto">
-      <table className={cn('w-full caption-bottom text-sm', className)} {...props} />
+      <table className={cn('w-full caption-bottom text-sm tabular-nums', className)} {...props} />
     </div>
   );
 }

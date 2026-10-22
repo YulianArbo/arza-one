@@ -8,7 +8,16 @@ import {
   type BankAccountType,
   type PartyDetail,
 } from '@arza/contracts';
-import { Badge, Button, DialogFooter, EmptyState, TableCell, TableRow } from '@arza/ui';
+import {
+  Badge,
+  Button,
+  DialogFooter,
+  EmptyState,
+  SelectField,
+  SimpleTable,
+  TableCell,
+  TableRow,
+} from '@arza/ui';
 import { Landmark } from 'lucide-react';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
@@ -18,8 +27,6 @@ import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { useAdminAction } from '../administration/admin-action';
 import { QueryState } from '../administration/query-state';
-import { SelectField } from '../administration/select-field';
-import { SimpleTable } from '../administration/simple-table';
 import { useCatalog } from '../organization/queries';
 import { RecordDialog, TextInput } from '../organization/record-dialog';
 import { usePermissions } from '../session/permissions';

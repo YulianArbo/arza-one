@@ -5,7 +5,15 @@ import {
   CHANGE_REQUEST_STATUSES,
   type ChangeRequest,
 } from '@arza/contracts';
-import { Badge, buttonVariants, EmptyState, TableCell, TableRow } from '@arza/ui';
+import {
+  Badge,
+  buttonVariants,
+  EmptyState,
+  SelectField,
+  SimpleTable,
+  TableCell,
+  TableRow,
+} from '@arza/ui';
 import { FilePen } from 'lucide-react';
 import Link from 'next/link';
 import { useState, type JSX } from 'react';
@@ -13,8 +21,6 @@ import { useState, type JSX } from 'react';
 import { PageHeader } from '../../components/app-shell/page-header';
 import { formatDateTime } from '../../lib/format/date-time';
 import { QueryState } from '../administration/query-state';
-import { SelectField } from '../administration/select-field';
-import { SimpleTable } from '../administration/simple-table';
 import { usePermissions } from '../session/permissions';
 import { NEW_REQUEST_PATH, REQUEST_STATUS_TONES, requestPath } from './labels';
 import { useChangeRequests } from './sgc-queries';

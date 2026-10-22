@@ -1,11 +1,9 @@
 'use client';
 
 import { stateKindSchema, taskPrioritySchema, type StateInput } from '@arza/contracts';
-import { Button, Card, CardContent } from '@arza/ui';
+import { Button, Card, CardContent, FormField, SelectField } from '@arza/ui';
 import type { JSX } from 'react';
 
-import { FormField } from '../access/form-field';
-import { SelectField } from '../administration/select-field';
 import { choiceOf, emptyState, participantOf, removeAt, replaceAt, withKind } from './editor-model';
 import { PRIORITY_LABELS, STATE_KIND_LABELS } from './labels';
 

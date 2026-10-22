@@ -1,14 +1,12 @@
 'use client';
 
 import type { AuditExport } from '@arza/contracts';
-import { EmptyState, TableCell, TableRow } from '@arza/ui';
+import { EmptyState, Pager, SimpleTable, TableCell, TableRow, useCursorTrail } from '@arza/ui';
 import { Download } from 'lucide-react';
 import type { JSX } from 'react';
 
 import { formatDateTime } from '../../lib/format/date-time';
-import { Pager, useCursorTrail } from '../administration/pager';
 import { QueryState } from '../administration/query-state';
-import { SimpleTable } from '../administration/simple-table';
 import { changesSummary } from './labels';
 import { useAuditExports } from './queries';
 

@@ -1,12 +1,11 @@
 'use client';
 
 import type { Processor } from '@arza/contracts';
-import { Badge, EmptyState, TableCell, TableRow } from '@arza/ui';
+import { Badge, EmptyState, SimpleTable, TableCell, TableRow } from '@arza/ui';
 import type { JSX } from 'react';
 
 import { formatDate } from '../../lib/format/date-time';
 import { QueryState } from '../administration/query-state';
-import { SimpleTable } from '../administration/simple-table';
 import { ActiveBadge, RecordDialog } from '../organization/record-dialog';
 import { ProcessorForm } from './processor-form';
 import { useProcessors } from './queries';

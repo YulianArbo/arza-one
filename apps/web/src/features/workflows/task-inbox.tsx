@@ -1,14 +1,13 @@
 'use client';
 
 import type { TaskSummary } from '@arza/contracts';
-import { Badge, Button, EmptyState, TableCell, TableRow } from '@arza/ui';
+import { Badge, Button, EmptyState, SimpleTable, TableCell, TableRow } from '@arza/ui';
 import { ListTodo } from 'lucide-react';
 import Link from 'next/link';
 import { useState, type JSX } from 'react';
 
 import { formatDateTime } from '../../lib/format/date-time';
 import { QueryState } from '../administration/query-state';
-import { SimpleTable } from '../administration/simple-table';
 import { usePermissions } from '../session/permissions';
 import {
   PRIORITY_LABELS,

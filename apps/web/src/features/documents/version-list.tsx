@@ -1,13 +1,12 @@
 'use client';
 
 import type { Document, Version } from '@arza/contracts';
-import { Badge, EmptyState, TableCell, TableRow } from '@arza/ui';
+import { Badge, EmptyState, SimpleTable, TableCell, TableRow } from '@arza/ui';
 import { History } from 'lucide-react';
 import Link from 'next/link';
 import type { JSX } from 'react';
 
 import { formatDate, formatDateTime } from '../../lib/format/date-time';
-import { SimpleTable } from '../administration/simple-table';
 import { RENDER_LABELS, VERSION_STATUS_LABELS, VERSION_STATUS_TONES, requestPath } from './labels';
 import { VersionSteps } from './version-steps';
 

@@ -1,10 +1,9 @@
 import type { AuditEvent } from '@arza/contracts';
-import { Badge, EmptyState, TableCell, TableRow } from '@arza/ui';
+import { Badge, EmptyState, SimpleTable, TableCell, TableRow } from '@arza/ui';
 import { ScrollText } from 'lucide-react';
 import type { JSX } from 'react';
 
 import { formatDateTime } from '../../lib/format/date-time';
-import { SimpleTable } from '../administration/simple-table';
 import { RESULT_LABELS, actionLabel, actorLabel, changesSummary, entityLabel } from './labels';
 
 const HEADERS = ['Fecha y hora', 'Quién', 'Qué hizo', 'Registro', 'Resultado', 'Detalle'];

@@ -9,6 +9,8 @@ import {
   CardHeader,
   CardTitle,
   EmptyState,
+  FormField,
+  SimpleTable,
   TableCell,
   TableRow,
 } from '@arza/ui';
@@ -20,10 +22,8 @@ import { useState, type JSX, type SubmitEvent } from 'react';
 import { useApiClient } from '../../lib/api/api-provider';
 import { formatDateTime } from '../../lib/format/date-time';
 import { FormError } from '../access/form-alert';
-import { FormField } from '../access/form-field';
 import { useAdminAction } from '../administration/admin-action';
 import { QueryState } from '../administration/query-state';
-import { SimpleTable } from '../administration/simple-table';
 import { DEFINITION_STATUS_LABELS, DEFINITION_STATUS_TONES, WF_PATHS } from './labels';
 import { useDefinitions, WF_KEYS } from './queries';
 

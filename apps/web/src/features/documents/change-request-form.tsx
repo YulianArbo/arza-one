@@ -1,5 +1,6 @@
 'use client';
 
+import { SelectField } from '@arza/ui';
 import {
   CHANGE_REQUEST_ACTIONS,
   changeRequestActionSchema,
@@ -12,7 +13,6 @@ import { useState, type JSX, type SubmitEvent } from 'react';
 
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
-import { SelectField } from '../administration/select-field';
 import { useCatalog, useOrgUnits } from '../organization/queries';
 import { TextInput, idOrNull, optionsOf } from '../organization/record-dialog';
 import { CommentField } from '../workflows/workflow-actions';

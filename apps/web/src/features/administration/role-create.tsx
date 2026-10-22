@@ -6,7 +6,7 @@ import {
   type PermissionCatalogResponse,
   type RoleAudience,
 } from '@arza/contracts';
-import { Button } from '@arza/ui';
+import { Button, SelectField } from '@arza/ui';
 import { useRouter } from 'next/navigation';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
@@ -18,7 +18,6 @@ import { PermissionPicker, grantedOf, groupsFor, type PermissionChoice } from '.
 import { ADMIN_KEYS, usePermissionCatalog } from './queries';
 import { QueryState } from './query-state';
 import { RoleFields, roleTextBody, type RoleTextValues } from './role-fields';
-import { SelectField } from './select-field';
 
 const AUDIENCES = [
   { value: 'internal', label: 'Personas internas' },

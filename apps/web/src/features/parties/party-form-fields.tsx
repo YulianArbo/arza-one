@@ -1,10 +1,9 @@
 'use client';
 
+import { FormField, SelectField } from '@arza/ui';
 import { NIT_ID_TYPE, partyRoleSchema, type PartyRole } from '@arza/contracts';
 import type { JSX } from 'react';
 
-import { FormField } from '../access/form-field';
-import { SelectField } from '../administration/select-field';
 import { useCatalog } from '../organization/queries';
 import { CheckboxField } from '../organization/record-dialog';
 import { ROLE_LABELS } from './labels';

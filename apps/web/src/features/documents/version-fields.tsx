@@ -1,9 +1,8 @@
 'use client';
 
-import { Label } from '@arza/ui';
+import { Label, SelectField, Textarea } from '@arza/ui';
 import type { JSX } from 'react';
 
-import { SelectField } from '../administration/select-field';
 import { usePositions } from '../organization/queries';
 import { TextInput, idOrNull, optionsOf } from '../organization/record-dialog';
 import { CLASSIFICATION_OPTIONS, classificationHint } from './labels';
@@ -61,7 +60,7 @@ function SummaryField(props: {
   return (
     <div className="flex flex-col gap-1.5">
       <Label htmlFor={props.id}>Qué cambia en esta versión</Label>
-      <textarea
+      <Textarea
         id={props.id}
         rows={3}
         maxLength={1000}
@@ -71,7 +70,6 @@ function SummaryField(props: {
         onChange={(event) => {
           props.onChange(event.target.value);
         }}
-        className="rounded-md border border-input bg-card px-3 py-2 text-sm"
       />
       {props.error === undefined ? null : (
         <p id={errorId} className="text-xs font-medium text-destructive">
