@@ -1,6 +1,6 @@
 'use client';
 
-import { ErrorState, LoadingState } from '@arza/ui';
+import { ErrorState, FormField, LoadingState } from '@arza/ui';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useState, type SubmitEvent, type JSX, type ReactNode } from 'react';
@@ -10,7 +10,6 @@ import { ACCESS_PATHS, loginPath, type LoginNotice } from '../session/access-rou
 import { AccessCard } from './access-card';
 import { AccessLink } from './access-links';
 import { FormError } from './form-alert';
-import { FormField } from './form-field';
 import { forgetLinkToken, useLinkToken } from './link-token';
 import { NewPasswordFields, useNewPassword } from './new-password-fields';
 import { SubmitButton } from './submit-button';

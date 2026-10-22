@@ -1,7 +1,7 @@
 'use client';
 
 import type { Attachment, RecordRef } from '@arza/contracts';
-import { Button, EmptyState, TableCell, TableRow } from '@arza/ui';
+import { Button, EmptyState, SelectField, SimpleTable, TableCell, TableRow } from '@arza/ui';
 import { Paperclip } from 'lucide-react';
 import Link from 'next/link';
 import { useState, type JSX, type SubmitEvent } from 'react';
@@ -10,8 +10,6 @@ import { formatDateTime } from '../../lib/format/date-time';
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { QueryState } from '../administration/query-state';
-import { SelectField } from '../administration/select-field';
-import { SimpleTable } from '../administration/simple-table';
 import { DownloadButton } from '../files/file-list';
 import { formatSize } from '../files/labels';
 import { useFiles } from '../files/queries';

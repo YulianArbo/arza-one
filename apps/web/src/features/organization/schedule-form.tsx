@@ -1,12 +1,11 @@
 'use client';
 
 import { workScheduleSchema, weeklyHours, type WorkSchedule } from '@arza/contracts';
-import { DialogFooter } from '@arza/ui';
+import { Checkbox, DialogFooter, FormField } from '@arza/ui';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
 import { useApiClient } from '../../lib/api/api-provider';
 import { FormError } from '../access/form-alert';
-import { FormField } from '../access/form-field';
 import { SubmitButton } from '../access/submit-button';
 import { useAdminAction } from '../administration/admin-action';
 import { CORE_KEYS } from './queries';
@@ -59,8 +58,7 @@ function DayChoices(props: {
       <div className="grid grid-cols-2 gap-1 sm:grid-cols-4">
         {DAYS.map((name, index) => (
           <label key={name} className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={props.days.includes(index + 1)}
               onChange={() => {
                 toggle(index + 1);

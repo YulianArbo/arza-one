@@ -1,6 +1,5 @@
+import { FormField } from '@arza/ui';
 import type { JSX } from 'react';
-
-import { FormField } from './form-field';
 
 interface EmailFieldProps {
   readonly value: string;

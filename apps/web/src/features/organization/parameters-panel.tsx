@@ -7,6 +7,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  SimpleTable,
   TableCell,
   TableRow,
 } from '@arza/ui';
@@ -14,7 +15,6 @@ import type { JSX } from 'react';
 
 import { formatDate, formatDateTime } from '../../lib/format/date-time';
 import { QueryState } from '../administration/query-state';
-import { SimpleTable } from '../administration/simple-table';
 import { usePermissions } from '../session/permissions';
 import { ScheduleForm } from './schedule-form';
 import { useParameterHistory, useParameters } from './queries';

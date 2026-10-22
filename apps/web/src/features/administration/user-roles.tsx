@@ -5,19 +5,17 @@ import {
   type RoleAssignment,
   type UserDetailResponse,
 } from '@arza/contracts';
-import { Button, Card, CardContent, CardHeader, CardTitle } from '@arza/ui';
+import { Button, Card, CardContent, CardHeader, CardTitle, FormField, SelectField } from '@arza/ui';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
 import { ConfirmActionButton } from '../../components/confirm-action-button';
 import { useApiClient } from '../../lib/api/api-provider';
 import { formatDateTime } from '../../lib/format/date-time';
 import { FormError } from '../access/form-alert';
-import { FormField } from '../access/form-field';
 import { PERMISSIONS_QUERY_KEY } from '../session/permissions';
 import { useAdminAction } from './admin-action';
 import { endOfBogotaDay, personName } from './labels';
 import { ADMIN_KEYS, useRoles } from './queries';
-import { SelectField } from './select-field';
 
 interface AssignBody {
   readonly role_id: string;

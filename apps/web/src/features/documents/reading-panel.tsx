@@ -1,14 +1,13 @@
 'use client';
 
 import type { AcknowledgementReport } from '@arza/contracts';
-import { Badge, Button, EmptyState, TableCell, TableRow } from '@arza/ui';
+import { Badge, Button, EmptyState, SimpleTable, TableCell, TableRow } from '@arza/ui';
 import { BookOpenCheck } from 'lucide-react';
 import type { JSX } from 'react';
 
 import { formatDateTime } from '../../lib/format/date-time';
 import { FormError, FormSuccess } from '../access/form-alert';
 import { QueryState } from '../administration/query-state';
-import { SimpleTable } from '../administration/simple-table';
 import { usePermissions } from '../session/permissions';
 import { useConfirmReading, useReading, useRequestReading } from './sgc-queries';
 

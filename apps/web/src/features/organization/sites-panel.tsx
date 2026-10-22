@@ -1,7 +1,7 @@
 'use client';
 
 import { createdResponseSchema, siteSchema, type Site } from '@arza/contracts';
-import { Badge, DialogFooter, EmptyState, TableCell, TableRow } from '@arza/ui';
+import { Badge, DialogFooter, EmptyState, SimpleTable, TableCell, TableRow } from '@arza/ui';
 import { Building2 } from 'lucide-react';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
@@ -11,7 +11,6 @@ import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { useAdminAction } from '../administration/admin-action';
 import { QueryState } from '../administration/query-state';
-import { SimpleTable } from '../administration/simple-table';
 import { usePermissions } from '../session/permissions';
 import { CORE_KEYS, useSites } from './queries';
 import { ActiveBadge, CheckboxField, RecordDialog, TextInput } from './record-dialog';

@@ -1,7 +1,7 @@
 'use client';
 
 import type { UpdateUserRequest, UserDetailResponse, UserPosition } from '@arza/contracts';
-import { Button, Card, CardContent, CardHeader, CardTitle } from '@arza/ui';
+import { Button, Card, CardContent, CardHeader, CardTitle, SelectField } from '@arza/ui';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
 import { useApiClient } from '../../lib/api/api-provider';
@@ -10,7 +10,6 @@ import { usePositions } from '../organization/queries';
 import { useAdminAction } from './admin-action';
 import { personName } from './labels';
 import { ADMIN_KEYS } from './queries';
-import { SelectField } from './select-field';
 
 const NO_POSITION = '';
 

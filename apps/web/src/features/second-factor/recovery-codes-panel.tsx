@@ -1,6 +1,6 @@
 'use client';
 
-import { Alert, AlertDescription, Button } from '@arza/ui';
+import { Alert, AlertDescription, Button, Checkbox } from '@arza/ui';
 import { Copy, Download, Printer, TriangleAlert, type LucideIcon } from 'lucide-react';
 import { useId, useState, type JSX } from 'react';
 
@@ -144,10 +144,9 @@ function SavedConfirmation({
   return (
     <>
       <div className="flex items-start gap-2 print:hidden">
-        <input
+        <Checkbox
           id={checkboxId}
-          type="checkbox"
-          className="mt-0.5 size-4 accent-primary"
+          className="mt-0.5"
           checked={saved}
           onChange={(event) => {
             setSaved(event.target.checked);

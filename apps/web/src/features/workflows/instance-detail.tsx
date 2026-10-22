@@ -1,7 +1,16 @@
 'use client';
 
 import type { InstanceView, TaskSummary } from '@arza/contracts';
-import { Badge, Card, CardContent, CardHeader, CardTitle, TableCell, TableRow } from '@arza/ui';
+import {
+  Badge,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  SimpleTable,
+  TableCell,
+  TableRow,
+} from '@arza/ui';
 import Link from 'next/link';
 import type { JSX } from 'react';
 
@@ -9,7 +18,6 @@ import { PageHeader } from '../../components/app-shell/page-header';
 import { formatDateTime } from '../../lib/format/date-time';
 import { QueryState } from '../administration/query-state';
 import { RecordActivity } from '../records/record-activity';
-import { SimpleTable } from '../administration/simple-table';
 import { TASK_STATUS_LABELS, TASK_STATUS_TONES, WF_PATHS, personName } from './labels';
 import { useInstanceAction } from './mutations';
 import { useInstance } from './queries';

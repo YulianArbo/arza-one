@@ -1,5 +1,6 @@
-import { Table, TableBody, TableCaption, TableHead, TableHeader, TableRow } from '@arza/ui';
 import type { JSX, ReactNode } from 'react';
+
+import { Table, TableBody, TableCaption, TableHead, TableHeader, TableRow } from './table.js';
 
 interface SimpleTableProps {
   /** Encabezados de las columnas; uno vacío se anuncia como «Acciones» al lector de pantalla. */

@@ -1,5 +1,6 @@
 'use client';
 
+import { SelectField } from '@arza/ui';
 import {
   createProcessorRequestSchema,
   partyListResponseSchema,
@@ -11,7 +12,6 @@ import { useState, type JSX, type SubmitEvent } from 'react';
 import { useApiClient } from '../../lib/api/api-provider';
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
-import { SelectField } from '../administration/select-field';
 import { useFiles } from '../files/queries';
 import { CheckboxField, TextInput } from '../organization/record-dialog';
 import { useSaveProcessor } from './queries';

@@ -1,9 +1,9 @@
 'use client';
 
+import { SelectField } from '@arza/ui';
 import { FORM_ENTITY_TYPES, FORM_FLOWS, type FormTemplate } from '@arza/contracts';
 import type { JSX } from 'react';
 
-import { SelectField } from '../administration/select-field';
 import { TextInput } from '../organization/record-dialog';
 import { useOutputTemplates } from './queries';
 

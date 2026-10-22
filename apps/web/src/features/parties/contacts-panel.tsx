@@ -1,7 +1,15 @@
 'use client';
 
 import { createdResponseSchema, type Contact, type PartyDetail } from '@arza/contracts';
-import { Badge, DialogFooter, EmptyState, TableCell, TableRow } from '@arza/ui';
+import {
+  Badge,
+  DialogFooter,
+  EmptyState,
+  SelectField,
+  SimpleTable,
+  TableCell,
+  TableRow,
+} from '@arza/ui';
 import { Contact as ContactIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useState, type JSX, type SubmitEvent } from 'react';
@@ -12,8 +20,6 @@ import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { useAdminAction } from '../administration/admin-action';
 import { QueryState } from '../administration/query-state';
-import { SelectField } from '../administration/select-field';
-import { SimpleTable } from '../administration/simple-table';
 import { CheckboxField, RecordDialog, TextInput } from '../organization/record-dialog';
 import { usePermissions } from '../session/permissions';
 import { identification, partyPath } from './labels';

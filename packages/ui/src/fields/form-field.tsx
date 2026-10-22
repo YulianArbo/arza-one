@@ -1,5 +1,7 @@
-import { Input, Label } from '@arza/ui';
 import type { ComponentProps, JSX } from 'react';
+
+import { Input } from '../components/input.js';
+import { Label } from '../components/label.js';
 
 interface FormFieldProps extends Omit<ComponentProps<'input'>, 'id'> {
   readonly id: string;

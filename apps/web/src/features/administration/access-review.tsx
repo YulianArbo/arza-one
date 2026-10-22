@@ -1,14 +1,13 @@
 'use client';
 
 import type { AccessReviewResponse } from '@arza/contracts';
-import { Badge, Button, TableCell, TableRow } from '@arza/ui';
+import { Badge, Button, SimpleTable, TableCell, TableRow } from '@arza/ui';
 import { Printer } from 'lucide-react';
 import type { JSX } from 'react';
 
 import { formatDateTime } from '../../lib/format/date-time';
 import { USER_KIND_LABELS, USER_STATUS_LABELS, personName } from './labels';
 import { useAccessReview } from './queries';
-import { SimpleTable } from './simple-table';
 import { QueryState } from './query-state';
 
 function Totals({ report }: { readonly report: AccessReviewResponse }): JSX.Element {

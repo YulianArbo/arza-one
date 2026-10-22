@@ -1,14 +1,13 @@
 'use client';
 
 import { createdResponseSchema, definitionProblems, type DefinitionView } from '@arza/contracts';
-import { Alert, AlertDescription, AlertTitle, Badge, Button } from '@arza/ui';
+import { Alert, AlertDescription, AlertTitle, Badge, Button, FormField } from '@arza/ui';
 import { useRouter } from 'next/navigation';
 import { useState, type JSX } from 'react';
 
 import { PageHeader } from '../../components/app-shell/page-header';
 import { useApiClient } from '../../lib/api/api-provider';
 import { FormError } from '../access/form-alert';
-import { FormField } from '../access/form-field';
 import { useAdminAction } from '../administration/admin-action';
 import { useRoles } from '../administration/queries';
 import { QueryState } from '../administration/query-state';

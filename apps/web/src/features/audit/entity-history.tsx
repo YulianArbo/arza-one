@@ -1,9 +1,16 @@
 'use client';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@arza/ui';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Pager,
+  useCursorTrail,
+} from '@arza/ui';
 import type { JSX } from 'react';
 
-import { Pager, useCursorTrail } from '../administration/pager';
 import { QueryState } from '../administration/query-state';
 import { usePermissions } from '../session/permissions';
 import { AuditEventTable } from './audit-event-table';

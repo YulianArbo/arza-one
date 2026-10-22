@@ -7,11 +7,9 @@ import {
   type StateInput,
   type TransitionInput,
 } from '@arza/contracts';
-import { Button, Card, CardContent, Label } from '@arza/ui';
+import { Button, Card, CardContent, Checkbox, FormField, Label, SelectField } from '@arza/ui';
 import type { JSX } from 'react';
 
-import { FormField } from '../access/form-field';
-import { SelectField } from '../administration/select-field';
 import {
   conditionFieldsOf,
   conditionOf,
@@ -147,9 +145,8 @@ function RuleFields({ transition, index, onChange }: Omit<RowProps, 'states'>): 
         }}
       />
       <div className="flex items-center gap-2 pb-2">
-        <input
+        <Checkbox
           id={`${id}-comentario`}
-          type="checkbox"
           checked={transition.requires_comment}
           onChange={(event) => {
             onChange({ ...transition, requires_comment: event.target.checked });

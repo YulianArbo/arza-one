@@ -1,10 +1,10 @@
 'use client';
 
+import { SelectField } from '@arza/ui';
 import type { ChangeRequest, ChangeRequestAction } from '@arza/contracts';
 import Link from 'next/link';
 import type { JSX } from 'react';
 
-import { SelectField } from '../administration/select-field';
 import { idOrNull, optionsOf } from '../organization/record-dialog';
 import { NEW_REQUEST_PATH, newRequestFor } from './labels';
 import { useChangeRequests } from './sgc-queries';

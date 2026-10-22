@@ -1,7 +1,7 @@
 'use client';
 
 import type { PartyDetail, PartySearchResponse, PartySummary } from '@arza/contracts';
-import { DialogFooter, TableCell, TableRow } from '@arza/ui';
+import { DialogFooter, Radio, SimpleTable, TableCell, TableRow } from '@arza/ui';
 import { useState, type JSX } from 'react';
 
 import { ConfirmActionButton } from '../../components/confirm-action-button';
@@ -9,7 +9,6 @@ import { useApiClient } from '../../lib/api/api-provider';
 import { FormError } from '../access/form-alert';
 import { useAdminAction } from '../administration/admin-action';
 import { QueryState } from '../administration/query-state';
-import { SimpleTable } from '../administration/simple-table';
 import { RecordDialog } from '../organization/record-dialog';
 import { DUPLICATE_REASON_LABELS, ROLE_LABELS, STATUS_LABELS, identification } from './labels';
 import { PARTY_KEYS, queryString, useDuplicates } from './queries';
@@ -66,8 +65,7 @@ function CandidateChoice(props: {
       <legend className="mb-1 text-sm font-medium">¿Cuál es el duplicado?</legend>
       {props.candidates.map(({ party, reasons }) => (
         <label key={party.id} className="flex items-start gap-2 text-sm">
-          <input
-            type="radio"
+          <Radio
             name="duplicado"
             value={party.id}
             checked={props.chosenId === party.id}

@@ -6,14 +6,13 @@ import {
   type DocumentRetention,
   type RetentionRule,
 } from '@arza/contracts';
-import { DialogFooter } from '@arza/ui';
+import { DialogFooter, SelectField } from '@arza/ui';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
 import { formatDate } from '../../lib/format/date-time';
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { QueryState } from '../administration/query-state';
-import { SelectField } from '../administration/select-field';
 import { RecordDialog, idOrNull, optionsOf } from '../organization/record-dialog';
 import { usePermissions } from '../session/permissions';
 import { retentionYears } from './labels';

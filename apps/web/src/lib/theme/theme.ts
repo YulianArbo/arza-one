@@ -29,3 +29,6 @@ export function themeCookie(theme: Theme, isSecure: boolean): string {
   const secure = isSecure ? '; Secure' : '';
   return `${THEME_COOKIE}=${theme}; Path=/; Max-Age=${String(ONE_YEAR_SECONDS)}; SameSite=Lax${secure}`;
 }
+
+/** Colores de un botón sobre las barras en el color de marca oscuro (B20A). */
+export const ON_BRAND = 'text-sidebar-foreground hover:bg-sidebar-hover';

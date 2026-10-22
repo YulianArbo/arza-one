@@ -1,5 +1,6 @@
 'use client';
 
+import { SelectField } from '@arza/ui';
 import { FORM_ENTITY_TYPES, formEntityTypeSchema, type FormTemplate } from '@arza/contracts';
 import { useRouter } from 'next/navigation';
 import { useState, type JSX, type SubmitEvent } from 'react';
@@ -8,7 +9,6 @@ import { PageHeader } from '../../components/app-shell/page-header';
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { QueryState } from '../administration/query-state';
-import { SelectField } from '../administration/select-field';
 import { useParties } from '../parties/queries';
 import { FormSheet, problemsOf, type FormValues } from './form-sheet';
 import { recordPath } from './labels';

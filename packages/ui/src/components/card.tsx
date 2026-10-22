@@ -5,7 +5,7 @@ import { cn } from '../lib/cn.js';
 export function Card({ className, ...props }: ComponentProps<'section'>): JSX.Element {
   return (
     <section
-      className={cn('rounded-lg border bg-card text-card-foreground shadow-sm', className)}
+      className={cn('rounded-lg border bg-card text-card-foreground', className)}
       {...props}
     />
   );

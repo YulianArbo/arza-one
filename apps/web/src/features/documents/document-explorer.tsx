@@ -1,14 +1,20 @@
 'use client';
 
 import type { Document, Folder } from '@arza/contracts';
-import { Badge, EmptyState, TableCell, TableRow, buttonVariants } from '@arza/ui';
+import {
+  Badge,
+  buttonVariants,
+  EmptyState,
+  Pager,
+  SimpleTable,
+  TableCell,
+  TableRow,
+} from '@arza/ui';
 import { FileText } from 'lucide-react';
 import Link from 'next/link';
 import { useState, type JSX } from 'react';
 
-import { Pager } from '../administration/pager';
 import { QueryState } from '../administration/query-state';
-import { SimpleTable } from '../administration/simple-table';
 import { RecordDialog, TextInput } from '../organization/record-dialog';
 import { usePermissions } from '../session/permissions';
 import { NewCaseFileForm, NewFolderForm } from './folder-forms';
@@ -104,6 +110,7 @@ function DocumentPanel({ folderId }: { readonly folderId: string | null }): JSX.
             <Pager
               page={page}
               hasPrevious={cursors.length > 0}
+              pageNumber={cursors.length + 1}
               onPrevious={() => {
                 setCursors(cursors.slice(0, -1));
               }}

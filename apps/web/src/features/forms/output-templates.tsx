@@ -6,7 +6,7 @@ import {
   type OutputTemplate,
   type OutputTemplateSummary,
 } from '@arza/contracts';
-import { Badge, EmptyState, TableCell, TableRow } from '@arza/ui';
+import { Badge, EmptyState, SimpleTable, TableCell, TableRow } from '@arza/ui';
 import { FileCode } from 'lucide-react';
 import type { JSX } from 'react';
 
@@ -14,7 +14,6 @@ import { ConfirmActionButton } from '../../components/confirm-action-button';
 import { PageHeader } from '../../components/app-shell/page-header';
 import { FormError } from '../access/form-alert';
 import { QueryState } from '../administration/query-state';
-import { SimpleTable } from '../administration/simple-table';
 import { RecordDialog } from '../organization/record-dialog';
 import { OUTPUT_STATUS_TONES } from './labels';
 import {

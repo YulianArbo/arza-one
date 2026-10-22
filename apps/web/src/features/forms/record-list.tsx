@@ -1,7 +1,15 @@
 'use client';
 
 import { FORM_RECORD_STATUSES, type FormRecordSummary } from '@arza/contracts';
-import { Badge, buttonVariants, EmptyState, TableCell, TableRow } from '@arza/ui';
+import {
+  Badge,
+  buttonVariants,
+  EmptyState,
+  SelectField,
+  SimpleTable,
+  TableCell,
+  TableRow,
+} from '@arza/ui';
 import { ClipboardList } from 'lucide-react';
 import Link from 'next/link';
 import { useState, type JSX } from 'react';
@@ -9,8 +17,6 @@ import { useState, type JSX } from 'react';
 import { PageHeader } from '../../components/app-shell/page-header';
 import { formatDateTime } from '../../lib/format/date-time';
 import { QueryState } from '../administration/query-state';
-import { SelectField } from '../administration/select-field';
-import { SimpleTable } from '../administration/simple-table';
 import { FORMS_PATH, RECORD_STATUS_TONES, recordPath } from './labels';
 import { useFormRecords, useFormTemplates } from './queries';
 

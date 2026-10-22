@@ -7,12 +7,11 @@ import {
   type RetentionDisposition,
   type RetentionRule,
 } from '@arza/contracts';
-import { DialogFooter } from '@arza/ui';
+import { DialogFooter, SelectField } from '@arza/ui';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
-import { SelectField } from '../administration/select-field';
 import { useCatalog, useOrgUnits } from '../organization/queries';
 import { TextInput, idOrNull, optionsOf } from '../organization/record-dialog';
 import { useSaveRetentionRule } from './retention-queries';

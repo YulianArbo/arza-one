@@ -1,16 +1,24 @@
 'use client';
 
 import type { TaskSummary } from '@arza/contracts';
-import { Badge, EmptyState, Label, TableCell, TableRow } from '@arza/ui';
+import {
+  Badge,
+  Checkbox,
+  EmptyState,
+  Label,
+  Pager,
+  SelectField,
+  SimpleTable,
+  TableCell,
+  TableRow,
+  useCursorTrail,
+} from '@arza/ui';
 import { LayoutList } from 'lucide-react';
 import Link from 'next/link';
 import { useState, type JSX } from 'react';
 
 import { formatDateTime } from '../../lib/format/date-time';
-import { Pager, useCursorTrail } from '../administration/pager';
 import { QueryState } from '../administration/query-state';
-import { SelectField } from '../administration/select-field';
-import { SimpleTable } from '../administration/simple-table';
 import { TASK_STATUS_LABELS, TASK_STATUS_TONES, WF_PATHS, personName } from './labels';
 import { useTaskBoard, type BoardFilters } from './queries';
 import { responsibleOf } from './task-detail';
@@ -62,9 +70,8 @@ function Filters(props: {
         />
       </div>
       <div className="flex items-center gap-2 pb-2">
-        <input
+        <Checkbox
           id="tablero-escaladas"
-          type="checkbox"
           checked={props.filters.escalated}
           onChange={(event) => {
             props.onChange({ ...props.filters, escalated: event.target.checked });

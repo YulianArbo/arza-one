@@ -1,8 +1,7 @@
 'use client';
 
+import { FormField } from '@arza/ui';
 import type { JSX } from 'react';
-
-import { FormField } from '../access/form-field';
 
 export interface RoleTextValues {
   readonly name: string;

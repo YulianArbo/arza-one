@@ -7,11 +7,9 @@ import {
   type FormField,
   type TableColumn,
 } from '@arza/contracts';
-import { Label } from '@arza/ui';
+import { FormField as TextField, Label, Radio, SelectField, Textarea } from '@arza/ui';
 import type { JSX } from 'react';
 
-import { FormField as TextField } from '../access/form-field';
-import { SelectField } from '../administration/select-field';
 import { CheckboxField } from '../organization/record-dialog';
 import { SmallButton } from './small-button';
 
@@ -61,7 +59,7 @@ function LongText({ field, id, value, error, onChange }: FieldInputProps): JSX.E
   return (
     <div className="flex flex-col gap-1.5">
       <Label htmlFor={id}>{field.label}</Label>
-      <textarea
+      <Textarea
         id={id}
         rows={4}
         maxLength={5000}
@@ -71,7 +69,6 @@ function LongText({ field, id, value, error, onChange }: FieldInputProps): JSX.E
         onChange={(event) => {
           onChange(event.target.value);
         }}
-        className="rounded-md border border-input bg-card px-3 py-2 text-sm"
       />
       {hint === undefined ? null : (
         <p id={`${id}-ayuda`} className="text-xs text-muted-foreground">
@@ -102,8 +99,7 @@ function ChecklistItem(props: {
       <div role="radiogroup" aria-label={item} className="flex flex-wrap gap-4">
         {Object.entries(CHECK_RESULTS).map(([result, label]) => (
           <label key={result} className="flex items-center gap-2 text-sm">
-            <input
-              type="radio"
+            <Radio
               name={props.name}
               checked={answer?.result === result}
               onChange={() => {

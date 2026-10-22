@@ -18,8 +18,11 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  Checkbox,
   Input,
   Label,
+  SelectField,
+  Textarea,
 } from '@arza/ui';
 import { CircleCheck, Info, Plus, TriangleAlert } from 'lucide-react';
 import type { JSX } from 'react';
@@ -120,7 +123,34 @@ export function FormSection(): JSX.Element {
             El código debe tener el formato PREFIJO-AAAA-NNNN.
           </p>
         </div>
+        <MoreFields />
       </CardContent>
     </Card>
+  );
+}
+
+const STATES = [
+  { value: 'activo', label: 'Activo' },
+  { value: 'inactivo', label: 'Inactivo' },
+];
+
+/** Lista, solo lectura, texto largo y casilla (B20A). */
+function MoreFields(): JSX.Element {
+  return (
+    <>
+      <SelectField id="example-state" label="Estado" options={STATES} />
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="example-readonly">Consecutivo (solo lectura)</Label>
+        <Input id="example-readonly" readOnly defaultValue="OP-2026-0001" />
+      </div>
+      <div className="flex flex-col gap-2 sm:col-span-2">
+        <Label htmlFor="example-notes">Observaciones</Label>
+        <Textarea id="example-notes" rows={3} />
+      </div>
+      <Label className="flex items-center gap-2 font-normal">
+        <Checkbox defaultChecked />
+        Notificar al responsable
+      </Label>
+    </>
   );
 }

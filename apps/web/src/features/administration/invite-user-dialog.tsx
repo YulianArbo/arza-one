@@ -3,6 +3,7 @@
 import { inviteUserResponseSchema, type RoleSummary, type UserKind } from '@arza/contracts';
 import {
   Button,
+  Checkbox,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -10,16 +11,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  FormField,
+  SelectField,
 } from '@arza/ui';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
 import { useApiClient } from '../../lib/api/api-provider';
 import { FormError, FormSuccess } from '../access/form-alert';
-import { FormField } from '../access/form-field';
 import { SubmitButton } from '../access/submit-button';
 import { useAdminAction } from './admin-action';
 import { ADMIN_KEYS, useRoles } from './queries';
-import { SelectField } from './select-field';
 
 interface InviteValues {
   readonly email: string;
@@ -59,8 +60,7 @@ function RoleChoices(props: {
       <div className="grid max-h-48 gap-1 overflow-y-auto sm:grid-cols-2">
         {props.roles.map((role) => (
           <label key={role.id} className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={props.chosen.includes(role.id)}
               onChange={() => {
                 toggle(role.id);

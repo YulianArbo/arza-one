@@ -17,7 +17,9 @@ export function MobileNavigation({ permissions }: { permissions: readonly string
         </Button>
       </SheetTrigger>
       <SheetContent className="gap-6 overflow-y-auto bg-sidebar px-3 py-5 text-sidebar-foreground">
-        <SheetTitle className="px-3 font-heading text-xl font-bold text-white">ARZA ONE</SheetTitle>
+        <SheetTitle className="px-3 font-heading text-xl font-bold text-sidebar-foreground">
+          ARZA ONE
+        </SheetTitle>
         <SheetDescription className="sr-only">Módulos de la plataforma</SheetDescription>
         <nav aria-label="Menú principal">
           <NavigationList

@@ -7,18 +7,23 @@ import {
   type CatalogItem,
   type CatalogListResponse,
 } from '@arza/contracts';
-import { DialogFooter, EmptyState, TableCell, TableRow } from '@arza/ui';
+import {
+  DialogFooter,
+  EmptyState,
+  FormField,
+  SelectField,
+  SimpleTable,
+  TableCell,
+  TableRow,
+} from '@arza/ui';
 import { ListChecks } from 'lucide-react';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
 import { useApiClient } from '../../lib/api/api-provider';
 import { FormError } from '../access/form-alert';
-import { FormField } from '../access/form-field';
 import { SubmitButton } from '../access/submit-button';
 import { useAdminAction } from '../administration/admin-action';
 import { QueryState } from '../administration/query-state';
-import { SelectField } from '../administration/select-field';
-import { SimpleTable } from '../administration/simple-table';
 import { usePermissions } from '../session/permissions';
 import { CORE_KEYS, useCatalog, useCatalogs } from './queries';
 import { ActiveBadge, CheckboxField, RecordDialog } from './record-dialog';

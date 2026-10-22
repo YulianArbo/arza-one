@@ -1,7 +1,7 @@
 'use client';
 
 import { createdResponseSchema, sequenceSchema, type Sequence } from '@arza/contracts';
-import { DialogFooter, EmptyState, TableCell, TableRow } from '@arza/ui';
+import { DialogFooter, EmptyState, SimpleTable, TableCell, TableRow } from '@arza/ui';
 import { Hash } from 'lucide-react';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
@@ -10,7 +10,6 @@ import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { useAdminAction } from '../administration/admin-action';
 import { QueryState } from '../administration/query-state';
-import { SimpleTable } from '../administration/simple-table';
 import { CORE_KEYS, useSequences } from './queries';
 import { RecordDialog, TextInput } from './record-dialog';
 

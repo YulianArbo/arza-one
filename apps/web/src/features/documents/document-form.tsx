@@ -1,5 +1,6 @@
 'use client';
 
+import { SelectField } from '@arza/ui';
 import {
   classificationSchema,
   processProblem,
@@ -11,7 +12,6 @@ import { useCallback, useState, type JSX, type SubmitEvent } from 'react';
 
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
-import { SelectField } from '../administration/select-field';
 import { useCatalog, useOrgUnits } from '../organization/queries';
 import { CheckboxField, idOrNull, optionsOf } from '../organization/record-dialog';
 import { documentPath } from './labels';

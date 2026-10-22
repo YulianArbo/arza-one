@@ -14,7 +14,7 @@ export function Sidebar({ permissions }: { permissions: readonly string[] }): JS
     <aside className="sticky top-0 hidden h-dvh shrink-0 flex-col gap-6 overflow-y-auto bg-sidebar px-2 py-5 md:flex md:w-16 lg:w-64 lg:px-3">
       <Link
         href={APP_HOME}
-        className="px-1 text-center font-heading text-lg font-bold text-white lg:px-3 lg:text-left lg:text-xl"
+        className="px-1 text-center font-heading text-lg font-bold text-sidebar-foreground lg:px-3 lg:text-left lg:text-xl"
       >
         <span aria-hidden="true" className="lg:hidden">
           A1

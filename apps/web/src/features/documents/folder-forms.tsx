@@ -1,11 +1,11 @@
 'use client';
 
+import { SelectField } from '@arza/ui';
 import { classificationSchema } from '@arza/contracts';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
-import { SelectField } from '../administration/select-field';
 import { TextInput } from '../organization/record-dialog';
 import { useParties } from '../parties/queries';
 import { CLASSIFICATION_OPTIONS, classificationHint } from './labels';

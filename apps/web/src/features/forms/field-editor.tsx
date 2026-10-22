@@ -6,10 +6,9 @@ import {
   TABLE_COLUMN_TYPES,
   tableColumnSchema,
 } from '@arza/contracts';
-import { Label } from '@arza/ui';
+import { Input, Label, Select, SelectField, Textarea } from '@arza/ui';
 import type { JSX } from 'react';
 
-import { SelectField } from '../administration/select-field';
 import { CheckboxField, TextInput } from '../organization/record-dialog';
 import type { DesignColumn, DesignField } from './design-model';
 import { SmallButton } from './small-button';
@@ -32,8 +31,6 @@ interface FieldEditorProps {
   readonly onRemove: () => void;
 }
 
-const INPUT = 'h-9 rounded-md border border-input bg-card px-3 text-sm';
-
 function ColumnRow(props: {
   readonly column: DesignColumn;
   readonly number: string;
@@ -42,29 +39,29 @@ function ColumnRow(props: {
 }): JSX.Element {
   return (
     <div className="flex flex-wrap items-end gap-2">
-      <input
+      <Input
         aria-label={`Nombre de la columna ${props.number}`}
         value={props.column.label}
         maxLength={80}
         onChange={(event) => {
           props.onChange({ label: event.target.value });
         }}
-        className={`${INPUT} flex-1`}
+        className="min-w-40 flex-1"
       />
-      <select
+      <Select
         aria-label={`Tipo de la columna ${props.number}`}
         value={props.column.type}
         onChange={(event) => {
           props.onChange({ type: tableColumnSchema.shape.type.parse(event.target.value) });
         }}
-        className={INPUT}
+        className="w-auto"
       >
         {COLUMN_OPTIONS.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
           </option>
         ))}
-      </select>
+      </Select>
       <SmallButton label={`Quitar columna ${props.number}`} onClick={props.onRemove} />
     </div>
   );
@@ -113,7 +110,7 @@ function LinesEditor(props: {
   return (
     <div className="flex flex-col gap-1.5">
       <Label htmlFor={props.id}>{checklist ? 'Puntos de verificación' : 'Opciones'}</Label>
-      <textarea
+      <Textarea
         id={props.id}
         rows={4}
         value={props.field.lines}
@@ -121,7 +118,6 @@ function LinesEditor(props: {
         onChange={(event) => {
           props.onChange(event.target.value);
         }}
-        className="rounded-md border border-input bg-card px-3 py-2 text-sm"
       />
       <p id={`${props.id}-ayuda`} className="text-xs text-muted-foreground">
         {checklist

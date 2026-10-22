@@ -6,19 +6,24 @@ import {
   type CostCenter,
   type OrgUnit,
 } from '@arza/contracts';
-import { DialogFooter, EmptyState, TableCell, TableRow } from '@arza/ui';
+import {
+  DialogFooter,
+  EmptyState,
+  FormField,
+  SelectField,
+  SimpleTable,
+  TableCell,
+  TableRow,
+} from '@arza/ui';
 import { Landmark } from 'lucide-react';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
 import { ConfirmActionButton } from '../../components/confirm-action-button';
 import { useApiClient } from '../../lib/api/api-provider';
 import { FormError } from '../access/form-alert';
-import { FormField } from '../access/form-field';
 import { SubmitButton } from '../access/submit-button';
 import { useAdminAction } from '../administration/admin-action';
 import { QueryState } from '../administration/query-state';
-import { SelectField } from '../administration/select-field';
-import { SimpleTable } from '../administration/simple-table';
 import { usePermissions } from '../session/permissions';
 import { CORE_KEYS, useCostCenters, useOrgUnits } from './queries';
 import { ActiveBadge, CheckboxField, RecordDialog, idOrNull, optionsOf } from './record-dialog';

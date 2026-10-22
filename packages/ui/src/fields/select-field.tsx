@@ -1,5 +1,7 @@
-import { Label } from '@arza/ui';
 import type { ComponentProps, JSX } from 'react';
+
+import { Label } from '../components/label.js';
+import { Select } from '../components/select.js';
 
 interface SelectFieldProps extends Omit<ComponentProps<'select'>, 'id'> {
   readonly id: string;
@@ -25,11 +27,10 @@ export function SelectField({
   return (
     <div className="flex flex-col gap-1.5">
       <Label htmlFor={id}>{label}</Label>
-      <select
+      <Select
         id={id}
         aria-describedby={describedBy}
         aria-invalid={error === undefined ? undefined : true}
-        className="flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm text-foreground shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
         {...select}
       >
         {options.map((option) => (
@@ -37,7 +38,7 @@ export function SelectField({
             {option.label}
           </option>
         ))}
-      </select>
+      </Select>
       {hint === undefined ? null : (
         <p id={hintId} className="text-xs text-muted-foreground">
           {hint}

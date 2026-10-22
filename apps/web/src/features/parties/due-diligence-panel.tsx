@@ -7,7 +7,16 @@ import {
   type PartyDetail,
   type RiskLevel,
 } from '@arza/contracts';
-import { Badge, Card, CardContent, DialogFooter, EmptyState, Label } from '@arza/ui';
+import {
+  Badge,
+  Card,
+  CardContent,
+  DialogFooter,
+  EmptyState,
+  Label,
+  SelectField,
+  Textarea,
+} from '@arza/ui';
 import { ClipboardCheck } from 'lucide-react';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
@@ -17,7 +26,6 @@ import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { useAdminAction } from '../administration/admin-action';
 import { QueryState } from '../administration/query-state';
-import { SelectField } from '../administration/select-field';
 import { RecordDialog } from '../organization/record-dialog';
 import { usePermissions } from '../session/permissions';
 import { useSession } from '../session/session-provider';
@@ -55,7 +63,7 @@ function SummaryField(props: { readonly value: string; readonly onChange: (v: st
   return (
     <div className="flex flex-col gap-1.5">
       <Label htmlFor="conocimiento-resumen">Qué se revisó y qué se encontró</Label>
-      <textarea
+      <Textarea
         id="conocimiento-resumen"
         aria-describedby="conocimiento-resumen-ayuda"
         rows={5}
@@ -63,7 +71,6 @@ function SummaryField(props: { readonly value: string; readonly onChange: (v: st
         onChange={(event) => {
           props.onChange(event.target.value);
         }}
-        className="rounded-md border border-input bg-card px-3 py-2 text-sm"
       />
       <p id="conocimiento-resumen-ayuda" className="text-xs text-muted-foreground">
         Por ejemplo: RUT, cámara de comercio, referencias y listas restrictivas. Mínimo 10 letras.

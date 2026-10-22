@@ -1,12 +1,11 @@
 'use client';
 
 import { consentChannelSchema, type Notice } from '@arza/contracts';
-import { Alert, AlertDescription, AlertTitle } from '@arza/ui';
+import { Alert, AlertDescription, AlertTitle, SelectField } from '@arza/ui';
 import { CircleAlert } from 'lucide-react';
 import type { JSX } from 'react';
 
 import { formatDate } from '../../lib/format/date-time';
-import { SelectField } from '../administration/select-field';
 import { useFiles } from '../files/queries';
 import { useCatalog } from '../organization/queries';
 import { CheckboxField, TextInput } from '../organization/record-dialog';

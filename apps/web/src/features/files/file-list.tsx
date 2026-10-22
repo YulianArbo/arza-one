@@ -1,14 +1,13 @@
 'use client';
 
 import type { DownloadLinkResponse, FileView } from '@arza/contracts';
-import { Badge, Button, EmptyState, TableCell, TableRow } from '@arza/ui';
+import { Badge, Button, EmptyState, SimpleTable, TableCell, TableRow } from '@arza/ui';
 import { Paperclip } from 'lucide-react';
 import { useState, type JSX } from 'react';
 
 import { formatDateTime } from '../../lib/format/date-time';
 import { FormError } from '../access/form-alert';
 import { QueryState } from '../administration/query-state';
-import { SimpleTable } from '../administration/simple-table';
 import { usePermissions } from '../session/permissions';
 import { FilePreview } from './file-preview';
 import { FileUpload } from './file-upload';

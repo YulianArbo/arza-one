@@ -3,16 +3,16 @@
 import {
   Badge,
   Button,
+  Checkbox,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  FormField,
 } from '@arza/ui';
 import { useState, type ComponentProps, type JSX, type ReactNode } from 'react';
-
-import { FormField } from '../access/form-field';
 
 // Piezas comunes de las pantallas de datos maestros (B12).
 
@@ -71,9 +71,8 @@ export function CheckboxField(props: CheckboxFieldProps): JSX.Element {
   return (
     <div className="flex flex-col gap-1">
       <label htmlFor={props.id} className="flex items-center gap-2 text-sm font-medium">
-        <input
+        <Checkbox
           id={props.id}
-          type="checkbox"
           checked={props.checked}
           aria-describedby={hintId}
           onChange={(event) => {

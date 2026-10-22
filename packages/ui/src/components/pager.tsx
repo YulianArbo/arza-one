@@ -1,20 +1,33 @@
 'use client';
 
-import { Button } from '@arza/ui';
 import { useState, type JSX } from 'react';
+
+import { Button } from './button.js';
 
 interface PagerProps {
   readonly page: { readonly next_cursor: string | null };
   readonly hasPrevious: boolean;
   readonly onPrevious: () => void;
   readonly onNext: (cursor: string) => void;
+  /** Página que se está viendo, empezando en 1. */
+  readonly pageNumber?: number;
 }
 
-/** Botones de página anterior y siguiente de un listado por cursor (numeral 14.1). */
-export function Pager({ page, hasPrevious, onPrevious, onNext }: PagerProps): JSX.Element {
+/** Página actual y botones de anterior y siguiente de un listado por cursor (numeral 14.1). */
+export function Pager({
+  page,
+  hasPrevious,
+  onPrevious,
+  onNext,
+  pageNumber,
+}: PagerProps): JSX.Element {
   const next = page.next_cursor;
+  const paged = hasPrevious || next !== null;
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-wrap items-center gap-2">
+      {paged && pageNumber !== undefined ? (
+        <span className="text-sm text-muted-foreground tabular-nums">Página {pageNumber}</span>
+      ) : null}
       {hasPrevious ? (
         <Button type="button" variant="outline" onClick={onPrevious}>
           Página anterior
@@ -46,6 +59,7 @@ export function useCursorTrail(): {
     cursor: cursors.at(-1) ?? null,
     pager: {
       hasPrevious: cursors.length > 1,
+      pageNumber: cursors.length,
       onPrevious: () => {
         setCursors(cursors.slice(0, -1));
       },

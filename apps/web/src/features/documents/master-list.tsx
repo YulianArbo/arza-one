@@ -6,7 +6,7 @@ import {
   type MasterListEntry,
   type MasterListQuery,
 } from '@arza/contracts';
-import { Badge, Button, EmptyState, TableCell, TableRow } from '@arza/ui';
+import { Badge, Button, EmptyState, SelectField, SimpleTable, TableCell, TableRow } from '@arza/ui';
 import { Download, ListChecks } from 'lucide-react';
 import Link from 'next/link';
 import { useState, type JSX } from 'react';
@@ -18,8 +18,6 @@ import { formatDate } from '../../lib/format/date-time';
 import { FormError, FormSuccess } from '../access/form-alert';
 import { useAdminAction } from '../administration/admin-action';
 import { QueryState } from '../administration/query-state';
-import { SelectField } from '../administration/select-field';
-import { SimpleTable } from '../administration/simple-table';
 import { save } from '../audit/audit-export-button';
 import { useCatalog, useOrgUnits } from '../organization/queries';
 import { TextInput } from '../organization/record-dialog';
