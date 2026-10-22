@@ -22,6 +22,7 @@ export const PARTY_ERROR_CODES = {
   nextReviewInvalid: 'PARTY_NEXT_REVIEW_INVALID',
   mergeInvalid: 'PARTY_MERGE_INVALID',
   consentNotAllowed: 'PARTY_CONSENT_NOT_ALLOWED',
+  documentRequired: 'PARTY_DOCUMENT_REQUIRED',
 } as const;
 
 /** Código del tipo de documento para el NIT en el catálogo «identification_types». */
@@ -68,12 +69,19 @@ const catalogCode = z
 
 const partyDataFields = {
   kind: partyKindSchema,
-  id_type: catalogCode.describe('Código del catálogo «Tipos de documento de identidad»'),
+  id_type: catalogCode
+    .nullable()
+    .default(null)
+    .describe(
+      'Código del catálogo «Tipos de documento de identidad»; un prospecto puede no tenerlo',
+    ),
   id_number: z
     .string()
     .trim()
     .toUpperCase()
-    .regex(/^[A-Z0-9]{3,20}$/, 'Escriba solo letras y números, sin puntos ni guiones'),
+    .regex(/^[A-Z0-9]{3,20}$/, 'Escriba solo letras y números, sin puntos ni guiones')
+    .nullable()
+    .default(null),
   check_digit: z.number().int().min(0).max(9).nullable().default(null).describe('Solo el NIT'),
   email: z.email().max(160).nullable().default(null),
   phone: z
@@ -124,13 +132,20 @@ function checkKindFields(value: PartyDataInput, context: z.RefinementCtx): void 
 }
 
 interface IdentificationInput {
-  readonly id_type: string;
-  readonly id_number: string;
+  readonly id_type: string | null;
+  readonly id_number: string | null;
   readonly check_digit: number | null;
 }
 
-/** El NIT lleva su dígito de verificación correcto; los demás documentos no llevan dígito. */
+/**
+ * El tipo y el número del documento van juntos o no van (solo un prospecto queda sin documento,
+ * B22). El NIT lleva su dígito de verificación correcto; los demás documentos no llevan dígito.
+ */
 function checkIdentification(value: IdentificationInput, context: z.RefinementCtx): void {
+  if (value.id_type === null || value.id_number === null) {
+    checkMissingDocument(value, context);
+    return;
+  }
   if (value.id_type !== NIT_ID_TYPE) {
     if (value.check_digit !== null) {
       context.addIssue({
@@ -156,6 +171,24 @@ function checkIdentification(value: IdentificationInput, context: z.RefinementCt
       message: 'El dígito de verificación no corresponde a ese NIT. Revise el RUT.',
     });
   }
+}
+
+function checkMissingDocument(value: IdentificationInput, context: z.RefinementCtx): void {
+  if (value.id_type !== null) {
+    context.addIssue({ code: 'custom', path: ['id_number'], message: 'Escriba el número.' });
+  }
+  if (value.id_number !== null) {
+    context.addIssue({ code: 'custom', path: ['id_type'], message: 'Elija el tipo de documento.' });
+  }
+  if (value.check_digit !== null) {
+    const message = 'Solo el NIT lleva dígito de verificación.';
+    context.addIssue({ code: 'custom', path: ['check_digit'], message });
+  }
+}
+
+/** Un tercero sin documento solo puede ser prospecto: al volverse activo debe completarlo. */
+export function hasDocument(value: IdentificationInput): boolean {
+  return value.id_type !== null && value.id_number !== null;
 }
 
 function checkParty(value: PartyDataInput, context: z.RefinementCtx): void {
@@ -188,6 +221,10 @@ export const createPartyRequestSchema = z
   .superRefine((value, context) => {
     checkParty(value, context);
     checkConsent(value, context);
+    if (value.status !== 'prospect' && !hasDocument(value)) {
+      const message = 'Escriba el documento. Solo un prospecto puede quedar sin él.';
+      context.addIssue({ code: 'custom', path: ['id_number'], message });
+    }
   });
 
 /** Edición de los datos; el estado y los papeles cambian por sus propias acciones. */
@@ -211,8 +248,8 @@ export const partySummarySchema = z.object({
   id: z.uuid(),
   kind: partyKindSchema,
   name: z.string().describe('Razón social, o nombres y apellidos'),
-  id_type: z.string(),
-  id_number: z.string(),
+  id_type: z.string().nullable().describe('Vacío solo en un prospecto sin documento'),
+  id_number: z.string().nullable(),
   check_digit: z.number().int().nullable(),
   email: z.string().nullable(),
   phone: z.string().nullable(),

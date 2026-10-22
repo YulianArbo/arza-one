@@ -115,10 +115,11 @@ export function statusActionLabel(from: PartyStatus, to: PartyStatus): string {
   return to === 'inactive' ? 'Inactivar' : 'Bloquear';
 }
 
-/** «NIT 900123456-8» o «CC 1020304050». */
+/** «NIT 900123456-8» o «CC 1020304050»; un prospecto puede no tener documento (B22). */
 export function identification(
   party: Pick<PartySummary, 'id_type' | 'id_number' | 'check_digit'>,
 ): string {
+  if (party.id_type === null || party.id_number === null) return 'Sin documento';
   const digit = party.check_digit === null ? '' : `-${String(party.check_digit)}`;
   return `${party.id_type} ${party.id_number}${digit}`;
 }

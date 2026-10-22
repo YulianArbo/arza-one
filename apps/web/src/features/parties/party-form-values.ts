@@ -62,8 +62,8 @@ export function valuesOf(party: PartyDetail): PartyFormValues {
     tradeName: party.trade_name ?? '',
     firstName: party.first_name ?? '',
     lastName: party.last_name ?? '',
-    idType: party.id_type,
-    idNumber: party.id_number,
+    idType: party.id_type ?? NIT_ID_TYPE,
+    idNumber: party.id_number ?? '',
     checkDigit: party.check_digit === null ? '' : String(party.check_digit),
     email: party.email ?? '',
     phone: party.phone ?? '',
@@ -71,7 +71,8 @@ export function valuesOf(party: PartyDetail): PartyFormValues {
     address: party.address ?? '',
     consent: EMPTY_CONSENT,
     roles: party.roles,
-    status: 'active',
+    // Solo el prospecto puede quedar sin documento (B22): así lo revisa también la pantalla.
+    status: party.status === 'prospect' ? 'prospect' : 'active',
   };
 }
 
@@ -83,10 +84,12 @@ function text(value: string): string | null {
 export function partyBody(values: PartyFormValues): Record<string, unknown> {
   const person = values.kind === 'person';
   const isNit = values.idType === NIT_ID_TYPE;
+  const idNumber = values.idNumber.trim().toUpperCase();
   return {
     kind: values.kind,
-    id_type: values.idType,
-    id_number: values.idNumber.trim().toUpperCase(),
+    // Sin número no hay documento: un prospecto puede registrarse así (B22).
+    id_type: idNumber === '' ? null : values.idType,
+    id_number: idNumber === '' ? null : idNumber,
     check_digit: isNit && values.checkDigit.trim() !== '' ? Number(values.checkDigit) : null,
     email: text(values.email),
     phone: text(values.phone),

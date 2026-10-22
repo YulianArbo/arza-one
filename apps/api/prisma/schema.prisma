@@ -727,8 +727,8 @@ model Party {
   tradeName         String?        @map("trade_name")
   firstName         String?        @map("first_name")
   lastName          String?        @map("last_name")
-  idType            String         @map("id_type")
-  idNumber          String         @map("id_number")
+  idType            String?        @map("id_type")
+  idNumber          String?        @map("id_number")
   checkDigit        Int?           @map("check_digit") @db.SmallInt
   email             String?
   phone             String?

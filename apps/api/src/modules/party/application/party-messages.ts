@@ -35,6 +35,14 @@ export function consentNotAllowed(): AppError {
   );
 }
 
+export function documentRequired(): AppError {
+  return new AppError(
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    PARTY_ERROR_CODES.documentRequired,
+    'Registre el tipo y el número de documento del tercero. Solo un prospecto puede quedar sin él.',
+  );
+}
+
 export function catalogValueInvalid(what: string): AppError {
   return new AppError(
     HttpStatus.UNPROCESSABLE_ENTITY,

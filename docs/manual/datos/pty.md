@@ -31,8 +31,8 @@ Registro único de cada persona u organización. Un duplicado fusionado conserva
 | `trade_name`         | text     | Sí   |             | Nombre comercial; solo organizaciones                                          |
 | `first_name`         | text     | Sí   |             | Nombres: obligatorios en personas (2 a 80), vacíos en organizaciones           |
 | `last_name`          | text     | Sí   |             | Apellidos: igual que los nombres                                               |
-| `id_type`            | text     | No   |             | Código del catálogo `identification_types` (CC, CE, NIT, PA, TI, PPT…)         |
-| `id_number`          | text     | No   |             | 3 a 20 letras mayúsculas o números, sin puntos ni guiones                      |
+| `id_type`            | text     | Sí   |             | Código del catálogo `identification_types` (CC, CE, NIT, PA, TI, PPT…). Vacío solo en un prospecto (B22) |
+| `id_number`          | text     | Sí   |             | 3 a 20 letras mayúsculas o números, sin puntos ni guiones. Va junto con `id_type` |
 | `check_digit`        | smallint | Sí   |             | Solo el NIT, y debe ser `pty_nit_check_digit(id_number)`; vacío en los demás   |
 | `email`              | text     | Sí   |             | Correo                                                                         |
 | `phone`              | text     | Sí   |             | Teléfono, guardado sin espacios                                                |
@@ -53,6 +53,12 @@ Desde B17 la autorización de tratamiento de una persona no vive aquí: se regis
 `prv_consents` con la versión exacta del texto aceptado ([prv.md](prv.md)). Las columnas
 `data_purpose`, `data_authorization` y `data_authorized_on` se trasladaron allá y quedan sin uso
 hasta una migración posterior de contraer (numeral 10.6); ya no son obligatorias.
+
+Desde B22 un **prospecto** puede registrarse sin documento: a quien apenas pregunta no se le pide la
+cédula (Ley 1581, principio de finalidad). Dos reglas de la base lo cuidan:
+`pty_parties_document_pair_check` (el tipo y el número van juntos, y sin documento no hay dígito) y
+`pty_parties_document_required_check` (solo un prospecto queda sin documento). Para pasarlo a
+activo, o para ganarle una oportunidad en el CRM, se completa el documento.
 
 La función `pty_nit_check_digit(text)` calcula el dígito de verificación con los pesos de la DIAN
 (3, 7, 13, 17, 19, 23, 29, 37, 41, 43, 47, 53, 59, 67, 71) y módulo 11. La web y la API usan el

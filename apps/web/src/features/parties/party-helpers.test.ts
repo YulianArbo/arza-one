@@ -24,6 +24,15 @@ describe('textos', () => {
     expect(statusActionLabel('active', 'blocked')).toBe('Bloquear');
     expect(identification(detail)).toBe('NIT 800197268-4');
     expect(identification({ id_type: 'CC', id_number: '123', check_digit: null })).toBe('CC 123');
+    const prospect = { id_type: null, id_number: null, check_digit: null };
+    expect(identification(prospect)).toBe('Sin documento');
+  });
+
+  it('sin número el prospecto va sin documento a la API (B22)', () => {
+    const body = partyBody({ ...EMPTY_PARTY, kind: 'person', idType: 'CC', idNumber: '  ' });
+    expect(body).toMatchObject({ id_type: null, id_number: null, check_digit: null });
+    const prospect = { ...EMPTY_PARTY, kind: 'person' as const, status: 'prospect' as const };
+    expect(fieldErrors({ ...prospect, firstName: 'Laura', lastName: 'Gómez' })).toEqual({});
   });
 
   it('arma los parámetros de la dirección sin los vacíos', () => {
@@ -54,7 +63,11 @@ describe('valores del formulario', () => {
     expect(errors['legal_name']).toBe('Este dato es obligatorio.');
     expect(errors['email']).toBe('Escriba un correo válido, por ejemplo nombre@empresa.com.');
     expect(errors['phone']).toBe('Escriba solo números, con el indicativo si es del exterior.');
-    expect(errors['id_number']).toBe('Escriba el número de documento: solo letras y números.');
+    expect(errors['id_number']).toBe(
+      'Escriba el documento. Solo un prospecto puede quedar sin él.',
+    );
+    const badNumber = fieldErrors({ ...EMPTY_PARTY, idType: 'CC', idNumber: '12.3' });
+    expect(badNumber['id_number']).toBe('Escriba el número de documento: solo letras y números.');
     expect(fieldErrors(valuesOf(detail))).toEqual({});
   });
 
