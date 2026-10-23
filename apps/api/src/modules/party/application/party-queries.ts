@@ -217,7 +217,7 @@ export class PartyQueries {
       const party = await findParty(tx, scopeOf(principal, ability), id);
       const roles = await tx.partyRole.findMany({
         where: { partyId: id, deletedAt: null },
-        orderBy: { since: 'asc' },
+        orderBy: WITH_ROLES.roles.orderBy,
       });
       // Las autorizaciones de los duplicados fusionados siguen al tercero que se conservó.
       const merged = await tx.party.findMany({ where: { mergedIntoId: id }, select: { id: true } });
