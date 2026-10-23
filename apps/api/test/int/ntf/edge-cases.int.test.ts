@@ -1,4 +1,8 @@
-import { createdResponseSchema, notificationTemplateListSchema } from '@arza/contracts';
+import {
+  NOTIFICATION_KIND_KEYS,
+  createdResponseSchema,
+  notificationTemplateListSchema,
+} from '@arza/contracts';
 import { describe, expect, it } from 'vitest';
 
 import { seedNotificationTemplates } from '../../../src/modules/ntf/index.js';
@@ -70,7 +74,8 @@ describe('sin nada que cambiar', () => {
     const tenants = [scenario.tenant.id];
     await seedNotificationTemplates(apiDatabase(), tenants, scenario.clock);
     const versions = await scenario.inTenant((tx) => tx.notificationTemplate.count());
-    expect(versions).toBe(6);
+    // Una sola versión por tipo de aviso: la que creó la semilla la primera vez.
+    expect(versions).toBe(NOTIFICATION_KIND_KEYS.length);
   });
 });
 
