@@ -37,33 +37,38 @@ async function filesOf(documentId: string) {
   });
 }
 
-/** Vigente desde hace diez años: un documento del SGC vigente nunca vence. */
-async function currentDocument(): Promise<string> {
-  const id = await scenario.createDocument(quality);
-  await scenario.publishLatest(quality, approver, id);
-  await scenario.age(id, 10);
-  return id;
+/** Los documentos de la propuesta del mes, preparados uno tras otro antes de la prueba. */
+interface MonthlyDocuments {
+  readonly expired: string;
+  readonly second: string;
+  readonly fresh: string;
+  readonly current: string;
+  readonly kept: string;
 }
 
-/** Obsoleto hace diez años, pero su regla dice conservación total. */
-async function keptDocument(): Promise<string> {
-  const id = await scenario.obsoleteDocument(quality, approver, { doc_type: 'MN' });
+async function monthlyDocuments(): Promise<MonthlyDocuments> {
+  const expired = await scenario.expiredDocument(quality, approver);
+  const second = await scenario.expiredDocument(quality, approver);
+  const fresh = await scenario.obsoleteDocument(quality, approver);
+  const current = await scenario.createDocument(quality);
+  await scenario.publishLatest(quality, approver, current);
+  await scenario.age(current, 10);
+  const kept = await scenario.obsoleteDocument(quality, approver, { doc_type: 'MN' });
   await scenario.rule(quality, { doc_type: 'MN', disposition: 'keep' });
-  await scenario.age(id, 10);
-  return id;
+  await scenario.age(kept, 10);
+  return { expired, second, fresh, current, kept };
 }
 
 describe('la propuesta del mes', () => {
+  // Preparar los cinco documentos toma tiempo: va en la preparación del bloque, con su propio
+  // límite, y la prueba solo revisa la propuesta.
+  let docs: MonthlyDocuments;
+  beforeAll(async () => {
+    docs = await monthlyDocuments();
+  });
+
   it('solo propone lo que venció con una regla que dice eliminar, una vez por mes', async () => {
-    // Los cinco documentos no dependen entre sí: se preparan a la vez para no pasar el tiempo
-    // límite en un servidor de integración cargado.
-    const [expired, second, fresh, current, kept] = await Promise.all([
-      scenario.expiredDocument(quality, approver),
-      scenario.expiredDocument(quality, approver),
-      scenario.obsoleteDocument(quality, approver),
-      currentDocument(),
-      keptDocument(),
-    ]);
+    const { expired, second, fresh, current, kept } = docs;
     const first = await scenario.propose(quality);
     expect(first.created).toBe(true);
     const proposal = await scenario.disposition(quality, first.proposal_id ?? '');
