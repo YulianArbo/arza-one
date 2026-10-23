@@ -299,6 +299,24 @@ ALTER TABLE "prv_consents" DROP CONSTRAINT "prv_consents_source_check";
 ALTER TABLE "prv_consents" ADD CONSTRAINT "prv_consents_source_check"
     CHECK ("source" IN ('party_create', 'party_consent', 'prior_record', 'crm_lead'));
 
+-- Aviso nuevo: el recordatorio de una actividad comercial.
+ALTER TABLE "ntf_templates" DROP CONSTRAINT "ntf_templates_key_check";
+ALTER TABLE "ntf_notifications" DROP CONSTRAINT "ntf_notifications_kind_check";
+ALTER TABLE "ntf_preferences" DROP CONSTRAINT "ntf_preferences_event_key_check";
+
+ALTER TABLE "ntf_templates"
+    ADD CONSTRAINT "ntf_templates_key_check" CHECK ("key" IN ('task_assigned', 'task_escalated',
+        'comment_mention', 'security_alert', 'doc_read_requested', 'doc_request_decided',
+        'crm_activity_due'));
+ALTER TABLE "ntf_notifications"
+    ADD CONSTRAINT "ntf_notifications_kind_check" CHECK ("kind" IN ('task_assigned', 'task_escalated',
+        'comment_mention', 'security_alert', 'doc_read_requested', 'doc_request_decided',
+        'crm_activity_due'));
+ALTER TABLE "ntf_preferences"
+    ADD CONSTRAINT "ntf_preferences_event_key_check" CHECK ("event_key" IN ('task_assigned',
+        'task_escalated', 'comment_mention', 'security_alert', 'doc_read_requested',
+        'doc_request_decided', 'crm_activity_due'));
+
 -- Columnas de control --------------------------------------------------------------------------
 
 CREATE TRIGGER "crm_campaigns_control_columns"

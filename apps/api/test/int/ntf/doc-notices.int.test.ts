@@ -57,3 +57,24 @@ describe('solicitud decidida', () => {
     expect(notice.link).toBe(`/app/documentos/solicitudes/${requestId}`);
   });
 });
+
+describe('recordatorio de una actividad comercial (B22)', () => {
+  it('el responsable recibe el aviso con el asunto, el registro y la hora de Colombia', async () => {
+    const seller = await scenario.people('vendedora', ['COMERCIAL']);
+    const payload = {
+      id: uuidv7(),
+      assignee_id: seller.id,
+      subject: 'Llamar a Andina',
+      record_code: 'OPO-2026-0007',
+      due_at: '2026-10-13T15:00:00.000Z',
+    };
+    const eventId = await scenario.event('crm.activity.reminder', payload, WORKDAY);
+    await scenario.publishOutbox();
+    const notice = await scenario.inTenant((tx) =>
+      tx.notification.findFirstOrThrow({ where: { eventId, userId: seller.id } }),
+    );
+    expect(notice.title).toBe('Recordatorio: Llamar a Andina (13/10/2026, 10:00 a. m.)');
+    expect(notice.body).toContain('de OPO-2026-0007');
+    expect(notice.link).toBe('/app/comercial/actividades');
+  });
+});
