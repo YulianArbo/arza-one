@@ -16,7 +16,7 @@ export async function findLead(tx: TenantTransaction, id: string): Promise<CrmLe
   return lead;
 }
 
-export function statusOf(lead: CrmLead): LeadStatus {
+function statusOf(lead: CrmLead): LeadStatus {
   return leadStatusSchema.parse(lead.status);
 }
 

@@ -11,7 +11,7 @@ import { useCrmAction } from './crm-action';
 // Motivo de una decisión del CRM (B22): descartar un prospecto o perder una oportunidad. El
 // motivo sale de su catálogo (Administración › Catálogos) y el detalle es opcional.
 
-export interface Reason {
+interface Reason {
   readonly reason: string;
   readonly note: string | null;
 }

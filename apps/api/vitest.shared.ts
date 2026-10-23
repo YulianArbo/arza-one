@@ -76,6 +76,9 @@ export const DATABASE_BOUND_FILES = [
   // Privacidad (B17): casos de uso y controladores.
   'src/modules/privacy/application/**/*.ts',
   'src/modules/privacy/interface/**/*.ts',
+  // CRM (B22): todo menos las reglas del dominio (dinero, embudo, CSV), que se prueban solas.
+  'src/modules/crm/application/**/*.ts',
+  'src/modules/crm/interface/**/*.ts',
 ];
 
 /** Procesos que solo arrancan algo; se prueban a mano o como proceso real. */

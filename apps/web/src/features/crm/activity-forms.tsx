@@ -55,10 +55,7 @@ function bodyOf(target: ActivityTarget, values: NewActivity) {
 }
 
 /** Problemas por campo, con el mismo esquema que usa la API. */
-export function activityProblems(
-  target: ActivityTarget,
-  values: NewActivity,
-): Record<string, string> {
+function activityProblems(target: ActivityTarget, values: NewActivity): Record<string, string> {
   const result = createCrmActivityRequestSchema.safeParse(bodyOf(target, values));
   if (result.success) return {};
   const problems: Record<string, string> = {};

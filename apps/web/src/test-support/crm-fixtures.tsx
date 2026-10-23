@@ -7,7 +7,7 @@ import { AUTHORIZATION_NOTICE, ORG_ID, PERSON_ID, catalog, permissionsOf } from 
 
 export const LEAD_ID = '01999a00-0000-7000-8000-0000000c0001';
 export const OPPORTUNITY_ID = '01999a00-0000-7000-8000-0000000c0101';
-export const OTHER_OPPORTUNITY_ID = '01999a00-0000-7000-8000-0000000c0102';
+const OTHER_OPPORTUNITY_ID = '01999a00-0000-7000-8000-0000000c0102';
 export const ACTIVITY_ID = '01999a00-0000-7000-8000-0000000c0201';
 export const CAMPAIGN_ID = '01999a00-0000-7000-8000-0000000c0301';
 const OWNER = { id: '01999a00-0000-7000-8000-00000000a001', name: 'Ana Pérez' };
@@ -65,7 +65,7 @@ export function leadDetail(overrides: object = {}): object {
   };
 }
 
-export function opportunity(overrides: object = {}): object {
+function opportunity(overrides: object = {}): object {
   return {
     id: OPPORTUNITY_ID,
     code: 'OPO-2026-0001',
@@ -94,7 +94,7 @@ export function opportunityDetail(overrides: object = {}): object {
   };
 }
 
-export const ACTIVITY = {
+const ACTIVITY = {
   id: ACTIVITY_ID,
   type: 'call',
   subject: 'Llamar para entender la necesidad',
@@ -107,7 +107,7 @@ export const ACTIVITY = {
   version: 1,
 } as const;
 
-export const CAMPAIGN = {
+const CAMPAIGN = {
   id: CAMPAIGN_ID,
   name: 'Feria tecnológica',
   channel: 'event',
@@ -118,7 +118,7 @@ export const CAMPAIGN = {
   version: 1,
 } as const;
 
-export const FUNNEL = {
+const FUNNEL = {
   generated_at: '2026-10-22T15:00:00.000Z',
   stages: [
     {

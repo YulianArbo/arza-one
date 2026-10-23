@@ -12,7 +12,7 @@ import {
 
 type Tone = 'neutral' | 'success' | 'warning' | 'destructive' | 'info';
 
-export const CRM_BASE = '/app/comercial';
+const CRM_BASE = '/app/comercial';
 
 export const CRM_PATHS = {
   funnel: CRM_BASE,

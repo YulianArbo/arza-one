@@ -9,7 +9,5 @@ export {
   makeCustomer,
   matchingPartyIds,
   registerProspect,
-  type CommercialActor,
   type CommercialParty,
-  type ProspectPerson,
 } from './application/party-prospects.js';

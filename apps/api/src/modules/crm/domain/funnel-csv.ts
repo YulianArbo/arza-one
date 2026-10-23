@@ -10,7 +10,7 @@ import { toCsv, type CsvCell } from '../../../platform/export/csv.js';
 // RE-COM-001 Registro de Oportunidades en CSV (B22), para abrir en Excel con la configuración de
 // Colombia: fechas dd/mm/aaaa y pesos con coma decimal, sin puntos de miles.
 
-export const FUNNEL_CSV_COLUMNS = [
+const FUNNEL_CSV_COLUMNS = [
   'Código',
   'Fecha de creación',
   'Cliente',
