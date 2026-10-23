@@ -20287,6 +20287,2490 @@
           "Privacidad"
         ]
       }
+    },
+    "/v1/crm/leads": {
+      "get": {
+        "operationId": "LeadsController_list",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Nuevo, calificado, convertido o descartado",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "new",
+                "qualified",
+                "converted",
+                "discarded"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Busca en código, nombre y empresa",
+            "schema": {
+              "minLength": 1,
+              "maxLength": 120,
+              "type": "string"
+            }
+          },
+          {
+            "name": "owner_id",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "campaign_id",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "next_cursor de la página anterior",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Prospectos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadListResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Prospectos, del más reciente al más antiguo, con búsqueda y filtros",
+        "tags": [
+          "Comercial"
+        ]
+      },
+      "post": {
+        "description": "Con una persona registrada o una nueva (queda como tercero prospecto), su autorización y la tarea «Contactar al prospecto».",
+        "operationId": "LeadsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLeadRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Registrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmCreatedResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el registro ya está cerrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Registrar un prospecto",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/leads/authorization-notices": {
+      "get": {
+        "description": "Todo prospecto guarda su autorización de tratamiento y la finalidad (B17).",
+        "operationId": "LeadsController_notices",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Textos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadNoticesResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Textos de autorización vigentes para el formulario del prospecto",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/leads/{id}": {
+      "get": {
+        "operationId": "LeadsController_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Prospecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadDetailResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe"
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Ficha del prospecto",
+        "tags": [
+          "Comercial"
+        ]
+      },
+      "patch": {
+        "description": "Solo si sigue abierto.",
+        "operationId": "LeadsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLeadRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Guardado"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el registro ya está cerrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Editar el prospecto",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/leads/{id}/actions/qualify": {
+      "post": {
+        "description": "Cierra su tarea de contacto.",
+        "operationId": "LeadsController_qualify",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Calificado"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el registro ya está cerrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Calificar el prospecto",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/leads/{id}/actions/discard": {
+      "post": {
+        "description": "Con su motivo.",
+        "operationId": "LeadsController_discard",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiscardLeadRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Descartado"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el registro ya está cerrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Descartar el prospecto",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/leads/{id}/actions/convert": {
+      "post": {
+        "description": "Solo un prospecto calificado. Devuelve el id de la oportunidad nueva.",
+        "operationId": "LeadsController_convert",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConvertLeadRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Convertido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmCreatedResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el registro ya está cerrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Convertir el prospecto en oportunidad",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/opportunities": {
+      "get": {
+        "description": "Abiertas por fecha esperada de cierre (el tablero), cerradas o todas.",
+        "operationId": "OpportunitiesController_list",
+        "parameters": [
+          {
+            "name": "view",
+            "required": false,
+            "in": "query",
+            "description": "Abiertas (el tablero), cerradas o todas",
+            "schema": {
+              "default": "open",
+              "type": "string",
+              "enum": [
+                "open",
+                "closed",
+                "all"
+              ]
+            }
+          },
+          {
+            "name": "stage",
+            "required": false,
+            "in": "query",
+            "description": "Etapa del embudo",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "prospecting",
+                "diagnosis",
+                "proposal",
+                "negotiation",
+                "won",
+                "lost"
+              ]
+            }
+          },
+          {
+            "name": "owner_id",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "party_id",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Busca en código, título y cliente",
+            "schema": {
+              "minLength": 1,
+              "maxLength": 120,
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpportunityListResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Oportunidades del embudo",
+        "tags": [
+          "Comercial"
+        ]
+      },
+      "post": {
+        "description": "Para un cliente de Terceros.",
+        "operationId": "OpportunitiesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOpportunityRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Registrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmCreatedResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el registro ya está cerrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Registrar una oportunidad",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/opportunities/{id}": {
+      "get": {
+        "operationId": "OpportunitiesController_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ficha",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpportunityDetailResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe"
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Ficha de la oportunidad",
+        "tags": [
+          "Comercial"
+        ]
+      },
+      "patch": {
+        "description": "Solo si sigue abierta.",
+        "operationId": "OpportunitiesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOpportunityRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Guardada"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el registro ya está cerrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Editar la oportunidad",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/opportunities/{id}/actions/move": {
+      "post": {
+        "description": "Avanzar o retroceder entre las etapas abiertas; sin probabilidad, la de la etapa.",
+        "operationId": "OpportunitiesController_move",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoveOpportunityRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Movida"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el registro ya está cerrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Cambiar de etapa",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/opportunities/{id}/actions/win": {
+      "post": {
+        "description": "El cliente queda activo y con el papel de cliente; debe tener su documento.",
+        "operationId": "OpportunitiesController_win",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Ganada"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el registro ya está cerrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Marcar como ganada",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/opportunities/{id}/actions/lose": {
+      "post": {
+        "description": "Exige el motivo (ficha 17.6).",
+        "operationId": "OpportunitiesController_lose",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoseOpportunityRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Perdida"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el registro ya está cerrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Marcar como perdida",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/activities": {
+      "get": {
+        "description": "Pendientes por hora (las más próximas primero), hechas o todas.",
+        "operationId": "ActivitiesController_list",
+        "parameters": [
+          {
+            "name": "lead_id",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "opportunity_id",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "mine",
+            "required": false,
+            "in": "query",
+            "description": "Solo las de la persona",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
+          },
+          {
+            "name": "view",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "pending",
+              "type": "string",
+              "enum": [
+                "pending",
+                "done",
+                "all"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Actividades",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivityListResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Actividades de un registro o la agenda de la persona",
+        "tags": [
+          "Comercial"
+        ]
+      },
+      "post": {
+        "description": "De un prospecto o una oportunidad abiertos; su responsable recibe un recordatorio.",
+        "operationId": "ActivitiesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateActivityRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Agendada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmCreatedResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el registro ya está cerrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Agendar una actividad",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/activities/{id}": {
+      "patch": {
+        "operationId": "ActivitiesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateActivityRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Guardada"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el registro ya está cerrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Editar una actividad pendiente",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/activities/{id}/actions/complete": {
+      "post": {
+        "description": "Con su resultado.",
+        "operationId": "ActivitiesController_complete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteActivityRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Hecha"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el registro ya está cerrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Marcar la actividad como hecha",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/campaigns": {
+      "get": {
+        "operationId": "CampaignsController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Campañas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignListResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Campañas, con cuántos prospectos trajo cada una",
+        "tags": [
+          "Comercial"
+        ]
+      },
+      "post": {
+        "operationId": "CampaignsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CampaignRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmCreatedResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el registro ya está cerrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Crear una campaña",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/campaigns/{id}": {
+      "put": {
+        "operationId": "CampaignsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CampaignRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Guardada"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el registro ya está cerrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Editar una campaña",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/reports/funnel": {
+      "get": {
+        "description": "Etapas, totales, motivos de pérdida y el registro de las oportunidades del periodo.",
+        "operationId": "FunnelReportController_report",
+        "parameters": [
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Oportunidades creadas desde este día",
+            "schema": {
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "Hasta este día, incluido",
+            "schema": {
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "owner_id",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Informe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FunnelReportResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Informe del embudo (RE-COM-001)",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/reports/funnel/export": {
+      "post": {
+        "description": "Con los mismos filtros; separado por punto y coma para Excel. Queda en la auditoría.",
+        "operationId": "FunnelReportController_export",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FunnelQuery"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Archivo CSV en UTF-8"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Exportar el RE-COM-001 a CSV",
+        "tags": [
+          "Comercial"
+        ]
+      }
     }
   },
   "info": {
@@ -24645,10 +27129,17 @@
                   "description": "Razón social, o nombres y apellidos"
                 },
                 "id_type": {
-                  "type": "string"
+                  "description": "Vacío solo en un prospecto sin documento",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 },
                 "id_number": {
-                  "type": "string"
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 },
                 "check_digit": {
                   "anyOf": [
@@ -24777,10 +27268,17 @@
                       "description": "Razón social, o nombres y apellidos"
                     },
                     "id_type": {
-                      "type": "string"
+                      "description": "Vacío solo en un prospecto sin documento",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "id_number": {
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "check_digit": {
                       "anyOf": [
@@ -25080,13 +27578,29 @@
             "description": "Persona u organización"
           },
           "id_type": {
-            "type": "string",
-            "pattern": "^[A-Z0-9][A-Z0-9_-]{0,19}$",
-            "description": "Código del catálogo «Tipos de documento de identidad»"
+            "default": null,
+            "description": "Código del catálogo «Tipos de documento de identidad»; un prospecto puede no tenerlo",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Z0-9][A-Z0-9_-]{0,19}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "id_number": {
-            "type": "string",
-            "pattern": "^[A-Z0-9]{3,20}$"
+            "default": null,
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Z0-9]{3,20}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "check_digit": {
             "default": null,
@@ -25307,9 +27821,7 @@
           }
         },
         "required": [
-          "kind",
-          "id_type",
-          "id_number"
+          "kind"
         ],
         "additionalProperties": false
       },
@@ -25334,10 +27846,17 @@
             "description": "Razón social, o nombres y apellidos"
           },
           "id_type": {
-            "type": "string"
+            "description": "Vacío solo en un prospecto sin documento",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "id_number": {
-            "type": "string"
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "check_digit": {
             "anyOf": [
@@ -25658,13 +28177,29 @@
             "description": "Persona u organización"
           },
           "id_type": {
-            "type": "string",
-            "pattern": "^[A-Z0-9][A-Z0-9_-]{0,19}$",
-            "description": "Código del catálogo «Tipos de documento de identidad»"
+            "default": null,
+            "description": "Código del catálogo «Tipos de documento de identidad»; un prospecto puede no tenerlo",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Z0-9][A-Z0-9_-]{0,19}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "id_number": {
-            "type": "string",
-            "pattern": "^[A-Z0-9]{3,20}$"
+            "default": null,
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Z0-9]{3,20}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "check_digit": {
             "default": null,
@@ -25790,9 +28325,7 @@
           }
         },
         "required": [
-          "kind",
-          "id_type",
-          "id_number"
+          "kind"
         ],
         "additionalProperties": false
       },
@@ -35580,7 +38113,8 @@
                     "comment_mention",
                     "security_alert",
                     "doc_read_requested",
-                    "doc_request_decided"
+                    "doc_request_decided",
+                    "crm_activity_due"
                   ],
                   "description": "Tipo de aviso"
                 },
@@ -35657,7 +38191,8 @@
                     "comment_mention",
                     "security_alert",
                     "doc_read_requested",
-                    "doc_request_decided"
+                    "doc_request_decided",
+                    "crm_activity_due"
                   ],
                   "description": "Tipo de aviso"
                 },
@@ -35693,7 +38228,7 @@
         "properties": {
           "items": {
             "minItems": 1,
-            "maxItems": 6,
+            "maxItems": 7,
             "type": "array",
             "items": {
               "type": "object",
@@ -35706,7 +38241,8 @@
                     "comment_mention",
                     "security_alert",
                     "doc_read_requested",
-                    "doc_request_decided"
+                    "doc_request_decided",
+                    "crm_activity_due"
                   ],
                   "description": "Tipo de aviso"
                 },
@@ -35741,7 +38277,8 @@
                     "comment_mention",
                     "security_alert",
                     "doc_read_requested",
-                    "doc_request_decided"
+                    "doc_request_decided",
+                    "crm_activity_due"
                   ],
                   "description": "Tipo de aviso"
                 },
@@ -35830,7 +38367,8 @@
               "comment_mention",
               "security_alert",
               "doc_read_requested",
-              "doc_request_decided"
+              "doc_request_decided",
+              "crm_activity_due"
             ],
             "description": "Tipo de aviso"
           },
@@ -36614,9 +39152,10 @@
                   "enum": [
                     "party_create",
                     "party_consent",
-                    "prior_record"
+                    "prior_record",
+                    "crm_lead"
                   ],
-                  "description": "Alta del tercero, autorización nueva en su ficha o registro anterior a B17"
+                  "description": "Alta del tercero, autorización nueva en su ficha, registro anterior a B17 o prospecto del CRM (B22)"
                 },
                 "evidence": {
                   "type": "object",
@@ -36829,9 +39368,10 @@
             "enum": [
               "party_create",
               "party_consent",
-              "prior_record"
+              "prior_record",
+              "crm_lead"
             ],
-            "description": "Alta del tercero, autorización nueva en su ficha o registro anterior a B17"
+            "description": "Alta del tercero, autorización nueva en su ficha, registro anterior a B17 o prospecto del CRM (B22)"
           },
           "evidence": {
             "type": "object",
@@ -36931,223 +39471,227 @@
                   "format": "uuid",
                   "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                 },
-                "name": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "call",
+                    "meeting",
+                    "task",
+                    "email"
+                  ],
+                  "description": "Llamada, reunión, tarea o correo"
+                },
+                "subject": {
                   "type": "string"
                 },
-                "purpose": {
-                  "type": "string"
-                },
-                "data_categories": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "enum": [
-                      "identification",
-                      "contact",
-                      "demographic",
-                      "financial",
-                      "employment",
-                      "education",
-                      "images",
-                      "location",
-                      "health",
-                      "biometric"
-                    ],
-                    "description": "Categoría de datos personales"
-                  }
-                },
-                "holder_types": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "enum": [
-                      "customers",
-                      "suppliers",
-                      "employees",
-                      "candidates",
-                      "contacts",
-                      "visitors",
-                      "users"
-                    ],
-                    "description": "Tipo de titular"
-                  }
-                },
-                "legal_basis": {
-                  "type": "string"
-                },
-                "retention": {
-                  "type": "string"
-                },
-                "international_transfers": {
+                "notes": {
                   "type": [
                     "string",
                     "null"
                   ]
                 },
-                "processors": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string",
-                        "format": "uuid",
-                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-                      },
-                      "name": {
-                        "type": [
-                          "string",
-                          "null"
-                        ]
-                      }
-                    },
-                    "required": [
-                      "id",
-                      "name"
-                    ],
-                    "additionalProperties": false
-                  }
-                },
-                "sensitive": {
-                  "type": "boolean",
-                  "description": "Incluye datos sensibles"
-                },
-                "status": {
+                "due_at": {
                   "type": "string",
-                  "enum": [
-                    "active",
-                    "inactive"
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "done_at": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "outcome": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "assignee": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "record": {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "lead",
+                        "opportunity"
+                      ]
+                    },
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "label": {
+                      "type": "string",
+                      "description": "Nombre del prospecto o título de la oportunidad"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "id",
+                    "code",
+                    "label"
                   ],
-                  "description": "Activo o inactivo"
+                  "additionalProperties": false
                 },
                 "version": {
                   "type": "integer",
                   "exclusiveMinimum": 0,
                   "maximum": 9007199254740991,
-                  "description": "Versión para la cabecera If-Match"
+                  "description": "Versión para If-Match"
                 }
               },
               "required": [
                 "id",
-                "name",
-                "purpose",
-                "data_categories",
-                "holder_types",
-                "legal_basis",
-                "retention",
-                "international_transfers",
-                "processors",
-                "sensitive",
-                "status",
+                "type",
+                "subject",
+                "notes",
+                "due_at",
+                "done_at",
+                "outcome",
+                "assignee",
+                "record",
                 "version"
               ],
               "additionalProperties": false
             }
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
-          "data"
+          "data",
+          "next_cursor"
         ],
         "additionalProperties": false
       },
       "CreateActivityRequest": {
         "type": "object",
         "properties": {
-          "name": {
-            "type": "string",
-            "minLength": 3,
-            "maxLength": 150
-          },
-          "purpose": {
-            "type": "string",
-            "minLength": 10,
-            "maxLength": 1000,
-            "description": "Para qué se tratan los datos"
-          },
-          "data_categories": {
-            "minItems": 1,
-            "maxItems": 10,
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "identification",
-                "contact",
-                "demographic",
-                "financial",
-                "employment",
-                "education",
-                "images",
-                "location",
-                "health",
-                "biometric"
-              ],
-              "description": "Categoría de datos personales"
-            }
-          },
-          "holder_types": {
-            "minItems": 1,
-            "maxItems": 7,
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "customers",
-                "suppliers",
-                "employees",
-                "candidates",
-                "contacts",
-                "visitors",
-                "users"
-              ],
-              "description": "Tipo de titular"
-            }
-          },
-          "legal_basis": {
-            "type": "string",
-            "minLength": 10,
-            "maxLength": 500,
-            "description": "Fundamento legal del tratamiento"
-          },
-          "retention": {
-            "type": "string",
-            "minLength": 5,
-            "maxLength": 300,
-            "description": "Cuánto tiempo se conservan"
-          },
-          "international_transfers": {
+          "lead_id": {
             "default": null,
-            "description": "Países y destinatarios; vacío si no hay",
             "anyOf": [
               {
                 "type": "string",
-                "minLength": 5,
-                "maxLength": 500
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
               },
               {
                 "type": "null"
               }
             ]
           },
-          "processor_ids": {
-            "default": [],
-            "description": "Encargados que participan",
-            "maxItems": 20,
-            "type": "array",
-            "items": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-            }
+          "opportunity_id": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "call",
+              "meeting",
+              "task",
+              "email"
+            ],
+            "description": "Llamada, reunión, tarea o correo"
+          },
+          "subject": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 200
+          },
+          "notes": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "due_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "description": "Fecha y hora"
+          },
+          "assignee_id": {
+            "default": null,
+            "description": "Responsable; por defecto, quien crea",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
-          "name",
-          "purpose",
-          "data_categories",
-          "holder_types",
-          "legal_basis",
-          "retention"
+          "type",
+          "subject",
+          "due_at"
         ],
         "additionalProperties": false
       },
@@ -37274,110 +39818,59 @@
       "UpdateActivityRequest": {
         "type": "object",
         "properties": {
-          "name": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "call",
+              "meeting",
+              "task",
+              "email"
+            ],
+            "description": "Llamada, reunión, tarea o correo"
+          },
+          "subject": {
             "type": "string",
             "minLength": 3,
-            "maxLength": 150
+            "maxLength": 200
           },
-          "purpose": {
-            "type": "string",
-            "minLength": 10,
-            "maxLength": 1000,
-            "description": "Para qué se tratan los datos"
-          },
-          "data_categories": {
-            "minItems": 1,
-            "maxItems": 10,
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "identification",
-                "contact",
-                "demographic",
-                "financial",
-                "employment",
-                "education",
-                "images",
-                "location",
-                "health",
-                "biometric"
-              ],
-              "description": "Categoría de datos personales"
-            }
-          },
-          "holder_types": {
-            "minItems": 1,
-            "maxItems": 7,
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "customers",
-                "suppliers",
-                "employees",
-                "candidates",
-                "contacts",
-                "visitors",
-                "users"
-              ],
-              "description": "Tipo de titular"
-            }
-          },
-          "legal_basis": {
-            "type": "string",
-            "minLength": 10,
-            "maxLength": 500,
-            "description": "Fundamento legal del tratamiento"
-          },
-          "retention": {
-            "type": "string",
-            "minLength": 5,
-            "maxLength": 300,
-            "description": "Cuánto tiempo se conservan"
-          },
-          "international_transfers": {
+          "notes": {
             "default": null,
-            "description": "Países y destinatarios; vacío si no hay",
             "anyOf": [
               {
                 "type": "string",
-                "minLength": 5,
-                "maxLength": 500
+                "minLength": 1,
+                "maxLength": 2000
               },
               {
                 "type": "null"
               }
             ]
           },
-          "processor_ids": {
-            "default": [],
-            "description": "Encargados que participan",
-            "maxItems": 20,
-            "type": "array",
-            "items": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-            }
-          },
-          "status": {
+          "due_at": {
             "type": "string",
-            "enum": [
-              "active",
-              "inactive"
-            ],
-            "description": "Activo o inactivo"
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "description": "Fecha y hora"
+          },
+          "assignee_id": {
+            "default": null,
+            "description": "Responsable; por defecto, quien crea",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
-          "name",
-          "purpose",
-          "data_categories",
-          "holder_types",
-          "legal_basis",
-          "retention",
-          "status"
+          "type",
+          "subject",
+          "due_at"
         ],
         "additionalProperties": false
       },
@@ -37661,6 +40154,1980 @@
           "review_on",
           "status"
         ],
+        "additionalProperties": false
+      },
+      "LeadListResponse_Output": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "code": {
+                  "type": "string",
+                  "description": "LEA-AAAA-NNNN"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "new",
+                    "qualified",
+                    "converted",
+                    "discarded"
+                  ],
+                  "description": "Nuevo, calificado, convertido o descartado"
+                },
+                "person": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name"
+                  ],
+                  "additionalProperties": false
+                },
+                "email": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "phone": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "company_name": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "source": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "label": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "label"
+                  ],
+                  "additionalProperties": false
+                },
+                "campaign": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "owner": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "version": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "description": "Versión para If-Match"
+                }
+              },
+              "required": [
+                "id",
+                "code",
+                "status",
+                "person",
+                "email",
+                "phone",
+                "company_name",
+                "source",
+                "campaign",
+                "owner",
+                "created_at",
+                "version"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "next_cursor"
+        ],
+        "additionalProperties": false
+      },
+      "LeadNoticesResponse_Output": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "key": {
+                  "type": "string",
+                  "enum": [
+                    "privacy_policy",
+                    "privacy_notice",
+                    "authorization_customer",
+                    "authorization_supplier",
+                    "authorization_employee",
+                    "authorization_candidate",
+                    "authorization_contact",
+                    "authorization_prior"
+                  ],
+                  "description": "Clase de texto"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "version_number": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "description": "1, 2, 3… dentro de la misma clase"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "body": {
+                  "type": "string"
+                },
+                "purposes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "draft",
+                    "published",
+                    "replaced"
+                  ],
+                  "description": "Borrador, publicado o reemplazado"
+                },
+                "effective_from": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "Desde cuándo rige; vacío en borrador"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "version": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "description": "Versión para la cabecera If-Match"
+                }
+              },
+              "required": [
+                "id",
+                "key",
+                "label",
+                "version_number",
+                "title",
+                "body",
+                "purposes",
+                "status",
+                "effective_from",
+                "created_at",
+                "version"
+              ],
+              "additionalProperties": false
+            },
+            "description": "Por clase y de la versión más nueva a la más vieja"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "CreateLeadRequest": {
+        "type": "object",
+        "properties": {
+          "party_id": {
+            "default": null,
+            "description": "Persona ya registrada en Terceros",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "person": {
+            "default": null,
+            "description": "O los datos de una persona nueva",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "first_name": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 80,
+                    "description": "Nombres"
+                  },
+                  "last_name": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 80,
+                    "description": "Apellidos"
+                  },
+                  "email": {
+                    "default": null,
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 160,
+                        "format": "email",
+                        "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "phone": {
+                    "default": null,
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^\\+?[0-9 ]{7,20}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "first_name",
+                  "last_name"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "company_name": {
+            "default": null,
+            "description": "Empresa que dice representar, si la mencionó",
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 160
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "need": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 2000,
+            "description": "Necesidad"
+          },
+          "source": {
+            "type": "string",
+            "pattern": "^[A-Z0-9][A-Z0-9_-]{0,19}$",
+            "description": "Código del catálogo «Orígenes de los prospectos»"
+          },
+          "campaign_id": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "owner_id": {
+            "default": null,
+            "description": "Responsable; por defecto, quien registra",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "consent": {
+            "type": "object",
+            "properties": {
+              "notice_id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "description": "Versión publicada del texto de autorización que se mostró"
+              },
+              "accepted": {
+                "type": "boolean",
+                "const": true
+              },
+              "purposes": {
+                "minItems": 1,
+                "maxItems": 20,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[A-Z0-9][A-Z0-9_-]{0,19}$"
+                }
+              },
+              "channel": {
+                "type": "string",
+                "enum": [
+                  "written",
+                  "digital",
+                  "verbal",
+                  "contract"
+                ],
+                "description": "Documento firmado, formulario o correo, verbal con constancia, o cláusula del contrato"
+              },
+              "granted_on": {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                "description": "Fecha en que el titular autorizó"
+              },
+              "evidence_file_id": {
+                "default": null,
+                "description": "Soporte opcional: archivo ya revisado por el antivirus",
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "notice_id",
+              "accepted",
+              "purposes",
+              "channel",
+              "granted_on"
+            ],
+            "additionalProperties": false,
+            "description": "Autorización de tratamiento y finalidades"
+          }
+        },
+        "required": [
+          "need",
+          "source",
+          "consent"
+        ],
+        "additionalProperties": false
+      },
+      "CrmCreatedResponse_Output": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "CrmErrorResponse_Output": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "Código estable del error, por ejemplo QUOTE_EXPIRED"
+              },
+              "message": {
+                "type": "string",
+                "description": "Mensaje para la persona, en español"
+              },
+              "details": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field": {
+                      "type": "string",
+                      "description": "Campo con el problema, en notación de puntos"
+                    },
+                    "issue": {
+                      "type": "string",
+                      "description": "Código del problema, por ejemplo too_small o invalid_type"
+                    }
+                  },
+                  "required": [
+                    "field",
+                    "issue"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "correlation_id": {
+                "type": "string",
+                "description": "Identificador de la petición en los registros"
+              }
+            },
+            "required": [
+              "code",
+              "message",
+              "details",
+              "correlation_id"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "additionalProperties": false
+      },
+      "LeadDetailResponse_Output": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "code": {
+            "type": "string",
+            "description": "LEA-AAAA-NNNN"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "qualified",
+              "converted",
+              "discarded"
+            ],
+            "description": "Nuevo, calificado, convertido o descartado"
+          },
+          "person": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false
+          },
+          "email": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "phone": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "company_name": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "source": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "code",
+              "label"
+            ],
+            "additionalProperties": false
+          },
+          "campaign": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "owner": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "version": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "description": "Versión para If-Match"
+          },
+          "need": {
+            "type": "string"
+          },
+          "consent": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "granted_on": {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                "description": "Fecha de calendario AAAA-MM-DD"
+              },
+              "purposes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "id",
+              "granted_on",
+              "purposes"
+            ],
+            "additionalProperties": false
+          },
+          "discard_reason": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string"
+                  },
+                  "label": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "code",
+                  "label"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "discard_note": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "opportunity": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "code": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "code"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "qualified_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "closed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "status",
+          "person",
+          "email",
+          "phone",
+          "company_name",
+          "source",
+          "campaign",
+          "owner",
+          "created_at",
+          "version",
+          "need",
+          "consent",
+          "discard_reason",
+          "discard_note",
+          "opportunity",
+          "qualified_at",
+          "closed_at"
+        ],
+        "additionalProperties": false
+      },
+      "UpdateLeadRequest": {
+        "type": "object",
+        "properties": {
+          "company_name": {
+            "default": null,
+            "description": "Empresa que dice representar, si la mencionó",
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 160
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "need": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 2000,
+            "description": "Necesidad"
+          },
+          "source": {
+            "type": "string",
+            "pattern": "^[A-Z0-9][A-Z0-9_-]{0,19}$",
+            "description": "Código del catálogo «Orígenes de los prospectos»"
+          },
+          "campaign_id": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "owner_id": {
+            "default": null,
+            "description": "Responsable; por defecto, quien registra",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "need",
+          "source"
+        ],
+        "additionalProperties": false
+      },
+      "DiscardLeadRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "pattern": "^[A-Z0-9][A-Z0-9_-]{0,19}$",
+            "description": "Código del catálogo «Motivos de descarte»"
+          },
+          "note": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "ConvertLeadRequest": {
+        "type": "object",
+        "properties": {
+          "party_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "description": "Cliente de la oportunidad: la persona del prospecto u otra"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 200
+          },
+          "estimated_value": {
+            "type": "string",
+            "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+            "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+          },
+          "expected_close": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Fecha esperada de cierre"
+          },
+          "owner_id": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "party_id",
+          "title",
+          "estimated_value",
+          "expected_close"
+        ],
+        "additionalProperties": false
+      },
+      "OpportunityListResponse_Output": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "code": {
+                  "type": "string",
+                  "description": "OPO-AAAA-NNNN"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "party": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Cliente"
+                },
+                "stage": {
+                  "type": "string",
+                  "enum": [
+                    "prospecting",
+                    "diagnosis",
+                    "proposal",
+                    "negotiation",
+                    "won",
+                    "lost"
+                  ],
+                  "description": "Etapa del embudo"
+                },
+                "estimated_value": {
+                  "type": "string",
+                  "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                  "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+                },
+                "probability": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100,
+                  "description": "Probabilidad de ganarla, en %"
+                },
+                "weighted_value": {
+                  "type": "string",
+                  "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                  "description": "Valor por probabilidad"
+                },
+                "expected_close": {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                  "description": "Fecha de calendario AAAA-MM-DD"
+                },
+                "owner": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "lost_reason": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "label": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "closed_at": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "version": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "description": "Versión para If-Match"
+                }
+              },
+              "required": [
+                "id",
+                "code",
+                "title",
+                "party",
+                "stage",
+                "estimated_value",
+                "probability",
+                "weighted_value",
+                "expected_close",
+                "owner",
+                "lost_reason",
+                "closed_at",
+                "version"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "next_cursor"
+        ],
+        "additionalProperties": false
+      },
+      "CreateOpportunityRequest": {
+        "type": "object",
+        "properties": {
+          "party_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "description": "Cliente: persona u organización de Terceros"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 200
+          },
+          "estimated_value": {
+            "type": "string",
+            "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+            "description": "Valor estimado en pesos"
+          },
+          "expected_close": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Fecha esperada de cierre"
+          },
+          "owner_id": {
+            "default": null,
+            "description": "Responsable; por defecto, quien registra",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "stage": {
+            "default": "prospecting",
+            "type": "string",
+            "enum": [
+              "prospecting",
+              "diagnosis",
+              "proposal",
+              "negotiation"
+            ],
+            "description": "Etapa abierta del embudo"
+          },
+          "probability": {
+            "default": null,
+            "description": "Vacío: la de la etapa",
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Probabilidad de ganarla, en %"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "party_id",
+          "title",
+          "estimated_value",
+          "expected_close"
+        ],
+        "additionalProperties": false
+      },
+      "OpportunityDetailResponse_Output": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "code": {
+            "type": "string",
+            "description": "OPO-AAAA-NNNN"
+          },
+          "title": {
+            "type": "string"
+          },
+          "party": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false,
+            "description": "Cliente"
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "prospecting",
+              "diagnosis",
+              "proposal",
+              "negotiation",
+              "won",
+              "lost"
+            ],
+            "description": "Etapa del embudo"
+          },
+          "estimated_value": {
+            "type": "string",
+            "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+            "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+          },
+          "probability": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Probabilidad de ganarla, en %"
+          },
+          "weighted_value": {
+            "type": "string",
+            "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+            "description": "Valor por probabilidad"
+          },
+          "expected_close": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Fecha de calendario AAAA-MM-DD"
+          },
+          "owner": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lost_reason": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string"
+                  },
+                  "label": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "code",
+                  "label"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "closed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "description": "Versión para If-Match"
+          },
+          "lead": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "code": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "code"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lost_note": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "title",
+          "party",
+          "stage",
+          "estimated_value",
+          "probability",
+          "weighted_value",
+          "expected_close",
+          "owner",
+          "lost_reason",
+          "closed_at",
+          "version",
+          "lead",
+          "lost_note",
+          "created_at"
+        ],
+        "additionalProperties": false
+      },
+      "UpdateOpportunityRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 200
+          },
+          "estimated_value": {
+            "type": "string",
+            "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+            "description": "Valor estimado en pesos"
+          },
+          "expected_close": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Fecha esperada de cierre"
+          },
+          "owner_id": {
+            "default": null,
+            "description": "Responsable; por defecto, quien registra",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "probability": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Probabilidad de ganarla, en %"
+          }
+        },
+        "required": [
+          "title",
+          "estimated_value",
+          "expected_close",
+          "probability"
+        ],
+        "additionalProperties": false
+      },
+      "MoveOpportunityRequest": {
+        "type": "object",
+        "properties": {
+          "stage": {
+            "type": "string",
+            "enum": [
+              "prospecting",
+              "diagnosis",
+              "proposal",
+              "negotiation"
+            ],
+            "description": "Etapa abierta del embudo"
+          },
+          "probability": {
+            "default": null,
+            "description": "Vacío: la de la nueva etapa",
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Probabilidad de ganarla, en %"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "stage"
+        ],
+        "additionalProperties": false
+      },
+      "LoseOpportunityRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "pattern": "^[A-Z0-9][A-Z0-9_-]{0,19}$",
+            "description": "Código del catálogo «Motivos de pérdida»"
+          },
+          "note": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "CompleteActivityRequest": {
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 2000,
+            "description": "Resultado"
+          }
+        },
+        "required": [
+          "outcome"
+        ],
+        "additionalProperties": false
+      },
+      "CampaignListResponse_Output": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "channel": {
+                  "type": "string",
+                  "enum": [
+                    "email",
+                    "social",
+                    "event",
+                    "website",
+                    "ads",
+                    "other"
+                  ],
+                  "description": "Canal de la campaña"
+                },
+                "starts_on": {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                  "description": "Fecha de calendario AAAA-MM-DD"
+                },
+                "ends_on": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                      "description": "Fecha de calendario AAAA-MM-DD"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "budget": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                      "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "leads_count": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991,
+                  "description": "Prospectos que llegaron por ella"
+                },
+                "version": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "description": "Versión para If-Match"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "channel",
+                "starts_on",
+                "ends_on",
+                "budget",
+                "leads_count",
+                "version"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "CampaignRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 160
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "email",
+              "social",
+              "event",
+              "website",
+              "ads",
+              "other"
+            ],
+            "description": "Canal de la campaña"
+          },
+          "starts_on": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Primer día"
+          },
+          "ends_on": {
+            "default": null,
+            "description": "Último día; vacío si sigue",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                "description": "Fecha de calendario AAAA-MM-DD"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "budget": {
+            "default": null,
+            "description": "Presupuesto en pesos",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "channel",
+          "starts_on"
+        ],
+        "additionalProperties": false
+      },
+      "FunnelReportResponse_Output": {
+        "type": "object",
+        "properties": {
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "stage": {
+                  "type": "string",
+                  "enum": [
+                    "prospecting",
+                    "diagnosis",
+                    "proposal",
+                    "negotiation",
+                    "won",
+                    "lost"
+                  ],
+                  "description": "Etapa del embudo"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                  "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+                },
+                "weighted_value": {
+                  "type": "string",
+                  "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                  "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+                }
+              },
+              "required": [
+                "stage",
+                "label",
+                "count",
+                "value",
+                "weighted_value"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "totals": {
+            "type": "object",
+            "properties": {
+              "open_count": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "open_value": {
+                "type": "string",
+                "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+              },
+              "weighted_value": {
+                "type": "string",
+                "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                "description": "Suma del valor por probabilidad de las abiertas"
+              },
+              "won_count": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "won_value": {
+                "type": "string",
+                "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+              },
+              "lost_count": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "lost_value": {
+                "type": "string",
+                "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+              },
+              "win_rate": {
+                "description": "Ganadas sobre cerradas, en %; vacío sin cerradas",
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "leads_count": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "description": "Prospectos del periodo"
+              },
+              "converted_leads": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "lead_conversion_rate": {
+                "description": "Convertidos sobre prospectos, en %",
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "open_count",
+              "open_value",
+              "weighted_value",
+              "won_count",
+              "won_value",
+              "lost_count",
+              "lost_value",
+              "win_rate",
+              "leads_count",
+              "converted_leads",
+              "lead_conversion_rate"
+            ],
+            "additionalProperties": false
+          },
+          "lost_reasons": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                  "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+                }
+              },
+              "required": [
+                "code",
+                "label",
+                "count",
+                "value"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "created_on": {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                  "description": "Fecha de calendario AAAA-MM-DD"
+                },
+                "client": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "stage": {
+                  "type": "string",
+                  "enum": [
+                    "prospecting",
+                    "diagnosis",
+                    "proposal",
+                    "negotiation",
+                    "won",
+                    "lost"
+                  ],
+                  "description": "Etapa del embudo"
+                },
+                "estimated_value": {
+                  "type": "string",
+                  "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                  "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+                },
+                "probability": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "weighted_value": {
+                  "type": "string",
+                  "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                  "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+                },
+                "expected_close": {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                  "description": "Fecha de calendario AAAA-MM-DD"
+                },
+                "owner": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "open",
+                    "won",
+                    "lost"
+                  ],
+                  "description": "Estado"
+                },
+                "lost_reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "closed_on": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                      "description": "Fecha de calendario AAAA-MM-DD"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "code",
+                "created_on",
+                "client",
+                "title",
+                "stage",
+                "estimated_value",
+                "probability",
+                "weighted_value",
+                "expected_close",
+                "owner",
+                "status",
+                "lost_reason",
+                "closed_on"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "generated_at",
+          "stages",
+          "totals",
+          "lost_reasons",
+          "rows"
+        ],
+        "additionalProperties": false
+      },
+      "FunnelQuery": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "description": "Oportunidades creadas desde este día",
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          },
+          "to": {
+            "description": "Hasta este día, incluido",
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          },
+          "owner_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
         "additionalProperties": false
       }
     }

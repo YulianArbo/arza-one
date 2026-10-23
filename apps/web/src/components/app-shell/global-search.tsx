@@ -23,7 +23,7 @@ import { useEffect, useState, type JSX, type ReactNode } from 'react';
 
 import { documentPath } from '../../features/documents/labels';
 import { useDocumentSearch } from '../../features/documents/retention-queries';
-import { partyPath } from '../../features/parties/labels';
+import { identification, partyPath } from '../../features/parties/labels';
 import { queryString } from '../../features/parties/queries';
 import { usePermissions } from '../../features/session/permissions';
 import { useApiClient } from '../../lib/api/api-provider';
@@ -181,9 +181,7 @@ function PartyResults(props: {
       {(parties.data ?? []).map((party) => (
         <ResultLink key={party.id} href={partyPath(party.id)} onPick={props.onPick}>
           <span className="font-medium">{party.name}</span>
-          <span className="block text-xs text-muted-foreground">
-            {party.id_type} {party.id_number}
-          </span>
+          <span className="block text-xs text-muted-foreground">{identification(party)}</span>
         </ResultLink>
       ))}
     </Group>

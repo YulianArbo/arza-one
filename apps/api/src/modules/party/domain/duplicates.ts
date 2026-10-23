@@ -36,7 +36,7 @@ export interface DuplicateProbe {
 
 /** Lo que se compara de cada tercero registrado. */
 export interface PartyFingerprint {
-  readonly idNumber: string;
+  readonly idNumber: string | null;
   readonly name: string;
   readonly email: string | null;
   readonly phone: string | null;

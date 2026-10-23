@@ -21,6 +21,7 @@ import {
 } from '../../iam/support/iam-fixtures.js';
 import { giveRole, type AccessScenario, type Person } from '../../iam/support/access-scenario.js';
 import { CORE_CALLS } from './core-route-calls.js';
+import { CRM_ROUTE_CALLS } from './crm-route-calls.js';
 import { DOC_DOCUMENT_ROUTE_CALLS } from './doc-document-route-calls.js';
 import { DOC_FORM_ROUTE_CALLS } from './doc-form-route-calls.js';
 import { DOC_REQUEST_ROUTE_CALLS } from './doc-request-route-calls.js';
@@ -297,4 +298,5 @@ export const WRITE_ROUTE_CALLS: Readonly<Record<string, RouteCall>> = {
   ...WF_ROUTE_CALLS,
   ...NTF_ROUTE_CALLS,
   ...PRIVACY_ROUTE_CALLS,
+  ...CRM_ROUTE_CALLS,
 };

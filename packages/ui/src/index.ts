@@ -53,6 +53,7 @@ export { SimpleTable } from './components/simple-table.js';
 export { Textarea } from './components/textarea.js';
 export { FormField } from './fields/form-field.js';
 export { SelectField } from './fields/select-field.js';
+export { TextareaField } from './fields/textarea-field.js';
 export {
   Sheet,
   SheetClose,

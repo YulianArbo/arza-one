@@ -30,7 +30,7 @@ import { auditPrivacy, type PrivacyActor } from './privacy-support.js';
 // formularios públicos (B41) y los de talento humano.
 
 /** Formulario que tomó la autorización. */
-type ConsentSource = 'party_create' | 'party_consent';
+type ConsentSource = 'party_create' | 'party_consent' | 'crm_lead';
 
 export interface ConsentRequest {
   readonly partyId: string;

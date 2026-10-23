@@ -46,6 +46,19 @@ describe('tabla simple', () => {
     );
     expect(screen.getByRole('table', { name: 'Usuarios' })).toBeVisible();
     expect(screen.getByRole('columnheader', { name: 'Acciones' })).toBeInTheDocument();
+    expect(screen.queryByRole('region')).toBeNull();
+  });
+
+  it('con nombre de la zona, la tabla ancha se recorre con el teclado', () => {
+    render(
+      <SimpleTable headers={['Código']} scrollLabel="Registro de oportunidades">
+        <TableRow>
+          <TableCell>OPO-2026-0001</TableCell>
+        </TableRow>
+      </SimpleTable>,
+    );
+    const region = screen.getByRole('region', { name: 'Registro de oportunidades' });
+    expect(region).toHaveAttribute('tabindex', '0');
   });
 });
 

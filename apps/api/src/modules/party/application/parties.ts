@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import {
   canChangeStatus,
+  hasDocument,
   partyStatusSchema,
   type ChangePartyStatusRequest,
   type CreatePartyRequest,
@@ -21,12 +22,17 @@ import { actorOf, grantConsent } from '../../privacy/index.js';
 import {
   catalogValueInvalid,
   kindChange,
+  documentRequired,
   partyDuplicate,
   statusTransitionInvalid,
 } from './party-messages.js';
 import { ALL_PARTIES, auditParty, findParty, partyName, type PartyActor } from './party-support.js';
 
 type PartyData = UpdatePartyRequest;
+
+function documentOf(party: Party) {
+  return { id_type: party.idType, id_number: party.idNumber, check_digit: party.checkDigit };
+}
 
 /**
  * Columnas del tercero a partir del formulario; el contrato ya exige los datos de cada tipo. El
@@ -65,6 +71,7 @@ function auditOf(party: Party) {
 /** El tipo de documento sigue activo en su catálogo; si no cambió, no se revisa. */
 async function assertCatalogs(tx: TenantTransaction, input: PartyData, before: Party | null) {
   if (
+    input.id_type !== null &&
     input.id_type !== before?.idType &&
     !(await isActiveCatalogCode(tx, 'identification_types', input.id_type))
   ) {
@@ -74,6 +81,7 @@ async function assertCatalogs(tx: TenantTransaction, input: PartyData, before: P
 
 /** Tipo y número de documento únicos por empresa, contando los fusionados (ficha 17.3). */
 async function assertUniqueId(tx: TenantTransaction, input: PartyData, selfId: string | null) {
+  if (input.id_type === null || input.id_number === null) return;
   const taken = await tx.party.count({
     where: {
       idType: input.id_type,
@@ -156,6 +164,7 @@ export class PartiesUseCase {
     await this.database.withTenant(principal, async (tx) => {
       const before = await findParty(tx, ALL_PARTIES, target.id);
       if (before.kind !== input.kind) throw kindChange();
+      if (before.status !== 'prospect' && !hasDocument(input)) throw documentRequired();
       await assertCatalogs(tx, input, before);
       await assertUniqueId(tx, input, before.id);
       const { count } = await tx.party
@@ -184,6 +193,7 @@ export class PartiesUseCase {
       if (!canChangeStatus(partyStatusSchema.parse(party.status), input.status)) {
         throw statusTransitionInvalid();
       }
+      if (!hasDocument(documentOf(party))) throw documentRequired();
       const { count } = await tx.party.updateMany({
         where: { id: party.id, version: target.version },
         data: { status: input.status, statusReason: input.reason },

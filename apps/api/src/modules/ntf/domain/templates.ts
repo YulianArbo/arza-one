@@ -41,6 +41,12 @@ export const DEFAULT_TEMPLATES: Readonly<Record<NotificationKind, TemplateText>>
     body: 'La Solicitud de Acción Documental {{solicitud}} fue {{decision}}. Revise el detalle en ARZA ONE.',
     urgent: false,
   },
+  // B22: no es urgente, para respetar la desconexión laboral; fuera de la jornada llega al empezarla.
+  crm_activity_due: {
+    subject: 'Recordatorio: {{actividad}} ({{hora}})',
+    body: 'Tiene programada la actividad «{{actividad}}» de {{registro}} para el {{hora}} (hora de Colombia). Revísela en ARZA ONE › Comercial › Actividades.',
+    urgent: false,
+  },
 };
 
 /** Variables que el texto usa y que este tipo de aviso no ofrece. */

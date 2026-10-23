@@ -99,6 +99,44 @@ export const CATALOGS: readonly SeedCatalog[] = [
       ['RIT', 'Reglamento Interno de Trabajo'],
     ],
   },
+  {
+    key: 'crm_lead_sources',
+    name: 'Orígenes de los prospectos',
+    description: 'Por dónde llegó un prospecto al CRM (B22). Se usan en el informe del embudo.',
+    items: [
+      ['WEBSITE', 'Sitio web'],
+      ['REFERRAL', 'Referido'],
+      ['EVENT', 'Evento o feria'],
+      ['SOCIAL', 'Redes sociales'],
+      ['INBOUND_CALL', 'Llamada entrante'],
+      ['EMAIL', 'Correo'],
+      ['OTHER', 'Otro'],
+    ],
+  },
+  {
+    key: 'crm_lost_reasons',
+    name: 'Motivos de pérdida',
+    description: 'Por qué se perdió una oportunidad (ficha 17.6: perderla exige el motivo).',
+    items: [
+      ['PRICE', 'Precio'],
+      ['COMPETITOR', 'Eligió otro proveedor'],
+      ['NO_BUDGET', 'Sin presupuesto'],
+      ['NO_RESPONSE', 'Sin respuesta'],
+      ['CANCELLED', 'Proyecto cancelado'],
+      ['OTHER', 'Otro'],
+    ],
+  },
+  {
+    key: 'crm_discard_reasons',
+    name: 'Motivos de descarte',
+    description: 'Por qué se descartó un prospecto sin convertirlo en oportunidad (B22).',
+    items: [
+      ['NOT_TARGET', 'No es cliente objetivo'],
+      ['FALSE_DATA', 'Datos falsos'],
+      ['DUPLICATE', 'Duplicado'],
+      ['OTHER', 'Otro'],
+    ],
+  },
 ];
 
 /** Procesos del mapa de procesos, con el código que usan los módulos (capítulo 7.4). */

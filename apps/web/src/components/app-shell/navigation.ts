@@ -53,7 +53,6 @@ const MODULES: readonly NavigationItem[] = [
     label: 'Comercial',
     icon: BriefcaseBusiness,
     permissions: ['crm.lead.read', 'crm.opportunity.read'],
-    block: 'B22',
   },
   {
     slug: 'contratos',

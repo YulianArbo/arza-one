@@ -1,30 +1,10 @@
-// CSV del Listado Maestro (B19): se escribe en UTF-8 con BOM y separado por punto y coma, como lo
-// guarda y lo abre Excel con la configuración de Colombia; se lee separado por punto y coma o por
-// comas, con comillas dobles para los textos que llevan el separador.
+// CSV del Listado Maestro (B19): se escribe con el formato común de la plataforma (UTF-8 con BOM y
+// punto y coma, para Excel en Colombia); se lee separado por punto y coma o por comas, con comillas
+// dobles para los textos que llevan el separador.
 
-export type CsvCell = string | null;
+import { CSV_BOM } from '../../../platform/export/csv.js';
 
-const BOM = '﻿';
-const SEPARATOR = ';';
-
-/**
- * Una celda que empieza por =, +, -, @, tabulador o retorno se tomaría como fórmula al abrir el
- * archivo (inyección de fórmulas); se antepone un apóstrofo para que quede como texto.
- */
-function neutralized(value: string): string {
-  return /^[=+\-@\t\r]/u.test(value) ? `'${value}` : value;
-}
-
-function cell(value: CsvCell): string {
-  if (value === null) return '';
-  const text = neutralized(value);
-  return /[";\r\n,]/u.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
-}
-
-export function toCsv(header: readonly string[], rows: readonly (readonly CsvCell[])[]): string {
-  const lines = [header, ...rows].map((row) => row.map(cell).join(SEPARATOR));
-  return `${BOM}${lines.join('\r\n')}\r\n`;
-}
+export { toCsv } from '../../../platform/export/csv.js';
 
 /** El separador del archivo: el que aparece en la primera línea fuera de comillas. */
 function separatorOf(text: string): string {
@@ -69,7 +49,7 @@ function readChar(state: Reading, text: string, index: number, separator: string
 
 /** Filas del archivo, sin las vacías. Acepta el BOM de Excel y los finales de línea de Windows. */
 export function parseCsv(input: string): string[][] {
-  const text = input.startsWith(BOM) ? input.slice(1) : input;
+  const text = input.startsWith(CSV_BOM) ? input.slice(1) : input;
   const separator = separatorOf(text);
   const state: Reading = { rows: [], row: [], value: '', quoted: false };
   let index = 0;
