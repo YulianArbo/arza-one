@@ -46,12 +46,15 @@
   --invert-foreground: light-dark(#f7f8f8, #0a0b0d);
   --invert-muted: light-dark(#a9b0bb, #4a5568);
 
-  /* Semánticos: siempre acompañados de texto o icono, nunca solo color. */
-  --success: light-dark(#15803d, #4cc46b);
-  --warning: light-dark(#b45309, #f5b54a);
-  --destructive: light-dark(#b91c1c, #ff8080);
+  /*
+   * Semánticos: siempre acompañados de texto o icono, nunca solo color. En claro van un tono más
+   * oscuros para mantener 4,5:1 también sobre su propio fondo tenue (etiquetas de estado).
+   */
+  --success: light-dark(#166534, #4cc46b);
+  --warning: light-dark(#92400e, #f5b54a);
+  --destructive: light-dark(#991b1b, #ff8080);
   --destructive-foreground: light-dark(#ffffff, #08090a);
-  --info: light-dark(#005afe, #7fb2ff);
+  --info: light-dark(#0047cc, #7fb2ff);
 
   /* Menú lateral: siempre en el color de marca oscuro. */
   --sidebar: #0d1b2a;
@@ -158,6 +161,41 @@
   from {
     opacity: 0;
     transform: translateY(8px);
+  }
+}
+
+/* Gráficas: la línea se dibuja (con pathLength="1"), las barras crecen y los rellenos avanzan. */
+@utility animate-draw {
+  stroke-dasharray: 1;
+  animation: arza-draw 1.2s ease backwards;
+}
+
+@utility animate-grow {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  animation: arza-grow 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+
+@utility animate-fill {
+  transform-origin: left;
+  animation: arza-fill 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+
+@keyframes arza-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+@keyframes arza-grow {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes arza-fill {
+  from {
+    transform: scaleX(0);
   }
 }
 

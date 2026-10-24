@@ -7,6 +7,7 @@ import {
   FeedbackSection,
   FormSection,
 } from '../../../../features/design-system/component-sections';
+import { ChartSection } from '../../../../features/design-system/chart-sections';
 import { StateSection } from '../../../../features/design-system/state-section';
 import { ColorSection, TypographySection } from '../../../../features/design-system/token-sections';
 
@@ -18,7 +19,7 @@ export default function DesignSystemPage(): JSX.Element {
     <>
       <PageHeader
         title="Sistema de diseño"
-        description="Colores, tipografías, componentes y estados de pantalla de ARZA ONE."
+        description="Colores, tipografías, componentes, estados y gráficas de ARZA ONE."
       />
       <ColorSection />
       <TypographySection />
@@ -26,6 +27,7 @@ export default function DesignSystemPage(): JSX.Element {
       <FeedbackSection />
       <FormSection />
       <StateSection />
+      <ChartSection />
     </>
   );
 }
