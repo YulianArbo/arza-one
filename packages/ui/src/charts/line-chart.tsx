@@ -67,10 +67,10 @@ function Plot({ title, labels, lines, format }: PlotProps): JSX.Element {
   const [hover, setHover] = useState<number | null>(null);
   const max = niceMax(lines.flatMap((line) => line.values));
   return (
-    <div className="relative">
+    <div className="relative mx-auto w-full max-w-2xl">
       <svg
         viewBox="0 0 640 228"
-        className="w-full overflow-visible"
+        className="h-auto w-full overflow-visible"
         role="img"
         aria-label={title}
         onMouseLeave={() => {

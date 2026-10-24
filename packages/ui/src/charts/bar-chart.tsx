@@ -65,7 +65,8 @@ export function BarChart({ title, items, format = String }: BarChartProps): JSX.
     <div className="flex flex-col gap-3">
       <svg
         viewBox={`0 0 ${String(width)} 180`}
-        className="group/bars w-full"
+        className="group/bars mx-auto h-auto w-full"
+        style={{ maxWidth: width * 1.15 }}
         role="img"
         aria-label={title}
       >

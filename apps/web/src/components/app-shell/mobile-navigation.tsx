@@ -17,9 +17,9 @@ export function MobileNavigation({ permissions }: { permissions: readonly string
           <Menu aria-hidden="true" />
         </Button>
       </SheetTrigger>
-      <SheetContent className="gap-6 overflow-y-auto bg-sidebar px-3 py-5 text-sidebar-foreground">
-        <SheetTitle className="px-3 text-sidebar-foreground">
-          <BrandLogo onDark className="h-8 w-auto" />
+      <SheetContent className="gap-6 overflow-y-auto bg-card px-3 py-5 text-foreground">
+        <SheetTitle className="px-3 text-foreground">
+          <BrandLogo className="h-7 w-auto" />
         </SheetTitle>
         <SheetDescription className="sr-only">Módulos de la plataforma</SheetDescription>
         <nav aria-label="Menú principal">
