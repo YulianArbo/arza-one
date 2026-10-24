@@ -17,12 +17,12 @@ export default function PortalLayout({ children }: { children: ReactNode }): JSX
     <RequireSession kind="portal">
       <div className="flex min-h-dvh flex-col">
         <header className="border-b bg-card">
-          <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-4 py-3">
+          <div className="mx-auto flex w-full max-w-4xl flex-wrap items-center justify-between gap-2 px-4 py-3">
             <p className="flex items-center gap-2 font-heading text-lg font-semibold text-primary">
               <BrandLogo className="h-7 w-auto text-foreground" />
               Clientes
             </p>
-            <div className="flex items-center gap-1">
+            <div className="ml-auto flex items-center gap-1">
               <ThemeMenu />
               <UserMenu />
             </div>

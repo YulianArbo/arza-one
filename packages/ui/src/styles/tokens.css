@@ -16,30 +16,41 @@
   --brand-navy: #0d1b2a;
   --brand-accent: #7fb2ff;
 
-  --background: light-dark(#f5f7fb, #0a1420);
-  --foreground: light-dark(#0d1b2a, #e6edf7);
-  --card: light-dark(#ffffff, #12243a);
-  --card-foreground: light-dark(#0d1b2a, #e6edf7);
-  --popover: light-dark(#ffffff, #12243a);
-  --popover-foreground: light-dark(#0d1b2a, #e6edf7);
+  /* B22A: superficies neutras (casi negro y casi blanco) con el azul de la marca como acento. */
+  --background: light-dark(#f7f8fa, #08090a);
+  --foreground: light-dark(#0a0b0d, #f7f8f8);
+  --card: light-dark(#ffffff, #0f1011);
+  --card-foreground: light-dark(#0a0b0d, #f7f8f8);
+  --popover: light-dark(#ffffff, #141518);
+  --popover-foreground: light-dark(#0a0b0d, #f7f8f8);
+  /* Enlaces, elemento activo y acentos: en oscuro, azul claro para conservar el contraste. */
   --primary: light-dark(#005afe, #7fb2ff);
-  --primary-foreground: light-dark(#ffffff, #0d1b2a);
+  --primary-foreground: light-dark(#ffffff, #08090a);
   --primary-hover: light-dark(#0047cc, #a6c9ff);
-  --secondary: light-dark(#e8eef8, #1c3350);
-  --secondary-foreground: light-dark(#0d1b2a, #e6edf7);
-  --muted: light-dark(#eef2f8, #172b44);
-  --muted-foreground: light-dark(#4a5568, #a9b8cc);
-  --accent: light-dark(#e3eeff, #1c3350);
-  --accent-foreground: light-dark(#0d1b2a, #e6edf7);
-  --border: light-dark(#d5dce6, #2a4263);
-  --input: light-dark(#8592a6, #5b7394);
+  /* Acción principal (botón): el azul de la marca con texto blanco en los dos modos. */
+  --action: #005afe;
+  --action-foreground: #ffffff;
+  --action-hover: light-dark(#0047cc, #2f7bff);
+  --secondary: light-dark(#f1f3f6, #16171a);
+  --secondary-foreground: light-dark(#0a0b0d, #f7f8f8);
+  --muted: light-dark(#f1f3f6, #16171a);
+  --muted-foreground: light-dark(#596170, #8a8f98);
+  --accent: light-dark(#eef0f3, #1a1b1e);
+  --accent-foreground: light-dark(#0a0b0d, #f7f8f8);
+  --border: light-dark(#e5e7eb, #1f2124);
+  --input: light-dark(#8a919c, #62666d);
   --ring: light-dark(#005afe, #7fb2ff);
 
+  /* Al pasar el cursor por módulos y tarjetas el color se invierte (B22A). */
+  --invert: light-dark(#0b0c0e, #f2f4f7);
+  --invert-foreground: light-dark(#f7f8f8, #0a0b0d);
+  --invert-muted: light-dark(#a9b0bb, #4a5568);
+
   /* Semánticos: siempre acompañados de texto o icono, nunca solo color. */
-  --success: light-dark(#15803d, #4ade80);
-  --warning: light-dark(#b45309, #fbbf24);
-  --destructive: light-dark(#b91c1c, #f87171);
-  --destructive-foreground: light-dark(#ffffff, #0d1b2a);
+  --success: light-dark(#15803d, #4cc46b);
+  --warning: light-dark(#b45309, #f5b54a);
+  --destructive: light-dark(#b91c1c, #ff8080);
+  --destructive-foreground: light-dark(#ffffff, #08090a);
   --info: light-dark(#005afe, #7fb2ff);
 
   /* Menú lateral: siempre en el color de marca oscuro. */
@@ -75,6 +86,11 @@
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-hover: var(--primary-hover);
+  --color-action: var(--action);
+  --color-action-foreground: var(--action-foreground);
+  --color-action-hover: var(--action-hover);
+  --color-invert: var(--invert);
+  --color-invert-foreground: var(--invert-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -94,9 +110,11 @@
   --color-sidebar-active: var(--sidebar-active);
   --color-sidebar-hover: var(--sidebar-hover);
 
-  /* Tipografías autoalojadas: Montserrat 600 y 700 para títulos, Inter 400 y 500 para texto. */
+  /* Tipografía autoalojada: solo Inter (B22A). Los títulos usan 600; nada más grueso. */
   --font-sans: 'Inter', system-ui, sans-serif;
-  --font-heading: 'Montserrat', 'Inter', system-ui, sans-serif;
+  --font-heading: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  --font-weight-bold: 600;
 
   /*
    * Radio de 8 px y una sola sombra suave. El espaciado de Tailwind ya es de 4 px por paso.
@@ -108,8 +126,39 @@
   --radius-lg: 0.5rem;
   --radius-xl: 0.75rem;
   --shadow-*: initial;
-  --shadow-sm: 0 1px 3px 0 rgb(13 27 42 / 0.08), 0 1px 2px -1px rgb(13 27 42 / 0.08);
-  --shadow-md: 0 4px 12px -2px rgb(13 27 42 / 0.12);
+  --shadow-sm: 0 1px 3px 0 rgb(10 11 13 / 0.08), 0 1px 2px -1px rgb(10 11 13 / 0.08);
+  --shadow-md: 0 4px 12px -2px rgb(10 11 13 / 0.14);
+  --shadow-lg: 0 20px 50px -20px rgb(10 11 13 / 0.35);
+}
+
+/* Módulos y tarjetas: al pasar el cursor el color se invierte (claro sobre oscuro y al revés). */
+@utility hover-invert {
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+
+  &:hover {
+    background-color: var(--invert);
+    border-color: var(--invert);
+    color: var(--invert-foreground);
+  }
+
+  &:hover .text-muted-foreground {
+    color: var(--invert-muted);
+  }
+}
+
+/* Entrada breve. Se anima desde oculto, así el contenido queda visible si no hay animación. */
+@utility animate-enter {
+  animation: arza-enter 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+
+@keyframes arza-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
 }
 
 @layer base {
@@ -138,5 +187,25 @@
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
+  }
+
+  /* Sin movimiento cuando la persona lo pide, ni al imprimir o exportar a PDF. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  @media print {
+    *,
+    *::before,
+    *::after {
+      animation: none !important;
+      transition: none !important;
+    }
   }
 }

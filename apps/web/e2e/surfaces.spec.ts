@@ -25,13 +25,17 @@ test.describe('superficies en celular', () => {
     });
   }
 
-  test('el botón de apariencia se ve sobre la barra oscura en modo claro', async ({ page }) => {
+  test('el selector de apariencia se ve y marca el modo claro', async ({ page }) => {
     await useTheme(page, 'light');
     await mockSession(page, 'none');
     await page.goto('/iniciar-sesion');
-    const button = page.getByRole('button', { name: /^Apariencia/ });
-    // El color del texto de la barra de marca (#e6edf7), no el azul oscuro de su fondo.
-    await expect(button).toHaveCSS('color', 'rgb(230, 237, 247)');
+    const selector = page.getByRole('group', { name: 'Apariencia' });
+    // Fondo de tarjeta (#ffffff) sobre la barra, con la opción elegida resaltada.
+    await expect(selector).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+    await expect(selector.getByRole('button', { name: 'Claro' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   });
 });
 

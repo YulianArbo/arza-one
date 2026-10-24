@@ -4,7 +4,6 @@ import type { JSX, ReactNode } from 'react';
 
 import { BrandLogo } from '../../components/brand-logo';
 import { ThemeMenu } from '../../components/theme-menu';
-import { ON_BRAND } from '../../lib/theme/theme';
 
 // Pantallas de acceso (16.7): nunca indexables (15.6).
 export const metadata: Metadata = {
@@ -33,7 +32,7 @@ export default function AccessLayout({ children }: { children: ReactNode }): JSX
           <Link href="/" className="text-sidebar-foreground lg:hidden">
             <BrandLogo onDark className="h-7 w-auto" />
           </Link>
-          <ThemeMenu className={`${ON_BRAND} lg:text-foreground lg:hover:bg-accent`} />
+          <ThemeMenu />
         </header>
         <main
           id="contenido"

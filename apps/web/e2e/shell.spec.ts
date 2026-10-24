@@ -13,15 +13,18 @@ test('Ctrl K abre la búsqueda global desde cualquier pantalla', async ({ page }
   await expect(search).toBeHidden();
 });
 
-test('el modo oscuro se elige en el menú y se recuerda al volver', async ({ page }) => {
+test('el modo oscuro se elige en el selector y se recuerda al volver', async ({ page }) => {
   await page.goto('/app');
-  await page.getByRole('button', { name: /^Apariencia/ }).click();
-  await page.getByRole('menuitemradio', { name: 'Oscuro' }).click();
+  const selector = page.getByRole('group', { name: 'Apariencia' });
+  await selector.getByRole('button', { name: 'Oscuro' }).click();
   await expect(page.locator('html')).toHaveClass('dark');
 
   await page.reload();
   await expect(page.locator('html')).toHaveClass('dark');
-  await expect(page.getByRole('button', { name: 'Apariencia: Oscuro' })).toBeVisible();
+  await expect(selector.getByRole('button', { name: 'Oscuro' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
 });
 
 test('sin preferencia guardada sigue el modo del sistema operativo', async ({ page }) => {
@@ -29,7 +32,7 @@ test('sin preferencia guardada sigue el modo del sistema operativo', async ({ pa
   await page.goto('/app');
   await expect(page.locator('html')).not.toHaveClass(/light|dark/);
   const background = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  expect(background).toBe('rgb(10, 20, 32)');
+  expect(background).toBe('rgb(8, 9, 10)');
 });
 
 test('una dirección inexistente del sitio responde 404 con una página clara', async ({ page }) => {
