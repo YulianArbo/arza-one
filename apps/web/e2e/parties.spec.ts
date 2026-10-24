@@ -173,9 +173,11 @@ test.describe('registro de un tercero', () => {
     await page.getByLabel('Número de documento').fill('800197268');
     await page.getByLabel('Dígito de verificación').fill('5');
     await page.getByRole('button', { name: 'Guardar' }).click();
-    await expect(
-      page.getByText('El dígito de verificación no corresponde a ese NIT'),
-    ).toBeVisible();
+    // Junto al campo y en el resumen de errores, que lleva hasta él.
+    await expect(page.getByText('El dígito de verificación no corresponde a ese NIT')).toHaveCount(
+      2,
+    );
+    await expect(page.getByRole('link', { name: /^Dígito de verificación:/ })).toBeVisible();
   });
 });
 
@@ -191,7 +193,14 @@ test.describe('registro de una persona', () => {
     await expect(page.getByLabel(/La persona autorizó el tratamiento/)).not.toBeChecked();
     expect(await accessibilityViolations(page)).toEqual([]);
     await page.getByRole('button', { name: 'Guardar' }).click();
-    await expect(page.getByText('Marque la casilla de autorización para continuar.')).toBeVisible();
+    // Junto a la casilla y en el resumen de errores, que lleva hasta ella.
+    await expect(page.getByText('Marque la casilla de autorización para continuar.')).toHaveCount(
+      2,
+    );
+    await expect(page.getByRole('link', { name: /^Autorización:/ })).toHaveAttribute(
+      'href',
+      '#tercero-autorizacion-acepta',
+    );
   });
 });
 

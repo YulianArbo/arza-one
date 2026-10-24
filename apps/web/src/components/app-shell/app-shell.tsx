@@ -17,7 +17,7 @@ export function AppShell({ children }: { children: ReactNode }): JSX.Element {
     <div className="flex min-h-dvh flex-col text-sm">
       <a
         href="#contenido"
-        className="sr-only z-50 rounded-md bg-primary px-3 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
+        className="sr-only z-50 rounded-md bg-action px-3 py-2 text-action-foreground focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
       >
         Saltar al contenido
       </a>

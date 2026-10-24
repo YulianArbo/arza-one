@@ -12,6 +12,7 @@ import { useState, type JSX, type SubmitEvent } from 'react';
 
 import { useApiClient } from '../../lib/api/api-provider';
 import { formatDate } from '../../lib/format/date-time';
+import { FormSummary } from '../../components/form-summary';
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { QueryState } from '../administration/query-state';
@@ -128,6 +129,7 @@ function CampaignForm(props: {
   return (
     <form noValidate onSubmit={form.submit} className="flex flex-col gap-4">
       {form.save.error === null ? null : <FormError error={form.save.error} />}
+      <FormSummary problems={form.problems} fields={[...NAME_FIELD, ...DETAIL_FIELDS]} />
       <TextFields specs={NAME_FIELD} {...fields} />
       <SelectField
         id="campana-canal"

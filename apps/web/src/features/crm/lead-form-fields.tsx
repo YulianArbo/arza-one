@@ -4,6 +4,7 @@ import { Alert, AlertDescription, AlertTitle, Button, SelectField, TextareaField
 import { Users } from 'lucide-react';
 import type { JSX } from 'react';
 
+import type { SummaryField } from '../../components/form-summary';
 import { useCatalog } from '../organization/queries';
 import { TextInput } from '../organization/record-dialog';
 import { useDuplicates } from '../parties/queries';
@@ -104,6 +105,14 @@ const PERSON_FIELDS = [
   ['email', 'email', 'prospecto-correo', 'Correo', 'email'],
   ['phone', 'phone', 'prospecto-telefono', 'Teléfono', 'tel'],
 ] as const;
+
+/** Campos del prospecto en el orden del formulario, para el resumen de errores. */
+export const LEAD_SUMMARY_FIELDS: readonly SummaryField[] = [
+  ...PERSON_FIELDS.map(([, field, id, label]) => ({ field, id, label })),
+  { field: 'source', id: 'prospecto-origen', label: 'Origen' },
+  { field: 'company_name', id: 'prospecto-empresa', label: 'Empresa' },
+  { field: 'need', id: 'prospecto-necesidad', label: '¿Qué necesita?' },
+];
 
 export function PersonFields(props: FieldsProps & { readonly onProbe: () => void }): JSX.Element {
   const { values, errors, onChange } = props;

@@ -11,6 +11,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
+import { FormSummary } from '../../components/form-summary';
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { useCatalog, useOrgUnits } from '../organization/queries';
@@ -36,6 +37,14 @@ interface FieldsProps {
   readonly errors: Readonly<Record<string, string>>;
   readonly onChange: (values: RequestValues) => void;
 }
+
+const SUMMARY_FIELDS = [
+  { field: 'doc_type', id: 'solicitud-tipo', label: 'Tipo de documento' },
+  { field: 'process_id', id: 'solicitud-proceso', label: 'Proceso' },
+  { field: 'title', id: 'solicitud-nombre', label: 'Nombre del documento' },
+  { field: 'document_id', id: 'solicitud-documento', label: 'Documento vigente' },
+  { field: 'justification', id: 'solicitud-justificacion', label: 'Justificación' },
+];
 
 const ACTION_OPTIONS = Object.entries(CHANGE_REQUEST_ACTIONS).map(([value, label]) => ({
   value,
@@ -210,6 +219,7 @@ export function ChangeRequestForm(props: {
       aria-label="Nueva solicitud de acción documental"
     >
       {save.error === null ? null : <FormError error={save.error} />}
+      <FormSummary problems={errors} fields={SUMMARY_FIELDS} />
       <SelectField
         id="solicitud-accion"
         label="Qué pide"

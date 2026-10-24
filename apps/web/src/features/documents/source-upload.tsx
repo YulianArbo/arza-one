@@ -33,6 +33,8 @@ interface SourceUploadProps {
   readonly error?: string | undefined;
   /** Etiqueta del campo; por defecto, «Archivo fuente». */
   readonly label?: string;
+  /** Identificador del campo, para que el resumen de errores lleve hasta él. */
+  readonly id?: string;
 }
 
 function UploadedStatus({ fileId }: { readonly fileId: string }): JSX.Element {
@@ -117,23 +119,28 @@ function UploadMessages({
   );
 }
 
+function CurrentFile({ current }: Pick<SourceUploadProps, 'current'>): JSX.Element | null {
+  if (current === null) return null;
+  return (
+    <p className="text-sm">Archivo actual: {current.fileName}. Para reemplazarlo, elija otro.</p>
+  );
+}
+
 export function SourceUpload({
   current,
   onChange,
   error,
   label = 'Archivo fuente',
+  id,
 }: SourceUploadProps): JSX.Element {
-  const inputId = useId();
+  const generatedId = useId();
+  const inputId = id ?? generatedId;
   const state = useSourceUpload(onChange);
   const errorId = error === undefined ? '' : ` ${inputId}-error`;
   return (
     <div className="flex flex-col gap-2 rounded-lg border border-dashed border-border p-4">
       <Label htmlFor={inputId}>{label}</Label>
-      {current === null || state.uploadedId !== null ? null : (
-        <p className="text-sm">
-          Archivo actual: {current.fileName}. Para reemplazarlo, elija otro.
-        </p>
-      )}
+      {state.uploadedId === null ? <CurrentFile current={current} /> : null}
       <input
         id={inputId}
         type="file"

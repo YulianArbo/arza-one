@@ -7,14 +7,15 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
+import { FormSummary } from '../../components/form-summary';
 import { useApiClient } from '../../lib/api/api-provider';
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { useAdminAction } from '../administration/admin-action';
 import { DUPLICATE_REASON_LABELS, KIND_LABELS, identification, partyPath } from './labels';
-import { ConsentFields } from '../privacy/consent-fields';
+import { ConsentFields, consentSummaryFields } from '../privacy/consent-fields';
 import type { ConsentErrors } from '../privacy/consent-values';
-import { PartyFields, RoleChoices } from './party-form-fields';
+import { PARTY_SUMMARY_FIELDS, PartyFields, RoleChoices } from './party-form-fields';
 import {
   EMPTY_PARTY,
   createBody,
@@ -29,6 +30,8 @@ import {
 import { PARTY_KEYS, useAuthorizationNotices, useDuplicates } from './queries';
 
 const REASON = 'Los datos de terceros quedan en la auditoría.';
+const CONSENT_PREFIX = 'tercero-autorizacion';
+const SUMMARY_FIELDS = [...PARTY_SUMMARY_FIELDS, ...consentSummaryFields(CONSENT_PREFIX)];
 
 /** Posibles duplicados de lo que se está escribiendo, con un enlace para abrirlos (ficha 17.3). */
 function DuplicateWarning({ query }: { readonly query: string }): JSX.Element | null {
@@ -172,7 +175,7 @@ function NewPersonConsent(props: {
   }
   return (
     <ConsentFields
-      idPrefix="tercero-autorizacion"
+      idPrefix={CONSENT_PREFIX}
       notices={notices.data.data}
       values={props.values.consent}
       errors={props.errors}
@@ -217,11 +220,7 @@ export function PartyForm(props: PartyFormProps): JSX.Element {
   return (
     <form noValidate onSubmit={form.submit} className="flex flex-col gap-4">
       {form.save.error === null ? null : <FormError error={form.save.error} />}
-      {Object.keys(form.errors).length + Object.keys(form.consentProblems).length > 0 ? (
-        <p role="alert" className="text-sm font-medium text-destructive">
-          Revise los datos marcados antes de guardar.
-        </p>
-      ) : null}
+      <FormSummary problems={{ ...form.errors, ...form.consentProblems }} fields={SUMMARY_FIELDS} />
       {creating ? <KindChoice values={form.values} onChange={form.setValues} /> : null}
       <PartyFields
         values={form.values}

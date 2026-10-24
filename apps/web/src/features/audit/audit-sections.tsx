@@ -25,7 +25,7 @@ export function AuditSections(): JSX.Element {
   const permissions = usePermissions();
   return (
     <nav aria-label="Secciones de la auditoría">
-      <ul className="flex flex-wrap gap-2">
+      <ul className="flex flex-wrap gap-1 border-b">
         {SECTIONS.filter((section) => permissions.can(section.permission)).map((section) => {
           const current = pathname === section.href;
           return (
@@ -34,8 +34,10 @@ export function AuditSections(): JSX.Element {
                 href={section.href}
                 aria-current={current ? 'page' : undefined}
                 className={cn(
-                  'inline-flex rounded-md border px-3 py-1.5 text-sm transition-colors hover:border-primary',
-                  current ? 'border-primary bg-primary text-primary-foreground' : 'border-border',
+                  '-mb-px inline-flex border-b-2 px-3 py-2 text-sm font-medium',
+                  current
+                    ? 'border-primary text-foreground'
+                    : 'border-transparent text-muted-foreground hover:text-foreground',
                 )}
               >
                 {section.label}
