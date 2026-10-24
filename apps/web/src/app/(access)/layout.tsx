@@ -44,11 +44,11 @@ export default function AccessLayout({ children }: { children: ReactNode }): JSX
         <footer className="flex justify-between gap-3 px-4 py-4 text-xs text-muted-foreground sm:px-8">
           <span>ARZA ONE · ARZA TECH S.A.S.</span>
           <span>
-            <Link href="/" className="hover:text-foreground">
+            <Link href="/legal/terminos" className="hover:text-foreground">
               Términos
             </Link>{' '}
             ·{' '}
-            <Link href="/" className="hover:text-foreground">
+            <Link href="/legal/privacidad" className="hover:text-foreground">
               Privacidad
             </Link>
           </span>

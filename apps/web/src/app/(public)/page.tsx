@@ -1,32 +1,37 @@
-import { Button } from '@arza/ui';
-import Link from 'next/link';
 import type { JSX } from 'react';
 
-import { BrandLogo } from '../../components/brand-logo';
-import { ThemeMenu } from '../../components/theme-menu';
+import { PlatformShowcase } from '../../features/site/platform-showcase';
+import {
+  AccessBand,
+  ContactSection,
+  DeskSection,
+  QuoteSection,
+} from '../../features/site/service-sections';
+import { Hero, ServicesSection, SoonSection } from '../../features/site/site-sections';
 
-/** Inicio del sitio público. Su contenido institucional se construye en B41. */
+/** Inicio de la vitrina (B22A, boceto final). Lo que depende de otros bloques dice «Disponible pronto». */
 export default function PublicHomePage(): JSX.Element {
   return (
-    <div className="flex min-h-dvh flex-col">
-      <header className="flex items-center justify-between bg-sidebar px-4 py-3 sm:px-8">
-        <BrandLogo onDark className="h-7 w-auto text-sidebar-foreground" />
-        <ThemeMenu />
-      </header>
-      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center gap-6 px-4 py-12">
-        <h1 className="font-heading text-3xl font-bold sm:text-4xl">ARZA TECH S.A.S.</h1>
-        <p className="text-lg text-muted-foreground">
-          Este es el sitio público de ARZA ONE. Su contenido se publicará más adelante.
-        </p>
-        <div className="flex flex-wrap gap-3">
-          <Button asChild size="lg">
-            <Link href="/app">Entrar a la aplicación</Link>
-          </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link href="/portal">Portal del cliente</Link>
-          </Button>
-        </div>
-      </main>
-    </div>
+    <>
+      <Hero />
+      <ServicesSection />
+      <PlatformShowcase />
+      <SoonSection
+        id="proyectos"
+        eyebrow="03 — Proyectos"
+        title="Resultados que hablan por nosotros"
+        text="Aquí publicaremos los proyectos que nuestros clientes nos autoricen mostrar."
+      />
+      <SoonSection
+        id="noticias"
+        eyebrow="04 — Noticias y publicaciones"
+        title="Lo nuevo en ARZA TECH"
+        text="Aquí encontrará novedades, eventos, ofertas y publicaciones."
+      />
+      <QuoteSection />
+      <DeskSection />
+      <ContactSection />
+      <AccessBand />
+    </>
   );
 }
