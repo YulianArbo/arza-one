@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import type { JSX, ReactNode } from 'react';
 
 import { UserMenu } from '../../../components/app-shell/top-bar-menus';
+import { BrandLogo } from '../../../components/brand-logo';
 import { ThemeMenu } from '../../../components/theme-menu';
 import { RequireSession } from '../../../features/session/session-provider';
 
@@ -17,8 +18,9 @@ export default function PortalLayout({ children }: { children: ReactNode }): JSX
       <div className="flex min-h-dvh flex-col">
         <header className="border-b bg-card">
           <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-4 py-3">
-            <p className="font-heading text-lg font-bold">
-              ARZA ONE <span className="font-semibold text-primary">Clientes</span>
+            <p className="flex items-center gap-2 font-heading text-lg font-semibold text-primary">
+              <BrandLogo className="h-7 w-auto text-foreground" />
+              Clientes
             </p>
             <div className="flex items-center gap-1">
               <ThemeMenu />
