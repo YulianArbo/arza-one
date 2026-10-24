@@ -44,7 +44,7 @@ test('en escritorio el acceso muestra el panel de la marca junto al formulario',
 }) => {
   await mockSession(page, 'none');
   await page.goto('/iniciar-sesion');
-  await expect(page.getByText('Su trabajo diario, en un solo lugar.')).toBeVisible();
+  await expect(page.getByText(/^Mensaje del día/)).toBeVisible();
   await expect(page.getByRole('link', { name: 'ARZA ONE' })).toHaveCount(1);
   await expect(page.getByRole('button', { name: 'Iniciar sesión' })).toBeVisible();
 });

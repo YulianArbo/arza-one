@@ -3,7 +3,7 @@
 import { sessionResponseSchema, type LoginRequest } from '@arza/contracts';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, type SubmitEvent, type JSX } from 'react';
+import { useState, type JSX, type ReactNode, type SubmitEvent } from 'react';
 
 import { useApiClient } from '../../lib/api/api-provider';
 import {
@@ -14,6 +14,7 @@ import {
 } from '../session/access-routes';
 import { SESSION_QUERY_KEY } from '../session/session-provider';
 import { AccessCard } from './access-card';
+import { AUDIENCE_DESCRIPTIONS, AudienceSwitch, type Audience } from './audience-switch';
 import { AccessLink } from './access-links';
 import { EmailField } from './email-field';
 import { FormError, FormSuccess } from './form-alert';
@@ -44,7 +45,16 @@ function isComplete(email: string, password: string): boolean {
   return email.trim() !== '' && password !== '';
 }
 
-const LOGIN_DESCRIPTION = 'Entre a ARZA ONE con el correo y la contraseña de su cuenta.';
+/** Encabezado del inicio de sesión con el selector de tipo de acceso (B22A). */
+function LoginCard({ children }: { readonly children: ReactNode }): JSX.Element {
+  const [audience, setAudience] = useState<Audience>('empresa');
+  return (
+    <AccessCard title="Iniciar sesión" description={AUDIENCE_DESCRIPTIONS[audience]}>
+      <AudienceSwitch value={audience} onChange={setAudience} />
+      {children}
+    </AccessCard>
+  );
+}
 
 /** Inicio de sesión (16.7). El mensaje de error no dice si el correo existe (15.1). */
 export function LoginForm(): JSX.Element {
@@ -61,7 +71,7 @@ export function LoginForm(): JSX.Element {
   }
 
   return (
-    <AccessCard title="Iniciar sesión" description={LOGIN_DESCRIPTION}>
+    <LoginCard>
       <form noValidate onSubmit={submit} className="flex flex-col gap-4">
         {notice !== null && !login.isError ? <FormSuccess message={notice} /> : null}
         {login.isError ? <FormError error={login.error} /> : null}
@@ -86,6 +96,6 @@ export function LoginForm(): JSX.Element {
         />
         <AccessLink href={ACCESS_PATHS.forgot}>¿Olvidó su contraseña?</AccessLink>
       </form>
-    </AccessCard>
+    </LoginCard>
   );
 }

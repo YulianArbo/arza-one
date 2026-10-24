@@ -41,6 +41,12 @@
   --input: light-dark(#8a919c, #62666d);
   --ring: light-dark(#005afe, #7fb2ff);
 
+  /* Panel de marca del acceso: siempre oscuro, en los dos modos (B22A). */
+  --brand-panel: light-dark(#0d1b2a, #0b0c0e);
+  --brand-panel-raised: #0f1011;
+  --brand-panel-foreground: #ffffff;
+  --brand-panel-muted: #a9b8cc;
+
   /* Al pasar el cursor por módulos y tarjetas el color se invierte (B22A). */
   --invert: light-dark(#0b0c0e, #f2f4f7);
   --invert-foreground: light-dark(#f7f8f8, #0a0b0d);
@@ -92,6 +98,10 @@
   --color-action: var(--action);
   --color-action-foreground: var(--action-foreground);
   --color-action-hover: var(--action-hover);
+  --color-brand-panel: var(--brand-panel);
+  --color-brand-panel-raised: var(--brand-panel-raised);
+  --color-brand-panel-foreground: var(--brand-panel-foreground);
+  --color-brand-panel-muted: var(--brand-panel-muted);
   --color-invert: var(--invert);
   --color-invert-foreground: var(--invert-foreground);
   --color-secondary: var(--secondary);
@@ -179,6 +189,21 @@
 @utility animate-fill {
   transform-origin: left;
   animation: arza-fill 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+
+/* Órbitas del panel de marca: giran despacio, en sentidos opuestos. */
+@utility animate-orbit {
+  animation: arza-orbit 60s linear infinite;
+}
+
+@utility animate-orbit-reverse {
+  animation: arza-orbit 38s linear infinite reverse;
+}
+
+@keyframes arza-orbit {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes arza-draw {
