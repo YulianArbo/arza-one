@@ -4,6 +4,7 @@ import { Button, Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger
 import { Menu } from 'lucide-react';
 import { useState, type JSX } from 'react';
 
+import { BrandLogo } from '../brand-logo';
 import { NavigationList } from './navigation-list';
 
 /** Menú en celular: un botón en la barra superior abre el panel con los módulos (16.3). */
@@ -17,8 +18,8 @@ export function MobileNavigation({ permissions }: { permissions: readonly string
         </Button>
       </SheetTrigger>
       <SheetContent className="gap-6 overflow-y-auto bg-sidebar px-3 py-5 text-sidebar-foreground">
-        <SheetTitle className="px-3 font-heading text-xl font-bold text-sidebar-foreground">
-          ARZA ONE
+        <SheetTitle className="px-3 text-sidebar-foreground">
+          <BrandLogo onDark className="h-8 w-auto" />
         </SheetTitle>
         <SheetDescription className="sr-only">Módulos de la plataforma</SheetDescription>
         <nav aria-label="Menú principal">
