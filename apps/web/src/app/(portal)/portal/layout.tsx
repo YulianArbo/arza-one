@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import type { JSX, ReactNode } from 'react';
 
 import { UserMenu } from '../../../components/app-shell/top-bar-menus';
 import { BrandLogo } from '../../../components/brand-logo';
 import { ThemeMenu } from '../../../components/theme-menu';
+import { PortalTabs } from '../../../features/portal/portal-tabs';
 import { RequireSession } from '../../../features/session/session-provider';
 
 // Portal del cliente: nunca indexable (numeral 15.6). Se diseña primero para celular (16.6).
@@ -12,25 +14,36 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+/**
+ * Encabezado del portal (B22A): logo a la izquierda, pestañas al centro y, a la derecha, la
+ * apariencia y la persona. En celular las pestañas pasan a una segunda fila que se desliza.
+ */
+function PortalHeader(): JSX.Element {
+  return (
+    <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur">
+      <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5">
+        <Link href="/portal" className="flex shrink-0 items-center gap-2 text-foreground">
+          <BrandLogo className="h-6 w-auto" />
+          <span className="rounded-full border px-2 text-xs text-muted-foreground">Clientes</span>
+        </Link>
+        <PortalTabs className="order-last w-full lg:order-none lg:mx-auto lg:w-auto" />
+        <div className="ml-auto flex items-center gap-1 lg:ml-0">
+          <ThemeMenu className="mx-1 hidden sm:inline-flex" />
+          <UserMenu />
+        </div>
+      </div>
+    </header>
+  );
+}
+
 export default function PortalLayout({ children }: { children: ReactNode }): JSX.Element {
   return (
     <RequireSession kind="portal">
       <div className="flex min-h-dvh flex-col">
-        <header className="border-b bg-card">
-          <div className="mx-auto flex w-full max-w-4xl flex-wrap items-center justify-between gap-2 px-4 py-3">
-            <p className="flex items-center gap-2 font-heading text-lg font-semibold text-primary">
-              <BrandLogo className="h-7 w-auto text-foreground" />
-              Clientes
-            </p>
-            <div className="ml-auto flex items-center gap-1">
-              <ThemeMenu />
-              <UserMenu />
-            </div>
-          </div>
-        </header>
+        <PortalHeader />
         <main
           id="contenido"
-          className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-4 py-8"
+          className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-8 animate-enter"
         >
           {children}
         </main>
