@@ -1,7 +1,7 @@
 import type { JSX } from 'react';
 
 import { ChartDataTable } from './data-table.js';
-import { niceMax, toneColor, type ChartTone } from './scale.js';
+import { formatNumber, niceMax, toneColor, type ChartTone } from './scale.js';
 
 export interface BarItem {
   readonly label: string;
@@ -27,7 +27,8 @@ interface BarProps {
 }
 
 function Bar({ item, index, max, format }: BarProps): JSX.Element {
-  const height = (HEIGHT * item.value) / max;
+  // Deja espacio arriba para la cifra de la barra más alta.
+  const height = ((HEIGHT - 16) * item.value) / max;
   const x = index * SLOT + 14;
   const center = x + BAR / 2;
   return (
@@ -58,7 +59,7 @@ function Bar({ item, index, max, format }: BarProps): JSX.Element {
 }
 
 /** Barras verticales; al pasar el cursor por una, las demás se atenúan (B22A). */
-export function BarChart({ title, items, format = String }: BarChartProps): JSX.Element {
+export function BarChart({ title, items, format = formatNumber }: BarChartProps): JSX.Element {
   const max = niceMax(items.map((item) => item.value));
   const width = Math.max(items.length * SLOT, SLOT);
   return (

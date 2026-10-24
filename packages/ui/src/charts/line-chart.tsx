@@ -4,7 +4,16 @@ import { useState, type JSX } from 'react';
 
 import { cn } from '../lib/cn.js';
 import { ChartDataTable } from './data-table.js';
-import { linePaths, niceMax, toneColor, xAt, yAt, type ChartTone, type PlotBox } from './scale.js';
+import {
+  formatNumber,
+  linePaths,
+  niceMax,
+  toneColor,
+  xAt,
+  yAt,
+  type ChartTone,
+  type PlotBox,
+} from './scale.js';
 
 export interface LineSeries {
   readonly key: string;
@@ -25,7 +34,12 @@ const BOX: PlotBox = { left: 44, right: 628, top: 12, bottom: 196 };
 const TICKS = [0, 0.25, 0.5, 0.75, 1];
 
 /** Gráfica de líneas con series que se ocultan y valores al pasar el cursor (B22A). */
-export function LineChart({ title, labels, series, format = String }: LineChartProps): JSX.Element {
+export function LineChart({
+  title,
+  labels,
+  series,
+  format = formatNumber,
+}: LineChartProps): JSX.Element {
   const [hidden, setHidden] = useState<readonly string[]>([]);
   const visible = series.filter((line) => !hidden.includes(line.key));
   const toggle = (key: string): void => {

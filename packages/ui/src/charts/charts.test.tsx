@@ -6,7 +6,7 @@ import { BarChart } from './bar-chart.js';
 import { DonutChart } from './donut-chart.js';
 import { FunnelBars } from './funnel-bars.js';
 import { LineChart } from './line-chart.js';
-import { linePaths, niceMax, xAt } from './scale.js';
+import { formatNumber, linePaths, niceMax, xAt } from './scale.js';
 import { StatCard } from './stat-card.js';
 
 const BOX = { left: 0, right: 100, top: 0, bottom: 100 };
@@ -16,6 +16,11 @@ describe('escalas de las gráficas', () => {
     expect(niceMax([168])).toBe(200);
     expect(niceMax([23])).toBe(25);
     expect(niceMax([0, 0])).toBe(1);
+  });
+
+  it('escribe las cifras en formato colombiano', () => {
+    expect(formatNumber(1500)).toBe('1.500');
+    expect(formatNumber(0.5)).toBe('0,5');
   });
 
   it('ubica los puntos y cierra el área en la base', () => {
@@ -66,13 +71,13 @@ describe('barras', () => {
       <BarChart
         title="Tareas por módulo"
         items={[
-          { label: 'Docs', value: 14 },
+          { label: 'Docs', value: 1400 },
           { label: 'Flujos', value: 6, tone: 'success' },
         ]}
       />,
     );
     expect(screen.getByRole('img', { name: 'Tareas por módulo' })).toBeInTheDocument();
-    expect(screen.getByRole('row', { name: 'Docs 14' })).toBeInTheDocument();
+    expect(screen.getByRole('row', { name: 'Docs 1.400' })).toBeInTheDocument();
   });
 });
 

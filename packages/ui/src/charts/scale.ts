@@ -60,3 +60,10 @@ export function linePaths(
   const last = points.at(-1)?.[0] ?? String(box.right);
   return { line, area: `${line} L${last} ${String(box.bottom)} L${first} ${String(box.bottom)} Z` };
 }
+
+const NUMBER = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 1 });
+
+/** Cifra en formato colombiano («1.500», «0,5»): el formato por omisión de las gráficas. */
+export function formatNumber(value: number): string {
+  return NUMBER.format(value);
+}
