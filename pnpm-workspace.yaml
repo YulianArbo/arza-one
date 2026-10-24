@@ -25,3 +25,5 @@ overrides:
   'prisma>mysql2': 3.24.5
   # GHSA-ggr8-5vv4-36mx. Prisma solo mezcla objetos simples de configuración.
   '@prisma/config>deepmerge-ts': 8.0.2
+  # GHSA-q7qp-rjg7-q26m. NestJS 11 fija multer 2.4.0; la 2.5.0 solo trae la corrección.
+  '@nestjs/platform-express>multer': 2.5.0
