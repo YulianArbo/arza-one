@@ -20,6 +20,7 @@ import { useApiClient } from '../../lib/api/api-provider';
 import { FormError, FormSuccess } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { useAdminAction } from './admin-action';
+import { ClientCompanyPicker } from './client-company-picker';
 import { ADMIN_KEYS, useRoles } from './queries';
 
 interface InviteValues {
@@ -27,9 +28,11 @@ interface InviteValues {
   readonly name: string;
   readonly kind: UserKind;
   readonly roleIds: readonly string[];
+  /** Empresa cliente de la persona del portal (B22A). */
+  readonly partyId: string;
 }
 
-const EMPTY: InviteValues = { email: '', name: '', kind: 'internal', roleIds: [] };
+const EMPTY: InviteValues = { email: '', name: '', kind: 'internal', roleIds: [], partyId: '' };
 
 /**
  * Roles que no se eligen al invitar: COLABORADOR llega solo a toda persona interna, y AUDITOR
@@ -107,7 +110,7 @@ function PersonFields(props: {
         value={values.kind}
         onChange={(event) => {
           const kind = event.target.value === 'portal' ? 'portal' : 'internal';
-          onChange({ ...values, kind, roleIds: [] });
+          onChange({ ...values, kind, roleIds: [], partyId: '' });
         }}
       />
     </>
@@ -124,6 +127,7 @@ function useInvite(onInvited: (email: string) => void) {
         display_name: name === '' ? null : name,
         kind: values.kind,
         role_ids: values.roleIds,
+        party_id: values.kind === 'portal' && values.partyId !== '' ? values.partyId : null,
       };
       return api.post('/v1/users', { body, schema: inviteUserResponseSchema, csrfToken });
     },
@@ -134,21 +138,39 @@ function useInvite(onInvited: (email: string) => void) {
   });
 }
 
-function InviteForm({ onInvited }: { readonly onInvited: (email: string) => void }): JSX.Element {
+/** Valores, roles disponibles y envío; la persona del portal necesita su empresa cliente. */
+function useInviteForm(onInvited: (email: string) => void) {
   const [values, setValues] = useState<InviteValues>(EMPTY);
   const roles = useRoles();
   const invite = useInvite(onInvited);
   const available = (roles.data?.data ?? []).filter(
     (role) => role.audience === values.kind && !NOT_AT_INVITATION.has(role.code),
   );
+  const [missingCompany, setMissingCompany] = useState(false);
   const submit = (event: SubmitEvent<HTMLFormElement>): void => {
     event.preventDefault();
-    invite.execute(values);
+    const missing = values.kind === 'portal' && values.partyId === '';
+    setMissingCompany(missing);
+    if (!missing) invite.execute(values);
   };
+  return { values, setValues, invite, available, missingCompany, submit };
+}
+
+function InviteForm({ onInvited }: { readonly onInvited: (email: string) => void }): JSX.Element {
+  const { values, setValues, invite, available, missingCompany, submit } = useInviteForm(onInvited);
   return (
     <form noValidate onSubmit={submit} className="flex flex-col gap-4">
       {invite.error === null ? null : <FormError error={invite.error} />}
       <PersonFields values={values} onChange={setValues} />
+      {values.kind === 'portal' ? (
+        <ClientCompanyPicker
+          value={values.partyId}
+          error={missingCompany ? 'Elija la empresa cliente de esta persona.' : null}
+          onChange={(partyId) => {
+            setValues({ ...values, partyId });
+          }}
+        />
+      ) : null}
       <RoleChoices
         roles={available}
         chosen={values.roleIds}

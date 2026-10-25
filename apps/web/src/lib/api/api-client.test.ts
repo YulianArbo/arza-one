@@ -225,3 +225,19 @@ describe('cliente de la API: enlaces temporales de archivos (B14)', () => {
     expect(await blob.text()).toBe('contenido');
   });
 });
+
+describe('fotos y logos (B22A)', () => {
+  it('trae la imagen con la sesión y entrega el error de la API', async () => {
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(new Response('png'));
+    const blob = await createApiClient(BASE_URL, fetchImpl).image('/v1/me/photo');
+    expect(await blob.text()).toBe('png');
+    const [url, init] = fetchImpl.mock.calls[0] ?? [];
+    expect(url).toHaveProperty('pathname', '/v1/me/photo');
+    expect(init?.credentials).toBe('include');
+    const body = {
+      error: { code: 'IMAGE_NOT_FOUND', message: 'No hay', details: [], correlation_id: 'c-3' },
+    };
+    const missing = clientReturning(jsonResponse(body, 404)).image('/v1/me/photo');
+    expect((await errorOf(missing)).code).toBe('IMAGE_NOT_FOUND');
+  });
+});

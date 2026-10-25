@@ -3,6 +3,7 @@
 import {
   Avatar,
   Button,
+  cn,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -14,6 +15,7 @@ import { CircleHelp, LogOut, UserRound } from 'lucide-react';
 import Link from 'next/link';
 import { useState, type ComponentProps, type JSX } from 'react';
 
+import { MY_PHOTO_PATH, useImageUrl, useMe } from '../../features/media/media-queries';
 import { PROFILE_PATH } from '../../features/session/access-routes';
 import { useSession } from '../../features/session/session-provider';
 
@@ -44,17 +46,29 @@ export function HelpMenu(): JSX.Element {
 function UserButton({
   name,
   email,
+  compact,
   ...trigger
-}: ComponentProps<'button'> & { readonly name: string; readonly email: string }): JSX.Element {
+}: ComponentProps<'button'> & {
+  readonly name: string;
+  readonly email: string;
+  readonly compact: boolean;
+}): JSX.Element {
+  const me = useMe().data;
+  const photo = useImageUrl(me?.has_photo === true ? MY_PHOTO_PATH : null);
   return (
     <Button
       {...trigger}
       variant="ghost"
       aria-label="Menú del usuario"
-      className="h-10 gap-2 rounded-full border px-1 lg:pr-3"
+      className={cn('h-10 gap-2 rounded-full border px-1', compact ? null : 'lg:pr-3')}
     >
-      <Avatar name={name} size="sm" />
-      <span className="hidden max-w-40 flex-col items-start leading-tight lg:flex">
+      <Avatar name={name} src={photo} size="sm" />
+      <span
+        className={cn(
+          'hidden max-w-40 flex-col items-start leading-tight',
+          compact ? null : 'lg:flex',
+        )}
+      >
         <span className="truncate text-[13px] font-medium">{name}</span>
         <span className="truncate text-[11px] font-normal text-muted-foreground">{email}</span>
       </span>
@@ -63,7 +77,8 @@ function UserButton({
 }
 
 /** Menú del usuario: su foto o iniciales y su nombre; Mi perfil y Cerrar sesión (B08, B22A). */
-export function UserMenu(): JSX.Element {
+/** compact: solo la foto o las iniciales, como en el portal, donde al lado va la empresa. */
+export function UserMenu({ compact = false }: { readonly compact?: boolean }): JSX.Element {
   const { session, logout } = useSession();
   const [failed, setFailed] = useState(false);
   const { user } = session;
@@ -71,7 +86,7 @@ export function UserMenu(): JSX.Element {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <UserButton name={name} email={user.email} />
+        <UserButton name={name} email={user.email} compact={compact} />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="max-w-72">
         <DropdownMenuLabel className="flex flex-col">

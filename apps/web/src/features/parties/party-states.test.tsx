@@ -60,6 +60,7 @@ const PERSON = {
   role_history: [],
   roles: [],
   due_diligence: { state: 'none', next_review_on: null },
+  has_logo: false,
 };
 
 const EMPTY = { data: [] };

@@ -5,6 +5,7 @@ import type { JSX, ReactNode } from 'react';
 import { UserMenu } from '../../../components/app-shell/top-bar-menus';
 import { BrandLogo } from '../../../components/brand-logo';
 import { ThemeMenu } from '../../../components/theme-menu';
+import { PortalCompany } from '../../../features/portal/portal-company';
 import { PortalTabs } from '../../../features/portal/portal-tabs';
 import { RequireSession } from '../../../features/session/session-provider';
 
@@ -16,7 +17,8 @@ export const metadata: Metadata = {
 
 /**
  * Encabezado del portal (B22A): logo a la izquierda, pestañas al centro y, a la derecha, la
- * apariencia y la persona. En celular las pestañas pasan a una segunda fila que se desliza.
+ * apariencia, la empresa cliente y la persona. En celular las pestañas pasan a una segunda fila
+ * que se desliza.
  */
 function PortalHeader(): JSX.Element {
   return (
@@ -26,10 +28,13 @@ function PortalHeader(): JSX.Element {
           <BrandLogo className="h-6 w-auto" />
           <span className="rounded-full border px-2 text-xs text-muted-foreground">Clientes</span>
         </Link>
-        <PortalTabs className="order-last w-full lg:order-none lg:mx-auto lg:w-auto" />
-        <div className="ml-auto flex items-center gap-1 lg:ml-0">
+        <PortalTabs className="order-last w-full xl:order-none xl:mx-auto xl:w-auto" />
+        <div className="ml-auto flex items-center gap-1 xl:ml-0">
           <ThemeMenu className="mx-1 hidden sm:inline-flex" />
-          <UserMenu />
+          <div className="hidden sm:block">
+            <PortalCompany />
+          </div>
+          <UserMenu compact />
         </div>
       </div>
     </header>

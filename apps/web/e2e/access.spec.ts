@@ -17,6 +17,7 @@ const ME = {
   ...INTERNAL_SESSION.user,
   last_login_at: '2026-10-09T20:15:00.000Z',
   password_changed_at: null,
+  has_photo: false,
 };
 
 /** Registra el cuerpo y las cabeceras de cada POST a la ruta dada y responde lo indicado. */

@@ -38,6 +38,14 @@ const EMPTY_FUNNEL = {
  */
 const EMPTY_LISTS: Readonly<Record<string, unknown>> = {
   '/v1/me/notifications': { items: [], unread_count: 0 },
+  // La barra superior pide el perfil para la foto y el portal su empresa (B22A).
+  '/v1/me': {
+    ...INTERNAL_SESSION.user,
+    last_login_at: null,
+    password_changed_at: null,
+    has_photo: false,
+  },
+  '/v1/me/company': { company: null },
   '/v1/tasks/mine': { data: [], next_cursor: null },
   '/v1/crm/reports/funnel': EMPTY_FUNNEL,
   '/v1/comments': { items: [] },

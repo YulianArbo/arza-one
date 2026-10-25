@@ -1,4 +1,4 @@
-import { mockSession } from './support/api-mock';
+import { mockApi, mockSession } from './support/api-mock';
 import { accessibilityViolations, expect, test, useTheme } from './support/fixtures';
 
 // Encabezado del portal del cliente (B22A): pestañas arriba y secciones «Disponible pronto».
@@ -46,4 +46,22 @@ test.describe('portal en celular', () => {
     );
     expect(overflow).toBeLessThanOrEqual(0);
   });
+});
+
+test('la empresa cliente de la persona aparece arriba a la derecha (B22A)', async ({ page }) => {
+  await mockSession(page, 'portal');
+  await mockApi(page, {
+    '/v1/me/company': {
+      body: {
+        company: {
+          id: '01999a00-0000-7000-8000-0000000f0001',
+          name: 'Demo Uno S.A.S.',
+          has_logo: false,
+        },
+      },
+    },
+  });
+  await page.goto('/portal');
+  await expect(page.getByRole('banner').getByText('Demo Uno S.A.S.')).toBeVisible();
+  expect(await accessibilityViolations(page)).toEqual([]);
 });

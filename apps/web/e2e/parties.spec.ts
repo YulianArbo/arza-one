@@ -33,6 +33,7 @@ const DETAIL = {
   authorizations: [],
   role_history: [{ role: 'customer', since: '2026-01-15', is_active: true }],
   due_diligence: { state: 'pending', next_review_on: null },
+  has_logo: false,
   created_at: '2026-01-15T14:00:00.000Z',
 };
 
