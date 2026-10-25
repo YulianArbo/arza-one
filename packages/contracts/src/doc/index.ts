@@ -1,4 +1,5 @@
 export * from './files.js';
+export * from './images.js';
 export * from './folders.js';
 export * from './documents.js';
 export * from './versions.js';

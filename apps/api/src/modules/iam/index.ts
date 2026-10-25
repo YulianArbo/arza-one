@@ -29,3 +29,13 @@ export {
   noticeRecipients,
   type NoticeRecipient,
 } from './infrastructure/notice-recipients.js';
+export {
+  CLIENT_COMPANIES,
+  PROFILE_IMAGES,
+  type ClientCompanies,
+  type ClientCompany,
+  type OwnImageState,
+  type ProfileImages,
+  type StoredImage,
+} from './application/profile-ports.js';
+export { assertUsableImage, imageNotAllowed, imageNotFound } from './application/image-messages.js';

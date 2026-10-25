@@ -133,6 +133,7 @@ model User {
   kind                String
   status              String         @default("invited")
   partyId             String?        @map("party_id") @db.Uuid
+  photoFileId         String?        @map("photo_file_id") @db.Uuid
   positionId          String?        @map("position_id") @db.Uuid
   mfaRequired         Boolean        @default(true) @map("mfa_required")
   lastLoginAt         DateTime?      @map("last_login_at") @db.Timestamptz(6)
@@ -159,6 +160,7 @@ model User {
   @@unique([tenantId, id])
   @@index([tenantId, status])
   @@index([tenantId, positionId])
+  @@index([tenantId, partyId])
   @@map("iam_users")
 }
 
@@ -746,6 +748,7 @@ model Party {
   dataAuthorization String?        @map("data_authorization")
   dataAuthorizedOn  DateTime?      @map("data_authorized_on") @db.Date
   mergedIntoId      String?        @map("merged_into_id") @db.Uuid
+  logoFileId        String?        @map("logo_file_id") @db.Uuid
   createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
   createdBy         String?        @map("created_by") @db.Uuid
   updatedAt         DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)

@@ -1,5 +1,10 @@
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { ACCESS_RULES, IAM_ERROR_CODES, type AcceptInvitationRequest } from '@arza/contracts';
+import { HttpStatus, Inject, Injectable, Optional } from '@nestjs/common';
+import {
+  ACCESS_ERROR_CODES,
+  ACCESS_RULES,
+  IAM_ERROR_CODES,
+  type AcceptInvitationRequest,
+} from '@arza/contracts';
 
 import { Prisma, type Role, type User } from '../../../generated/prisma/client.js';
 import type { Principal } from '../../../platform/access/principal.js';
@@ -17,6 +22,7 @@ import { roleNotFound, userNotFound, userStateInvalid } from './access-messages.
 import { AccountNotifier } from './account-notifier.js';
 import { linkInvalid } from './iam-messages.js';
 import { PasswordSetter } from './password-setter.js';
+import { CLIENT_COMPANIES, type ClientCompanies } from './profile-ports.js';
 import { grantRole } from './role-assignment.js';
 
 export interface InviteUserInput {
@@ -33,6 +39,8 @@ export interface InviteUserInput {
   readonly actorId?: string | null;
   /** Roles además de COLABORADOR, que reciben siempre las personas internas (B10). */
   readonly roleIds?: readonly string[];
+  /** Empresa cliente de la persona del portal (B22A): un tercero organización con papel de cliente. */
+  readonly partyId?: string | null;
   readonly meta?: RequestMeta | null;
 }
 
@@ -60,6 +68,8 @@ export class InvitationUseCase {
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(AccountNotifier) private readonly notifier: AccountNotifier,
     @Inject(PasswordSetter) private readonly passwords: PasswordSetter,
+    // El comando del responsable técnico no liga empresas; la pantalla de usuarios sí (B22A).
+    @Optional() @Inject(CLIENT_COMPANIES) private readonly companies?: ClientCompanies,
   ) {}
 
   /** Crea la cuenta invitada, o reenvía la invitación si sigue pendiente en la misma empresa. */
@@ -126,11 +136,21 @@ export class InvitationUseCase {
       await recordResent(tx, { ...actor, userId: existing.id, meta: input.meta ?? null, now });
       return { userId: existing.id, outcome: 'resent' };
     }
+    return { userId: await this.createInvited(tx, input, now), outcome: 'invited' };
+  }
+
+  private async createInvited(
+    tx: TenantTransaction,
+    input: InviteUserInput,
+    now: Date,
+  ): Promise<string> {
+    const partyId = await this.clientCompany(tx, input.partyId ?? null);
     const user = await tx.user.create({
       data: {
         tenantId: input.tenantId,
         email: input.email,
         kind: input.kind,
+        partyId,
         displayName: input.displayName,
         status: 'invited',
         mfaRequired: input.kind === 'internal' || input.requireSecondFactor === true,
@@ -145,11 +165,27 @@ export class InvitationUseCase {
       entityType: 'iam_user',
       entityId: user.id,
       result: 'success',
-      changes: { kind: input.kind, status: 'invited', mfa_required: user.mfaRequired },
+      changes: {
+        kind: input.kind,
+        status: 'invited',
+        mfa_required: user.mfaRequired,
+        party_id: partyId,
+      },
       meta: input.meta ?? null,
     });
     await grantInitialRoles(tx, { input, user, now });
-    return { userId: user.id, outcome: 'invited' };
+    return user.id;
+  }
+
+  /** La empresa elegida existe en esta empresa y es una organización cliente vigente. */
+  private async clientCompany(
+    tx: TenantTransaction,
+    partyId: string | null,
+  ): Promise<string | null> {
+    if (partyId === null) return null;
+    const company = await this.companies?.describe(tx, partyId);
+    if (company?.isClient !== true) throw clientCompanyInvalid();
+    return company.id;
   }
 
   private async activate(
@@ -237,6 +273,14 @@ function missingSystemRoles(): Error {
 
 function isUniqueViolation(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002';
+}
+
+function clientCompanyInvalid(): AppError {
+  return new AppError(
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    ACCESS_ERROR_CODES.clientCompanyInvalid,
+    'Elija una empresa registrada en Terceros como cliente activo.',
+  );
 }
 
 function emailTaken(): AppError {

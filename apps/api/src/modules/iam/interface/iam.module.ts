@@ -27,12 +27,15 @@ import { SecondFactorVerifier } from '../application/second-factor-verifier.js';
 import { SessionService } from '../application/session-service.js';
 import { SignInCompletion } from '../application/sign-in-completion.js';
 import { UserAdministration } from '../application/user-admin.js';
+import { MyCompanyQuery } from '../application/my-company.js';
+import { ProfilePhotoUseCase } from '../application/profile-photo.js';
 import { UserDirectoryQuery } from '../application/user-directory.js';
 import { UserPositionUseCase } from '../application/user-position.js';
 import { VerificationFailures } from '../application/verification-failures.js';
 import { AuthController } from './auth.controller.js';
 import { DelegationsController } from './delegations.controller.js';
 import { MeSecurityController } from './me-security.controller.js';
+import { MeMediaController } from './me-media.controller.js';
 import { MeController } from './me.controller.js';
 import { RolesController } from './roles.controller.js';
 import { UsersController } from './users.controller.js';
@@ -40,12 +43,14 @@ import { UsersController } from './users.controller.js';
 /**
  * M01 Identidad: cuentas, inicio de sesión, sesiones y contraseñas (B08); segundo factor,
  * sesiones activas, confirmación de identidad y avisos de seguridad (B09); roles, permisos,
- * delegaciones, administración de usuarios y revisión de accesos (B10); cargo de cada persona.
+ * delegaciones, administración de usuarios y revisión de accesos (B10); cargo de cada persona;
+ * foto de perfil y empresa cliente de las cuentas del portal (B22A).
  */
 @Module({
   controllers: [
     AuthController,
     MeController,
+    MeMediaController,
     MeSecurityController,
     UsersController,
     RolesController,
@@ -60,9 +65,11 @@ import { UsersController } from './users.controller.js';
     DelegationsUseCase,
     InvitationUseCase,
     LoginUseCase,
+    MyCompanyQuery,
     PasswordResetUseCase,
     PasswordSetter,
     ProfileQuery,
+    ProfilePhotoUseCase,
     ReauthenticationUseCase,
     RoleAdminUseCase,
     RoleAssignmentUseCase,

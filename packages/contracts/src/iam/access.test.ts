@@ -39,7 +39,17 @@ describe('contratos de la administración de usuarios', () => {
       kind: 'internal',
       display_name: null,
       role_ids: [],
+      party_id: null,
     });
+  });
+
+  it('la persona del portal lleva su empresa cliente y la interna no (B22A)', () => {
+    const company = '01999a00-0000-7000-8000-0000000f0001';
+    const portal = { email: 'cliente@demo.test', kind: 'portal' };
+    expect(inviteUserRequestSchema.safeParse(portal).success).toBe(false);
+    expect(inviteUserRequestSchema.safeParse({ ...portal, party_id: company }).success).toBe(true);
+    const internal = { email: 'ana@demo.test', kind: 'internal', party_id: company };
+    expect(inviteUserRequestSchema.safeParse(internal).success).toBe(false);
   });
 
   it('limita la página a 100 registros', () => {

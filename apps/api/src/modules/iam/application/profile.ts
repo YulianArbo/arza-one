@@ -18,6 +18,7 @@ export class ProfileQuery {
       email: user.email,
       display_name: user.displayName,
       kind: user.kind === 'portal' ? 'portal' : 'internal',
+      has_photo: user.photoFileId !== null,
       last_login_at: user.lastLoginAt?.toISOString() ?? null,
       password_changed_at: user.passwordChangedAt?.toISOString() ?? null,
     };

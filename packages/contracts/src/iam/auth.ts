@@ -120,8 +120,17 @@ export const sessionResponseSchema = z.object({
 
 /** Datos del perfil propio. */
 export const meResponseSchema = sessionUserSchema.extend({
+  has_photo: z.boolean().describe('Tiene foto de perfil (B22A)'),
   last_login_at: z.iso.datetime({ offset: true }).nullable(),
   password_changed_at: z.iso.datetime({ offset: true }).nullable(),
+});
+
+/** Empresa cliente de una persona del portal (B22A): su nombre y si tiene logo. */
+export const myCompanyResponseSchema = z.object({
+  company: z
+    .object({ id: z.uuid(), name: z.string(), has_logo: z.boolean() })
+    .nullable()
+    .describe('Vacía si la cuenta no está ligada a una empresa cliente'),
 });
 
 /** Respuesta que no revela nada: la misma exista o no la cuenta. */
@@ -138,4 +147,5 @@ export type UserKind = z.infer<typeof userKindSchema>;
 export type SignInStage = z.infer<typeof signInStageSchema>;
 export type SessionResponse = z.infer<typeof sessionResponseSchema>;
 export type MeResponse = z.infer<typeof meResponseSchema>;
+export type MyCompanyResponse = z.infer<typeof myCompanyResponseSchema>;
 export type AcknowledgementResponse = z.infer<typeof acknowledgementResponseSchema>;
