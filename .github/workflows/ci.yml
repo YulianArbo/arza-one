@@ -48,6 +48,7 @@ jobs:
       quality: ${{ steps.plan.outputs.quality }}
       tests: ${{ steps.plan.outputs.tests }}
       rehearsals: ${{ steps.plan.outputs.rehearsals }}
+      runner: ${{ steps.runner.outputs.labels }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -62,12 +63,28 @@ jobs:
           CI_FULL_RUN: ${{ vars.CI_FULL_RUN }}
           GITHUB_TOKEN: ${{ github.token }}
         run: node infra/scripts/ci/plan-ci.ts "$BASE_SHA"
+      # ADR-025: las tareas 1-5 van al runner propio solo si el administrador lo activó y el cambio
+      # es del dueño, desde este repositorio. Renovate, forks y otros autores siguen en GitHub.
+      - name: Máquina de las tareas 1-5 (ADR-025)
+        id: runner
+        env:
+          LOCAL: >-
+            ${{ vars.CI_RUNNER == 'local' && (
+            (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+            (github.event_name == 'pull_request' &&
+            github.event.pull_request.head.repo.full_name == github.repository &&
+            github.event.pull_request.user.login == github.repository_owner &&
+            github.actor == github.repository_owner &&
+            github.triggering_actor == github.repository_owner)) }}
+        run: |
+          if [ "$LOCAL" = 'true' ]; then labels='["self-hosted","Linux","X64"]'; else labels='"ubuntu-24.04"'; fi
+          echo "labels=$labels" >> "$GITHUB_OUTPUT"
 
   quality:
     name: 1-3. Formato, análisis, tipos y fronteras
     needs: plan
     if: needs.plan.outputs.quality == 'true'
-    runs-on: ubuntu-24.04
+    runs-on: ${{ fromJSON(needs.plan.outputs.runner) }}
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -97,7 +114,7 @@ jobs:
     name: 4. Pruebas unitarias con cobertura
     needs: plan
     if: needs.plan.outputs.tests == 'true'
-    runs-on: ubuntu-24.04
+    runs-on: ${{ fromJSON(needs.plan.outputs.runner) }}
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -113,7 +130,7 @@ jobs:
     name: 5. Integración con base de datos, colas y correo reales
     needs: plan
     if: needs.plan.outputs.tests == 'true'
-    runs-on: ubuntu-24.04
+    runs-on: ${{ fromJSON(needs.plan.outputs.runner) }}
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
