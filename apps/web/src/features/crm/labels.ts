@@ -3,8 +3,11 @@ import {
   CAMPAIGN_CHANNELS,
   LEAD_STATUSES,
   OPPORTUNITY_STAGES,
+  QUOTE_STATUSES,
+  SERVICE_UNITS,
   type LeadStatus,
   type OpportunityStage,
+  type QuoteStatus,
 } from '@arza/contracts';
 
 // Textos y rutas del CRM (B22). Las etiquetas vienen de los contratos; aquí solo los tonos, las
@@ -24,9 +27,39 @@ export const CRM_PATHS = {
   activities: `${CRM_BASE}/actividades`,
   campaigns: `${CRM_BASE}/campanas`,
   report: `${CRM_BASE}/informe`,
+  services: `${CRM_BASE}/portafolio`,
+  quotes: `${CRM_BASE}/cotizaciones`,
+  newQuote: (opportunityId: string) =>
+    `${CRM_BASE}/cotizaciones/nueva?oportunidad=${opportunityId}`,
+  quote: (id: string) => `${CRM_BASE}/cotizaciones/${id}`,
+  editQuote: (id: string) => `${CRM_BASE}/cotizaciones/${id}/editar`,
 } as const;
 
-export { ACTIVITY_TYPES, CAMPAIGN_CHANNELS, LEAD_STATUSES, OPPORTUNITY_STAGES };
+export {
+  ACTIVITY_TYPES,
+  CAMPAIGN_CHANNELS,
+  LEAD_STATUSES,
+  OPPORTUNITY_STAGES,
+  QUOTE_STATUSES,
+  SERVICE_UNITS,
+};
+
+export const QUOTE_STATUS_TONES: Readonly<Record<QuoteStatus, Tone>> = {
+  draft: 'neutral',
+  in_approval: 'warning',
+  approved: 'info',
+  sent: 'info',
+  accepted: 'success',
+  rejected: 'destructive',
+  expired: 'neutral',
+  superseded: 'neutral',
+};
+
+/** «19.00» → «19 %»; «7.50» → «7,5 %». */
+export function formatRate(value: string): string {
+  const trimmed = value.includes('.') ? value.replace(/0+$/u, '').replace(/\.$/u, '') : value;
+  return `${trimmed.replace('.', ',')} %`;
+}
 
 export const LEAD_STATUS_TONES: Readonly<Record<LeadStatus, Tone>> = {
   new: 'info',

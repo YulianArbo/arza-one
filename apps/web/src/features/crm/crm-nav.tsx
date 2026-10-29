@@ -8,12 +8,14 @@ import type { JSX } from 'react';
 import { usePermissions } from '../session/permissions';
 import { CRM_PATHS } from './labels';
 
-// Secciones de Comercial (B22, numeral 16.3): el embudo, los prospectos, las actividades, las
-// campañas y el informe. Solo se muestran las que la persona puede ver.
+// Secciones de Comercial (B22, numeral 16.3): el embudo, los prospectos, las cotizaciones y el
+// portafolio (B23), las actividades, las campañas y el informe. Solo se muestran las que la persona puede ver.
 
 const SECTIONS = [
   { href: CRM_PATHS.funnel, label: 'Embudo', permission: 'crm.opportunity.read' },
   { href: CRM_PATHS.leads, label: 'Prospectos', permission: 'crm.lead.read' },
+  { href: CRM_PATHS.quotes, label: 'Cotizaciones', permission: 'crm.quote.read' },
+  { href: CRM_PATHS.services, label: 'Portafolio', permission: 'crm.quote.read' },
   { href: CRM_PATHS.activities, label: 'Actividades', permission: 'crm.lead.read' },
   { href: CRM_PATHS.campaigns, label: 'Campañas', permission: 'crm.lead.read' },
   { href: CRM_PATHS.report, label: 'Informe del embudo', permission: 'crm.report.read' },

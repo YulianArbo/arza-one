@@ -10,6 +10,14 @@ import {
   opportunityDetailSchema,
   opportunityListResponseSchema,
   PRIVACY_ERROR_CODES,
+  quoteDetailSchema,
+  quoteListResponseSchema,
+  quoteOptionsSchema,
+  serviceListResponseSchema,
+  type QuoteDetail,
+  type QuoteListResponse,
+  type QuoteOptions,
+  type ServiceListResponse,
   type CampaignListResponse,
   type CrmActivityListResponse,
   type FunnelReport,
@@ -40,6 +48,10 @@ export const CRM_KEYS = {
   campaigns: ['crm', 'campaigns'] as const,
   funnel: (search: string) => ['crm', 'funnel', search] as const,
   notices: ['crm', 'authorization-notices'] as const,
+  services: (search: string) => ['crm', 'services', search] as const,
+  quotes: (search: string) => ['crm', 'quotes', search] as const,
+  quote: (id: string) => ['crm', 'quote', id] as const,
+  quoteOptions: ['crm', 'quote-options'] as const,
 };
 
 export type Filters = Readonly<Record<string, string | null | undefined>>;
@@ -116,4 +128,37 @@ export function useLeadNotices(saveError: unknown): UseQueryResult<NoticeListRes
     if (outdated) void refetch();
   }, [outdated, saveError, refetch]);
   return query;
+}
+
+export function useServices(filters: Filters): UseQueryResult<ServiceListResponse> {
+  const path = withQuery('/v1/crm/services', filters);
+  return useCrmQuery(CRM_KEYS.services(path), path, serviceListResponseSchema);
+}
+
+export function useQuotes(filters: Filters, enabled = true): UseQueryResult<QuoteListResponse> {
+  const path = withQuery('/v1/crm/quotes', filters);
+  return useCrmQuery(CRM_KEYS.quotes(path), path, quoteListResponseSchema, enabled);
+}
+
+/**
+ * Ficha de la cotización. Mientras el worker prepara el PDF o envía el correo, se vuelve a pedir
+ * cada pocos segundos para mostrar el cambio sin recargar.
+ */
+export function useQuote(id: string): UseQueryResult<QuoteDetail> {
+  const api = useApiClient();
+  return useQuery({
+    queryKey: CRM_KEYS.quote(id),
+    queryFn: ({ signal }) => api.get(`/v1/crm/quotes/${id}`, { schema: quoteDetailSchema, signal }),
+    refetchInterval: (query) => {
+      const quote = query.state.data;
+      const waiting =
+        quote?.pdf.status === 'pending' ||
+        (quote?.status === 'sent' && quote.email_sent_at === null);
+      return waiting ? 3000 : false;
+    },
+  });
+}
+
+export function useQuoteOptions(): UseQueryResult<QuoteOptions> {
+  return useCrmQuery(CRM_KEYS.quoteOptions, '/v1/crm/quotes/options', quoteOptionsSchema);
 }

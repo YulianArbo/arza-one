@@ -93,8 +93,7 @@ const MODULES: readonly NavigationItem[] = [
     slug: 'finanzas',
     label: 'Finanzas',
     icon: Landmark,
-    permissions: ['finance.invoice.read', 'finance.budget.read'],
-    block: 'B31',
+    permissions: ['finance.invoice.read', 'finance.budget.read', 'finance.tax_parameter.manage'],
   },
   {
     slug: 'talento-y-sst',
