@@ -1,4 +1,4 @@
-import type { WorkSchedule } from '@arza/contracts';
+import type { DiscountCap, WorkSchedule } from '@arza/contracts';
 
 // Datos semilla del núcleo (B12, capítulo 12.1).
 //
@@ -16,6 +16,9 @@ export const WORK_SCHEDULE: WorkSchedule = {
 };
 
 export const WORK_SCHEDULE_VALID_FROM = '2026-01-01';
+
+/** Tope de descuento sin aprobación de la Dirección (B23): 10 % por ítem, decisión del dueño. */
+export const DISCOUNT_CAP: DiscountCap = { percent: '10.00' };
 
 export interface SeedCatalog {
   readonly key: string;

@@ -171,6 +171,38 @@ const onActivityReminder: Handler = (_tx, event) => {
   return Promise.resolve([notice]);
 };
 
+const quoteUpdateSchema = z.object({
+  id: z.uuid(),
+  author_id: z.uuid().nullable(),
+  code: z.string(),
+  version_number: z.number().int().positive(),
+});
+
+/** Lo que se le cuenta a quien elaboró la cotización, por evento. */
+const QUOTE_UPDATES: Readonly<Record<string, string>> = {
+  'crm.quote.approved': 'la Dirección la aprobó y ya puede enviarla',
+  'crm.quote.returned': 'la Dirección la devolvió para corregir',
+  'crm.quote.accepted': 'el cliente la aceptó',
+  'crm.quote.rejected': 'el cliente la rechazó',
+  'crm.quote.expired': 'venció sin respuesta del cliente',
+};
+
+/** B23: quien elaboró la cotización se entera de lo que otros decidieron sobre ella. */
+const onQuoteUpdate: Handler = (_tx, event) => {
+  const payload = quoteUpdateSchema.parse(event.payload);
+  const update = QUOTE_UPDATES[event.eventType];
+  if (payload.author_id === null || payload.author_id === event.actorId || update === undefined) {
+    return Promise.resolve([]);
+  }
+  const notice: Notice = {
+    userId: payload.author_id,
+    kind: 'crm_quote_update',
+    values: { cotizacion: `${payload.code} v${String(payload.version_number)}`, novedad: update },
+    link: `/app/comercial/cotizaciones/${payload.id}`,
+  };
+  return Promise.resolve([notice]);
+};
+
 const HANDLERS: Readonly<Record<string, Handler>> = {
   'wf.task.assigned': onTaskAssigned,
   'wf.task.escalated': onTaskEscalated,
@@ -179,6 +211,7 @@ const HANDLERS: Readonly<Record<string, Handler>> = {
   'doc.acknowledgement.requested': onReadingRequested,
   'doc.request.decided': onRequestDecided,
   'crm.activity.reminder': onActivityReminder,
+  ...Object.fromEntries(Object.keys(QUOTE_UPDATES).map((type) => [type, onQuoteUpdate])),
 };
 
 /** Los avisos que produce el evento; ninguno si nadie se ocupa de él. */

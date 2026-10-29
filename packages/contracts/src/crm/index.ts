@@ -10,3 +10,6 @@ export * from './opportunities.js';
 export * from './activities.js';
 export * from './campaigns.js';
 export * from './funnel.js';
+export * from './services.js';
+export * from './quotes.js';
+export * from './quote-totals.js';

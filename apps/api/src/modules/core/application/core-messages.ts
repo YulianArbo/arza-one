@@ -64,6 +64,14 @@ const VALID_FROM_MESSAGES: Readonly<Record<ValidFromProblem, string>> = {
     'La vigencia nueva debe empezar después de la última registrada. Elija una fecha posterior.',
 };
 
+export function parameterValueInvalid(): AppError {
+  return new AppError(
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    CORE_ERROR_CODES.parameterValueInvalid,
+    'El valor no corresponde a este parámetro. Revise los datos e intente de nuevo.',
+  );
+}
+
 export function parameterValidFromInvalid(problem: ValidFromProblem): AppError {
   return new AppError(
     HttpStatus.UNPROCESSABLE_ENTITY,

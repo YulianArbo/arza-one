@@ -95,6 +95,10 @@ model Tenant {
   crmLeads                CrmLead[]
   crmOpportunities        CrmOpportunity[]
   crmActivities           CrmActivity[]
+  crmServices             CrmService[]
+  crmQuotes               CrmQuote[]
+  crmQuoteItems           CrmQuoteItem[]
+  finTaxParameters        FinTaxParameter[]
 
   @@map("core_tenants")
 }
@@ -1971,6 +1975,7 @@ model CrmOpportunity {
   tenant         Tenant        @relation(fields: [tenantId], references: [id], onDelete: Restrict)
   lead           CrmLead?      @relation(fields: [tenantId, leadId], references: [tenantId, id], onDelete: Restrict)
   activities     CrmActivity[]
+  quotes         CrmQuote[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, code])
@@ -2012,4 +2017,164 @@ model CrmActivity {
   @@index([tenantId, assigneeId, doneAt])
   @@index([tenantId, dueAt])
   @@map("crm_activities")
+}
+
+/// Portafolio de servicios con su tarifa vigente (B23). Guarda la clave del impuesto, no la tarifa:
+/// la tarifa se lee de fin_tax_parameters al cotizar.
+model CrmService {
+  id          String         @id @default(uuid(7)) @db.Uuid
+  tenantId    String         @map("tenant_id") @db.Uuid
+  code        String
+  name        String
+  description String?
+  unit        String
+  basePrice   Decimal        @map("base_price") @db.Decimal(18, 2)
+  taxKey      String         @map("tax_key")
+  isActive    Boolean        @default(true) @map("is_active")
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?        @map("created_by") @db.Uuid
+  updatedAt   DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?        @map("updated_by") @db.Uuid
+  version     Int            @default(1)
+  deletedAt   DateTime?      @map("deleted_at") @db.Timestamptz(6)
+  tenant      Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  quoteItems  CrmQuoteItem[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, name])
+  @@map("crm_services")
+}
+
+/// Cotizaciones (B23): borrador → en aprobación → aprobada → enviada → aceptada, rechazada o
+/// vencida; una versión nueva reemplaza a la anterior. Cada versión es una fila con el mismo código.
+/// Una cotización fuera de borrador no cambia su contenido (lo revisa la base). La evidencia de la
+/// aceptación o el rechazo en línea queda en las columnas response_*.
+model CrmQuote {
+  id                 String         @id @default(uuid(7)) @db.Uuid
+  tenantId           String         @map("tenant_id") @db.Uuid
+  code               String
+  versionNumber      Int            @map("version_number")
+  previousId         String?        @map("previous_id") @db.Uuid
+  opportunityId      String         @map("opportunity_id") @db.Uuid
+  partyId            String         @map("party_id") @db.Uuid
+  status             String         @default("draft")
+  validUntil         DateTime       @map("valid_until") @db.Date
+  paymentTerms       String         @map("payment_terms")
+  deliveryTerms      String         @map("delivery_terms")
+  warranty           String?
+  notes              String?
+  subtotal           Decimal        @db.Decimal(18, 2)
+  discountTotal      Decimal        @map("discount_total") @db.Decimal(18, 2)
+  taxTotal           Decimal        @map("tax_total") @db.Decimal(18, 2)
+  total              Decimal        @db.Decimal(18, 2)
+  largestDiscount    Decimal        @map("largest_discount") @db.Decimal(5, 2)
+  /// Tope vigente cuando se pidió el envío; vacío mientras es borrador.
+  discountCap        Decimal?       @map("discount_cap") @db.Decimal(5, 2)
+  requiresApproval   Boolean        @default(false) @map("requires_approval")
+  /// El trámite de la aprobación de la Dirección en Mis tareas, si la necesitó.
+  workflowInstanceId String?        @map("workflow_instance_id") @db.Uuid
+  submittedAt        DateTime?      @map("submitted_at") @db.Timestamptz(6)
+  decidedBy          String?        @map("decided_by") @db.Uuid
+  decidedAt          DateTime?      @map("decided_at") @db.Timestamptz(6)
+  decisionNote       String?        @map("decision_note")
+  /// none mientras no está aprobada; pending hasta que el worker genera el PDF FT-COM-001.
+  pdfStatus          String         @default("none") @map("pdf_status")
+  pdfFileId          String?        @map("pdf_file_id") @db.Uuid
+  pdfSha256          String?        @map("pdf_sha256")
+  recipientName      String?        @map("recipient_name")
+  recipientEmail     String?        @map("recipient_email")
+  sentBy             String?        @map("sent_by") @db.Uuid
+  sentAt             DateTime?      @map("sent_at") @db.Timestamptz(6)
+  emailSentAt        DateTime?      @map("email_sent_at") @db.Timestamptz(6)
+  /// Huella SHA-256 de la llave del enlace del cliente; la llave solo va en el correo.
+  linkTokenHash      String?        @unique @map("link_token_hash")
+  linkExpiresAt      DateTime?      @map("link_expires_at") @db.Timestamptz(6)
+  response           String?
+  respondedAt        DateTime?      @map("responded_at") @db.Timestamptz(6)
+  respondedByName    String?        @map("responded_by_name")
+  responseReason     String?        @map("response_reason")
+  responseIp         String?        @map("response_ip")
+  responseUserAgent  String?        @map("response_user_agent")
+  responsePdfSha256  String?        @map("response_pdf_sha256")
+  closedAt           DateTime?      @map("closed_at") @db.Timestamptz(6)
+  createdAt          DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy          String?        @map("created_by") @db.Uuid
+  updatedAt          DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy          String?        @map("updated_by") @db.Uuid
+  version            Int            @default(1)
+  deletedAt          DateTime?      @map("deleted_at") @db.Timestamptz(6)
+  tenant             Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  opportunity        CrmOpportunity @relation(fields: [tenantId, opportunityId], references: [tenantId, id], onDelete: Restrict)
+  previous           CrmQuote?      @relation("QuoteVersions", fields: [tenantId, previousId], references: [tenantId, id], onDelete: Restrict)
+  next               CrmQuote[]     @relation("QuoteVersions")
+  items              CrmQuoteItem[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code, versionNumber])
+  @@index([tenantId, opportunityId])
+  @@index([tenantId, status])
+  @@index([tenantId, createdAt])
+  @@map("crm_quotes")
+}
+
+/// Ítems de una cotización. Guardan la tarifa del impuesto usada y los totales de la línea, para
+/// que una cotización enviada nunca cambie aunque cambien el portafolio o los impuestos.
+model CrmQuoteItem {
+  id              String      @id @default(uuid(7)) @db.Uuid
+  tenantId        String      @map("tenant_id") @db.Uuid
+  quoteId         String      @map("quote_id") @db.Uuid
+  position        Int         @db.SmallInt
+  serviceId       String?     @map("service_id") @db.Uuid
+  description     String
+  unit            String
+  quantity        Decimal     @db.Decimal(9, 2)
+  unitPrice       Decimal     @map("unit_price") @db.Decimal(18, 2)
+  discountPercent Decimal     @map("discount_percent") @db.Decimal(5, 2)
+  taxKey          String      @map("tax_key")
+  taxRate         Decimal     @map("tax_rate") @db.Decimal(5, 2)
+  lineSubtotal    Decimal     @map("line_subtotal") @db.Decimal(18, 2)
+  lineDiscount    Decimal     @map("line_discount") @db.Decimal(18, 2)
+  lineTax         Decimal     @map("line_tax") @db.Decimal(18, 2)
+  lineTotal       Decimal     @map("line_total") @db.Decimal(18, 2)
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?     @map("created_by") @db.Uuid
+  updatedAt       DateTime    @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy       String?     @map("updated_by") @db.Uuid
+  version         Int         @default(1)
+  deletedAt       DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  tenant          Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  quote           CrmQuote    @relation(fields: [tenantId, quoteId], references: [tenantId, id], onDelete: Restrict)
+  service         CrmService? @relation(fields: [tenantId, serviceId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, quoteId])
+  @@index([tenantId, serviceId])
+  @@map("crm_quote_items")
+}
+
+// Finanzas (M10): parámetros tributarios, adelantados en B23 ------------------------------------
+
+/// Parámetros tributarios vigentes (numeral 12.4), validados por el Contador. Cada clave tiene
+/// vigencias: un cambio crea una fila nueva y cierra la anterior el día antes.
+model FinTaxParameter {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  key        String
+  label      String
+  rate       Decimal   @db.Decimal(5, 2)
+  validFrom  DateTime  @map("valid_from") @db.Date
+  validTo    DateTime? @map("valid_to") @db.Date
+  legalBasis String    @map("legal_basis")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?   @map("created_by") @db.Uuid
+  updatedAt  DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?   @map("updated_by") @db.Uuid
+  version    Int       @default(1)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, key, validFrom])
+  @@map("fin_tax_parameters")
 }

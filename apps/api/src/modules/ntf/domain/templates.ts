@@ -47,6 +47,12 @@ export const DEFAULT_TEMPLATES: Readonly<Record<NotificationKind, TemplateText>>
     body: 'Tiene programada la actividad «{{actividad}}» de {{registro}} para el {{hora}} (hora de Colombia). Revísela en ARZA ONE › Comercial › Actividades.',
     urgent: false,
   },
+  // B23: a quien elaboró la cotización, cuando la Dirección decide o el cliente responde.
+  crm_quote_update: {
+    subject: 'Cotización {{cotizacion}}: {{novedad}}',
+    body: 'Su cotización {{cotizacion}} tiene una novedad: {{novedad}}. Revísela en ARZA ONE › Comercial › Cotizaciones.',
+    urgent: false,
+  },
 };
 
 /** Variables que el texto usa y que este tipo de aviso no ofrece. */

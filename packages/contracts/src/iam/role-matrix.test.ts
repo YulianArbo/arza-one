@@ -73,6 +73,14 @@ describe('matriz por módulo (numeral 15.3)', () => {
     );
     expect(codes).not.toContain('iam.role.assign');
   });
+
+  it('solo DIRECCION aprueba cotizaciones; COMERCIAL las elabora y las envía (ficha 17.6)', () => {
+    const approvers = ALL_ROLES.filter((role) => codesOf(role).includes('crm.quote.approve'));
+    expect(approvers).toEqual(['DIRECCION']);
+    expect(codesOf('COMERCIAL')).toEqual(
+      expect.arrayContaining(['crm.quote.create', 'crm.quote.update', 'crm.quote.send']),
+    );
+  });
 });
 
 describe('permisos limitados y sensibles', () => {

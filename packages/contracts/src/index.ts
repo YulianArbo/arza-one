@@ -9,3 +9,4 @@ export * from './wf/index.js';
 export * from './ntf/index.js';
 export * from './privacy/index.js';
 export * from './crm/index.js';
+export * from './finance/index.js';

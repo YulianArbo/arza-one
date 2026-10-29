@@ -28,10 +28,10 @@ function dayFromToday(days: number): string {
 describe('parámetros con vigencia', () => {
   it('una vigencia nueva conserva la anterior y audita el valor anterior y el nuevo', async () => {
     const admin = await scenario.admin();
-    const before = parameterListResponseSchema.parse(
-      (await scenario.get('/v1/parameters', admin.session)).body,
-    ).data[0];
-    expect(before?.current?.value.morning).toEqual({ start: '08:00', end: '12:00' });
+    const before = parameterListResponseSchema
+      .parse((await scenario.get('/v1/parameters', admin.session)).body)
+      .data.find((parameter) => parameter.key === 'work.schedule');
+    expect(before?.current?.value).toMatchObject({ morning: { start: '08:00', end: '12:00' } });
     const validFrom = dayFromToday(30);
     const body = { value: SCHEDULE, valid_from: validFrom };
     const created = await scenario.post(
@@ -72,6 +72,24 @@ describe('parámetros: validaciones', () => {
     expect(
       errorCode(await scenario.post('/v1/parameters/no.existe/versions', admin.session, unknown)),
     ).toBe('CORE_PARAMETER_UNKNOWN');
+  });
+
+  it('cada parámetro acepta solo el valor de su clave (B23: tope de descuento)', async () => {
+    const admin = await scenario.admin();
+    const path = '/v1/parameters/crm.discount_cap/versions';
+    const schedule = { value: SCHEDULE, valid_from: dayFromToday(60) };
+    expect(errorCode(await scenario.post(path, admin.session, schedule))).toBe(
+      'CORE_PARAMETER_VALUE_INVALID',
+    );
+    const cap = { value: { percent: '15' }, valid_from: dayFromToday(60) };
+    expect((await scenario.post(path, admin.session, cap)).status).toBe(204);
+    const history = parameterHistoryResponseSchema.parse(
+      (await scenario.get('/v1/parameters/crm.discount_cap/history', admin.session)).body,
+    );
+    expect(history.data.map((version) => version.value)).toEqual([
+      { percent: '15' },
+      { percent: '10.00' },
+    ]);
   });
 });
 

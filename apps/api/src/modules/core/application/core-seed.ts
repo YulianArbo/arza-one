@@ -7,6 +7,7 @@ import { colombianHolidays } from '../domain/colombian-holidays.js';
 import { auditCore, type CoreActor } from './core-audit.js';
 import {
   CATALOGS,
+  DISCOUNT_CAP,
   HOLIDAY_YEARS,
   POSITIONS,
   PROCESSES,
@@ -41,18 +42,16 @@ function holidaysOf(year: number): SeedStep {
   };
 }
 
-const workSchedule: SeedStep = async (tx, tenantId) => {
-  if ((await tx.parameter.count({ where: { key: 'work.schedule' } })) > 0) return null;
-  await tx.parameter.create({
-    data: {
-      tenantId,
-      key: 'work.schedule',
-      value: WORK_SCHEDULE,
-      validFrom: fromCalendarDate(WORK_SCHEDULE_VALID_FROM),
-    },
-  });
-  return { key: 'work.schedule', valid_from: WORK_SCHEDULE_VALID_FROM };
-};
+/** Primera vigencia de un parámetro, solo si nunca tuvo una. */
+function parameterOf(key: string, value: Prisma.InputJsonObject, validFrom: string): SeedStep {
+  return async (tx, tenantId) => {
+    if ((await tx.parameter.count({ where: { key } })) > 0) return null;
+    await tx.parameter.create({
+      data: { tenantId, key, value, validFrom: fromCalendarDate(validFrom) },
+    });
+    return { key, valid_from: validFrom };
+  };
+}
 
 /** Crea el catálogo con sus opciones; si ya existe, agrega solo las opciones que le faltan. */
 function catalogOf(seed: SeedCatalog): SeedStep {
@@ -112,7 +111,8 @@ const positions: SeedStep = async (tx, tenantId) => {
 
 const STEPS: readonly (readonly [action: string, step: SeedStep])[] = [
   ...HOLIDAY_YEARS.map((year) => ['core.holiday.seed', holidaysOf(year)] as const),
-  ['core.parameter.seed', workSchedule],
+  ['core.parameter.seed', parameterOf('work.schedule', WORK_SCHEDULE, WORK_SCHEDULE_VALID_FROM)],
+  ['core.parameter.seed', parameterOf('crm.discount_cap', DISCOUNT_CAP, WORK_SCHEDULE_VALID_FROM)],
   ...CATALOGS.map((catalog) => ['core.catalog.seed', catalogOf(catalog)] as const),
   ['core.org_unit.seed', processes],
   ['core.position.seed', positions],

@@ -16,7 +16,7 @@ permisos de una persona son la suma de sus roles vigentes.
 | Dirección | `DIRECCION` | Interno | 69 | 1 |
 | Administrador de plataforma | `ADMIN_PLATAFORMA` | Interno | 32 | 1 |
 | Calidad | `CALIDAD` | Interno | 63 | 1 |
-| Comercial | `COMERCIAL` | Interno | 52 | 9 |
+| Comercial | `COMERCIAL` | Interno | 51 | 9 |
 | Líder técnico | `LIDER_TECNICO` | Interno | 46 | 8 |
 | Equipo de proyecto | `EQUIPO_PROYECTO` | Interno | 21 | 18 |
 | Servicio al cliente | `SERVICIO` | Interno | 43 | 9 |
@@ -89,7 +89,7 @@ Coordinador de Calidad e Innovación. Control documental, riesgos, no conformida
 
 ## Comercial (`COMERCIAL`)
 
-Gerente y analistas comerciales. Prospectos, oportunidades, cotizaciones, clientes; contratos en borrador. 52 permisos.
+Gerente y analistas comerciales. Prospectos, oportunidades, cotizaciones, clientes; contratos en borrador. 51 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Terceros (M02):** Ver terceros · Crear terceros · Editar terceros · Fusionar terceros duplicados · Registrar el conocimiento del tercero
@@ -97,7 +97,7 @@ Gerente y analistas comerciales. Prospectos, oportunidades, cotizaciones, client
 - **Flujos y tareas (M04):** Atender sus tareas (solo lo propio)
 - **Tableros (M16):** Ver tableros de proceso (solo lo propio)
 - **Sitio y textos legales (M17):** Editar páginas del sitio · Editar textos legales · Ver formularios recibidos en el sitio
-- **Comercial (M05):** Ver prospectos · Crear prospectos · Editar prospectos · Convertir prospectos en clientes · Ver oportunidades · Crear oportunidades · Editar oportunidades · Cerrar oportunidades ganadas o perdidas · Administrar el portafolio de servicios · Ver cotizaciones · Crear cotizaciones · Editar cotizaciones · Aprobar cotizaciones · Enviar cotizaciones al cliente · Ver informes comerciales
+- **Comercial (M05):** Ver prospectos · Crear prospectos · Editar prospectos · Convertir prospectos en clientes · Ver oportunidades · Crear oportunidades · Editar oportunidades · Cerrar oportunidades ganadas o perdidas · Administrar el portafolio de servicios · Ver cotizaciones · Crear cotizaciones · Editar cotizaciones · Enviar cotizaciones al cliente · Ver informes comerciales
 - **Contratos y firma (M06):** Ver contratos · Crear contratos en borrador · Editar contratos en borrador · Preparar sobres de firma · Ver las evidencias de firma
 - **Proyectos (M07):** Ver todos los proyectos · Ver los proyectos donde es miembro
 - **Servicio al cliente (M08):** Ver tiquetes · Ver PQRSF
