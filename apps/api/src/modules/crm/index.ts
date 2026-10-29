@@ -4,3 +4,10 @@
 export { CrmModule } from './interface/crm.module.js';
 export { seedCrmWorkflows } from './application/crm-workflows.js';
 export { sendActivityReminders, type ReminderDependencies } from './application/reminders.js';
+export {
+  expireQuotes,
+  processPendingQuotes,
+  type QuoteMail,
+  type QuoteWorkDependencies,
+  type QuoteWorkResult,
+} from './application/quote-work.js';

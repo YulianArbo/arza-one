@@ -12,6 +12,15 @@ export const CRM_ERROR_CODES = {
   documentRequired: 'CRM_DOCUMENT_REQUIRED',
   campaignInvalid: 'CRM_CAMPAIGN_INVALID',
   campaignDuplicate: 'CRM_CAMPAIGN_DUPLICATE',
+  serviceDuplicate: 'CRM_SERVICE_DUPLICATE',
+  serviceInvalid: 'CRM_SERVICE_INVALID',
+  taxInvalid: 'CRM_TAX_INVALID',
+  validUntilInvalid: 'CRM_VALID_UNTIL_INVALID',
+  selfApproval: 'CRM_SELF_APPROVAL',
+  pdfNotReady: 'CRM_QUOTE_PDF_NOT_READY',
+  quoteLinkInvalid: 'CRM_QUOTE_LINK_INVALID',
+  /** Nombre del numeral 14.2. */
+  quoteExpired: 'QUOTE_EXPIRED',
 } as const;
 
 export const calendarDateSchema = z.iso.date().describe('Fecha de calendario AAAA-MM-DD');

@@ -33,8 +33,8 @@ export const quoteStatusSchema = z
   .enum(Object.keys(QUOTE_STATUSES) as [QuoteStatus, ...QuoteStatus[]])
   .describe('Estado de la cotización');
 
-/** Estados desde los que se puede crear la versión siguiente. */
-export const NEW_VERSION_FROM: readonly QuoteStatus[] = ['sent', 'rejected', 'expired'];
+/** Estados desde los que se puede crear la versión siguiente (una aprobada sin enviar, también). */
+export const NEW_VERSION_FROM: readonly QuoteStatus[] = ['approved', 'sent', 'rejected', 'expired'];
 
 /** Días de vigencia que el asistente propone. */
 export const DEFAULT_QUOTE_VALID_DAYS = 30;

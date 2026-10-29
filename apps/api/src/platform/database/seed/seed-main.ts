@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-// Las semillas de acceso, del núcleo, documentos, privacidad, el flujo del CRM, los terceros ficticios y el flujo de prueba son de sus
+// Las semillas de acceso, del núcleo, documentos, privacidad, los parámetros tributarios, el flujo del CRM, los terceros ficticios y el flujo de prueba son de sus
 // módulos: este punto de entrada las reúne con la de la plataforma, como app.module.ts reúne los
 // módulos.
 import { seedCore } from '../../../modules/core/index.js';
@@ -11,6 +11,7 @@ import {
   seedDocWorkflows,
   seedRetentionDemo,
 } from '../../../modules/doc/index.js';
+import { seedTaxParameters } from '../../../modules/fin/index.js';
 import { seedAccessControl } from '../../../modules/iam/index.js';
 import { seedPartyDemo } from '../../../modules/party/index.js';
 import { seedNotificationTemplates } from '../../../modules/ntf/index.js';
@@ -48,6 +49,7 @@ async function main(): Promise<void> {
     await seedDocForms(database, tenantIds, systemClock);
     await seedNotificationTemplates(database, tenantIds, systemClock);
     await seedPrivacyNotices(database, tenantIds, systemClock);
+    await seedTaxParameters(database, tenantIds, systemClock);
     await seedCrmWorkflows(database, tenantIds, systemClock);
     if (withDemo) {
       const demoIds = DEMO_TENANTS.map((tenant) => tenant.id);

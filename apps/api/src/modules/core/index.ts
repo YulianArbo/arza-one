@@ -22,3 +22,9 @@ export { companyIdentity, type CompanyIdentity } from './application/company-ide
 export { superiorPositionId } from './application/positions.js';
 export { catalogLabels, isActiveCatalogCode } from './application/catalogs.js';
 export { addDays, bogotaToday, fromCalendarDate, toCalendarDate } from './domain/calendar-date.js';
+export {
+  currentAndScheduled,
+  previousValidTo,
+  validFromProblem,
+  type ValidFromProblem,
+} from './domain/parameter-policy.js';

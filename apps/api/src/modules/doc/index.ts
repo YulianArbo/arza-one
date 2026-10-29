@@ -55,5 +55,9 @@ export {
   AttachedFileLinks,
   attachedFiles,
   isAttachableFile,
+  openAvailableFile,
   type AttachedFile,
+  type OpenedFile,
 } from './application/attached-files.js';
+export { storePdf as storeGeneratedPdf } from './application/generated-pdf.js';
+export { FileStorage } from './infrastructure/file-storage.js';

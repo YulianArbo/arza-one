@@ -27,3 +27,11 @@ export {
   TemplateSyntaxError,
 } from './output-html.js';
 export { docxTemplateVariables, fillDocxTemplate } from './output-docx.js';
+export {
+  percentText,
+  pesos,
+  quoteDocumentBody,
+  type QuoteDocument,
+  type QuoteDocumentLine,
+  type QuoteDocumentTax,
+} from './quote-document.js';

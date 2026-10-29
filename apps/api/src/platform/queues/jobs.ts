@@ -105,6 +105,13 @@ const docTextExtractJobSchema = z.object({});
  */
 const crmActivityRemindJobSchema = z.object({});
 
+/**
+ * Cotizaciones (B23): el PDF FT-COM-001 de las aprobadas y el correo con el enlace de las enviadas,
+ * y cada día el vencimiento de las enviadas cuya vigencia pasó. Son del sistema y no llevan empresa.
+ */
+const crmQuoteWorkJobSchema = z.object({});
+const crmQuoteExpireJobSchema = z.object({});
+
 export type TenantJob = z.infer<typeof tenantJobSchema>;
 export type ExampleEmailJob = z.infer<typeof exampleEmailJobSchema>;
 export type AccountEmailJob = z.infer<typeof accountEmailJobSchema>;
@@ -174,6 +181,16 @@ export const JOBS = {
     name: 'crm.activity-remind',
     schema: crmActivityRemindJobSchema,
   },
+  crmQuoteWork: {
+    queue: QUEUES.platform,
+    name: 'crm.quote-work',
+    schema: crmQuoteWorkJobSchema,
+  },
+  crmQuoteExpire: {
+    queue: QUEUES.platform,
+    name: 'crm.quote-expire',
+    schema: crmQuoteExpireJobSchema,
+  },
 } as const;
 
 /** Trabajos programados: el worker los registra al arrancar (expresión cron, hora de Bogotá). */
@@ -198,6 +215,10 @@ export const SCHEDULED_JOBS = [
   // Cada minuto: el recordatorio de una actividad llega 30 minutos antes de su hora, a lo sumo uno
   // después.
   { id: 'crm.activity-remind.every-minute', job: JOBS.crmActivityRemind, pattern: '* * * * *' },
+  // Cada 20 segundos: el PDF de una cotización aprobada y el correo de una enviada salen enseguida.
+  { id: 'crm.quote-work.every-20-seconds', job: JOBS.crmQuoteWork, pattern: '*/20 * * * * *' },
+  // Cada día a las 0:05: vencen las enviadas cuyo último día de vigencia fue ayer.
+  { id: 'crm.quote-expire.daily', job: JOBS.crmQuoteExpire, pattern: '5 0 * * *' },
 ] as const;
 
 export type JobDefinition = (typeof JOBS)[keyof typeof JOBS];
