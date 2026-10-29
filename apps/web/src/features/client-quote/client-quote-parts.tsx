@@ -13,6 +13,7 @@ export function ItemsTable({ quote }: { readonly quote: PublicQuote }): JSX.Elem
   return (
     <SimpleTable
       caption="Servicios cotizados"
+      scrollLabel="Servicios cotizados; desplácese a los lados para ver todas las columnas"
       headers={['Descripción', 'Cantidad', 'Valor unitario', 'Desc.', 'IVA', 'Total']}
     >
       {quote.items.map((item) => (

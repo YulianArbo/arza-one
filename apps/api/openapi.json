@@ -20884,6 +20884,225 @@
         ]
       }
     },
+    "/v1/finance/tax-parameters": {
+      "get": {
+        "operationId": "TaxParametersController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Impuestos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxParameterListResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Impuestos con su tarifa de hoy y la programada",
+        "tags": [
+          "Finanzas"
+        ]
+      }
+    },
+    "/v1/finance/tax-parameters/{key}/history": {
+      "get": {
+        "operationId": "TaxParametersController_history",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Historial",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxParameterHistoryResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Todas las vigencias de un impuesto",
+        "tags": [
+          "Finanzas"
+        ]
+      }
+    },
+    "/v1/finance/tax-parameters/versions": {
+      "post": {
+        "description": "Empieza hoy o más adelante; la anterior se conserva y termina el día antes. Una clave nueva exige su nombre.",
+        "operationId": "TaxParametersController_createVersion",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTaxParameterVersionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Vigencia creada"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una fecha que reescribe el pasado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Registrar una tarifa nueva",
+        "tags": [
+          "Finanzas"
+        ]
+      }
+    },
     "/v1/crm/leads": {
       "get": {
         "operationId": "LeadsController_list",
@@ -23365,6 +23584,1709 @@
         "summary": "Exportar el RE-COM-001 a CSV",
         "tags": [
           "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/services": {
+      "get": {
+        "description": "Activos o todos.",
+        "operationId": "ServicesController_list",
+        "parameters": [
+          {
+            "name": "view",
+            "required": false,
+            "in": "query",
+            "description": "Activos o todos",
+            "schema": {
+              "default": "active",
+              "type": "string",
+              "enum": [
+                "active",
+                "all"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Busca en código y nombre",
+            "schema": {
+              "minLength": 1,
+              "maxLength": 120,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Servicios",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceListResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Servicios del portafolio",
+        "tags": [
+          "Comercial"
+        ]
+      },
+      "post": {
+        "description": "Código SRV-NNNN.",
+        "operationId": "ServicesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Agregado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmCreatedResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el registro ya está cerrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Agregar un servicio al portafolio",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/services/{id}": {
+      "put": {
+        "description": "Las cotizaciones que ya lo usan conservan sus valores.",
+        "operationId": "ServicesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Guardado"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el registro ya está cerrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Editar o desactivar un servicio",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/quotes": {
+      "get": {
+        "description": "Las más recientes primero; por defecto, solo la última versión de cada una.",
+        "operationId": "QuotesController_list",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Estado de la cotización",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "in_approval",
+                "approved",
+                "sent",
+                "accepted",
+                "rejected",
+                "expired",
+                "superseded"
+              ]
+            }
+          },
+          {
+            "name": "opportunity_id",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "view",
+            "required": false,
+            "in": "query",
+            "description": "Solo la última versión o todas",
+            "schema": {
+              "default": "latest",
+              "type": "string",
+              "enum": [
+                "latest",
+                "all"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Busca en código y cliente",
+            "schema": {
+              "minLength": 1,
+              "maxLength": 120,
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteListResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Cotizaciones",
+        "tags": [
+          "Comercial"
+        ]
+      },
+      "post": {
+        "description": "Para una oportunidad abierta; código COT-AAAA-NNNN, versión 1.",
+        "operationId": "QuotesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateQuoteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmCreatedResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el registro ya está cerrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Crear una cotización en borrador",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/quotes/options": {
+      "get": {
+        "description": "Servicios activos, impuestos con tarifa vigente y el tope de descuento.",
+        "operationId": "QuotesController_options",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Opciones",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteOptionsResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Opciones del asistente",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/quotes/{id}": {
+      "get": {
+        "description": "Con sus ítems y versiones.",
+        "operationId": "QuotesController_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ficha",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteDetailResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe"
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Ficha de la cotización",
+        "tags": [
+          "Comercial"
+        ]
+      },
+      "put": {
+        "description": "Encabezado e ítems juntos. Una cotización fuera de borrador no se edita.",
+        "operationId": "QuotesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateQuoteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Guardado"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el registro ya está cerrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Guardar el borrador",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/quotes/{id}/actions/submit": {
+      "post": {
+        "description": "Si algún descuento pasa el tope, va a la Dirección; si no, queda aprobada y se prepara su PDF.",
+        "operationId": "QuotesController_submit",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Pedido"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el registro ya está cerrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Pedir el envío",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/quotes/{id}/actions/approve": {
+      "post": {
+        "description": "Quien la elaboró no la aprueba. Cierra la tarea de Mis tareas.",
+        "operationId": "QuotesController_approve",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveQuoteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Aprobada"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el registro ya está cerrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Aprobar (Dirección)",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/quotes/{id}/actions/return": {
+      "post": {
+        "description": "Vuelve a borrador con el comentario. Quien la elaboró no la devuelve.",
+        "operationId": "QuotesController_returnToDraft",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReturnQuoteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Devuelta"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el registro ya está cerrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Devolver para corregir (Dirección)",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/quotes/{id}/actions/send": {
+      "post": {
+        "description": "Solo una aprobada, con su PDF listo y vigente. El cliente recibe un correo con el enlace.",
+        "operationId": "QuotesController_send",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendQuoteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Enviada"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el registro ya está cerrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Enviar al cliente",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/quotes/{id}/actions/new-version": {
+      "post": {
+        "description": "Copia la cotización como borrador; una enviada o aprobada queda reemplazada y su enlace ya no sirve.",
+        "operationId": "QuotesController_newVersion",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmCreatedResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el registro ya está cerrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Crear la versión siguiente",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/crm/quotes/{id}/pdf": {
+      "post": {
+        "description": "Enlace temporal; existe desde que la versión queda aprobada.",
+        "operationId": "QuotesController_pdf",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Enlace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuotePdfLinkResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el registro ya está cerrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Enlace para descargar el PDF FT-COM-001",
+        "tags": [
+          "Comercial"
+        ]
+      }
+    },
+    "/v1/public/quotes/view": {
+      "post": {
+        "description": "Con su estado para el cliente. Queda registrado que la abrió.",
+        "operationId": "PublicQuotesController_view",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicQuoteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cotización",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicQuoteResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El enlace no existe o se reemplazó por uno más reciente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicQuoteErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Ver la cotización",
+        "tags": [
+          "Cotización del cliente"
+        ]
+      }
+    },
+    "/v1/public/quotes/pdf": {
+      "post": {
+        "operationId": "PublicQuotesController_pdf",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicQuoteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "El PDF"
+          },
+          "404": {
+            "description": "El enlace no existe o se reemplazó por uno más reciente",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicQuoteErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Descargar el PDF FT-COM-001",
+        "tags": [
+          "Cotización del cliente"
+        ]
+      }
+    },
+    "/v1/public/quotes/accept": {
+      "post": {
+        "description": "Queda la evidencia: fecha y hora, IP, navegador, versión y huella del PDF.",
+        "operationId": "PublicQuotesController_accept",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptQuoteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Aceptada"
+          },
+          "404": {
+            "description": "El enlace no existe o se reemplazó por uno más reciente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicQuoteErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Vencida (QUOTE_EXPIRED), ya respondida o reemplazada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicQuoteErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Aceptar la cotización",
+        "tags": [
+          "Cotización del cliente"
+        ]
+      }
+    },
+    "/v1/public/quotes/reject": {
+      "post": {
+        "description": "El motivo es opcional.",
+        "operationId": "PublicQuotesController_reject",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectQuoteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Rechazada"
+          },
+          "404": {
+            "description": "El enlace no existe o se reemplazó por uno más reciente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicQuoteErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Vencida, ya respondida o reemplazada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicQuoteErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Rechazar la cotización",
+        "tags": [
+          "Cotización del cliente"
         ]
       }
     }
@@ -27077,61 +28999,78 @@
                           "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                         },
                         "value": {
-                          "type": "object",
-                          "properties": {
-                            "days": {
-                              "minItems": 1,
-                              "maxItems": 7,
-                              "type": "array",
-                              "items": {
-                                "type": "integer",
-                                "minimum": 1,
-                                "maximum": 7
-                              }
-                            },
-                            "morning": {
+                          "anyOf": [
+                            {
                               "type": "object",
                               "properties": {
-                                "start": {
-                                  "type": "string",
-                                  "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                "days": {
+                                  "minItems": 1,
+                                  "maxItems": 7,
+                                  "type": "array",
+                                  "items": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "maximum": 7
+                                  }
                                 },
-                                "end": {
-                                  "type": "string",
-                                  "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                "morning": {
+                                  "type": "object",
+                                  "properties": {
+                                    "start": {
+                                      "type": "string",
+                                      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                    },
+                                    "end": {
+                                      "type": "string",
+                                      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                    }
+                                  },
+                                  "required": [
+                                    "start",
+                                    "end"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                "afternoon": {
+                                  "type": "object",
+                                  "properties": {
+                                    "start": {
+                                      "type": "string",
+                                      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                    },
+                                    "end": {
+                                      "type": "string",
+                                      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                    }
+                                  },
+                                  "required": [
+                                    "start",
+                                    "end"
+                                  ],
+                                  "additionalProperties": false
                                 }
                               },
                               "required": [
-                                "start",
-                                "end"
+                                "days",
+                                "morning",
+                                "afternoon"
                               ],
                               "additionalProperties": false
                             },
-                            "afternoon": {
+                            {
                               "type": "object",
                               "properties": {
-                                "start": {
+                                "percent": {
                                   "type": "string",
-                                  "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
-                                },
-                                "end": {
-                                  "type": "string",
-                                  "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                  "pattern": "^\\d{1,3}(\\.\\d{1,2})?$"
                                 }
                               },
                               "required": [
-                                "start",
-                                "end"
+                                "percent"
                               ],
                               "additionalProperties": false
                             }
-                          },
-                          "required": [
-                            "days",
-                            "morning",
-                            "afternoon"
-                          ],
-                          "additionalProperties": false
+                          ]
                         },
                         "valid_from": {
                           "type": "string",
@@ -27210,61 +29149,78 @@
                           "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                         },
                         "value": {
-                          "type": "object",
-                          "properties": {
-                            "days": {
-                              "minItems": 1,
-                              "maxItems": 7,
-                              "type": "array",
-                              "items": {
-                                "type": "integer",
-                                "minimum": 1,
-                                "maximum": 7
-                              }
-                            },
-                            "morning": {
+                          "anyOf": [
+                            {
                               "type": "object",
                               "properties": {
-                                "start": {
-                                  "type": "string",
-                                  "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                "days": {
+                                  "minItems": 1,
+                                  "maxItems": 7,
+                                  "type": "array",
+                                  "items": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "maximum": 7
+                                  }
                                 },
-                                "end": {
-                                  "type": "string",
-                                  "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                "morning": {
+                                  "type": "object",
+                                  "properties": {
+                                    "start": {
+                                      "type": "string",
+                                      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                    },
+                                    "end": {
+                                      "type": "string",
+                                      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                    }
+                                  },
+                                  "required": [
+                                    "start",
+                                    "end"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                "afternoon": {
+                                  "type": "object",
+                                  "properties": {
+                                    "start": {
+                                      "type": "string",
+                                      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                    },
+                                    "end": {
+                                      "type": "string",
+                                      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                    }
+                                  },
+                                  "required": [
+                                    "start",
+                                    "end"
+                                  ],
+                                  "additionalProperties": false
                                 }
                               },
                               "required": [
-                                "start",
-                                "end"
+                                "days",
+                                "morning",
+                                "afternoon"
                               ],
                               "additionalProperties": false
                             },
-                            "afternoon": {
+                            {
                               "type": "object",
                               "properties": {
-                                "start": {
+                                "percent": {
                                   "type": "string",
-                                  "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
-                                },
-                                "end": {
-                                  "type": "string",
-                                  "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                  "pattern": "^\\d{1,3}(\\.\\d{1,2})?$"
                                 }
                               },
                               "required": [
-                                "start",
-                                "end"
+                                "percent"
                               ],
                               "additionalProperties": false
                             }
-                          },
-                          "required": [
-                            "days",
-                            "morning",
-                            "afternoon"
-                          ],
-                          "additionalProperties": false
+                          ]
                         },
                         "valid_from": {
                           "type": "string",
@@ -27369,61 +29325,78 @@
                   "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                 },
                 "value": {
-                  "type": "object",
-                  "properties": {
-                    "days": {
-                      "minItems": 1,
-                      "maxItems": 7,
-                      "type": "array",
-                      "items": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 7
-                      }
-                    },
-                    "morning": {
+                  "anyOf": [
+                    {
                       "type": "object",
                       "properties": {
-                        "start": {
-                          "type": "string",
-                          "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                        "days": {
+                          "minItems": 1,
+                          "maxItems": 7,
+                          "type": "array",
+                          "items": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 7
+                          }
                         },
-                        "end": {
-                          "type": "string",
-                          "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                        "morning": {
+                          "type": "object",
+                          "properties": {
+                            "start": {
+                              "type": "string",
+                              "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                            },
+                            "end": {
+                              "type": "string",
+                              "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                            }
+                          },
+                          "required": [
+                            "start",
+                            "end"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "afternoon": {
+                          "type": "object",
+                          "properties": {
+                            "start": {
+                              "type": "string",
+                              "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                            },
+                            "end": {
+                              "type": "string",
+                              "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                            }
+                          },
+                          "required": [
+                            "start",
+                            "end"
+                          ],
+                          "additionalProperties": false
                         }
                       },
                       "required": [
-                        "start",
-                        "end"
+                        "days",
+                        "morning",
+                        "afternoon"
                       ],
                       "additionalProperties": false
                     },
-                    "afternoon": {
+                    {
                       "type": "object",
                       "properties": {
-                        "start": {
+                        "percent": {
                           "type": "string",
-                          "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
-                        },
-                        "end": {
-                          "type": "string",
-                          "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                          "pattern": "^\\d{1,3}(\\.\\d{1,2})?$"
                         }
                       },
                       "required": [
-                        "start",
-                        "end"
+                        "percent"
                       ],
                       "additionalProperties": false
                     }
-                  },
-                  "required": [
-                    "days",
-                    "morning",
-                    "afternoon"
-                  ],
-                  "additionalProperties": false
+                  ]
                 },
                 "valid_from": {
                   "type": "string",
@@ -27499,61 +29472,78 @@
         "type": "object",
         "properties": {
           "value": {
-            "type": "object",
-            "properties": {
-              "days": {
-                "minItems": 1,
-                "maxItems": 7,
-                "type": "array",
-                "items": {
-                  "type": "integer",
-                  "minimum": 1,
-                  "maximum": 7
-                }
-              },
-              "morning": {
+            "anyOf": [
+              {
                 "type": "object",
                 "properties": {
-                  "start": {
-                    "type": "string",
-                    "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                  "days": {
+                    "minItems": 1,
+                    "maxItems": 7,
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 7
+                    }
                   },
-                  "end": {
-                    "type": "string",
-                    "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                  "morning": {
+                    "type": "object",
+                    "properties": {
+                      "start": {
+                        "type": "string",
+                        "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                      },
+                      "end": {
+                        "type": "string",
+                        "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                      }
+                    },
+                    "required": [
+                      "start",
+                      "end"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "afternoon": {
+                    "type": "object",
+                    "properties": {
+                      "start": {
+                        "type": "string",
+                        "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                      },
+                      "end": {
+                        "type": "string",
+                        "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                      }
+                    },
+                    "required": [
+                      "start",
+                      "end"
+                    ],
+                    "additionalProperties": false
                   }
                 },
                 "required": [
-                  "start",
-                  "end"
+                  "days",
+                  "morning",
+                  "afternoon"
                 ],
                 "additionalProperties": false
               },
-              "afternoon": {
+              {
                 "type": "object",
                 "properties": {
-                  "start": {
+                  "percent": {
                     "type": "string",
-                    "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
-                  },
-                  "end": {
-                    "type": "string",
-                    "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                    "pattern": "^\\d{1,3}(\\.\\d{1,2})?$"
                   }
                 },
                 "required": [
-                  "start",
-                  "end"
+                  "percent"
                 ],
                 "additionalProperties": false
               }
-            },
-            "required": [
-              "days",
-              "morning",
-              "afternoon"
-            ],
-            "additionalProperties": false
+            ]
           },
           "valid_from": {
             "type": "string",
@@ -38823,7 +40813,8 @@
                     "security_alert",
                     "doc_read_requested",
                     "doc_request_decided",
-                    "crm_activity_due"
+                    "crm_activity_due",
+                    "crm_quote_update"
                   ],
                   "description": "Tipo de aviso"
                 },
@@ -38901,7 +40892,8 @@
                     "security_alert",
                     "doc_read_requested",
                     "doc_request_decided",
-                    "crm_activity_due"
+                    "crm_activity_due",
+                    "crm_quote_update"
                   ],
                   "description": "Tipo de aviso"
                 },
@@ -38937,7 +40929,7 @@
         "properties": {
           "items": {
             "minItems": 1,
-            "maxItems": 7,
+            "maxItems": 8,
             "type": "array",
             "items": {
               "type": "object",
@@ -38951,7 +40943,8 @@
                     "security_alert",
                     "doc_read_requested",
                     "doc_request_decided",
-                    "crm_activity_due"
+                    "crm_activity_due",
+                    "crm_quote_update"
                   ],
                   "description": "Tipo de aviso"
                 },
@@ -38987,7 +40980,8 @@
                     "security_alert",
                     "doc_read_requested",
                     "doc_request_decided",
-                    "crm_activity_due"
+                    "crm_activity_due",
+                    "crm_quote_update"
                   ],
                   "description": "Tipo de aviso"
                 },
@@ -39077,7 +41071,8 @@
               "security_alert",
               "doc_read_requested",
               "doc_request_decided",
-              "crm_activity_due"
+              "crm_activity_due",
+              "crm_quote_update"
             ],
             "description": "Tipo de aviso"
           },
@@ -40862,6 +42857,406 @@
           "country",
           "review_on",
           "status"
+        ],
+        "additionalProperties": false
+      },
+      "TaxParameterListResponse_Output": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "pattern": "^[A-Z][A-Z0-9_]{1,39}$",
+                  "description": "Clave del parámetro tributario"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "current": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "rate": {
+                          "type": "string",
+                          "pattern": "^\\d{1,3}(\\.\\d{1,2})?$",
+                          "description": "Tarifa en porcentaje"
+                        },
+                        "valid_from": {
+                          "type": "string",
+                          "format": "date",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                        },
+                        "valid_to": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "format": "date",
+                              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "Último día de vigencia; vacío si sigue"
+                        },
+                        "legal_basis": {
+                          "type": "string"
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                        },
+                        "created_by": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "name": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "name"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "rate",
+                        "valid_from",
+                        "valid_to",
+                        "legal_basis",
+                        "created_at",
+                        "created_by"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "Vigencia de hoy"
+                },
+                "scheduled": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "rate": {
+                          "type": "string",
+                          "pattern": "^\\d{1,3}(\\.\\d{1,2})?$",
+                          "description": "Tarifa en porcentaje"
+                        },
+                        "valid_from": {
+                          "type": "string",
+                          "format": "date",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                        },
+                        "valid_to": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "format": "date",
+                              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "Último día de vigencia; vacío si sigue"
+                        },
+                        "legal_basis": {
+                          "type": "string"
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                        },
+                        "created_by": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "name": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "name"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "rate",
+                        "valid_from",
+                        "valid_to",
+                        "legal_basis",
+                        "created_at",
+                        "created_by"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "Vigencia que empieza más adelante"
+                }
+              },
+              "required": [
+                "key",
+                "label",
+                "current",
+                "scheduled"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "TaxParameterHistoryResponse_Output": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]{1,39}$",
+            "description": "Clave del parámetro tributario"
+          },
+          "label": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "rate": {
+                  "type": "string",
+                  "pattern": "^\\d{1,3}(\\.\\d{1,2})?$",
+                  "description": "Tarifa en porcentaje"
+                },
+                "valid_from": {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                },
+                "valid_to": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "Último día de vigencia; vacío si sigue"
+                },
+                "legal_basis": {
+                  "type": "string"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "created_by": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "rate",
+                "valid_from",
+                "valid_to",
+                "legal_basis",
+                "created_at",
+                "created_by"
+              ],
+              "additionalProperties": false
+            },
+            "description": "De la más reciente a la más antigua"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "FinErrorResponse_Output": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "Código estable del error, por ejemplo QUOTE_EXPIRED"
+              },
+              "message": {
+                "type": "string",
+                "description": "Mensaje para la persona, en español"
+              },
+              "details": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field": {
+                      "type": "string",
+                      "description": "Campo con el problema, en notación de puntos"
+                    },
+                    "issue": {
+                      "type": "string",
+                      "description": "Código del problema, por ejemplo too_small o invalid_type"
+                    }
+                  },
+                  "required": [
+                    "field",
+                    "issue"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "correlation_id": {
+                "type": "string",
+                "description": "Identificador de la petición en los registros"
+              }
+            },
+            "required": [
+              "code",
+              "message",
+              "details",
+              "correlation_id"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "additionalProperties": false
+      },
+      "CreateTaxParameterVersionRequest": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]{1,39}$",
+            "description": "Clave del parámetro tributario"
+          },
+          "label": {
+            "default": null,
+            "description": "Obligatorio solo para una clave nueva",
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rate": {
+            "type": "string",
+            "pattern": "^\\d{1,3}(\\.\\d{1,2})?$",
+            "description": "Tarifa en porcentaje"
+          },
+          "valid_from": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Primer día de la vigencia; hoy o más adelante"
+          },
+          "legal_basis": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "key",
+          "rate",
+          "valid_from",
+          "legal_basis"
         ],
         "additionalProperties": false
       },
@@ -42837,6 +45232,1773 @@
             "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
           }
         },
+        "additionalProperties": false
+      },
+      "ServiceListResponse_Output": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "code": {
+                  "type": "string",
+                  "description": "SRV-NNNN"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "hour",
+                    "day",
+                    "month",
+                    "project",
+                    "unit",
+                    "license"
+                  ],
+                  "description": "Unidad en que se cobra"
+                },
+                "base_price": {
+                  "type": "string",
+                  "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                  "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+                },
+                "tax_key": {
+                  "type": "string",
+                  "pattern": "^[A-Z][A-Z0-9_]{1,39}$",
+                  "description": "Clave del parámetro tributario"
+                },
+                "tax_label": {
+                  "type": "string",
+                  "description": "Nombre del impuesto"
+                },
+                "is_active": {
+                  "type": "boolean"
+                },
+                "version": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "description": "Versión para If-Match"
+                }
+              },
+              "required": [
+                "id",
+                "code",
+                "name",
+                "description",
+                "unit",
+                "base_price",
+                "tax_key",
+                "tax_label",
+                "is_active",
+                "version"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "ServiceRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 160
+          },
+          "description": {
+            "default": null,
+            "description": "Lo que incluye; sale en la cotización",
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "hour",
+              "day",
+              "month",
+              "project",
+              "unit",
+              "license"
+            ],
+            "description": "Unidad en que se cobra"
+          },
+          "base_price": {
+            "type": "string",
+            "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+            "description": "Tarifa vigente en pesos, antes de impuestos"
+          },
+          "tax_key": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]{1,39}$",
+            "description": "Impuesto que aplica, como IVA_GENERAL"
+          },
+          "is_active": {
+            "default": true,
+            "description": "Inactivo: ya no se ofrece en cotizaciones nuevas",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "unit",
+          "base_price",
+          "tax_key"
+        ],
+        "additionalProperties": false
+      },
+      "QuoteListResponse_Output": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "code": {
+                  "type": "string",
+                  "description": "COT-AAAA-NNNN"
+                },
+                "version_number": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "description": "Versión de la cotización: 1, 2, 3…"
+                },
+                "opportunity": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "title"
+                  ],
+                  "additionalProperties": false
+                },
+                "party": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Cliente"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "draft",
+                    "in_approval",
+                    "approved",
+                    "sent",
+                    "accepted",
+                    "rejected",
+                    "expired",
+                    "superseded"
+                  ],
+                  "description": "Estado de la cotización"
+                },
+                "valid_until": {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                  "description": "Fecha de calendario AAAA-MM-DD"
+                },
+                "total": {
+                  "type": "string",
+                  "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                  "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+                },
+                "author": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "sent_at": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "version": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "description": "Versión para If-Match"
+                }
+              },
+              "required": [
+                "id",
+                "code",
+                "version_number",
+                "opportunity",
+                "party",
+                "status",
+                "valid_until",
+                "total",
+                "author",
+                "sent_at",
+                "created_at",
+                "version"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "next_cursor"
+        ],
+        "additionalProperties": false
+      },
+      "QuoteOptionsResponse_Output": {
+        "type": "object",
+        "properties": {
+          "services": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "code": {
+                  "type": "string",
+                  "description": "SRV-NNNN"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "hour",
+                    "day",
+                    "month",
+                    "project",
+                    "unit",
+                    "license"
+                  ],
+                  "description": "Unidad en que se cobra"
+                },
+                "base_price": {
+                  "type": "string",
+                  "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                  "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+                },
+                "tax_key": {
+                  "type": "string",
+                  "pattern": "^[A-Z][A-Z0-9_]{1,39}$",
+                  "description": "Clave del parámetro tributario"
+                },
+                "tax_label": {
+                  "type": "string",
+                  "description": "Nombre del impuesto"
+                },
+                "is_active": {
+                  "type": "boolean"
+                },
+                "version": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "description": "Versión para If-Match"
+                }
+              },
+              "required": [
+                "id",
+                "code",
+                "name",
+                "description",
+                "unit",
+                "base_price",
+                "tax_key",
+                "tax_label",
+                "is_active",
+                "version"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "taxes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "pattern": "^[A-Z][A-Z0-9_]{1,39}$",
+                  "description": "Clave del parámetro tributario"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "rate": {
+                  "type": "string",
+                  "pattern": "^\\d{1,3}(\\.\\d{1,2})?$",
+                  "description": "Tarifa en porcentaje"
+                }
+              },
+              "required": [
+                "key",
+                "label",
+                "rate"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "discount_cap": {
+            "description": "Tope de descuento sin aprobación, en %",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "default_valid_days": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "services",
+          "taxes",
+          "discount_cap",
+          "default_valid_days"
+        ],
+        "additionalProperties": false
+      },
+      "CreateQuoteRequest": {
+        "type": "object",
+        "properties": {
+          "opportunity_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "description": "Oportunidad abierta del embudo"
+          },
+          "valid_until": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Último día en que el cliente puede aceptarla"
+          },
+          "conditions": {
+            "type": "object",
+            "properties": {
+              "payment_terms": {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 500
+              },
+              "delivery_terms": {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 500
+              },
+              "warranty": {
+                "default": null,
+                "description": "Garantía; vacío si no aplica",
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 500
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "payment_terms",
+              "delivery_terms"
+            ],
+            "additionalProperties": false
+          },
+          "notes": {
+            "default": null,
+            "description": "Notas para el cliente",
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "items": {
+            "minItems": 1,
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "service_id": {
+                  "default": null,
+                  "description": "Servicio del portafolio; vacío si es libre",
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "description": {
+                  "type": "string",
+                  "minLength": 3,
+                  "maxLength": 500
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "hour",
+                    "day",
+                    "month",
+                    "project",
+                    "unit",
+                    "license"
+                  ],
+                  "description": "Unidad en que se cobra"
+                },
+                "quantity": {
+                  "type": "string",
+                  "pattern": "^\\d{1,7}(\\.\\d{1,2})?$",
+                  "description": "Cantidad, con hasta dos decimales"
+                },
+                "unit_price": {
+                  "type": "string",
+                  "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                  "description": "Precio unitario en pesos, antes de impuestos"
+                },
+                "discount_percent": {
+                  "default": "0",
+                  "type": "string",
+                  "pattern": "^\\d{1,3}(\\.\\d{1,2})?$",
+                  "description": "Descuento en porcentaje"
+                },
+                "tax_key": {
+                  "type": "string",
+                  "pattern": "^[A-Z][A-Z0-9_]{1,39}$",
+                  "description": "Impuesto que aplica; se usa la tarifa vigente"
+                }
+              },
+              "required": [
+                "description",
+                "unit",
+                "quantity",
+                "unit_price",
+                "tax_key"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "opportunity_id",
+          "valid_until",
+          "conditions",
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "QuoteDetailResponse_Output": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "code": {
+            "type": "string",
+            "description": "COT-AAAA-NNNN"
+          },
+          "version_number": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "description": "Versión de la cotización: 1, 2, 3…"
+          },
+          "opportunity": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "code": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "code",
+              "title"
+            ],
+            "additionalProperties": false
+          },
+          "party": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false,
+            "description": "Cliente"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "in_approval",
+              "approved",
+              "sent",
+              "accepted",
+              "rejected",
+              "expired",
+              "superseded"
+            ],
+            "description": "Estado de la cotización"
+          },
+          "valid_until": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Fecha de calendario AAAA-MM-DD"
+          },
+          "total": {
+            "type": "string",
+            "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+            "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+          },
+          "author": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sent_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "version": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "description": "Versión para If-Match"
+          },
+          "conditions": {
+            "type": "object",
+            "properties": {
+              "payment_terms": {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 500
+              },
+              "delivery_terms": {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 500
+              },
+              "warranty": {
+                "default": null,
+                "description": "Garantía; vacío si no aplica",
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 500
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "payment_terms",
+              "delivery_terms",
+              "warranty"
+            ],
+            "additionalProperties": false
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "position": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "service": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "code": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "code"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "description": {
+                  "type": "string"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "hour",
+                    "day",
+                    "month",
+                    "project",
+                    "unit",
+                    "license"
+                  ],
+                  "description": "Unidad en que se cobra"
+                },
+                "quantity": {
+                  "type": "string"
+                },
+                "unit_price": {
+                  "type": "string",
+                  "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                  "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+                },
+                "discount_percent": {
+                  "type": "string"
+                },
+                "tax_key": {
+                  "type": "string",
+                  "pattern": "^[A-Z][A-Z0-9_]{1,39}$",
+                  "description": "Clave del parámetro tributario"
+                },
+                "tax_rate": {
+                  "type": "string",
+                  "pattern": "^\\d{1,3}(\\.\\d{1,2})?$",
+                  "description": "Tarifa usada, guardada al calcular"
+                },
+                "line_subtotal": {
+                  "type": "string",
+                  "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                  "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+                },
+                "line_discount": {
+                  "type": "string",
+                  "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                  "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+                },
+                "line_tax": {
+                  "type": "string",
+                  "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                  "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+                },
+                "line_total": {
+                  "type": "string",
+                  "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                  "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+                }
+              },
+              "required": [
+                "id",
+                "position",
+                "service",
+                "description",
+                "unit",
+                "quantity",
+                "unit_price",
+                "discount_percent",
+                "tax_key",
+                "tax_rate",
+                "line_subtotal",
+                "line_discount",
+                "line_tax",
+                "line_total"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "subtotal": {
+            "type": "string",
+            "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+            "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+          },
+          "discount_total": {
+            "type": "string",
+            "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+            "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+          },
+          "tax_total": {
+            "type": "string",
+            "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+            "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+          },
+          "taxes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "tax_rate": {
+                  "type": "string"
+                },
+                "base": {
+                  "type": "string",
+                  "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                  "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+                },
+                "tax": {
+                  "type": "string",
+                  "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                  "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+                }
+              },
+              "required": [
+                "tax_rate",
+                "base",
+                "tax"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "approval": {
+            "type": "object",
+            "properties": {
+              "required": {
+                "type": "boolean",
+                "description": "Algún descuento pasa el tope"
+              },
+              "largest_discount": {
+                "type": "string"
+              },
+              "discount_cap": {
+                "description": "Tope vigente al pedir el envío",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "decided_by": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "name": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "decided_at": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "note": {
+                "description": "Comentario de quien aprobó o devolvió",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "required",
+              "largest_discount",
+              "discount_cap",
+              "decided_by",
+              "decided_at",
+              "note"
+            ],
+            "additionalProperties": false
+          },
+          "recipient": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "email"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "email_sent_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Cuando salió el correo con el enlace"
+          },
+          "response": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "decision": {
+                    "type": "string",
+                    "enum": [
+                      "accepted",
+                      "rejected"
+                    ]
+                  },
+                  "at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  "by_name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "reason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "ip": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "user_agent": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "pdf_sha256": {
+                    "description": "Huella del PDF que vio el cliente",
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "decision",
+                  "at",
+                  "by_name",
+                  "reason",
+                  "ip",
+                  "user_agent",
+                  "pdf_sha256"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pdf": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "pending",
+                  "ready"
+                ]
+              },
+              "file_name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "status",
+              "file_name"
+            ],
+            "additionalProperties": false
+          },
+          "party_email": {
+            "description": "Correo del cliente en Terceros, para el envío",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "versions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "version_number": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "draft",
+                    "in_approval",
+                    "approved",
+                    "sent",
+                    "accepted",
+                    "rejected",
+                    "expired",
+                    "superseded"
+                  ],
+                  "description": "Estado de la cotización"
+                },
+                "total": {
+                  "type": "string",
+                  "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                  "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                }
+              },
+              "required": [
+                "id",
+                "version_number",
+                "status",
+                "total",
+                "created_at"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "version_number",
+          "opportunity",
+          "party",
+          "status",
+          "valid_until",
+          "total",
+          "author",
+          "sent_at",
+          "created_at",
+          "version",
+          "conditions",
+          "notes",
+          "items",
+          "subtotal",
+          "discount_total",
+          "tax_total",
+          "taxes",
+          "approval",
+          "recipient",
+          "email_sent_at",
+          "response",
+          "pdf",
+          "party_email",
+          "versions"
+        ],
+        "additionalProperties": false
+      },
+      "UpdateQuoteRequest": {
+        "type": "object",
+        "properties": {
+          "valid_until": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Último día en que el cliente puede aceptarla"
+          },
+          "conditions": {
+            "type": "object",
+            "properties": {
+              "payment_terms": {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 500
+              },
+              "delivery_terms": {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 500
+              },
+              "warranty": {
+                "default": null,
+                "description": "Garantía; vacío si no aplica",
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 500
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "payment_terms",
+              "delivery_terms"
+            ],
+            "additionalProperties": false
+          },
+          "notes": {
+            "default": null,
+            "description": "Notas para el cliente",
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "items": {
+            "minItems": 1,
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "service_id": {
+                  "default": null,
+                  "description": "Servicio del portafolio; vacío si es libre",
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "description": {
+                  "type": "string",
+                  "minLength": 3,
+                  "maxLength": 500
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "hour",
+                    "day",
+                    "month",
+                    "project",
+                    "unit",
+                    "license"
+                  ],
+                  "description": "Unidad en que se cobra"
+                },
+                "quantity": {
+                  "type": "string",
+                  "pattern": "^\\d{1,7}(\\.\\d{1,2})?$",
+                  "description": "Cantidad, con hasta dos decimales"
+                },
+                "unit_price": {
+                  "type": "string",
+                  "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                  "description": "Precio unitario en pesos, antes de impuestos"
+                },
+                "discount_percent": {
+                  "default": "0",
+                  "type": "string",
+                  "pattern": "^\\d{1,3}(\\.\\d{1,2})?$",
+                  "description": "Descuento en porcentaje"
+                },
+                "tax_key": {
+                  "type": "string",
+                  "pattern": "^[A-Z][A-Z0-9_]{1,39}$",
+                  "description": "Impuesto que aplica; se usa la tarifa vigente"
+                }
+              },
+              "required": [
+                "description",
+                "unit",
+                "quantity",
+                "unit_price",
+                "tax_key"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "valid_until",
+          "conditions",
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "ApproveQuoteRequest": {
+        "type": "object",
+        "properties": {
+          "comment": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReturnQuoteRequest": {
+        "type": "object",
+        "properties": {
+          "comment": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "comment"
+        ],
+        "additionalProperties": false
+      },
+      "SendQuoteRequest": {
+        "type": "object",
+        "properties": {
+          "recipient_name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 160
+          },
+          "recipient_email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          }
+        },
+        "required": [
+          "recipient_name",
+          "recipient_email"
+        ],
+        "additionalProperties": false
+      },
+      "QuotePdfLinkResponse_Output": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Enlace de descarga (GET), válido cinco minutos"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "url",
+          "expires_at"
+        ],
+        "additionalProperties": false
+      },
+      "PublicQuoteRequest": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{32,128}$"
+          }
+        },
+        "required": [
+          "token"
+        ],
+        "additionalProperties": false
+      },
+      "PublicQuoteResponse_Output": {
+        "type": "object",
+        "properties": {
+          "company": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "tax_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "name",
+              "tax_id"
+            ],
+            "additionalProperties": false
+          },
+          "code": {
+            "type": "string"
+          },
+          "version_number": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "party_name": {
+            "type": "string"
+          },
+          "issued_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "description": "Cuando se envió"
+          },
+          "valid_until": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Fecha de calendario AAAA-MM-DD"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "open",
+              "accepted",
+              "rejected",
+              "expired",
+              "replaced"
+            ]
+          },
+          "conditions": {
+            "type": "object",
+            "properties": {
+              "payment_terms": {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 500
+              },
+              "delivery_terms": {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 500
+              },
+              "warranty": {
+                "default": null,
+                "description": "Garantía; vacío si no aplica",
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 500
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "payment_terms",
+              "delivery_terms",
+              "warranty"
+            ],
+            "additionalProperties": false
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "position": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "description": {
+                  "type": "string"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "hour",
+                    "day",
+                    "month",
+                    "project",
+                    "unit",
+                    "license"
+                  ],
+                  "description": "Unidad en que se cobra"
+                },
+                "quantity": {
+                  "type": "string"
+                },
+                "unit_price": {
+                  "type": "string",
+                  "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                  "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+                },
+                "discount_percent": {
+                  "type": "string"
+                },
+                "tax_rate": {
+                  "type": "string",
+                  "pattern": "^\\d{1,3}(\\.\\d{1,2})?$",
+                  "description": "Tarifa usada, guardada al calcular"
+                },
+                "line_total": {
+                  "type": "string",
+                  "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                  "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+                }
+              },
+              "required": [
+                "position",
+                "description",
+                "unit",
+                "quantity",
+                "unit_price",
+                "discount_percent",
+                "tax_rate",
+                "line_total"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "subtotal": {
+            "type": "string",
+            "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+            "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+          },
+          "discount_total": {
+            "type": "string",
+            "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+            "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+          },
+          "tax_total": {
+            "type": "string",
+            "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+            "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+          },
+          "total": {
+            "type": "string",
+            "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+            "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+          },
+          "taxes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "tax_rate": {
+                  "type": "string"
+                },
+                "base": {
+                  "type": "string",
+                  "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                  "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+                },
+                "tax": {
+                  "type": "string",
+                  "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                  "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+                }
+              },
+              "required": [
+                "tax_rate",
+                "base",
+                "tax"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "responded_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "responded_by": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "company",
+          "code",
+          "version_number",
+          "party_name",
+          "issued_at",
+          "valid_until",
+          "state",
+          "conditions",
+          "notes",
+          "items",
+          "subtotal",
+          "discount_total",
+          "tax_total",
+          "total",
+          "taxes",
+          "responded_at",
+          "responded_by"
+        ],
+        "additionalProperties": false
+      },
+      "PublicQuoteErrorResponse_Output": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "Código estable del error, por ejemplo QUOTE_EXPIRED"
+              },
+              "message": {
+                "type": "string",
+                "description": "Mensaje para la persona, en español"
+              },
+              "details": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field": {
+                      "type": "string",
+                      "description": "Campo con el problema, en notación de puntos"
+                    },
+                    "issue": {
+                      "type": "string",
+                      "description": "Código del problema, por ejemplo too_small o invalid_type"
+                    }
+                  },
+                  "required": [
+                    "field",
+                    "issue"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "correlation_id": {
+                "type": "string",
+                "description": "Identificador de la petición en los registros"
+              }
+            },
+            "required": [
+              "code",
+              "message",
+              "details",
+              "correlation_id"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "additionalProperties": false
+      },
+      "AcceptQuoteRequest": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{32,128}$"
+          },
+          "accepted_by_name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 160
+          },
+          "accept": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "required": [
+          "token",
+          "accepted_by_name",
+          "accept"
+        ],
+        "additionalProperties": false
+      },
+      "RejectQuoteRequest": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{32,128}$"
+          },
+          "reason": {
+            "default": null,
+            "description": "Por qué la rechaza; opcional",
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "token"
+        ],
         "additionalProperties": false
       }
     }

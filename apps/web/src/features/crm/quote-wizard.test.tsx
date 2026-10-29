@@ -1,5 +1,6 @@
 import { screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import { quoteOptionsSchema } from '@arza/contracts';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Screen } from '../../test-support/core-fixtures';
@@ -149,14 +150,14 @@ describe('valores del asistente', () => {
   });
 
   it('calcula los totales como la API y avisa si un descuento pasa el tope', () => {
-    expect(liveTotals(values, OPTIONS)).toMatchObject({
+    expect(liveTotals(values, quoteOptionsSchema.parse(OPTIONS))).toMatchObject({
       total: '198135.82',
       tax_total: '31635.13',
     });
     expect(needsApproval(values, '10')).toBe(false);
     expect(needsApproval(values, '5')).toBe(true);
     const missing = { ...values, items: [{ ...values.items[0], unitPrice: '' }] };
-    expect(liveTotals(missing as typeof values, OPTIONS)).toBeNull();
+    expect(liveTotals(missing as typeof values, quoteOptionsSchema.parse(OPTIONS))).toBeNull();
   });
 });
 

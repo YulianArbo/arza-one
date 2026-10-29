@@ -118,6 +118,7 @@ function ItemsCard({ quote }: Props): JSX.Element {
       <CardContent className="flex flex-col gap-4">
         <SimpleTable
           caption="Ítems de la cotización"
+          scrollLabel="Ítems de la cotización; desplácese a los lados para ver todas las columnas"
           headers={['#', 'Descripción', 'Cantidad', 'Valor unitario', 'Desc.', 'IVA', 'Total']}
         >
           {quote.items.map((item) => (

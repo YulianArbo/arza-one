@@ -70,6 +70,7 @@ export function QuoteTable(props: {
   return (
     <SimpleTable
       caption="Cotizaciones"
+      scrollLabel="Cotizaciones; desplácese a los lados para ver todas las columnas"
       headers={['Cotización', 'Cliente', 'Total', 'Válida hasta', 'Estado']}
     >
       {props.quotes.map((quote) => (

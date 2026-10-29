@@ -269,6 +269,7 @@ export function ServicesPanel(): JSX.Element {
           ) : (
             <SimpleTable
               caption="Servicios del portafolio"
+              scrollLabel="Servicios del portafolio; desplácese a los lados para ver todas las columnas"
               headers={['Código', 'Servicio', 'Unidad', 'Tarifa', 'Impuesto', 'Estado', '']}
             >
               {data.data.map((service) => (

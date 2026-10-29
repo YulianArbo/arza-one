@@ -217,6 +217,7 @@ function History({ taxKey }: { readonly taxKey: string }): JSX.Element {
       {(data) => (
         <SimpleTable
           caption="Historial de tarifas"
+          scrollLabel="Historial de tarifas; desplácese a los lados para ver todas las columnas"
           headers={['Tarifa', 'Desde', 'Hasta', 'Fundamento', 'Registró']}
         >
           {data.data.map((version) => (
