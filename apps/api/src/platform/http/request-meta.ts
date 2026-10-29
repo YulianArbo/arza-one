@@ -10,7 +10,7 @@ export interface RequestMeta {
 
 const MAX_USER_AGENT_LENGTH = 512;
 
-function requestMetaOf(request: Request): RequestMeta {
+export function requestMetaOf(request: Request): RequestMeta {
   const userAgent = request.headers['user-agent'];
   return {
     ip: request.ip ?? null,

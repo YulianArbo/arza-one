@@ -75,18 +75,28 @@ export class PublicQuotesUseCase {
     });
   }
 
-  async view(token: string): Promise<PublicQuote> {
-    const today = bogotaToday(this.clock.now());
-    return this.inQuote(await this.resolve(token), (tx, quote) => publicView(tx, quote, today));
+  /** La cotización como la ve el cliente; queda registrado que la abrió. */
+  async view(token: string, meta: RequestMeta): Promise<PublicQuote> {
+    const target = await this.resolve(token);
+    const at = this.clock.now();
+    return this.inQuote(target, async (tx, quote) => {
+      const view = await publicView(tx, quote, bogotaToday(at));
+      await auditOpening(tx, clientActor(target, meta, at), quote, 'view');
+      return view;
+    });
   }
 
-  async pdf(token: string): Promise<OpenedFile> {
-    return this.inQuote(await this.resolve(token), async (tx, quote) => {
+  /** El PDF FT-COM-001 de la versión; queda registrado que el cliente lo descargó. */
+  async pdf(token: string, meta: RequestMeta): Promise<OpenedFile> {
+    const target = await this.resolve(token);
+    const at = this.clock.now();
+    return this.inQuote(target, async (tx, quote) => {
       const file =
         quote.pdfFileId === null
           ? null
           : await openAvailableFile(tx, this.storage, quote.pdfFileId);
       if (file === null) throw quoteLinkInvalid();
+      await auditOpening(tx, clientActor(target, meta, at), quote, 'download');
       return file;
     });
   }
@@ -131,6 +141,22 @@ export class PublicQuotesUseCase {
       await auditAnswer(tx, clientActor(target, meta, at), quote, answer);
     });
   }
+}
+
+/** Evidencia de que el cliente abrió la cotización o descargó su PDF, con su IP y navegador. */
+async function auditOpening(
+  tx: TenantTransaction,
+  actor: CrmActor,
+  quote: CrmQuote,
+  kind: 'view' | 'download',
+): Promise<void> {
+  await recordCrmChange(tx, actor, {
+    action: kind === 'view' ? 'crm.quote.client_view' : 'crm.quote.client_download',
+    event: kind === 'view' ? 'crm.quote.viewed' : 'crm.quote.downloaded',
+    entityType: 'crm_quote',
+    entityId: quote.id,
+    changes: { code: quote.code, version_number: quote.versionNumber, status: quote.status },
+  });
 }
 
 interface Answer {

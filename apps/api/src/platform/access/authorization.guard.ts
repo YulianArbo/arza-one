@@ -9,7 +9,11 @@ import { Reflector } from '@nestjs/core';
 import { IAM_ERROR_CODES, type PermissionCode } from '@arza/contracts';
 import type { Request } from 'express';
 
+import { recordSecurityEvent } from '../audit/audit-recorder.js';
+import { CLOCK, type Clock } from '../clock/clock.js';
+import { DatabaseService } from '../database/database.service.js';
 import { AppError } from '../errors/app-error.js';
+import { requestMetaOf } from '../http/request-meta.js';
 import { hasPermission } from './ability.js';
 import {
   ACCESS_KEY,
@@ -27,12 +31,15 @@ import { principalOf, type Principal } from './principal.js';
  * La de @RequireRecordAccess() recibe los permisos y su caso de uso decide (B16).
  * Luego, las acciones de alto riesgo exigen una confirmación de identidad reciente (B09). Va
  * después de la protección CSRF, así una petición falsificada no llega a consultar permisos.
+ * Desde B23, cada permiso denegado deja un evento de seguridad (anexo D, M05-H012).
  */
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
   constructor(
     @Inject(Reflector) private readonly reflector: Reflector,
     @Inject(AUTHORIZER) private readonly authorizer: Authorizer,
+    @Inject(DatabaseService) private readonly database: DatabaseService,
+    @Inject(CLOCK) private readonly clock: Clock,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -45,7 +52,10 @@ export class AuthorizationGuard implements CanActivate {
       const ability = await this.authorizer.abilityFor(principal);
       if (rule === 'permission') {
         const code = this.reflector.getAllAndOverride<PermissionCode>(PERMISSION_KEY, targets);
-        if (!hasPermission(ability, code)) throw permissionDenied();
+        if (!hasPermission(ability, code)) {
+          await this.recordDenial(principal, request, code);
+          throw permissionDenied();
+        }
       }
       attachAbility(request, ability);
     }
@@ -55,6 +65,29 @@ export class AuthorizationGuard implements CanActivate {
     );
     if (recent === true) requireRecentVerification(principal);
     return true;
+  }
+
+  /** Evento de seguridad del permiso denegado: quién, qué permiso, qué ruta y desde qué IP. */
+  private async recordDenial(
+    principal: Principal,
+    request: Request,
+    permission: PermissionCode,
+  ): Promise<void> {
+    await this.database.withTenant(principal, (tx) =>
+      recordSecurityEvent(tx, {
+        tenantId: principal.tenantId,
+        occurredAt: this.clock.now(),
+        type: 'access.permission_denied',
+        userId: principal.userId,
+        severity: 'low',
+        detail: {
+          permission,
+          method: request.method,
+          path: request.path,
+        },
+        meta: requestMetaOf(request),
+      }),
+    );
   }
 }
 

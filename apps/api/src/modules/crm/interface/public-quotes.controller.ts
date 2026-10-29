@@ -55,11 +55,17 @@ export class PublicQuotesController {
 
   @Post('view')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Ver la cotización', description: 'Con su estado para el cliente.' })
+  @ApiOperation({
+    summary: 'Ver la cotización',
+    description: 'Con su estado para el cliente. Queda registrado que la abrió.',
+  })
   @ZodResponse({ status: HttpStatus.OK, type: PublicQuoteResponse, description: 'Cotización' })
   @ApiResponse(LINK_NOT_VALID)
-  async view(@Body() body: PublicQuoteRequest): Promise<PublicQuoteResponse> {
-    return this.quotes.view(body.token);
+  async view(
+    @Body() body: PublicQuoteRequest,
+    @Meta() meta: RequestMeta,
+  ): Promise<PublicQuoteResponse> {
+    return this.quotes.view(body.token, meta);
   }
 
   @Post('pdf')
@@ -71,8 +77,9 @@ export class PublicQuotesController {
   async pdf(
     @Body() body: PublicQuoteRequest,
     @Res({ passthrough: true }) response: Response,
+    @Meta() meta: RequestMeta,
   ): Promise<StreamableFile> {
-    const file = await this.quotes.pdf(body.token);
+    const file = await this.quotes.pdf(body.token, meta);
     response.attachment(file.fileName);
     return new StreamableFile(file.content, { type: file.mimeType, length: file.sizeBytes });
   }

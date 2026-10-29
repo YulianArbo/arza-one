@@ -2,6 +2,7 @@ import { createHash, randomBytes } from 'node:crypto';
 
 import { printedDate, pesos } from '@arza/templates';
 
+import type { CrmQuote } from '../../../generated/prisma/client.js';
 import type { Clock } from '../../../platform/clock/clock.js';
 import type { DatabaseService } from '../../../platform/database/database.service.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
@@ -86,6 +87,27 @@ function linkUrl(appUrl: string, token: string): string {
   return url.toString();
 }
 
+/** Enlace nuevo: la llave va solo en el correo; la base guarda su huella y su vencimiento. */
+async function issueLink(tx: TenantTransaction, quote: CrmQuote, at: Date): Promise<string> {
+  const token = randomBytes(32).toString('base64url');
+  const expiresAt = linkExpiresAt(toCalendarDate(quote.validUntil));
+  await tx.crmQuote.update({
+    where: { id: quote.id },
+    data: {
+      linkTokenHash: createHash('sha256').update(token).digest('hex'),
+      linkExpiresAt: expiresAt,
+    },
+  });
+  await recordCrmChange(tx, systemActor(quote.tenantId, at), {
+    action: 'crm.quote.link_issue',
+    event: 'crm.quote.link.issued',
+    entityType: 'crm_quote',
+    entityId: quote.id,
+    changes: { code: quote.code, link_expires_at: expiresAt.toISOString() },
+  });
+  return token;
+}
+
 /** Prepara el enlace nuevo y el correo; null si la cotización ya no espera su correo. */
 async function prepareEmail(
   tx: TenantTransaction,
@@ -98,15 +120,8 @@ async function prepareEmail(
   if (quote === null) return null;
   const { recipientEmail, recipientName } = quote;
   if (recipientEmail === null || recipientName === null) return null;
-  const token = randomBytes(32).toString('base64url');
+  const token = await issueLink(tx, quote, deps.clock.now());
   const validUntil = toCalendarDate(quote.validUntil);
-  await tx.crmQuote.update({
-    where: { id: quote.id },
-    data: {
-      linkTokenHash: createHash('sha256').update(token).digest('hex'),
-      linkExpiresAt: linkExpiresAt(validUntil),
-    },
-  });
   const company = await companyIdentity(tx);
   const reference = `${quote.code} (versión ${String(quote.versionNumber)})`;
   return {
