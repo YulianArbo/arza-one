@@ -25,6 +25,7 @@ export const CONTRACT_STATUSES = {
   draft: 'Borrador',
   in_review: 'En revisión',
   approved: 'Aprobado',
+  in_signature: 'En firma',
   active: 'Vigente',
   expiring: 'Por vencer',
   terminated: 'Terminado',

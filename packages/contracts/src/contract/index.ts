@@ -5,3 +5,5 @@ export * from './clauses.js';
 export * from './contracts.js';
 export * from './follow-up.js';
 export * from './expiry.js';
+export * from './signatures.js';
+export * from './public-signatures.js';
