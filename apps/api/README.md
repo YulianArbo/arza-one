@@ -686,6 +686,28 @@ vigentes. Tablas y reglas en [`crm.md`](../../docs/manual/datos/crm.md) y
 | Evidencia                 | Aceptar o rechazar guarda fecha, IP, navegador, nombre, motivo y la huella del PDF; abrir la cotización o su PDF queda en la auditoría (`crm.quote.client_view` · `client_download`)                                                         |
 | Permiso denegado          | Desde B23, cada 403 por permiso deja el evento de seguridad `access.permission_denied` (anexo D, M05-H012)                                                                                                                                   |
 
+## Contratos (B24, módulo `src/modules/contract`)
+
+Contratos, acuerdos de confidencialidad y órdenes de servicio generados desde las plantillas
+CT-COM y OS-COM con la biblioteca de cláusulas aprobadas, control de cláusulas modificadas,
+aprobación de la Dirección, PDF definitivo, firma manuscrita digitalizada, obligaciones, otrosíes,
+prórrogas, terminación y alertas de vencimiento (ficha 17.7). La firma electrónica llega con el
+B25. Tablas y reglas en [`ctr.md`](../../docs/manual/datos/ctr.md).
+
+| Regla                                      | Cómo se cumple                                                                                                                                                                                                                    |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Idéntico al modelo salvo las variables     | `fillClause()` (contratos) reemplaza solo las variables `{{así}}`; `fitsModel()` comprueba que todo lo demás es igual letra por letra. `composeClauses()` (dominio) arma el texto desde la plantilla y la biblioteca              |
+| Una cláusula modificada exige la Dirección | Al guardar el borrador, una cláusula cuyo texto o título se aparta de la biblioteca queda `modified` y una agregada `added`. Aprobar exige `reviewed_clause_ids` con todas ellas; desde Mis tareas no se aprueba (`reviewInCard`) |
+| Solo la Dirección aprueba                  | `contract.approve`, `terminate`, `renew` y `clause.manage` son de la Dirección en la matriz; el flujo `ctr.contract` asigna la tarea al rol; `assertNotAuthor()` impide aprobar el propio                                         |
+| Un aprobado no se edita                    | La API solo edita borradores y el disparador `ctr_keep_contracts` impide cambiar el contenido fuera de borrador; las cláusulas solo se escriben en borrador (`ctr_keep_contract_clauses`)                                         |
+| PDF definitivo                             | `ctr.pdf-render` (cada 20 s): `contractHtml()` arma el texto con el marco institucional, Gotenberg lo convierte y `storeGeneratedPdf()` (doc) lo guarda con su huella SHA-256                                                     |
+| Firma manuscrita                           | `register-signature` recibe un PDF que la persona subió y pasó el antivirus, con fecha entre la aprobación y hoy; el contrato queda vigente                                                                                       |
+| Alertas a 90, 60 y 30 días                 | `ctr.follow-up` (cada día, 6:15): `expiryAlertDue()` decide el umbral; el contrato queda «por vencer» y el responsable recibe la tarea del flujo `ctr.expiry` (con `initiator`) y el aviso; al pasar el fin queda terminado       |
+| Obligaciones                               | El mismo trabajo avisa al responsable 7 días antes y marca vencida la que pasó su fecha                                                                                                                                           |
+| Otrosíes y prórrogas                       | El otrosí lo aprueba la Dirección (flujo `ctr.amendment`); la prórroga la crea la Dirección ya aprobada; los dos rigen al registrar su copia firmada, que cambia la fecha de fin o el valor                                       |
+| Solo lo propio                             | Talento humano y Colaborador ven los contratos de los que son responsables o autores (`visibleContracts()`, `canSeeContract()`); los demás responden 404                                                                          |
+| Desde la cotización aceptada               | `acceptedQuote()` (índice del CRM) llena el asistente; el aviso `crm.quote.accepted` lleva a `/app/contratos/nuevo?cotizacion=…`                                                                                                  |
+
 ## Flujos y tareas (B15, módulo `src/modules/wf`)
 
 Motor de flujos definido por datos (ficha 17.5, numeral 13.2, ADR-011). Las tablas están en
