@@ -86,7 +86,7 @@ function ClauseCard(props: CardProps): JSX.Element {
 }
 
 /** Cláusula nueva, en blanco, al final del contrato. */
-export function newClause(sequence: number): ClauseDraft {
+function newClause(sequence: number): ClauseDraft {
   return {
     key: `nueva-${String(sequence)}`,
     clauseKey: null,

@@ -24,11 +24,7 @@ export interface NoteFormSpec {
 }
 
 /** Lo que falta en el formulario de texto y fecha; vacío si está listo. */
-export function noteProblems(
-  spec: NoteFormSpec,
-  text: string,
-  date: string,
-): Record<string, string> {
+function noteProblems(spec: NoteFormSpec, text: string, date: string): Record<string, string> {
   const found: Record<string, string> = {};
   if (text.trim().length < 3) found[spec.textField] = 'Escriba al menos tres letras.';
   if (spec.dateField !== undefined && date === '') found[spec.dateField] = 'Elija la fecha.';

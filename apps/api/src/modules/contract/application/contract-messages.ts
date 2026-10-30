@@ -84,7 +84,7 @@ export function clauseVariablesUnknown(names: readonly string[]): AppError {
 }
 
 /** El texto del contrato no se pudo armar con las cláusulas pedidas. */
-export function clausesInvalid(error: CompositionError): AppError {
+function clausesInvalid(error: CompositionError): AppError {
   const { problem } = error;
   const detail =
     problem.kind === 'required'

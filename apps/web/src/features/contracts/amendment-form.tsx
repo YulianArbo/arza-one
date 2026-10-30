@@ -33,7 +33,7 @@ interface ProposeValues {
 }
 
 /** El cuerpo del otrosí que espera la API; vacíos los cambios que no se piden. */
-export function amendmentBody(values: ProposeValues): Record<string, string | null> {
+function amendmentBody(values: ProposeValues): Record<string, string | null> {
   return {
     summary: values.summary.trim(),
     body: values.body.trim(),

@@ -9,7 +9,7 @@ export const CONTRACT_ID = '01999a00-0000-7000-8000-0000000d0001';
 export const TEMPLATE_ID = '01999a00-0000-7000-8000-0000000d0101';
 export const QUOTE_ID = '01999a00-0000-7000-8000-0000000c0501';
 export const OBLIGATION_ID = '01999a00-0000-7000-8000-0000000d0301';
-export const AMENDMENT_ID = '01999a00-0000-7000-8000-0000000d0401';
+const AMENDMENT_ID = '01999a00-0000-7000-8000-0000000d0401';
 export const PDF_FILE_ID = '01999a00-0000-7000-8000-00000000d001';
 const MODIFIED_ID = '01999a00-0000-7000-8000-0000000d0202';
 const ADDED_ID = '01999a00-0000-7000-8000-0000000d0203';
@@ -34,7 +34,7 @@ export const CONTRACT_DIRECTION = permissionsOf([
 ]);
 export const CONTRACT_READER = permissionsOf(['contract.read']);
 
-export const TEMPLATE = {
+const TEMPLATE = {
   id: TEMPLATE_ID,
   code: 'CT-COM-001',
   name: 'Contrato de prestación de servicios de desarrollo de software',
@@ -187,7 +187,7 @@ export const ACTIVE = {
   },
 };
 
-export const OPTIONS = {
+const OPTIONS = {
   templates: [TEMPLATE],
   signers: [{ name: 'Laura Gómez', document: 'CC 43000000' }],
   quote: null,
@@ -219,7 +219,7 @@ export const CLAUSE = {
   templates: ['CT-COM-001', 'OS-COM-001'],
 };
 
-export const PDF_FILE = {
+const PDF_FILE = {
   id: PDF_FILE_ID,
   file_name: 'contrato-firmado.pdf',
   mime_type: 'application/pdf',

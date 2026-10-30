@@ -6,7 +6,7 @@ import { partyName } from './party-support.js';
 // firman por él (los contactos marcados como firmantes autorizados). Contratos llega aquí por el
 // index.ts del módulo, dentro de su propia transacción.
 
-export interface ContractSigner {
+interface ContractSigner {
   readonly name: string;
   /** «CC 1020304050», o null si el contacto no tiene documento. */
   readonly document: string | null;

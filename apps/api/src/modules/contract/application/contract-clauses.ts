@@ -16,7 +16,7 @@ import { asClauseError, templateInvalid } from './contract-messages.js';
 // la que usó.
 
 /** La versión vigente (la más alta) de cada cláusula de la biblioteca. */
-export async function currentLibrary(tx: TenantTransaction): Promise<Map<string, LibraryClause>> {
+async function currentLibrary(tx: TenantTransaction): Promise<Map<string, LibraryClause>> {
   const rows = await tx.ctrClause.findMany({
     where: { deletedAt: null },
     orderBy: [{ key: 'asc' }, { clauseVersion: 'asc' }],
@@ -43,7 +43,7 @@ export async function activeTemplate(tx: TenantTransaction, id: string): Promise
   return template;
 }
 
-export async function templateEntries(
+async function templateEntries(
   tx: TenantTransaction,
   templateId: string,
 ): Promise<TemplateEntry[]> {

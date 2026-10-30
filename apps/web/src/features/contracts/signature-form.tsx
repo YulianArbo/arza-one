@@ -32,7 +32,7 @@ function usePdfOptions(): { readonly value: string; readonly label: string }[] {
 }
 
 /** Lo que falta antes de registrar la firma. */
-export function signatureProblems(fileId: string, signedOn: string): Record<string, string> {
+function signatureProblems(fileId: string, signedOn: string): Record<string, string> {
   const problems: Record<string, string> = {};
   if (fileId === '') problems['file_id'] = 'Elija el PDF firmado.';
   if (signedOn === '') problems['signed_on'] = 'Elija la fecha.';

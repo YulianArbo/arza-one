@@ -20,7 +20,7 @@ import { queryString } from '../parties/queries';
 
 // Consultas de Contratos (B24). La API revisa el permiso, «lo propio» y el aislamiento en cada una.
 
-export const CONTRACT_KEYS = {
+const CONTRACT_KEYS = {
   all: ['contracts'] as const,
   list: (search: string) => ['contracts', 'list', search] as const,
   detail: (id: string) => ['contracts', 'detail', id] as const,
