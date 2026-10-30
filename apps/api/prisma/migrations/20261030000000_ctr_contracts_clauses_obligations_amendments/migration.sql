@@ -643,6 +643,15 @@ GRANT SELECT, INSERT, UPDATE ON "ctr_amendments" TO app_user;
 -- revisa los vencimientos y las obligaciones. Solo obtiene los identificadores de las empresas con
 -- algo pendiente, como crm_tenants_with_quote_work (B23).
 
+-- Las funciones son de migration_user y la seguridad por fila es forzada: estas políticas le dejan
+-- leer las filas de todas las empresas, solo dentro de las funciones, como en crm_quotes (B23).
+CREATE POLICY "ctr_contracts_system_lookup" ON "ctr_contracts"
+    FOR SELECT TO migration_user USING (true);
+CREATE POLICY "ctr_amendments_system_lookup" ON "ctr_amendments"
+    FOR SELECT TO migration_user USING (true);
+CREATE POLICY "ctr_obligations_system_lookup" ON "ctr_obligations"
+    FOR SELECT TO migration_user USING (true);
+
 CREATE FUNCTION "ctr_tenants_with_pdf_work"() RETURNS SETOF UUID
     LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
     AS $$ SELECT tenant_id FROM ctr_contracts WHERE pdf_status = 'pending' AND deleted_at IS NULL
