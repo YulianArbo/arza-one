@@ -59,7 +59,6 @@ const MODULES: readonly NavigationItem[] = [
     label: 'Contratos',
     icon: FileSignature,
     permissions: ['contract.read'],
-    block: 'B24',
   },
   {
     slug: 'proyectos',
