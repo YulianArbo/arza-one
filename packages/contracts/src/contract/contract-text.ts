@@ -43,10 +43,13 @@ export function unknownVariables(text: string): string[] {
   return variablesOf(text).filter((name) => !isContractVariable(name));
 }
 
+/** Valores de las variables, como los guarda un contrato; la que falte se deja como está. */
+export type StoredValues = Readonly<Partial<Record<ContractVariable, string>>>;
+
 /** El texto del modelo con cada variable reemplazada por su valor. */
-export function fillClause(model: string, values: ContractValues): string {
+export function fillClause(model: string, values: StoredValues): string {
   return model.replace(VARIABLE, (whole, name: string) =>
-    isContractVariable(name) ? values[name] : whole,
+    isContractVariable(name) ? (values[name] ?? whole) : whole,
   );
 }
 

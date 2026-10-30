@@ -35,3 +35,9 @@ export {
   type QuoteDocumentLine,
   type QuoteDocumentTax,
 } from './quote-document.js';
+export {
+  contractDocumentBody,
+  type ContractDocument,
+  type ContractDocumentClause,
+  type ContractSignature,
+} from './contract-document.js';
