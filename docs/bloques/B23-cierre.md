@@ -306,4 +306,4 @@ Y otras que tomé al construir, sin cambiar lo aprobado:
 | `8033407` | Pruebas de integración, recorrido de auditoría y evento de seguridad por permiso denegado                                                   |
 | `c3ce5fc` | Pantallas y sus pruebas                                                                                                                     |
 | `43b6a9d` | Diccionario de datos, documentación de la API, OpenAPI y pruebas en navegador                                                               |
-| siguiente | Ajustes de la verificación y este cierre                                                                                                    |
+| `18e1a07` | Ajustes de la verificación y este cierre                                                                                                    |
