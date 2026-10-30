@@ -35,6 +35,10 @@
     "./crm": {
       "types": "./dist/modules/crm/index.d.ts",
       "default": "./dist/modules/crm/index.js"
+    },
+    "./contract": {
+      "types": "./dist/modules/contract/index.d.ts",
+      "default": "./dist/modules/contract/index.js"
     }
   },
   "scripts": {

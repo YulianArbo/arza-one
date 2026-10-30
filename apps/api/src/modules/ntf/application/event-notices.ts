@@ -1,4 +1,3 @@
-import type { NotificationKind } from '@arza/contracts';
 import { z } from 'zod';
 
 import type { OutboxEvent } from '../../../generated/prisma/client.js';
@@ -7,18 +6,13 @@ import { activeUsersWithRoles, noticeRecipients } from '../../iam/index.js';
 import { taskNoticeFacts } from '../../wf/index.js';
 import { bogotaDateTime } from '../domain/bogota-time.js';
 import { excerpt } from '../domain/delivery-rules.js';
+import { CONTRACT_HANDLERS } from './contract-notices.js';
+import type { Handler, Notice } from './notice-types.js';
+
+export type { Notice } from './notice-types.js';
 
 // Qué avisos produce cada evento de la bandeja de salida (numeral 13.3). Un evento sin avisos se
 // publica igual: los demás módulos que lo consuman llegarán en sus bloques.
-
-/** Un aviso para una persona, antes de aplicar su plantilla. */
-export interface Notice {
-  readonly userId: string;
-  readonly kind: NotificationKind;
-  /** Valores de las variables de la plantilla, salvo {{nombre}}, que es de cada persona. */
-  readonly values: Readonly<Record<string, string>>;
-  readonly link: string | null;
-}
 
 /** Roles que reciben las alertas de seguridad: responsable técnico y Dirección (numeral 13.3). */
 const SECURITY_ALERT_ROLES = ['ADMIN_PLATAFORMA', 'DIRECCION'] as const;
@@ -44,8 +38,6 @@ const mentionSchema = z.object({
   link: z.string(),
 });
 const securityAlertSchema = z.object({ type: z.string() });
-
-type Handler = (tx: TenantTransaction, event: OutboxEvent, now: Date) => Promise<Notice[]>;
 
 async function taskNotices(
   tx: TenantTransaction,
@@ -182,7 +174,7 @@ const quoteUpdateSchema = z.object({
 const QUOTE_UPDATES: Readonly<Record<string, string>> = {
   'crm.quote.approved': 'la Dirección la aprobó y ya puede enviarla',
   'crm.quote.returned': 'la Dirección la devolvió para corregir',
-  'crm.quote.accepted': 'el cliente la aceptó',
+  'crm.quote.accepted': 'el cliente la aceptó; ya puede crear el contrato',
   'crm.quote.rejected': 'el cliente la rechazó',
   'crm.quote.expired': 'venció sin respuesta del cliente',
 };
@@ -198,7 +190,11 @@ const onQuoteUpdate: Handler = (_tx, event) => {
     userId: payload.author_id,
     kind: 'crm_quote_update',
     values: { cotizacion: `${payload.code} v${String(payload.version_number)}`, novedad: update },
-    link: `/app/comercial/cotizaciones/${payload.id}`,
+    // Aceptada, el aviso lleva al asistente del contrato ya diligenciado (B24, numeral 13.3).
+    link:
+      event.eventType === 'crm.quote.accepted'
+        ? `/app/contratos/nuevo?cotizacion=${payload.id}`
+        : `/app/comercial/cotizaciones/${payload.id}`,
   };
   return Promise.resolve([notice]);
 };
@@ -212,6 +208,7 @@ const HANDLERS: Readonly<Record<string, Handler>> = {
   'doc.request.decided': onRequestDecided,
   'crm.activity.reminder': onActivityReminder,
   ...Object.fromEntries(Object.keys(QUOTE_UPDATES).map((type) => [type, onQuoteUpdate])),
+  ...CONTRACT_HANDLERS,
 };
 
 /** Los avisos que produce el evento; ninguno si nadie se ocupa de él. */

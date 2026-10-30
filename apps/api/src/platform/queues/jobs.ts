@@ -112,6 +112,13 @@ const crmActivityRemindJobSchema = z.object({});
 const crmQuoteWorkJobSchema = z.object({});
 const crmQuoteExpireJobSchema = z.object({});
 
+/**
+ * Contratos (B24): el PDF definitivo de los contratos y otrosíes aprobados, y cada día las alertas
+ * de vencimiento y las obligaciones. Son del sistema y no llevan empresa.
+ */
+const ctrPdfRenderJobSchema = z.object({});
+const ctrFollowUpJobSchema = z.object({});
+
 export type TenantJob = z.infer<typeof tenantJobSchema>;
 export type ExampleEmailJob = z.infer<typeof exampleEmailJobSchema>;
 export type AccountEmailJob = z.infer<typeof accountEmailJobSchema>;
@@ -191,6 +198,16 @@ export const JOBS = {
     name: 'crm.quote-expire',
     schema: crmQuoteExpireJobSchema,
   },
+  ctrPdfRender: {
+    queue: QUEUES.platform,
+    name: 'ctr.pdf-render',
+    schema: ctrPdfRenderJobSchema,
+  },
+  ctrFollowUp: {
+    queue: QUEUES.platform,
+    name: 'ctr.follow-up',
+    schema: ctrFollowUpJobSchema,
+  },
 } as const;
 
 /** Trabajos programados: el worker los registra al arrancar (expresión cron, hora de Bogotá). */
@@ -219,6 +236,10 @@ export const SCHEDULED_JOBS = [
   { id: 'crm.quote-work.every-20-seconds', job: JOBS.crmQuoteWork, pattern: '*/20 * * * * *' },
   // Cada día a las 0:05: vencen las enviadas cuyo último día de vigencia fue ayer.
   { id: 'crm.quote-expire.daily', job: JOBS.crmQuoteExpire, pattern: '5 0 * * *' },
+  // Cada 20 segundos: el PDF definitivo de un contrato o un otrosí aprobado queda listo enseguida.
+  { id: 'ctr.pdf-render.every-20-seconds', job: JOBS.ctrPdfRender, pattern: '*/20 * * * * *' },
+  // Cada día a las 6:15: alertas de vencimiento, fin de plazo y obligaciones, antes de la jornada.
+  { id: 'ctr.follow-up.daily', job: JOBS.ctrFollowUp, pattern: '15 6 * * *' },
 ] as const;
 
 export type JobDefinition = (typeof JOBS)[keyof typeof JOBS];

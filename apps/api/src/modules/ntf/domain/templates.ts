@@ -53,6 +53,12 @@ export const DEFAULT_TEMPLATES: Readonly<Record<NotificationKind, TemplateText>>
     body: 'Su cotización {{cotizacion}} tiene una novedad: {{novedad}}. Revísela en ARZA ONE › Comercial › Cotizaciones.',
     urgent: false,
   },
+  // B24: a quien elaboró el contrato o lo tiene a cargo: decisiones, vencimientos y obligaciones.
+  ctr_contract_update: {
+    subject: 'Contrato {{contrato}}: {{novedad}}',
+    body: 'El contrato {{contrato}} tiene una novedad: {{novedad}}. Revíselo en ARZA ONE › Contratos.',
+    urgent: false,
+  },
 };
 
 /** Variables que el texto usa y que este tipo de aviso no ofrece. */

@@ -3,6 +3,11 @@ import { UnrecoverableError } from 'bullmq';
 
 import { processAccountEmail, type AccountEmailJobDependencies } from '../jobs/account-email.js';
 import {
+  processContractFollowUp,
+  processContractPdfs,
+  type ContractWorkJobDependencies,
+} from '../jobs/contract-work.js';
+import {
   processActivityRemind,
   type ActivityRemindJobDependencies,
 } from '../jobs/activity-remind.js';
@@ -54,7 +59,8 @@ export type JobDependencies = ExampleEmailDependencies &
   DispositionExecuteJobDependencies &
   TextExtractJobDependencies &
   ActivityRemindJobDependencies &
-  QuoteWorkJobDependencies;
+  QuoteWorkJobDependencies &
+  ContractWorkJobDependencies;
 
 /** Procesador que recibe los datos del trabajo; su resultado no se usa. */
 function withData(process: (data: unknown) => Promise<unknown>): JobHandler {
@@ -87,6 +93,8 @@ function handlers(deps: JobDependencies): ReadonlyMap<string, JobHandler> {
     [JOBS.crmActivityRemind.name, withoutData(async () => processActivityRemind(deps))],
     [JOBS.crmQuoteWork.name, withoutData(async () => processQuoteWork(deps))],
     [JOBS.crmQuoteExpire.name, withoutData(async () => processQuoteExpire(deps))],
+    [JOBS.ctrPdfRender.name, withoutData(async () => processContractPdfs(deps))],
+    [JOBS.ctrFollowUp.name, withoutData(async () => processContractFollowUp(deps))],
   ]);
 }
 

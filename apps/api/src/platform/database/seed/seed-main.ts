@@ -1,8 +1,9 @@
 import { z } from 'zod';
 
-// Las semillas de acceso, del núcleo, documentos, privacidad, los parámetros tributarios, el flujo del CRM, los terceros ficticios y el flujo de prueba son de sus
+// Las semillas de acceso, del núcleo, documentos, privacidad, los parámetros tributarios, el flujo del CRM, la biblioteca y las plantillas de Contratos, los terceros ficticios y el flujo de prueba son de sus
 // módulos: este punto de entrada las reúne con la de la plataforma, como app.module.ts reúne los
 // módulos.
+import { seedContracts } from '../../../modules/contract/index.js';
 import { seedCore } from '../../../modules/core/index.js';
 import { seedCrmWorkflows } from '../../../modules/crm/index.js';
 import {
@@ -51,6 +52,7 @@ async function main(): Promise<void> {
     await seedPrivacyNotices(database, tenantIds, systemClock);
     await seedTaxParameters(database, tenantIds, systemClock);
     await seedCrmWorkflows(database, tenantIds, systemClock);
+    await seedContracts(database, tenantIds, systemClock);
     if (withDemo) {
       const demoIds = DEMO_TENANTS.map((tenant) => tenant.id);
       // Los terceros ficticios llegan con su autorización: primero se publican los textos.
