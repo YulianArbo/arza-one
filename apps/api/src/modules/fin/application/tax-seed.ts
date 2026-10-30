@@ -9,7 +9,7 @@ import { fromCalendarDate } from '../../core/index.js';
 
 const VALID_FROM = '2026-01-01';
 
-export const TAX_PARAMETER_SEED = [
+const TAX_PARAMETER_SEED = [
   {
     key: 'IVA_GENERAL',
     label: 'IVA general',

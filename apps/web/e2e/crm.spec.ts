@@ -174,6 +174,8 @@ const API: ApiRoutes = {
   },
   '/v1/crm/reports/funnel': { body: FUNNEL },
   '/v1/catalogs/crm_lead_sources': { body: CATALOG },
+  // B23: la ficha de la oportunidad muestra sus cotizaciones.
+  '/v1/crm/quotes': { body: { data: [], next_cursor: null } },
 };
 
 const PAGES = [

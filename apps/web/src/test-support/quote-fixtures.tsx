@@ -33,7 +33,7 @@ export const DIRECTION = permissionsOf([
 ]);
 export const QUOTE_READER = permissionsOf(['crm.opportunity.read', 'crm.quote.read']);
 
-export const SERVICE = {
+const SERVICE = {
   id: SERVICE_ID,
   code: 'SRV-0001',
   name: 'Desarrollo a la medida',
@@ -88,7 +88,7 @@ const SUMMARY = {
   version: 4,
 } as const;
 
-export function quoteSummary(overrides: object = {}): object {
+function quoteSummary(overrides: object = {}): object {
   return { ...SUMMARY, ...overrides };
 }
 

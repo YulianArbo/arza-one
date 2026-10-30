@@ -30,7 +30,7 @@ describe('mis permisos (GET /v1/me/permissions)', () => {
     const both = await scenario.person('dos-roles', ['COMERCIAL', 'AUDITOR']);
     const mine = await permissionsOf(both.session);
     expect(mine.roles.map((role) => role.code).sort()).toEqual(['AUDITOR', 'COMERCIAL']);
-    expect(codes(mine)).toEqual(expect.arrayContaining(['crm.quote.approve', 'audit.event.read']));
+    expect(codes(mine)).toEqual(expect.arrayContaining(['crm.quote.send', 'audit.event.read']));
   });
 
   it('COLABORADOR delega solo lo propio', async () => {

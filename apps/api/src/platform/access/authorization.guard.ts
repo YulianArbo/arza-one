@@ -2,6 +2,7 @@ import {
   HttpStatus,
   Inject,
   Injectable,
+  Logger,
   type CanActivate,
   type ExecutionContext,
 } from '@nestjs/common';
@@ -67,27 +68,38 @@ export class AuthorizationGuard implements CanActivate {
     return true;
   }
 
-  /** Evento de seguridad del permiso denegado: quién, qué permiso, qué ruta y desde qué IP. */
+  private readonly logger = new Logger('AuthorizationGuard');
+
+  /**
+   * Evento de seguridad del permiso denegado: quién, qué permiso, qué ruta y desde qué IP. Si no se
+   * puede guardar (la base no responde), se registra en el log y la respuesta sigue siendo 403.
+   */
   private async recordDenial(
     principal: Principal,
     request: Request,
     permission: PermissionCode,
   ): Promise<void> {
-    await this.database.withTenant(principal, (tx) =>
-      recordSecurityEvent(tx, {
-        tenantId: principal.tenantId,
-        occurredAt: this.clock.now(),
-        type: 'access.permission_denied',
-        userId: principal.userId,
-        severity: 'low',
-        detail: {
-          permission,
-          method: request.method,
-          path: request.path,
-        },
-        meta: requestMetaOf(request),
-      }),
-    );
+    try {
+      await this.database.withTenant(principal, (tx) =>
+        recordSecurityEvent(tx, {
+          tenantId: principal.tenantId,
+          occurredAt: this.clock.now(),
+          type: 'access.permission_denied',
+          userId: principal.userId,
+          severity: 'low',
+          detail: {
+            permission,
+            method: request.method,
+            path: request.path,
+          },
+          meta: requestMetaOf(request),
+        }),
+      );
+    } catch (error) {
+      this.logger.warn(
+        `No se pudo guardar el evento de permiso denegado (${permission}): ${String(error)}`,
+      );
+    }
   }
 }
 

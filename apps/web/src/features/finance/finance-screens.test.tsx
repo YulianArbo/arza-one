@@ -93,3 +93,55 @@ describe('finanzas: parámetros tributarios', () => {
     });
   });
 });
+
+const SCHEDULED = {
+  ...VERSION,
+  id: '01999a00-0000-7000-8000-0000000e0002',
+  rate: '20.00',
+  valid_from: '2027-01-01',
+};
+
+const CLOSED = {
+  ...VERSION,
+  valid_to: '2026-12-31',
+  created_by: { id: VERSION.id, name: 'Carla Contadora' },
+};
+
+function serveScheduled() {
+  return mockApi({
+    'GET /v1/auth/session': () => json(SESSION),
+    'GET /v1/me/permissions': () => json(ACCOUNTANT),
+    'GET /v1/finance/tax-parameters': () =>
+      json({ data: [{ ...TAX, current: null, scheduled: SCHEDULED }] }),
+    'GET /v1/finance/tax-parameters/IVA_GENERAL/history': () =>
+      json({ key: 'IVA_GENERAL', label: 'IVA general', data: [CLOSED] }),
+    'POST /v1/finance/tax-parameters/versions': () => noContent(),
+  });
+}
+
+describe('finanzas: tarifas programadas', () => {
+  it('muestra el cambio programado y registra una tarifa nueva de un impuesto existente', async () => {
+    const sent = serveScheduled();
+    renderWithApi(
+      <Screen>
+        <TaxParametersPanel />
+      </Screen>,
+    );
+    expect(await screen.findByText(/Sin tarifa vigente hoy/u)).toBeVisible();
+    expect(screen.getByText(/Cambio programado: 20 % desde el 01\/01\/2027/u)).toBeVisible();
+    expect(await screen.findByText('Carla Contadora')).toBeVisible();
+    await userEvent.click(screen.getByRole('button', { name: 'Registrar una tarifa' }));
+    const dialog = await screen.findByRole('dialog');
+    await userEvent.type(within(dialog).getByLabelText('Tarifa en %'), '19');
+    const basis = within(dialog).getByLabelText('Fundamento legal');
+    await userEvent.type(basis, 'Estatuto Tributario, art. 468.');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Registrar' }));
+    await vi.waitFor(() => {
+      expect(sent.find((request) => request.method === 'POST')?.body).toMatchObject({
+        key: 'IVA_GENERAL',
+        label: null,
+        rate: '19',
+      });
+    });
+  });
+});

@@ -2,4 +2,4 @@
 // leen la tarifa vigente de cada impuesto con taxRatesOn; nunca leen la tabla fin_tax_parameters.
 export { FinModule } from './interface/fin.module.js';
 export { seedTaxParameters } from './application/tax-seed.js';
-export { taxLabels, taxRatesOn, type TaxRate } from './application/tax-parameters.js';
+export { taxLabels, taxRatesOn } from './application/tax-parameters.js';

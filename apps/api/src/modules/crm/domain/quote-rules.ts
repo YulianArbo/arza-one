@@ -30,11 +30,3 @@ export function publicStateOf(
   if (status === 'expired' || isPastValidity(validUntil, today)) return 'expired';
   return 'open';
 }
-
-/** Estados en que la cotización ya no cambia de estado. */
-export const CLOSED_QUOTE_STATUSES: readonly QuoteStatus[] = [
-  'accepted',
-  'rejected',
-  'expired',
-  'superseded',
-];

@@ -85,7 +85,7 @@ function summaryView(quote: CrmQuote, context: QuoteContext): QuoteSummary {
   };
 }
 
-export function itemView(item: CrmQuoteItem, serviceCodes: ReadonlyMap<string, string>): QuoteItem {
+function itemView(item: CrmQuoteItem, serviceCodes: ReadonlyMap<string, string>): QuoteItem {
   return {
     id: item.id,
     position: item.position,
@@ -119,7 +119,7 @@ export function taxesOf(items: readonly CrmQuoteItem[]): readonly QuoteTaxLine[]
   ).taxes;
 }
 
-export async function serviceCodesOf(
+async function serviceCodesOf(
   tx: TenantTransaction,
   items: readonly CrmQuoteItem[],
 ): Promise<Map<string, string>> {

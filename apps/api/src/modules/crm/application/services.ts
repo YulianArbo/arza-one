@@ -56,7 +56,7 @@ function auditOf(service: CrmService) {
 }
 
 /** El servicio como lo ve la API, con el nombre de su impuesto. */
-export function serviceView(service: CrmService, labels: ReadonlyMap<string, string>): Service {
+function serviceView(service: CrmService, labels: ReadonlyMap<string, string>): Service {
   return {
     id: service.id,
     code: service.code,
