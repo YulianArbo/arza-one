@@ -197,8 +197,10 @@ ALTER TABLE "sig_envelopes"
         'rejected', 'expired', 'cancelled')),
     ADD CONSTRAINT "sig_envelopes_message_check"
         CHECK ("message" IS NULL OR char_length(btrim("message")) BETWEEN 1 AND 1000),
+    -- Enviado: con quién lo envió y su llave. Un proceso anulado pudo no haberse enviado nunca.
     ADD CONSTRAINT "sig_envelopes_sent_check" CHECK (
-        ("status" = 'draft') = ("sent_at" IS NULL)
+        ("status" <> 'draft' OR "sent_at" IS NULL)
+        AND ("status" NOT IN ('sent', 'completed', 'rejected', 'expired') OR "sent_at" IS NOT NULL)
         AND ("sent_at" IS NULL OR "sent_by" IS NOT NULL)
         AND (("sent_at" IS NULL) = ("send_key" IS NULL))),
     ADD CONSTRAINT "sig_envelopes_completed_check"

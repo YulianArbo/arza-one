@@ -192,9 +192,13 @@ export class SignatureScenario extends ContractScenario {
 
   /** La llave del último enlace que le llegó a esa dirección. */
   linkOf(email: string): string {
-    const match = /#token=([A-Za-z0-9_-]+)/u.exec(this.lastMailTo(email).text);
-    if (match?.[1] === undefined) throw new Error('El correo no trae el enlace');
-    return match[1];
+    const links = this.signatureMails
+      .filter((item) => item.to === email)
+      .map((item) => /#token=([A-Za-z0-9_-]+)/u.exec(item.text)?.[1])
+      .filter((token): token is string => token !== undefined);
+    const token = links.at(-1);
+    if (token === undefined) throw new Error(`No llegó correo con enlace a ${email}`);
+    return token;
   }
 
   /** Pide el código, lo «recibe» en el correo y lo valida: devuelve la confirmación. */

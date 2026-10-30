@@ -146,7 +146,15 @@ export class SignaturesUseCase {
       }
       await tx.sigSigner.update({
         where: { id: signer.id },
-        data: { mailPending: 'invitation', codeLocked: false, codeAttempts: 0 },
+        data: {
+          mailPending: 'invitation',
+          codeLocked: false,
+          codeAttempts: 0,
+          codeHash: null,
+          codeExpiresAt: null,
+          codeRequestedAt: null,
+          codeSentAt: null,
+        },
       });
       await auditSignature(tx, actor, 'signature.link.resend', envelope, {
         signer_id: signer.id,
