@@ -2,7 +2,7 @@ import { SIGNATURE_RULES } from '@arza/contracts';
 
 import { systemActor } from './contract-support.js';
 import { closeEnvelope } from './signature-progress.js';
-import { findEnvelope } from './signature-records.js';
+import { auditSignature, findEnvelope } from './signature-records.js';
 import { scopeOf, tenantsBy, type SignatureWorkDependencies } from './signature-work.js';
 
 // Revisión diaria de la firma electrónica en el worker (B25): vence los procesos cuyo plazo pasó
@@ -41,6 +41,10 @@ async function followEnvelope(deps: SignatureWorkDependencies, tenantId: string,
     );
     if (due === undefined) return null;
     await tx.sigSigner.update({ where: { id: due.id }, data: { mailPending: 'reminder' } });
+    await auditSignature(tx, systemActor(tenantId, at), 'signature.reminder.schedule', envelope, {
+      signer_id: due.id,
+      reminder: due.reminders + 1,
+    });
     return 'reminder' as const;
   });
 }

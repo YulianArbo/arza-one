@@ -21,7 +21,12 @@ import {
   type SignatureMail,
 } from './signature-mail.js';
 import { codeHashOf } from './signature-public.js';
-import { appendSignatureEvent, findEnvelope } from './signature-records.js';
+import {
+  appendSignatureEvent,
+  auditSignature,
+  findEnvelope,
+  type EnvelopeWithSigners,
+} from './signature-records.js';
 import { putDocumentInForce } from './signature-seal.js';
 
 // Trabajo de la firma electrónica en el worker (B25). Cada pocos segundos: los correos con enlace
@@ -72,6 +77,19 @@ function linkExpiry(kind: LinkMailKind, expiresAt: Date, at: Date): Date {
 
 const LINK_EVENTS = { invitation: 'invited', reminder: 'reminded', copy: 'copy_sent' } as const;
 
+/** Lo que hace el worker también queda en la auditoría, a nombre del sistema (ADR-012). */
+async function auditWork(
+  tx: TenantTransaction,
+  at: Date,
+  action: string,
+  signer: Pick<SigSigner, 'id' | 'tenantId' | 'envelopeId'>,
+  changes: Record<string, string> = {},
+): Promise<void> {
+  const envelope = await findEnvelope(tx, signer.envelopeId);
+  const actor = systemActor(signer.tenantId, at);
+  await auditSignature(tx, actor, action, envelope, { signer_id: signer.id, ...changes });
+}
+
 /** Prepara el enlace nuevo y su correo; null si el firmante ya no espera ese correo. */
 async function prepareLinkMail(
   tx: TenantTransaction,
@@ -87,6 +105,7 @@ async function prepareLinkMail(
     where: { id: signer.id },
     data: { linkTokenHash: sha256(token), linkExpiresAt: linkExpiry(kind, envelope.expiresAt, at) },
   });
+  await auditWork(tx, at, 'signature.link.issue', signer, { kind });
   return linkMail({
     kind,
     envelope,
@@ -123,6 +142,7 @@ async function sendLinkMail(deps: SignatureWorkDependencies, tenantId: string, s
     });
     const event = { type: LINK_EVENTS[prepared.kind], signerId, ip: null, userAgent: null };
     await appendSignatureEvent(tx, signer.envelopeId, at, event);
+    await auditWork(tx, at, 'signature.email', signer, { kind: prepared.kind });
     return true;
   });
 }
@@ -147,6 +167,7 @@ async function sendCode(deps: SignatureWorkDependencies, tenantId: string, signe
         codeExpiresAt: new Date(issuedAt.getTime() + SIGNATURE_RULES.codeMinutes * 60_000),
       },
     });
+    await auditWork(tx, issuedAt, 'signature.code.issue', signer);
     return codeMail(envelope, signer, await companyIdentity(tx), code);
   });
   if (prepared === null) return false;
@@ -156,6 +177,7 @@ async function sendCode(deps: SignatureWorkDependencies, tenantId: string, signe
     await tx.sigSigner.update({ where: { id: signerId }, data: { codeSentAt: issuedAt } });
     const event = { type: 'code_sent' as const, signerId, ip: null, userAgent: null };
     await appendSignatureEvent(tx, signer.envelopeId, deps.clock.now(), event);
+    await auditWork(tx, deps.clock.now(), 'signature.code.email', signer);
   });
   return true;
 }
@@ -179,17 +201,20 @@ async function prepareSeal(deps: SignatureWorkDependencies, tenantId: string, en
 /** Guarda el certificado de evidencia; devuelve su archivo. */
 async function storeCertificate(
   deps: SignatureWorkDependencies,
-  tenantId: string,
-  code: string,
+  envelope: EnvelopeWithSigners,
   certificate: Buffer,
 ): Promise<string | null> {
   let stored: string | null = null;
+  const { tenantId } = envelope;
   await storeGeneratedPdf(
     deps,
-    { tenantId, fileName: `${code}-certificado.pdf`, content: certificate },
-    (_tx, fileId) => {
+    { tenantId, fileName: `${envelope.code}-certificado.pdf`, content: certificate },
+    async (tx, fileId, at) => {
+      await auditSignature(tx, systemActor(tenantId, at), 'signature.certificate.store', envelope, {
+        evidence_file_id: fileId,
+      });
       stored = fileId;
-      return Promise.resolve(true);
+      return true;
     },
   );
   return stored;
@@ -221,7 +246,7 @@ async function seal(deps: SignatureWorkDependencies, tenantId: string, envelopeI
   const { signed, certificate } = await renderSealed(deps, prepared);
   const signedSha256 = sha256(signed);
   // El certificado queda guardado primero; el PDF firmado lo amarra todo en su transacción.
-  const evidenceFileId = await storeCertificate(deps, tenantId, envelope.code, certificate);
+  const evidenceFileId = await storeCertificate(deps, envelope, certificate);
   return storeGeneratedPdf(
     deps,
     { tenantId, fileName: `${envelope.documentCode}-firmado.pdf`, content: signed },

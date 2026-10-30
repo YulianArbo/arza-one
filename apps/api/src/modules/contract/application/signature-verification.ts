@@ -5,6 +5,7 @@ import { CLOCK, type Clock } from '../../../platform/clock/clock.js';
 import { DatabaseService } from '../../../platform/database/database.service.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
 import { companyIdentity } from '../../core/index.js';
+import { auditSignature } from './signature-records.js';
 
 // Verificación pública (B25, numeral 19.3): cualquiera escribe el código de verificación o carga el
 // archivo, y sabe si coincide con el documento firmado. El archivo nunca sale del computador de
@@ -56,6 +57,11 @@ export class SignatureVerificationUseCase {
           ip: meta.ip,
           verifiedAt: at,
         },
+      });
+      const actor = { tenantId: found.tenantId, userId: null, meta, at };
+      await auditSignature(tx, actor, 'signature.verify', envelope, {
+        method: sha256 === null ? 'code' : 'file',
+        result,
       });
       const company = await companyIdentity(tx);
       return {

@@ -129,6 +129,7 @@ export class PublicSignaturesUseCase {
         if (signer.openedAt === null) {
           await tx.sigSigner.update({ where: { id: signer.id }, data: { openedAt: actor.at } });
         }
+        await auditSignature(tx, actor, 'signature.link.open', envelope, { signer_id: signer.id });
       }
       return view;
     });
@@ -182,6 +183,16 @@ export class PublicSignaturesUseCase {
         envelope.id,
         actor.at,
         eventFrom(actor, type, signer.id, { document: input.document }),
+      );
+      await auditSignature(
+        tx,
+        actor,
+        `signature.document.${type === 'viewed' ? 'view' : 'download'}`,
+        envelope,
+        {
+          signer_id: signer.id,
+          document: input.document,
+        },
       );
       return file;
     });
