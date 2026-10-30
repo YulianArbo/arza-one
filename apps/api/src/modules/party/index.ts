@@ -5,7 +5,12 @@
 export { PartyModule } from './interface/party.module.js';
 export { seedPartyDemo } from './application/party-demo-seed.js';
 export { visiblePartyName } from './application/party-records.js';
-export { contractParty, type ContractParty } from './application/party-contracts.js';
+export {
+  contractParty,
+  partyVerified,
+  signingPerson,
+  type ContractParty,
+} from './application/party-contracts.js';
 export {
   commercialParties,
   makeCustomer,

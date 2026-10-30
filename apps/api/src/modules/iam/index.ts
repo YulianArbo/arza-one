@@ -25,8 +25,10 @@ export {
   type ReceivedDelegation,
 } from './infrastructure/people-directory.js';
 export {
+  accountsWithRoles,
   activeUsersWithRoles,
   noticeRecipients,
+  type CompanySignerAccount,
   type NoticeRecipient,
 } from './infrastructure/notice-recipients.js';
 export {

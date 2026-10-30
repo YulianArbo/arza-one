@@ -239,42 +239,56 @@ export class AmendmentsUseCase {
         },
       });
       if (count === 0) throw versionConflict();
-      await this.apply(tx, actor, contract, amendment, input);
+      await putAmendmentInForce(tx, actor, contract, amendment, {
+        ...input,
+        method: 'handwritten',
+      });
     });
   }
+}
 
-  /** El otrosí firmado rige: cambia el contrato y, con un nuevo fin, reinicia las alertas. */
-  private async apply(
-    tx: TenantTransaction,
-    actor: ContractActor,
-    contract: CtrContract,
-    amendment: CtrAmendment,
-    input: RegisterSignatureRequest,
-  ): Promise<void> {
-    const newEnd = amendment.newEndsOn;
-    await tx.ctrContract.update({
-      where: { id: contract.id },
-      data: {
-        endsOn: newEnd ?? contract.endsOn,
-        value: amendment.newValue ?? contract.value,
-        ...(newEnd === null ? {} : { status: 'active', lastAlertDays: null }),
-      },
-    });
-    const after = await findContract(tx, contract.id);
-    await recordContractChange(tx, actor, {
-      action: 'contract.amendment.signature.register',
-      event: 'contract.amended',
-      entityType: 'ctr_amendment',
-      entityId: amendment.id,
-      changes: {
-        ...amendmentAudit(amendment),
-        status: ['approved', 'signed'],
-        signed_file_id: input.file_id,
-        signed_on: input.signed_on,
-        contract_before: contractAudit(contract),
-        contract_after: contractAudit(after),
-      },
-      payload: { code: amendment.code, contract_id: contract.id },
-    });
-  }
+/** La firma con que rige un otrosí: la copia firmada a mano o el documento firmado electrónicamente. */
+interface SignedAmendment {
+  readonly file_id: string;
+  readonly signed_on: string;
+  readonly method: 'handwritten' | 'electronic';
+}
+
+/**
+ * El otrosí firmado rige: cambia el contrato y, con un nuevo fin, reinicia las alertas. Lo usan la
+ * copia firmada a mano (B24) y la firma electrónica completa (B25).
+ */
+export async function putAmendmentInForce(
+  tx: TenantTransaction,
+  actor: ContractActor,
+  contract: CtrContract,
+  amendment: CtrAmendment,
+  input: SignedAmendment,
+): Promise<void> {
+  const newEnd = amendment.newEndsOn;
+  await tx.ctrContract.update({
+    where: { id: contract.id },
+    data: {
+      endsOn: newEnd ?? contract.endsOn,
+      value: amendment.newValue ?? contract.value,
+      ...(newEnd === null ? {} : { status: 'active', lastAlertDays: null }),
+    },
+  });
+  const after = await findContract(tx, contract.id);
+  await recordContractChange(tx, actor, {
+    action: 'contract.amendment.signature.register',
+    event: 'contract.amended',
+    entityType: 'ctr_amendment',
+    entityId: amendment.id,
+    changes: {
+      ...amendmentAudit(amendment),
+      status: [input.method === 'handwritten' ? 'approved' : 'in_signature', 'signed'],
+      signed_file_id: input.file_id,
+      signed_on: input.signed_on,
+      method: input.method,
+      contract_before: contractAudit(contract),
+      contract_after: contractAudit(after),
+    },
+    payload: { code: amendment.code, contract_id: contract.id },
+  });
 }

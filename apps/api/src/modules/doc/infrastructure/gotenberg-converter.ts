@@ -114,3 +114,19 @@ export async function stampWithGotenberg(
   );
   return send(options, 'forms/pdfengines/stamp', form);
 }
+
+/**
+ * Une varios PDF en uno, en el orden dado (B25): el documento aprobado, la página final de firmas y
+ * el certificado de evidencia. Lo hace pdfcpu; los nombres numerados fijan el orden.
+ */
+export async function mergeWithGotenberg(
+  options: GotenbergOptions,
+  pdfs: readonly Buffer[],
+): Promise<Buffer> {
+  const form = new FormData();
+  for (const [index, pdf] of pdfs.entries()) {
+    const name = `${String(index + 1).padStart(2, '0')}.pdf`;
+    form.append('files', new Blob([new Uint8Array(pdf)], { type: 'application/pdf' }), name);
+  }
+  return send(options, 'forms/pdfengines/merge', form);
+}

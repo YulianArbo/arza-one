@@ -119,6 +119,14 @@ const crmQuoteExpireJobSchema = z.object({});
 const ctrPdfRenderJobSchema = z.object({});
 const ctrFollowUpJobSchema = z.object({});
 
+/**
+ * Firma electrónica (B25): cada pocos segundos, los correos con enlace, los códigos pedidos y el
+ * documento firmado de los procesos que terminaron; cada día, los recordatorios y los vencimientos.
+ * Son del sistema y no llevan empresa. El código nunca va en la cola: el worker lo genera.
+ */
+const sigWorkJobSchema = z.object({});
+const sigFollowUpJobSchema = z.object({});
+
 export type TenantJob = z.infer<typeof tenantJobSchema>;
 export type ExampleEmailJob = z.infer<typeof exampleEmailJobSchema>;
 export type AccountEmailJob = z.infer<typeof accountEmailJobSchema>;
@@ -208,6 +216,16 @@ export const JOBS = {
     name: 'ctr.follow-up',
     schema: ctrFollowUpJobSchema,
   },
+  sigWork: {
+    queue: QUEUES.platform,
+    name: 'sig.work',
+    schema: sigWorkJobSchema,
+  },
+  sigFollowUp: {
+    queue: QUEUES.platform,
+    name: 'sig.follow-up',
+    schema: sigFollowUpJobSchema,
+  },
 } as const;
 
 /** Trabajos programados: el worker los registra al arrancar (expresión cron, hora de Bogotá). */
@@ -240,6 +258,10 @@ export const SCHEDULED_JOBS = [
   { id: 'ctr.pdf-render.every-20-seconds', job: JOBS.ctrPdfRender, pattern: '*/20 * * * * *' },
   // Cada día a las 6:15: alertas de vencimiento, fin de plazo y obligaciones, antes de la jornada.
   { id: 'ctr.follow-up.daily', job: JOBS.ctrFollowUp, pattern: '15 6 * * *' },
+  // Cada 10 segundos: el código de seis números llega al correo casi de inmediato (vale diez minutos).
+  { id: 'sig.work.every-10-seconds', job: JOBS.sigWork, pattern: '*/10 * * * * *' },
+  // Cada día a las 7:00: recordatorios y vencimiento de los procesos de firma, antes de la jornada.
+  { id: 'sig.follow-up.daily', job: JOBS.sigFollowUp, pattern: '0 7 * * *' },
 ] as const;
 
 export type JobDefinition = (typeof JOBS)[keyof typeof JOBS];

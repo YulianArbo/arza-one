@@ -19,12 +19,14 @@ const unusedDeps: JobDependencies = {
     read: async () => Promise.reject(new Error('no se usa')),
     put: async () => Promise.reject(new Error('no se usa')),
     delete: async () => Promise.reject(new Error('no se usa')),
+    stream: async () => Promise.reject(new Error('no se usa')),
   },
   antivirus: async () => Promise.reject(new Error('no se usa')),
   convert: async () => Promise.reject(new Error('no se usa')),
   convertOffice: async () => Promise.reject(new Error('no se usa')),
   convertHtml: async () => Promise.reject(new Error('no se usa')),
   stamp: async () => Promise.reject(new Error('no se usa')),
+  mergePdfs: async () => Promise.reject(new Error('no se usa')),
   extractText: async () => Promise.reject(new Error('no se usa')),
 };
 
@@ -101,13 +103,15 @@ describe('enrutador de trabajos de documentos y avisos', () => {
 });
 
 describe('enrutador de trabajos de documentos y avisos', () => {
-  it('envía los trabajos de cotizaciones y contratos a sus procesadores', async () => {
+  it('envía los trabajos de cotizaciones, contratos y firma a sus procesadores', async () => {
     const route = createJobRouter(unusedDeps);
     for (const job of [
       JOBS.crmQuoteWork,
       JOBS.crmQuoteExpire,
       JOBS.ctrPdfRender,
       JOBS.ctrFollowUp,
+      JOBS.sigWork,
+      JOBS.sigFollowUp,
     ]) {
       await expect(route({ name: job.name, data: {} })).rejects.toThrow('no se usa');
     }

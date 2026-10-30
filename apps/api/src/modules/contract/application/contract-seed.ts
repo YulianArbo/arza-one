@@ -8,18 +8,21 @@ import {
   CONTRACT_FLOW,
   CONTRACT_FLOW_DATA,
   EXPIRY_FLOW_DATA,
+  SIGNATURE_FLOW,
+  SIGNATURE_FLOW_DATA,
 } from '../domain/contract-flows.js';
 import { SEED_CLAUSES, SEED_TEMPLATES, type SeedTemplate } from '../domain/library-seed-data.js';
 import { followAmendmentFlow } from './amendment-flow.js';
 import { followContractFlow } from './contract-flow.js';
 import { recordContractChange, systemActor } from './contract-support.js';
+import { followSignatureFlow } from './signature-flow.js';
 
 // Semilla de Contratos (B24): en cada empresa, los flujos de aprobación y de vencimiento, la
 // biblioteca inicial de cláusulas y las plantillas CT-COM y OS-COM. Crea lo que falta y nunca toca lo
 // que la empresa cambió, así que se puede correr de nuevo. Al arrancar el módulo, Contratos se
 // inscribe para seguir los pasos de sus trámites en la misma transacción (ADR-023).
 
-const FLOWS = [CONTRACT_FLOW_DATA, AMENDMENT_FLOW_DATA, EXPIRY_FLOW_DATA];
+const FLOWS = [CONTRACT_FLOW_DATA, AMENDMENT_FLOW_DATA, EXPIRY_FLOW_DATA, SIGNATURE_FLOW_DATA];
 
 async function seedClauses(tx: TenantTransaction, tenantId: string, at: Date): Promise<void> {
   const existing = new Set(
@@ -104,4 +107,5 @@ export async function seedContracts(
 export function followContractWorkflows(): void {
   onWorkflowTransition(CONTRACT_FLOW, followContractFlow);
   onWorkflowTransition(AMENDMENT_FLOW, followAmendmentFlow);
+  onWorkflowTransition(SIGNATURE_FLOW, followSignatureFlow);
 }

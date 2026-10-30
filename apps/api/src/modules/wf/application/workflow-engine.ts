@@ -205,3 +205,30 @@ export async function requestTransition(
     taskId: attending?.task.id ?? null,
   });
 }
+
+/**
+ * El módulo dueño del registro cierra el trámite por su cuenta, sin una persona que atienda la
+ * tarea: por ejemplo, cuando el proceso de firma termina, se anula o vence (B25). Hace la transición
+ * definida desde el estado actual; si el trámite ya no está en ese punto, no hace nada.
+ */
+export async function closeWorkflowAsOwner(
+  tx: TenantTransaction,
+  context: WfContext,
+  ask: { readonly instanceId: string; readonly action: string; readonly comment: string | null },
+): Promise<boolean> {
+  const instance = await lockInstance(tx, ask.instanceId);
+  if (instance === null) return false;
+  if (instance.completedAt !== null) return false;
+  const flow = await findFlow(tx, instance.definitionId);
+  const transition = flow === null ? null : findTransition(flow, instance.currentState, ask.action);
+  if (flow === null || transition === null) return false;
+  await applyTransition(tx, context, {
+    instance,
+    flow,
+    transition,
+    comment: ask.comment,
+    onBehalfOf: null,
+    taskId: null,
+  });
+  return true;
+}

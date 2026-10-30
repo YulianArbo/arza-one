@@ -49,6 +49,7 @@ export { extractPdfText } from './infrastructure/pdf-text.js';
 export {
   convertHtmlWithGotenberg,
   convertWithGotenberg,
+  mergeWithGotenberg,
   stampWithGotenberg,
 } from './infrastructure/gotenberg-converter.js';
 export {

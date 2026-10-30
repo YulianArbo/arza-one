@@ -11,3 +11,12 @@ export {
   type ContractFollowUpResult,
   type ContractWorkDependencies,
 } from './application/contract-work.js';
+export {
+  processSignatureWork,
+  type SignatureWorkDependencies,
+  type SignatureWorkResult,
+} from './application/signature-work.js';
+export {
+  followUpSignatures,
+  type SignatureFollowUpResult,
+} from './application/signature-follow-up.js';

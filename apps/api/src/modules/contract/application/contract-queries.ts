@@ -112,7 +112,7 @@ export class ContractQueries {
       const party = partyId === undefined ? null : await contractParty(tx, partyId);
       return {
         templates: await activeTemplates(tx),
-        signers: party?.signers.map((signer) => ({ ...signer })) ?? [],
+        signers: party?.signers.map(({ name, document }) => ({ name, document })) ?? [],
         quote: quote === null ? null : quoteOption(quote, party?.name ?? 'Cliente'),
       };
     });
