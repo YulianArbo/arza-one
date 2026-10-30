@@ -106,6 +106,10 @@ model Tenant {
   ctrContractClauses      CtrContractClause[]
   ctrObligations          CtrObligation[]
   ctrAmendments           CtrAmendment[]
+  sigEnvelopes            SigEnvelope[]
+  sigSigners              SigSigner[]
+  sigEvents               SigEvent[]
+  sigVerifications        SigVerification[]
 
   @@map("core_tenants")
 }
@@ -2317,6 +2321,7 @@ model CtrContract {
   clauses              CtrContractClause[]
   obligations          CtrObligation[]
   amendments           CtrAmendment[]
+  envelopes            SigEnvelope[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, code])
@@ -2422,4 +2427,150 @@ model CtrAmendment {
   @@unique([tenantId, code])
   @@unique([tenantId, contractId, sequence])
   @@map("ctr_amendments")
+}
+
+/// Proceso de firma electrónica de un contrato o un otrosí aprobado (B25, capítulo 19).
+model SigEnvelope {
+  id                 String            @id @default(uuid(7)) @db.Uuid
+  tenantId           String            @map("tenant_id") @db.Uuid
+  code               String
+  source             String
+  contractId         String            @map("contract_id") @db.Uuid
+  amendmentId        String?           @map("amendment_id") @db.Uuid
+  /// El PDF aprobado que se firma y su huella: no cambian.
+  documentFileId     String            @map("document_file_id") @db.Uuid
+  documentSha256     String            @map("document_sha256")
+  documentCode       String            @map("document_code")
+  documentTitle      String            @map("document_title")
+  level              Int               @default(2) @db.SmallInt
+  status             String            @default("draft")
+  message            String?
+  expiresAt          DateTime          @map("expires_at") @db.Timestamptz(6)
+  sentAt             DateTime?         @map("sent_at") @db.Timestamptz(6)
+  sentBy             String?           @map("sent_by") @db.Uuid
+  /// Llave Idempotency-Key con que se envió: repetir el envío con ella no cambia nada.
+  sendKey            String?           @map("send_key")
+  completedAt        DateTime?         @map("completed_at") @db.Timestamptz(6)
+  closedAt           DateTime?         @map("closed_at") @db.Timestamptz(6)
+  closedReason       String?           @map("closed_reason")
+  /// Huella del último evento de la cadena; la del documento mientras no hay eventos.
+  lastEventHash      String            @map("last_event_hash")
+  eventCount         Int               @default(0) @map("event_count")
+  workflowInstanceId String?           @map("workflow_instance_id") @db.Uuid
+  /// none hasta que firman todos; pending mientras el worker arma el documento firmado.
+  sealStatus         String            @default("none") @map("seal_status")
+  signedFileId       String?           @map("signed_file_id") @db.Uuid
+  signedSha256       String?           @map("signed_sha256")
+  evidenceFileId     String?           @map("evidence_file_id") @db.Uuid
+  verificationCode   String?           @map("verification_code")
+  createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy          String?           @map("created_by") @db.Uuid
+  updatedAt          DateTime          @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy          String?           @map("updated_by") @db.Uuid
+  version            Int               @default(1)
+  deletedAt          DateTime?         @map("deleted_at") @db.Timestamptz(6)
+  tenant             Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  contract           CtrContract       @relation(fields: [tenantId, contractId], references: [tenantId, id], onDelete: Restrict)
+  signers            SigSigner[]
+  events             SigEvent[]
+  verifications      SigVerification[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([verificationCode])
+  @@index([tenantId, contractId])
+  @@index([tenantId, status])
+  @@index([signedSha256])
+  @@map("sig_envelopes")
+}
+
+/// Quien firma: una persona autorizada del cliente o la persona de la Dirección.
+model SigSigner {
+  id              String      @id @default(uuid(7)) @db.Uuid
+  tenantId        String      @map("tenant_id") @db.Uuid
+  envelopeId      String      @map("envelope_id") @db.Uuid
+  kind            String
+  partyId         String?     @map("party_id") @db.Uuid
+  userId          String?     @map("user_id") @db.Uuid
+  name            String
+  email           String
+  idNumber        String      @map("id_number")
+  role            String
+  signOrder       Int         @map("sign_order") @db.SmallInt
+  status          String      @default("waiting")
+  /// Huella de la llave del último enlace enviado; la llave solo va en el correo.
+  linkTokenHash   String?     @map("link_token_hash")
+  linkExpiresAt   DateTime?   @map("link_expires_at") @db.Timestamptz(6)
+  /// Correo por enviar: invitation, reminder o copy.
+  mailPending     String?     @map("mail_pending")
+  codeRequestedAt DateTime?   @map("code_requested_at") @db.Timestamptz(6)
+  codeHash        String?     @map("code_hash")
+  codeExpiresAt   DateTime?   @map("code_expires_at") @db.Timestamptz(6)
+  codeSentAt      DateTime?   @map("code_sent_at") @db.Timestamptz(6)
+  codeAttempts    Int         @default(0) @map("code_attempts") @db.SmallInt
+  codeLocked      Boolean     @default(false) @map("code_locked")
+  ticketHash      String?     @map("ticket_hash")
+  ticketExpiresAt DateTime?   @map("ticket_expires_at") @db.Timestamptz(6)
+  openedAt        DateTime?   @map("opened_at") @db.Timestamptz(6)
+  reminders       Int         @default(0) @db.SmallInt
+  lastNotifiedAt  DateTime?   @map("last_notified_at") @db.Timestamptz(6)
+  method          String?
+  signedAt        DateTime?   @map("signed_at") @db.Timestamptz(6)
+  signIp          String?     @map("sign_ip")
+  signUserAgent   String?     @map("sign_user_agent")
+  acceptanceText  String?     @map("acceptance_text")
+  rejectedAt      DateTime?   @map("rejected_at") @db.Timestamptz(6)
+  rejectReason    String?     @map("reject_reason")
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?     @map("created_by") @db.Uuid
+  updatedAt       DateTime    @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy       String?     @map("updated_by") @db.Uuid
+  version         Int         @default(1)
+  deletedAt       DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  tenant          Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  envelope        SigEnvelope @relation(fields: [tenantId, envelopeId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, envelopeId, signOrder])
+  @@unique([linkTokenHash])
+  @@index([tenantId, envelopeId])
+  @@map("sig_signers")
+}
+
+/// Cadena de eventos del proceso de firma: solo se agrega; cada eslabón lleva la huella del anterior.
+model SigEvent {
+  id         String      @id @default(uuid(7)) @db.Uuid
+  tenantId   String      @map("tenant_id") @db.Uuid
+  envelopeId String      @map("envelope_id") @db.Uuid
+  signerId   String?     @map("signer_id") @db.Uuid
+  sequence   Int
+  type       String
+  ip         String?
+  userAgent  String?     @map("user_agent")
+  occurredAt DateTime    @map("occurred_at") @db.Timestamptz(6)
+  details    Json        @default("{}")
+  prevHash   String      @map("prev_hash")
+  hash       String
+  tenant     Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  envelope   SigEnvelope @relation(fields: [tenantId, envelopeId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, envelopeId, sequence])
+  @@index([tenantId, envelopeId])
+  @@map("sig_events")
+}
+
+/// Consultas a la página pública de verificación que encontraron un documento firmado.
+model SigVerification {
+  id         String      @id @default(uuid(7)) @db.Uuid
+  tenantId   String      @map("tenant_id") @db.Uuid
+  envelopeId String      @map("envelope_id") @db.Uuid
+  method     String
+  result     String
+  ip         String?
+  verifiedAt DateTime    @map("verified_at") @db.Timestamptz(6)
+  tenant     Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  envelope   SigEnvelope @relation(fields: [tenantId, envelopeId], references: [tenantId, id], onDelete: Restrict)
+
+  @@index([tenantId, envelopeId])
+  @@map("sig_verifications")
 }
