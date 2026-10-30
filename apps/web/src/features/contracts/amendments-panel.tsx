@@ -17,6 +17,7 @@ import { save } from '../audit/audit-export-button';
 import { formatPesos } from '../crm/labels';
 import { RecordDialog } from '../organization/record-dialog';
 import { usePermissions } from '../session/permissions';
+import { SignaturesPanel } from '../signatures/signatures-panel';
 import { ProposeForm } from './amendment-form';
 import { NoteForm } from './decision-forms';
 import { AMENDMENT_KINDS, AMENDMENT_STATUSES, AMENDMENT_TONES } from './labels';
@@ -149,6 +150,28 @@ function AmendmentActions(props: AmendmentProps): JSX.Element {
   );
 }
 
+/** Firma electrónica del otrosí aprobado (B25), mientras su contrato está vigente. */
+function AmendmentSignatures(props: AmendmentProps): JSX.Element | null {
+  const { amendment, contract } = props;
+  if (!['approved', 'in_signature', 'signed'].includes(amendment.status)) return null;
+  const canPrepare =
+    amendment.status === 'approved' &&
+    amendment.pdf_ready &&
+    IN_FORCE_STATUSES.includes(contract.status);
+  return (
+    <details className="text-sm">
+      <summary className="cursor-pointer text-primary">Firma electrónica del otrosí</summary>
+      <div className="mt-3">
+        <SignaturesPanel
+          target={{ source: 'amendment', id: amendment.id }}
+          canPrepare={canPrepare}
+          empty="Envíe el otrosí aprobado a firma electrónica, o registre la copia firmada a mano."
+        />
+      </div>
+    </details>
+  );
+}
+
 function AmendmentCard(props: AmendmentProps): JSX.Element {
   const { amendment } = props;
   const changes = [
@@ -177,6 +200,7 @@ function AmendmentCard(props: AmendmentProps): JSX.Element {
           <p className="text-sm">Nota de la Dirección: «{amendment.decision_note}»</p>
         )}
         <AmendmentActions {...props} />
+        <AmendmentSignatures {...props} />
       </CardContent>
     </Card>
   );

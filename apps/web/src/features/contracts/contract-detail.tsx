@@ -24,11 +24,13 @@ import {
   CONTRACT_STATUSES,
   CONTRACT_STATUS_TONES,
 } from './labels';
+import { SignaturesPanel } from '../signatures/signatures-panel';
 import { ObligationsPanel } from './obligations-panel';
 import { useContract } from './queries';
 
 // Ficha del contrato (B24, numeral 16.3): estado, acciones permitidas y el expediente contractual en
-// pestañas (resumen, texto cláusula por cláusula, obligaciones, otrosíes y expediente).
+// pestañas (resumen, texto cláusula por cláusula, obligaciones, firmas, otrosíes y expediente). La
+// pestaña Firmas llega con el B25.
 
 interface Props {
   readonly contract: ContractDetail;
@@ -49,8 +51,12 @@ function statusMessage(contract: ContractDetail): string | null {
   }
   if (contract.pdf.status === 'pending')
     return 'Preparando el PDF definitivo. En unos segundos podrá descargarlo.';
-  if (status === 'approved')
-    return 'Aprobado. Imprima el PDF, recoja las firmas y registre la copia firmada.';
+  if (status === 'approved') {
+    return 'Aprobado. Envíelo a firma electrónica en la pestaña Firmas, o imprima el PDF, recoja las firmas a mano y registre la copia firmada.';
+  }
+  if (status === 'in_signature') {
+    return 'En firma electrónica. Siga el avance de cada firmante en la pestaña Firmas.';
+  }
   if (status === 'expiring') {
     return `Vence el ${formatDate(contract.ends_on)}. El responsable tiene la tarea de revisarlo en Mis tareas.`;
   }
@@ -161,6 +167,17 @@ function CaseFilePanel({ contract }: Props): JSX.Element {
   );
 }
 
+/** Firma electrónica del contrato (B25): el seguimiento y, si está aprobado, el envío. */
+function ContractSignatures({ contract }: Props): JSX.Element {
+  return (
+    <SignaturesPanel
+      target={{ source: 'contract', id: contract.id }}
+      canPrepare={contract.status === 'approved' && contract.pdf.status === 'ready'}
+      empty="Cuando el contrato esté aprobado, envíelo aquí a firma electrónica: cada firmante recibe un enlace y un código en su correo."
+    />
+  );
+}
+
 function tabsOf(contract: ContractDetail): SectionTab[] {
   return [
     {
@@ -174,6 +191,7 @@ function tabsOf(contract: ContractDetail): SectionTab[] {
       label: 'Obligaciones',
       content: () => <ObligationsPanel contract={contract} />,
     },
+    { id: 'firmas', label: 'Firmas', content: () => <ContractSignatures contract={contract} /> },
     { id: 'otrosies', label: 'Otrosíes', content: () => <AmendmentsPanel contract={contract} /> },
     { id: 'expediente', label: 'Expediente', content: () => <CaseFilePanel contract={contract} /> },
   ];
