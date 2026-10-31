@@ -48,7 +48,7 @@ export async function envelopeEvents(
 }
 
 /** La cadena del proceso, desde la huella del documento, está completa y sin cambios. */
-export function envelopeChainIntact(
+function envelopeChainIntact(
   envelope: Pick<EnvelopeWithSigners, 'documentSha256' | 'lastEventHash' | 'eventCount'>,
   events: readonly SigEvent[],
 ): boolean {

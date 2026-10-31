@@ -11,7 +11,7 @@ import { save } from '../audit/audit-export-button';
 // El documento por firmar en la página de firma (B25, numeral 16.3): completo y visible en la página,
 // y descargable antes de firmar (numeral 19.4). Pedirlo exige el código validado.
 
-export const DOCUMENT_KEY = ['firma-cliente', 'documento'] as const;
+const DOCUMENT_KEY = ['firma-cliente', 'documento'] as const;
 
 interface Ticketed {
   readonly token: string;

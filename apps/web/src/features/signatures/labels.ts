@@ -1,7 +1,6 @@
 import {
   ENVELOPE_STATUSES,
   SIGNATURE_EVENTS,
-  SIGNATURE_METHODS,
   SIGNER_KINDS,
   SIGNER_STATUSES,
   type EnvelopeStatus,
@@ -12,7 +11,7 @@ import {
 
 type Tone = 'neutral' | 'success' | 'warning' | 'destructive' | 'info';
 
-export { ENVELOPE_STATUSES, SIGNATURE_EVENTS, SIGNATURE_METHODS, SIGNER_KINDS, SIGNER_STATUSES };
+export { ENVELOPE_STATUSES, SIGNATURE_EVENTS, SIGNER_KINDS, SIGNER_STATUSES };
 
 export const ENVELOPE_TONES: Readonly<Record<EnvelopeStatus, Tone>> = {
   draft: 'neutral',

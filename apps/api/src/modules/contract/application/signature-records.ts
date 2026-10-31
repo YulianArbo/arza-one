@@ -116,7 +116,7 @@ export function eventFrom(
 }
 
 /** Lo que guarda la auditoría del proceso: códigos y estados, nunca correos ni documentos. */
-export function envelopeAudit(envelope: SigEnvelope): Record<string, string | null> {
+function envelopeAudit(envelope: SigEnvelope): Record<string, string | null> {
   return {
     code: envelope.code,
     status: envelope.status,
@@ -126,7 +126,7 @@ export function envelopeAudit(envelope: SigEnvelope): Record<string, string | nu
 }
 
 /** Datos del evento de la bandeja de salida: identificadores y códigos, sin datos personales. */
-export function envelopePayload(envelope: SigEnvelope): Prisma.InputJsonObject {
+function envelopePayload(envelope: SigEnvelope): Prisma.InputJsonObject {
   return {
     code: envelope.code,
     source: envelope.source,
