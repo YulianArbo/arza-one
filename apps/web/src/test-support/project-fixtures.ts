@@ -14,6 +14,7 @@ const EPIC_ID = '01999a00-0000-7000-8000-0000000e0203';
 const MEMBER_ID = '01999a00-0000-7000-8000-0000000e0301';
 const LEADER = { id: SESSION.user.id, name: 'Ana Pérez' };
 const DEVELOPER = { id: '01999a00-0000-7000-8000-00000000a003', name: 'Carlos Ruiz' };
+export const TESTER = { id: '01999a00-0000-7000-8000-00000000a004', name: 'Marta Prueba' };
 
 const LEAD: readonly PermissionCode[] = [
   'party.read',
@@ -167,7 +168,7 @@ const OPTIONS = {
       value: '24000000.00',
     },
   ],
-  people: [LEADER, DEVELOPER],
+  people: [LEADER, DEVELOPER, TESTER],
 };
 
 type Routes = Parameters<typeof mockApi>[0];
