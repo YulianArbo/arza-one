@@ -29176,6 +29176,3040 @@
           "Firma electrónica: verificación pública"
         ]
       }
+    },
+    "/v1/projects": {
+      "get": {
+        "description": "Los más recientes primero. El Equipo de proyecto ve solo aquellos donde es miembro activo.",
+        "operationId": "ProjectsController_list",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Estado del proyecto",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "planning",
+                "in_progress",
+                "at_risk",
+                "paused"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Busca en código, nombre y cliente",
+            "schema": {
+              "minLength": 1,
+              "maxLength": 120,
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectListResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Proyectos",
+        "tags": [
+          "Proyectos"
+        ]
+      },
+      "post": {
+        "description": "Desde un contrato vigente o, sin él, para un cliente de Terceros. Código PRY-AAAA-NNNN; el líder queda en el equipo.",
+        "operationId": "ProjectsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProjectRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectCreatedResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe o la persona no es del proyecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el estado no permite el paso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Crear un proyecto",
+        "tags": [
+          "Proyectos"
+        ]
+      }
+    },
+    "/v1/projects/options": {
+      "get": {
+        "description": "Contratos vigentes que aún no tienen proyecto y quién puede entrar al equipo.",
+        "operationId": "ProjectsController_options",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Opciones",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectOptionsResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Opciones del asistente",
+        "tags": [
+          "Proyectos"
+        ]
+      }
+    },
+    "/v1/projects/{id}": {
+      "get": {
+        "description": "Con su equipo, hitos, iteraciones, enlaces y avance.",
+        "operationId": "ProjectsController_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ficha",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectDetailResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe o no es del proyecto"
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Ficha del proyecto",
+        "tags": [
+          "Proyectos"
+        ]
+      },
+      "put": {
+        "description": "Datos, presupuesto y líder.",
+        "operationId": "ProjectsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProjectRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Guardado"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe o la persona no es del proyecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el estado no permite el paso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Editar el proyecto",
+        "tags": [
+          "Proyectos"
+        ]
+      }
+    },
+    "/v1/projects/{id}/actions/start": {
+      "post": {
+        "description": "Con contrato vigente o con la autorización de la Dirección.",
+        "operationId": "ProjectsController_start",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "En ejecución"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe o la persona no es del proyecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el estado no permite el paso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Iniciar el proyecto",
+        "tags": [
+          "Proyectos"
+        ]
+      }
+    },
+    "/v1/projects/{id}/actions/resume": {
+      "post": {
+        "description": "Desde en riesgo o pausado.",
+        "operationId": "ProjectsController_resume",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "En ejecución"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe o la persona no es del proyecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el estado no permite el paso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Reanudar el proyecto",
+        "tags": [
+          "Proyectos"
+        ]
+      }
+    },
+    "/v1/projects/{id}/actions/risk": {
+      "post": {
+        "description": "Con el motivo.",
+        "operationId": "ProjectsController_risk",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectReasonRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "En riesgo"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe o la persona no es del proyecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el estado no permite el paso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Marcar en riesgo",
+        "tags": [
+          "Proyectos"
+        ]
+      }
+    },
+    "/v1/projects/{id}/actions/pause": {
+      "post": {
+        "description": "Con el motivo.",
+        "operationId": "ProjectsController_pause",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectReasonRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Pausado"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe o la persona no es del proyecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el estado no permite el paso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Pausar el proyecto",
+        "tags": [
+          "Proyectos"
+        ]
+      }
+    },
+    "/v1/projects/{id}/actions/request-authorization": {
+      "post": {
+        "description": "Sin contrato vigente; la Dirección recibe la tarea en Mis tareas.",
+        "operationId": "ProjectsController_requestAuthorization",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectReasonRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Pedida"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe o la persona no es del proyecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el estado no permite el paso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Pedir a la Dirección la autorización para iniciar",
+        "tags": [
+          "Proyectos"
+        ]
+      }
+    },
+    "/v1/projects/{id}/members": {
+      "post": {
+        "description": "Colaborador activo con su rol y su dedicación; recibe un aviso.",
+        "operationId": "ProjectTeamController_addMember",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MemberRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Agregado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectCreatedResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe o la persona no es del proyecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el estado no permite el paso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Agregar a alguien al equipo",
+        "tags": [
+          "Proyectos"
+        ]
+      }
+    },
+    "/v1/projects/{id}/members/{memberId}": {
+      "put": {
+        "description": "Del miembro.",
+        "operationId": "ProjectTeamController_updateMember",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "memberId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMemberRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Guardado"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe o la persona no es del proyecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el estado no permite el paso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Cambiar el rol o la dedicación",
+        "tags": [
+          "Proyectos"
+        ]
+      },
+      "delete": {
+        "description": "Pierde el acceso de inmediato; sus ítems abiertos quedan sin asignar.",
+        "operationId": "ProjectTeamController_removeMember",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "memberId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Retirado"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe o la persona no es del proyecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el estado no permite el paso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Retirar a alguien del equipo",
+        "tags": [
+          "Proyectos"
+        ]
+      }
+    },
+    "/v1/projects/{id}/milestones": {
+      "post": {
+        "description": "Con su fecha y el porcentaje que se factura; entre todos, máximo 100 %.",
+        "operationId": "ProjectTeamController_createMilestone",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MilestoneRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectCreatedResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe o la persona no es del proyecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el estado no permite el paso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Agregar un hito",
+        "tags": [
+          "Proyectos"
+        ]
+      }
+    },
+    "/v1/projects/{id}/milestones/{milestoneId}": {
+      "put": {
+        "description": "Uno cumplido ya no cambia.",
+        "operationId": "ProjectTeamController_updateMilestone",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "milestoneId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MilestoneRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Guardado"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe o la persona no es del proyecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el estado no permite el paso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Editar un hito",
+        "tags": [
+          "Proyectos"
+        ]
+      }
+    },
+    "/v1/projects/{id}/milestones/{milestoneId}/actions/complete": {
+      "post": {
+        "description": "Ya no cambia.",
+        "operationId": "ProjectTeamController_completeMilestone",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "milestoneId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Cumplido"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe o la persona no es del proyecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el estado no permite el paso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Marcar un hito como cumplido",
+        "tags": [
+          "Proyectos"
+        ]
+      }
+    },
+    "/v1/projects/{id}/links": {
+      "post": {
+        "description": "Al repositorio, a un entorno o al diseño; solo direcciones https.",
+        "operationId": "ProjectTeamController_addLink",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectCreatedResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe o la persona no es del proyecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el estado no permite el paso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Agregar un enlace",
+        "tags": [
+          "Proyectos"
+        ]
+      }
+    },
+    "/v1/projects/{id}/links/{linkId}": {
+      "delete": {
+        "description": "Queda en la auditoría.",
+        "operationId": "ProjectTeamController_removeLink",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "linkId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Quitado"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe o la persona no es del proyecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el estado no permite el paso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Quitar un enlace",
+        "tags": [
+          "Proyectos"
+        ]
+      }
+    },
+    "/v1/projects/{id}/items": {
+      "get": {
+        "description": "Épicas, historias, tareas y defectos; por iteración o fuera de ellas.",
+        "operationId": "ProjectWorkController_listItems",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sprint_id",
+            "required": false,
+            "in": "query",
+            "description": "Solo los de esa iteración",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "backlog",
+            "required": false,
+            "in": "query",
+            "description": "true: solo los que no están en ninguna iteración",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Tipo de ítem",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "epic",
+                "story",
+                "task",
+                "defect"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ítems",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemListResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Lista de pendientes",
+        "tags": [
+          "Proyectos"
+        ]
+      },
+      "post": {
+        "description": "Código del proyecto más su número.",
+        "operationId": "ProjectWorkController_createItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateItemRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectCreatedResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe o la persona no es del proyecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el estado no permite el paso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Crear un ítem",
+        "tags": [
+          "Proyectos"
+        ]
+      }
+    },
+    "/v1/projects/{id}/board": {
+      "get": {
+        "description": "La iteración en curso o, sin ella, los ítems fuera de iteraciones. El navegador lo pide cada 10 segundos.",
+        "operationId": "ProjectWorkController_board",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tablero",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Tablero de trabajo",
+        "tags": [
+          "Proyectos"
+        ]
+      }
+    },
+    "/v1/projects/{id}/items/{itemId}": {
+      "put": {
+        "description": "Uno terminado se reabre primero.",
+        "operationId": "ProjectWorkController_updateItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateItemRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Guardado"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe o la persona no es del proyecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el estado no permite el paso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Editar un ítem",
+        "tags": [
+          "Proyectos"
+        ]
+      }
+    },
+    "/v1/projects/{id}/items/{itemId}/actions/move": {
+      "post": {
+        "description": "Avanza de a una columna o vuelve a cualquiera anterior; terminar pide la revisión de código y las pruebas.",
+        "operationId": "ProjectWorkController_moveItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoveItemRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Movido"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe o la persona no es del proyecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el estado no permite el paso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Mover un ítem en el tablero",
+        "tags": [
+          "Proyectos"
+        ]
+      }
+    },
+    "/v1/projects/{id}/items/{itemId}/actions/plan": {
+      "post": {
+        "description": "O devolverlo a la lista de pendientes. Sin criterios de aceptación no entra.",
+        "operationId": "ProjectWorkController_planItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanItemRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Planeado"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe o la persona no es del proyecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el estado no permite el paso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Llevar un ítem a una iteración",
+        "tags": [
+          "Proyectos"
+        ]
+      }
+    },
+    "/v1/projects/{id}/sprints": {
+      "post": {
+        "description": "Dentro de las fechas del proyecto.",
+        "operationId": "ProjectWorkController_createSprint",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SprintRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectCreatedResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe o la persona no es del proyecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el estado no permite el paso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Planear una iteración",
+        "tags": [
+          "Proyectos"
+        ]
+      }
+    },
+    "/v1/projects/{id}/sprints/{sprintId}": {
+      "put": {
+        "description": "Una cerrada ya no cambia.",
+        "operationId": "ProjectWorkController_updateSprint",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sprintId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SprintRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Guardada"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe o la persona no es del proyecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el estado no permite el paso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Editar una iteración",
+        "tags": [
+          "Proyectos"
+        ]
+      }
+    },
+    "/v1/projects/{id}/sprints/{sprintId}/actions/start": {
+      "post": {
+        "description": "Solo una en curso a la vez.",
+        "operationId": "ProjectWorkController_startSprint",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sprintId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "En curso"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe o la persona no es del proyecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el estado no permite el paso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Iniciar una iteración",
+        "tags": [
+          "Proyectos"
+        ]
+      }
+    },
+    "/v1/projects/{id}/sprints/{sprintId}/actions/close": {
+      "post": {
+        "description": "Lo que no se terminó vuelve a la lista de pendientes.",
+        "operationId": "ProjectWorkController_closeSprint",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sprintId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Cerrada"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El registro no existe o la persona no es del proyecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el estado no permite el paso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Cerrar una iteración",
+        "tags": [
+          "Proyectos"
+        ]
+      }
     }
   },
   "info": {
@@ -44702,7 +47736,8 @@
                     "doc_request_decided",
                     "crm_activity_due",
                     "crm_quote_update",
-                    "ctr_contract_update"
+                    "ctr_contract_update",
+                    "prj_project_update"
                   ],
                   "description": "Tipo de aviso"
                 },
@@ -44782,7 +47817,8 @@
                     "doc_request_decided",
                     "crm_activity_due",
                     "crm_quote_update",
-                    "ctr_contract_update"
+                    "ctr_contract_update",
+                    "prj_project_update"
                   ],
                   "description": "Tipo de aviso"
                 },
@@ -44818,7 +47854,7 @@
         "properties": {
           "items": {
             "minItems": 1,
-            "maxItems": 9,
+            "maxItems": 10,
             "type": "array",
             "items": {
               "type": "object",
@@ -44834,7 +47870,8 @@
                     "doc_request_decided",
                     "crm_activity_due",
                     "crm_quote_update",
-                    "ctr_contract_update"
+                    "ctr_contract_update",
+                    "prj_project_update"
                   ],
                   "description": "Tipo de aviso"
                 },
@@ -44872,7 +47909,8 @@
                     "doc_request_decided",
                     "crm_activity_due",
                     "crm_quote_update",
-                    "ctr_contract_update"
+                    "ctr_contract_update",
+                    "prj_project_update"
                   ],
                   "description": "Tipo de aviso"
                 },
@@ -44964,7 +48002,8 @@
               "doc_request_decided",
               "crm_activity_due",
               "crm_quote_update",
-              "ctr_contract_update"
+              "ctr_contract_update",
+              "prj_project_update"
             ],
             "description": "Tipo de aviso"
           },
@@ -54001,6 +57040,2060 @@
         "required": [
           "result",
           "document"
+        ],
+        "additionalProperties": false
+      },
+      "ProjectListResponse_Output": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "code": {
+                  "type": "string",
+                  "description": "PRY-AAAA-NNNN"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "party": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Cliente"
+                },
+                "contract": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "title": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "code",
+                        "title"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "planning",
+                    "in_progress",
+                    "at_risk",
+                    "paused"
+                  ],
+                  "description": "Estado del proyecto"
+                },
+                "starts_on": {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                  "description": "Fecha de calendario AAAA-MM-DD"
+                },
+                "ends_on": {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                  "description": "Fecha de calendario AAAA-MM-DD"
+                },
+                "manager": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "progress": {
+                  "type": "object",
+                  "properties": {
+                    "planned": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991,
+                      "description": "Historias, tareas y defectos planeados"
+                    },
+                    "done": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991,
+                      "description": "De ellos, terminados"
+                    },
+                    "percent": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    }
+                  },
+                  "required": [
+                    "planned",
+                    "done",
+                    "percent"
+                  ],
+                  "additionalProperties": false
+                },
+                "version": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "description": "Versión para If-Match"
+                }
+              },
+              "required": [
+                "id",
+                "code",
+                "name",
+                "party",
+                "contract",
+                "status",
+                "starts_on",
+                "ends_on",
+                "manager",
+                "progress",
+                "version"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "next_cursor"
+        ],
+        "additionalProperties": false
+      },
+      "ProjectOptionsResponse_Output": {
+        "type": "object",
+        "properties": {
+          "contracts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "party": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name"
+                  ],
+                  "additionalProperties": false
+                },
+                "starts_on": {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                  "description": "Fecha de calendario AAAA-MM-DD"
+                },
+                "ends_on": {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                  "description": "Fecha de calendario AAAA-MM-DD"
+                },
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                      "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "code",
+                "title",
+                "party",
+                "starts_on",
+                "ends_on",
+                "value"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "people": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "name"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "contracts",
+          "people"
+        ],
+        "additionalProperties": false
+      },
+      "CreateProjectRequest": {
+        "type": "object",
+        "properties": {
+          "contract_id": {
+            "default": null,
+            "description": "Contrato vigente de origen; vacío si la Dirección autorizará el inicio",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "party_id": {
+            "default": null,
+            "description": "Cliente, desde Terceros; solo cuando no hay contrato",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 160
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "development",
+              "support",
+              "integration",
+              "other"
+            ],
+            "description": "Tipo de proyecto"
+          },
+          "methodology": {
+            "type": "string",
+            "enum": [
+              "scrum",
+              "kanban",
+              "phases"
+            ],
+            "description": "Metodología"
+          },
+          "description": {
+            "default": null,
+            "description": "Alcance en pocas palabras",
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "starts_on": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Inicio planeado"
+          },
+          "ends_on": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Fin planeado"
+          },
+          "budget_hours": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 99999.9,
+            "description": "Presupuesto de horas"
+          },
+          "budget_amount": {
+            "default": null,
+            "description": "Presupuesto en pesos; vacío toma el valor del contrato",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "manager_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "description": "Líder del proyecto: queda en el equipo con ese rol"
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "methodology",
+          "starts_on",
+          "ends_on",
+          "budget_hours",
+          "manager_id"
+        ],
+        "additionalProperties": false
+      },
+      "ProjectCreatedResponse_Output": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "ProjectErrorResponse_Output": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "Código estable del error, por ejemplo QUOTE_EXPIRED"
+              },
+              "message": {
+                "type": "string",
+                "description": "Mensaje para la persona, en español"
+              },
+              "details": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field": {
+                      "type": "string",
+                      "description": "Campo con el problema, en notación de puntos"
+                    },
+                    "issue": {
+                      "type": "string",
+                      "description": "Código del problema, por ejemplo too_small o invalid_type"
+                    }
+                  },
+                  "required": [
+                    "field",
+                    "issue"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "correlation_id": {
+                "type": "string",
+                "description": "Identificador de la petición en los registros"
+              }
+            },
+            "required": [
+              "code",
+              "message",
+              "details",
+              "correlation_id"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "additionalProperties": false
+      },
+      "ProjectDetailResponse_Output": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "code": {
+            "type": "string",
+            "description": "PRY-AAAA-NNNN"
+          },
+          "name": {
+            "type": "string"
+          },
+          "party": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false,
+            "description": "Cliente"
+          },
+          "contract": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "code",
+                  "title"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "planning",
+              "in_progress",
+              "at_risk",
+              "paused"
+            ],
+            "description": "Estado del proyecto"
+          },
+          "starts_on": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Fecha de calendario AAAA-MM-DD"
+          },
+          "ends_on": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Fecha de calendario AAAA-MM-DD"
+          },
+          "manager": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "progress": {
+            "type": "object",
+            "properties": {
+              "planned": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991,
+                "description": "Historias, tareas y defectos planeados"
+              },
+              "done": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991,
+                "description": "De ellos, terminados"
+              },
+              "percent": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              }
+            },
+            "required": [
+              "planned",
+              "done",
+              "percent"
+            ],
+            "additionalProperties": false
+          },
+          "version": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "description": "Versión para If-Match"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "development",
+              "support",
+              "integration",
+              "other"
+            ],
+            "description": "Tipo de proyecto"
+          },
+          "methodology": {
+            "type": "string",
+            "enum": [
+              "scrum",
+              "kanban",
+              "phases"
+            ],
+            "description": "Metodología"
+          },
+          "description": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "budget_hours": {
+            "type": "number"
+          },
+          "budget_amount": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status_reason": {
+            "description": "Por qué está en riesgo o pausado",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "contract_status": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "draft",
+                  "in_review",
+                  "approved",
+                  "in_signature",
+                  "active",
+                  "expiring",
+                  "terminated"
+                ],
+                "description": "Estado del contrato"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "authorization": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "requested",
+                  "granted",
+                  "denied"
+                ]
+              },
+              "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "note": {
+                "description": "Comentario de la Dirección",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "decided_by": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "name": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "decided_at": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "status",
+              "reason",
+              "note",
+              "decided_by",
+              "decided_at"
+            ],
+            "additionalProperties": false
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "person": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name"
+                  ],
+                  "additionalProperties": false
+                },
+                "role": {
+                  "type": "string",
+                  "enum": [
+                    "leader",
+                    "analysis",
+                    "development",
+                    "design",
+                    "testing"
+                  ],
+                  "description": "Rol en el proyecto"
+                },
+                "allocation_pct": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "version": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "description": "Versión para If-Match"
+                }
+              },
+              "required": [
+                "id",
+                "person",
+                "role",
+                "allocation_pct",
+                "version"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "milestones": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "due_on": {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                  "description": "Fecha de calendario AAAA-MM-DD"
+                },
+                "billing_pct": {
+                  "type": "number"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "done"
+                  ]
+                },
+                "version": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "description": "Versión para If-Match"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "due_on",
+                "billing_pct",
+                "status",
+                "version"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "sprints": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "starts_on": {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                  "description": "Fecha de calendario AAAA-MM-DD"
+                },
+                "ends_on": {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                  "description": "Fecha de calendario AAAA-MM-DD"
+                },
+                "goal": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "planned",
+                    "active",
+                    "closed"
+                  ]
+                },
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991,
+                  "description": "Ítems en la iteración"
+                },
+                "version": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "description": "Versión para If-Match"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "starts_on",
+                "ends_on",
+                "goal",
+                "status",
+                "items",
+                "version"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "repository",
+                    "test_environment",
+                    "production",
+                    "design",
+                    "documentation",
+                    "other"
+                  ],
+                  "description": "Qué es el enlace"
+                },
+                "url": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "kind",
+                "url",
+                "label"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "can": {
+            "type": "object",
+            "properties": {
+              "update": {
+                "type": "boolean",
+                "description": "Editar, cambiar el estado, hitos, iteraciones y enlaces"
+              },
+              "manage_members": {
+                "type": "boolean"
+              },
+              "manage_items": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "update",
+              "manage_members",
+              "manage_items"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "party",
+          "contract",
+          "status",
+          "starts_on",
+          "ends_on",
+          "manager",
+          "progress",
+          "version",
+          "type",
+          "methodology",
+          "description",
+          "budget_hours",
+          "budget_amount",
+          "status_reason",
+          "contract_status",
+          "authorization",
+          "started_at",
+          "created_at",
+          "members",
+          "milestones",
+          "sprints",
+          "links",
+          "can"
+        ],
+        "additionalProperties": false
+      },
+      "UpdateProjectRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 160
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "development",
+              "support",
+              "integration",
+              "other"
+            ],
+            "description": "Tipo de proyecto"
+          },
+          "methodology": {
+            "type": "string",
+            "enum": [
+              "scrum",
+              "kanban",
+              "phases"
+            ],
+            "description": "Metodología"
+          },
+          "description": {
+            "default": null,
+            "description": "Alcance en pocas palabras",
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "starts_on": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Inicio planeado"
+          },
+          "ends_on": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Fin planeado"
+          },
+          "budget_hours": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 99999.9,
+            "description": "Presupuesto de horas"
+          },
+          "budget_amount": {
+            "default": null,
+            "description": "Presupuesto en pesos; vacío toma el valor del contrato",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                "description": "Pesos colombianos, con punto decimal y hasta dos decimales"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "manager_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "description": "Líder del proyecto: queda en el equipo con ese rol"
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "methodology",
+          "starts_on",
+          "ends_on",
+          "budget_hours",
+          "manager_id"
+        ],
+        "additionalProperties": false
+      },
+      "ProjectReasonRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "MemberRequest": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "description": "Colaborador activo de la empresa"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "leader",
+              "analysis",
+              "development",
+              "design",
+              "testing"
+            ],
+            "description": "Rol en el proyecto"
+          },
+          "allocation_pct": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "description": "Dedicación al proyecto, en porcentaje"
+          }
+        },
+        "required": [
+          "user_id",
+          "role",
+          "allocation_pct"
+        ],
+        "additionalProperties": false
+      },
+      "UpdateMemberRequest": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "leader",
+              "analysis",
+              "development",
+              "design",
+              "testing"
+            ],
+            "description": "Rol en el proyecto"
+          },
+          "allocation_pct": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "description": "Dedicación al proyecto, en porcentaje"
+          }
+        },
+        "required": [
+          "role",
+          "allocation_pct"
+        ],
+        "additionalProperties": false
+      },
+      "MilestoneRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 160
+          },
+          "due_on": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Fecha comprometida"
+          },
+          "billing_pct": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Porcentaje de facturación del hito"
+          }
+        },
+        "required": [
+          "name",
+          "due_on",
+          "billing_pct"
+        ],
+        "additionalProperties": false
+      },
+      "LinkRequest": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "repository",
+              "test_environment",
+              "production",
+              "design",
+              "documentation",
+              "other"
+            ],
+            "description": "Qué es el enlace"
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 500,
+            "format": "uri",
+            "description": "Dirección https"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 120
+          }
+        },
+        "required": [
+          "kind",
+          "url",
+          "label"
+        ],
+        "additionalProperties": false
+      },
+      "ItemListResponse_Output": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "number": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "code": {
+                  "type": "string",
+                  "description": "PRY-AAAA-NNNN-N"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "epic",
+                    "story",
+                    "task",
+                    "defect"
+                  ],
+                  "description": "Tipo de ítem"
+                },
+                "parent": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "number": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "title": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "number",
+                        "title"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "title": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "acceptance_criteria": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "in_progress",
+                    "in_review",
+                    "in_testing",
+                    "done"
+                  ],
+                  "description": "Estado del ítem"
+                },
+                "priority": {
+                  "type": "string",
+                  "enum": [
+                    "low",
+                    "normal",
+                    "high",
+                    "urgent"
+                  ],
+                  "description": "Prioridad"
+                },
+                "estimate_hours": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "assignee": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "sprint_id": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "review_url": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "test_note": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "done_at": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "version": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "description": "Versión para If-Match"
+                }
+              },
+              "required": [
+                "id",
+                "number",
+                "code",
+                "type",
+                "parent",
+                "title",
+                "description",
+                "acceptance_criteria",
+                "status",
+                "priority",
+                "estimate_hours",
+                "assignee",
+                "sprint_id",
+                "review_url",
+                "test_note",
+                "done_at",
+                "version"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "BoardResponse_Output": {
+        "type": "object",
+        "properties": {
+          "sprint": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "starts_on": {
+                    "type": "string",
+                    "format": "date",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                    "description": "Fecha de calendario AAAA-MM-DD"
+                  },
+                  "ends_on": {
+                    "type": "string",
+                    "format": "date",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                    "description": "Fecha de calendario AAAA-MM-DD"
+                  },
+                  "goal": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "planned",
+                      "active",
+                      "closed"
+                    ]
+                  },
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991,
+                    "description": "Ítems en la iteración"
+                  },
+                  "version": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991,
+                    "description": "Versión para If-Match"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "starts_on",
+                  "ends_on",
+                  "goal",
+                  "status",
+                  "items",
+                  "version"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "number": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "code": {
+                  "type": "string",
+                  "description": "PRY-AAAA-NNNN-N"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "epic",
+                    "story",
+                    "task",
+                    "defect"
+                  ],
+                  "description": "Tipo de ítem"
+                },
+                "parent": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "number": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "title": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "number",
+                        "title"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "title": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "acceptance_criteria": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "in_progress",
+                    "in_review",
+                    "in_testing",
+                    "done"
+                  ],
+                  "description": "Estado del ítem"
+                },
+                "priority": {
+                  "type": "string",
+                  "enum": [
+                    "low",
+                    "normal",
+                    "high",
+                    "urgent"
+                  ],
+                  "description": "Prioridad"
+                },
+                "estimate_hours": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "assignee": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "sprint_id": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "review_url": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "test_note": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "done_at": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "version": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "description": "Versión para If-Match"
+                }
+              },
+              "required": [
+                "id",
+                "number",
+                "code",
+                "type",
+                "parent",
+                "title",
+                "description",
+                "acceptance_criteria",
+                "status",
+                "priority",
+                "estimate_hours",
+                "assignee",
+                "sprint_id",
+                "review_url",
+                "test_note",
+                "done_at",
+                "version"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "refreshed_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "sprint",
+          "items",
+          "refreshed_at"
+        ],
+        "additionalProperties": false
+      },
+      "CreateItemRequest": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "epic",
+              "story",
+              "task",
+              "defect"
+            ],
+            "description": "Tipo de ítem"
+          },
+          "parent_id": {
+            "default": null,
+            "description": "Épica o historia a la que pertenece",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 200
+          },
+          "description": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 8000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "acceptance_criteria": {
+            "default": null,
+            "description": "Cuándo se da por bien hecho",
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "priority": {
+            "default": "normal",
+            "type": "string",
+            "enum": [
+              "low",
+              "normal",
+              "high",
+              "urgent"
+            ],
+            "description": "Prioridad"
+          },
+          "estimate_hours": {
+            "default": null,
+            "description": "Estimación en horas",
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.5,
+                "maximum": 999
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "assignee_id": {
+            "default": null,
+            "description": "Miembro del equipo a cargo",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "title"
+        ],
+        "additionalProperties": false
+      },
+      "UpdateItemRequest": {
+        "type": "object",
+        "properties": {
+          "parent_id": {
+            "default": null,
+            "description": "Épica o historia a la que pertenece",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 200
+          },
+          "description": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 8000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "acceptance_criteria": {
+            "default": null,
+            "description": "Cuándo se da por bien hecho",
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "priority": {
+            "default": "normal",
+            "type": "string",
+            "enum": [
+              "low",
+              "normal",
+              "high",
+              "urgent"
+            ],
+            "description": "Prioridad"
+          },
+          "estimate_hours": {
+            "default": null,
+            "description": "Estimación en horas",
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.5,
+                "maximum": 999
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "assignee_id": {
+            "default": null,
+            "description": "Miembro del equipo a cargo",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "additionalProperties": false
+      },
+      "MoveItemRequest": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "in_progress",
+              "in_review",
+              "in_testing",
+              "done"
+            ],
+            "description": "Columna de destino"
+          },
+          "review_url": {
+            "default": null,
+            "description": "Enlace a la revisión de código; obligatorio para terminar",
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500,
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "test_note": {
+            "default": null,
+            "description": "Pruebas hechas; obligatoria para terminar",
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "additionalProperties": false
+      },
+      "PlanItemRequest": {
+        "type": "object",
+        "properties": {
+          "sprint_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Iteración; vacío lo devuelve a la lista de pendientes"
+          }
+        },
+        "required": [
+          "sprint_id"
+        ],
+        "additionalProperties": false
+      },
+      "SprintRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 80
+          },
+          "starts_on": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Fecha de calendario AAAA-MM-DD"
+          },
+          "ends_on": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Fecha de calendario AAAA-MM-DD"
+          },
+          "goal": {
+            "default": null,
+            "description": "Qué se quiere lograr",
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "starts_on",
+          "ends_on"
         ],
         "additionalProperties": false
       }
