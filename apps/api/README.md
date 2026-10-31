@@ -691,8 +691,8 @@ vigentes. Tablas y reglas en [`crm.md`](../../docs/manual/datos/crm.md) y
 Contratos, acuerdos de confidencialidad y órdenes de servicio generados desde las plantillas
 CT-COM y OS-COM con la biblioteca de cláusulas aprobadas, control de cláusulas modificadas,
 aprobación de la Dirección, PDF definitivo, firma manuscrita digitalizada, obligaciones, otrosíes,
-prórrogas, terminación y alertas de vencimiento (ficha 17.7). La firma electrónica llega con el
-B25. Tablas y reglas en [`ctr.md`](../../docs/manual/datos/ctr.md).
+prórrogas, terminación y alertas de vencimiento (ficha 17.7). Tablas y reglas en
+[`ctr.md`](../../docs/manual/datos/ctr.md).
 
 | Regla                                      | Cómo se cumple                                                                                                                                                                                                                    |
 | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -707,6 +707,28 @@ B25. Tablas y reglas en [`ctr.md`](../../docs/manual/datos/ctr.md).
 | Otrosíes y prórrogas                       | El otrosí lo aprueba la Dirección (flujo `ctr.amendment`); la prórroga la crea la Dirección ya aprobada; los dos rigen al registrar su copia firmada, que cambia la fecha de fin o el valor                                       |
 | Solo lo propio                             | Talento humano y Colaborador ven los contratos de los que son responsables o autores (`visibleContracts()`, `canSeeContract()`); los demás responden 404                                                                          |
 | Desde la cotización aceptada               | `acceptedQuote()` (índice del CRM) llena el asistente; el aviso `crm.quote.accepted` lleva a `/app/contratos/nuevo?cotizacion=…`                                                                                                  |
+
+### Firma electrónica (B25, en el mismo módulo)
+
+Nivel 2 del capítulo 19: enlace único y código de seis números al correo, paquete de evidencia y
+verificación pública. Tablas y reglas en [`sig.md`](../../docs/manual/datos/sig.md).
+
+| Regla                                  | Cómo se cumple                                                                                                                                                                                                    |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Solo se envía lo aprobado              | `assertSignable()`: contrato `approved` u otrosí `approved` de un contrato vigente, con su PDF listo. El documento queda `in_signature` y su archivo y huella no cambian (`sig_envelopes_keep`)                   |
+| Firmantes autorizados y verificados    | `prepareEnvelope()`: solo contactos `can_sign` del cliente con correo y documento, el conocimiento del tercero aprobado (`partyVerified()`) y, por la empresa, una persona de la Dirección vinculada a su persona |
+| Comercial prepara, la Dirección envía  | `signature.envelope.create` y `signature.envelope.send`/`cancel` según la matriz; el envío exige `If-Match` e `Idempotency-Key` (`idempotencyKeyFrom()`, plataforma); la misma llave no lo repite                 |
+| Orden de firma                         | `signerOnTurn()`: el cliente en el orden elegido y la empresa de última. Al firmante del cliente le llega su enlace; a la empresa, la tarea del flujo `sig.company`, que solo se cierra firmando desde la ficha   |
+| Código al correo                       | `POST /v1/public/signatures/code` lo pide (uno por minuto); el worker lo genera y lo envía (`sig.work`, cada 10 s): la base guarda su huella. 10 minutos y 5 intentos por enlace; al quinto se bloquea            |
+| La empresa firma con su segundo factor | `actions/sign` exige `@RecentAuthentication()` (contraseña y código, B09) y que sea la persona elegida                                                                                                            |
+| Evidencia encadenada                   | `appendSignatureEvent()` bloquea el proceso y agrega el evento con la huella del anterior (`linkHash()`); la base no deja cambiarlos ni borrarlos (`sig_append_only`); `chainIntact()` lo comprueba               |
+| Documento firmado y certificado        | Al firmar todos, el worker une con Gotenberg (`mergeWithGotenberg()`) el PDF aprobado, la página de firmas y el certificado (`@arza/templates`), guarda los dos con su huella y deja el contrato vigente          |
+| Verificación pública                   | `POST /v1/public/verifications` con el código o con la huella que calcula el navegador; responde `valid`, `mismatch` o `not_found` sin contenido ni nombres. Cambiar un byte cambia la huella                     |
+| Recordatorios y vencimiento            | `sig.follow-up` (cada día, 7:00): recuerda cada 3 días, hasta 3 veces, con un enlace nuevo; pasado el plazo, el proceso vence y el documento vuelve a «aprobado»                                                  |
+
+`pnpm contratos:vincular-firmante --correo <correo> --documento <número>` vincula la cuenta de la
+Dirección con su persona en Terceros (su nombre y su documento salen de allí), mientras Talento
+humano (M12) vincula a los colaboradores.
 
 ## Flujos y tareas (B15, módulo `src/modules/wf`)
 

@@ -3,7 +3,7 @@
 Tipos exactos, restricciones e índices de las tablas de Contratos (capítulo 12.4, ficha 17.7). Se
 actualiza en el mismo pull request que cambia el modelo (`apps/api/prisma/schema.prisma`).
 Migración: `20261030000000_ctr_contracts_clauses_obligations_amendments` (B24). Las tablas de la
-firma electrónica (`sig_*`) llegan con el B25.
+firma electrónica (`sig_*`, B25) están en [sig.md](sig.md); el B25 agrega el estado `in_signature`.
 
 ## Reglas comunes
 
