@@ -27,7 +27,7 @@ import { useBoard, useProjectAction } from './queries';
 // el paso igual que el flujo. Se refresca solo cada 10 segundos para ver lo que otros movieron.
 // Terminar pide el enlace a la revisión de código y la nota de pruebas.
 
-export interface Move {
+interface Move {
   readonly item: ProjectItem;
   readonly status: ItemStatus;
   readonly evidence?: Evidence;

@@ -73,7 +73,7 @@ export function TextInput(
   );
 }
 
-export function LongText(props: InputProps): JSX.Element {
+function LongText(props: InputProps): JSX.Element {
   return (
     <TextareaField
       id={props.id}

@@ -33,7 +33,7 @@ export async function findProject(tx: TenantTransaction, id: string): Promise<Pr
   return project;
 }
 
-export async function activeMemberIds(tx: TenantTransaction, projectId: string): Promise<string[]> {
+async function activeMemberIds(tx: TenantTransaction, projectId: string): Promise<string[]> {
   const members = await tx.prjMember.findMany({
     where: { projectId, deletedAt: null },
     select: { userId: true },
@@ -46,7 +46,7 @@ function involved(memberIds: readonly string[]) {
 }
 
 /** La persona ve todos los proyectos o es miembro activo de este. */
-export function canSeeProject(ability: AppAbility, memberIds: readonly string[]): boolean {
+function canSeeProject(ability: AppAbility, memberIds: readonly string[]): boolean {
   return (
     canOnRecord(ability, 'project.read_all', {}) ||
     canOnRecord(ability, 'project.read_member', involved(memberIds))

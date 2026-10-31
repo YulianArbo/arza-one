@@ -48,7 +48,7 @@ export function sprintPeriodProblem(sprint: Period, project: Period): string | n
 }
 
 /** dd/mm/aaaa para los mensajes. */
-export function printed(date: string): string {
+function printed(date: string): string {
   const [year, month, day] = date.split('-');
   return `${day ?? ''}/${month ?? ''}/${year ?? ''}`;
 }

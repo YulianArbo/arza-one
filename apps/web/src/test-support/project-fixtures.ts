@@ -13,7 +13,7 @@ const STORY_ID = '01999a00-0000-7000-8000-0000000e0202';
 const EPIC_ID = '01999a00-0000-7000-8000-0000000e0203';
 const MEMBER_ID = '01999a00-0000-7000-8000-0000000e0301';
 const LEADER = { id: SESSION.user.id, name: 'Ana Pérez' };
-export const DEVELOPER = { id: '01999a00-0000-7000-8000-00000000a003', name: 'Carlos Ruiz' };
+const DEVELOPER = { id: '01999a00-0000-7000-8000-00000000a003', name: 'Carlos Ruiz' };
 
 const LEAD: readonly PermissionCode[] = [
   'party.read',
@@ -43,7 +43,7 @@ const SUMMARY = {
   version: 3,
 } as const;
 
-export const SPRINT = {
+const SPRINT = {
   id: SPRINT_ID,
   name: 'Iteración 1',
   starts_on: '2026-11-02',
@@ -79,7 +79,7 @@ const MILESTONES = [
 const CAN_ALL = { update: true, manage_members: true, manage_items: true };
 
 /** Ficha de un proyecto; por omisión, en ejecución desde un contrato vigente. */
-export function projectDetail(overrides: object = {}): object {
+function projectDetail(overrides: object = {}): object {
   return {
     ...SUMMARY,
     type: 'development',
@@ -108,7 +108,7 @@ export function projectDetail(overrides: object = {}): object {
   };
 }
 
-export function item(overrides: object = {}): object {
+function item(overrides: object = {}): object {
   return {
     id: ITEM_ID,
     number: 2,

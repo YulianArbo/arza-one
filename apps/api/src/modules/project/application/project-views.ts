@@ -60,7 +60,7 @@ export function summaryView(project: PrjProject, context: ProjectContext): Proje
   };
 }
 
-export function memberView(member: PrjMember, names: ReadonlyMap<string, string>): ProjectMember {
+function memberView(member: PrjMember, names: ReadonlyMap<string, string>): ProjectMember {
   return {
     id: member.id,
     person: personRef(names, member.userId) ?? { id: member.userId, name: 'Colaborador' },
@@ -70,7 +70,7 @@ export function memberView(member: PrjMember, names: ReadonlyMap<string, string>
   };
 }
 
-export function milestoneView(milestone: PrjMilestone): ProjectMilestone {
+function milestoneView(milestone: PrjMilestone): ProjectMilestone {
   return {
     id: milestone.id,
     name: milestone.name,
@@ -94,7 +94,7 @@ export function sprintView(sprint: PrjSprint, items: number): ProjectSprint {
   };
 }
 
-export function linkView(link: PrjExternalLink): ProjectLink {
+function linkView(link: PrjExternalLink): ProjectLink {
   return { id: link.id, kind: linkKindSchema.parse(link.kind), url: link.url, label: link.label };
 }
 
