@@ -90,6 +90,17 @@ export async function partyVerified(
   return latest.nextReviewOn === null || toCalendarDate(latest.nextReviewOn) >= today;
 }
 
+/** La persona de Terceros con ese número de documento, para vincularla con su cuenta. */
+export async function personByDocument(
+  tx: TenantTransaction,
+  idNumber: string,
+): Promise<ContractSigner | null> {
+  const person = await tx.party.findFirst({
+    where: { kind: 'person', idNumber, deletedAt: null },
+  });
+  return person === null ? null : signerOf(person);
+}
+
 /** Nombre, documento y correo de una persona de Terceros, para quien firma por la empresa. */
 export async function signingPerson(
   tx: TenantTransaction,

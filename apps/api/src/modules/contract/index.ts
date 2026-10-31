@@ -5,6 +5,7 @@
 export { ContractModule } from './interface/contract.module.js';
 export { seedContracts } from './application/contract-seed.js';
 export { visibleContractTitle } from './application/contract-access.js';
+export { linkCompanySigner, type SignerLinkOutcome } from './application/signer-link.js';
 export {
   followUpContracts,
   renderPendingContracts,

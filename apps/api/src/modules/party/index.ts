@@ -8,6 +8,7 @@ export { visiblePartyName } from './application/party-records.js';
 export {
   contractParty,
   partyVerified,
+  personByDocument,
   signingPerson,
   type ContractParty,
 } from './application/party-contracts.js';
