@@ -63,16 +63,17 @@ propia base de datos, aunque alguien intente el cambio directo en ella.
 
 ### Resultado de las verificaciones
 
-| Paso                    | Resultado                                                                                                 |
-| ----------------------- | --------------------------------------------------------------------------------------------------------- |
-| Formato                 | Sin problemas en los archivos del proyecto (nota 1)                                                       |
-| Estilo y tipos          | Sin problemas                                                                                             |
-| Fronteras entre módulos | Sin problemas: Proyectos usa Contratos, Terceros, Identidad, Flujos y Núcleo solo por sus índices         |
-| Código sin usar (knip)  | Sin problemas, después de corregir 13 piezas que yo había exportado sin necesidad                         |
-| Pruebas unitarias       | Las de Proyectos pasan (reglas, esquemas y 15 de pantallas). API: todas salvo la de arranque (nota 2)     |
-| Pruebas de integración  | **Las 23 de Proyectos pasan** y las 23 rutas nuevas del recorrido de auditoría (nota 3)                   |
-| Pruebas en navegador    | **44 de 44**: Proyectos (accesibilidad claro y oscuro, arrastrar y soltar, teclado), accesibilidad y menú |
-| Migraciones             | Desde cero en la prueba de integración y sobre la base local de la versión anterior (B25)                 |
+| Paso                    | Resultado                                                                                                                                                              |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Formato                 | Sin problemas en los archivos del proyecto (nota 1)                                                                                                                    |
+| Estilo y tipos          | Sin problemas                                                                                                                                                          |
+| Fronteras entre módulos | Sin problemas: Proyectos usa Contratos, Terceros, Identidad, Flujos y Núcleo solo por sus índices                                                                      |
+| Código sin usar (knip)  | Sin problemas, después de corregir 13 piezas que yo había exportado sin necesidad                                                                                      |
+| Pruebas unitarias       | Web 589, contratos 178, worker 42, plantillas, interfaz y demás: todas pasan. API: todas salvo la de arranque (nota 2). Cobertura de ramas de la web: 85,01 % (nota 4) |
+| Pruebas de integración  | **Las 23 de Proyectos pasan** y las 23 rutas nuevas del recorrido de auditoría (nota 3)                                                                                |
+| Pruebas en navegador    | **44 de 44**: Proyectos (accesibilidad claro y oscuro, arrastrar y soltar, teclado), accesibilidad y menú                                                              |
+| Migraciones             | Desde cero en la prueba de integración y sobre la base local de la versión anterior (B25)                                                                              |
+| Búsqueda de secretos    | Ninguno                                                                                                                                                                |
 
 1. **Formato:** solo falla la carpeta local de herramientas `.agents/`, que no es del proyecto
    (igual que en los bloques anteriores).
@@ -82,6 +83,10 @@ propia base de datos, aunque alguien intente el cambio directo en ella.
    la vez da fallas de tiempo («la base no alcanza a abrir una transacción») en pruebas que cambian
    de una corrida a otra. Las de Proyectos, corridas por archivo, pasan todas. **La integración
    continua de GitHub debe confirmarlo** con el pull request.
+4. **Cobertura de la web:** el mínimo es 85 % de los caminos del código. Medí que, sin lo de este
+   bloque, la web ya estaba en 84,7 % (bajó en bloques anteriores sin que se notara, porque esas
+   corridas no terminaban en este equipo). Agregué pruebas de las pantallas de Proyectos hasta
+   dejar el total en 85,01 %: pasa, pero con muy poco margen. Conviene subirla en el próximo bloque.
 
 **Errores reales que encontraron las pruebas y corregí:** las primeras versiones de tres pruebas
 estaban mal planteadas (Comercial sí puede liderar un proyecto; faltaba cargar las plantillas de
