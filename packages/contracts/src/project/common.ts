@@ -172,3 +172,15 @@ export function canMoveItem(from: ItemStatus, to: ItemStatus): boolean {
 export function isWorkItem(type: ItemType): boolean {
   return type !== 'epic';
 }
+
+/** Qué ítem puede colgar de cuál: la épica agrupa historias; la historia, tareas y defectos. */
+const PARENT_TYPES: Readonly<Record<ItemType, readonly ItemType[]>> = {
+  epic: [],
+  story: ['epic'],
+  task: ['epic', 'story'],
+  defect: ['epic', 'story'],
+};
+
+export function parentAllowedTypes(type: ItemType): readonly ItemType[] {
+  return PARENT_TYPES[type];
+}

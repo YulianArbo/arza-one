@@ -1,5 +1,10 @@
 import { Decimal } from 'decimal.js';
-import type { ItemType, ProjectProgress, ProjectStatus } from '@arza/contracts';
+import {
+  parentAllowedTypes,
+  type ItemType,
+  type ProjectProgress,
+  type ProjectStatus,
+} from '@arza/contracts';
 
 // Reglas de Proyectos (B26, ficha 17.8) que no dependen de la base de datos: estados del proyecto,
 // fechas, porcentaje de facturación de los hitos, jerarquía de los ítems y avance.
@@ -54,16 +59,9 @@ export function billingExceeds(others: readonly Decimal.Value[], next: Decimal.V
   return total.greaterThan(100);
 }
 
-/** Qué ítem puede colgar de cuál: la épica agrupa historias; la historia, tareas y defectos. */
-const PARENTS: Readonly<Record<ItemType, readonly ItemType[]>> = {
-  epic: [],
-  story: ['epic'],
-  task: ['epic', 'story'],
-  defect: ['epic', 'story'],
-};
-
+/** El ítem puede colgar de otro de ese tipo (packages/contracts, parentAllowedTypes). */
 export function parentAllowed(type: ItemType, parentType: ItemType): boolean {
-  return PARENTS[type].includes(parentType);
+  return parentAllowedTypes(type).includes(parentType);
 }
 
 /** Avance: los terminados sobre los planeados (ficha 17.8), sin contar las épicas. */
