@@ -449,3 +449,22 @@ GRANT SELECT, INSERT, UPDATE ON "prj_milestones" TO app_user;
 GRANT SELECT, INSERT, UPDATE ON "prj_sprints" TO app_user;
 GRANT SELECT, INSERT, UPDATE ON "prj_items" TO app_user;
 GRANT SELECT, INSERT, UPDATE ON "prj_external_links" TO app_user;
+
+-- Aviso nuevo: novedades del proyecto para su líder y para quien entra al equipo.
+ALTER TABLE "ntf_templates" DROP CONSTRAINT "ntf_templates_key_check";
+ALTER TABLE "ntf_notifications" DROP CONSTRAINT "ntf_notifications_kind_check";
+ALTER TABLE "ntf_preferences" DROP CONSTRAINT "ntf_preferences_event_key_check";
+
+ALTER TABLE "ntf_templates"
+    ADD CONSTRAINT "ntf_templates_key_check" CHECK ("key" IN ('task_assigned', 'task_escalated',
+        'comment_mention', 'security_alert', 'doc_read_requested', 'doc_request_decided',
+        'crm_activity_due', 'crm_quote_update', 'ctr_contract_update', 'prj_project_update'));
+ALTER TABLE "ntf_notifications"
+    ADD CONSTRAINT "ntf_notifications_kind_check" CHECK ("kind" IN ('task_assigned', 'task_escalated',
+        'comment_mention', 'security_alert', 'doc_read_requested', 'doc_request_decided',
+        'crm_activity_due', 'crm_quote_update', 'ctr_contract_update', 'prj_project_update'));
+ALTER TABLE "ntf_preferences"
+    ADD CONSTRAINT "ntf_preferences_event_key_check" CHECK ("event_key" IN ('task_assigned',
+        'task_escalated', 'comment_mention', 'security_alert', 'doc_read_requested',
+        'doc_request_decided', 'crm_activity_due', 'crm_quote_update', 'ctr_contract_update',
+        'prj_project_update'));
