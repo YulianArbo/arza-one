@@ -82,7 +82,10 @@ describe('formulario del prospecto', () => {
       </Screen>,
     );
     await userEvent.click(await screen.findByRole('button', { name: 'Registrar prospecto' }));
-    expect(await screen.findByText('Revise los datos marcados antes de guardar.')).toBeVisible();
+    // El resumen enlaza el problema con su campo; el campo también lo muestra.
+    expect(
+      await screen.findByRole('link', { name: 'Nombres: Escriba los nombres.' }),
+    ).toHaveAttribute('href', '#prospecto-nombres');
     expect(screen.getByText('Escriba los nombres.')).toBeVisible();
     expect(sent.some((request) => request.method === 'POST')).toBe(false);
   });

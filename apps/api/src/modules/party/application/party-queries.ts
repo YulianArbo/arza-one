@@ -82,6 +82,7 @@ function detailOf(
   const state = dueDiligenceState(latest, today);
   const view: PartyDetail = {
     ...partySummaryView(party, party.roles),
+    has_logo: party.logoFileId !== null,
     first_name: party.firstName,
     last_name: party.lastName,
     legal_name: party.legalName,

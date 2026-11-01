@@ -132,6 +132,7 @@ export class UsersController {
       displayName: body.display_name,
       actorId: principal.userId,
       roleIds: body.role_ids,
+      partyId: body.party_id,
       meta,
     });
     return { id: result.userId, outcome: result.outcome };

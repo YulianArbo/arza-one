@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
 import { useApiClient } from '../../lib/api/api-provider';
+import { FormSummary } from '../../components/form-summary';
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { useFiles } from '../files/queries';
@@ -196,6 +197,14 @@ function ProcessorFields(props: FieldsProps): JSX.Element {
   );
 }
 
+const SUMMARY_FIELDS = [
+  { field: 'party_id', id: 'encargado-tercero', label: 'Organización' },
+  { field: 'service', id: 'encargado-servicio', label: 'Servicio que presta con los datos' },
+  { field: 'country', id: 'encargado-pais', label: 'País donde trata los datos' },
+  { field: 'review_on', id: 'encargado-revision', label: 'Próxima revisión' },
+  { field: 'contract_file_id', id: 'encargado-contrato', label: 'Contrato de transmisión' },
+];
+
 export function ProcessorForm(props: {
   readonly processor: Processor | null;
   readonly onDone: () => void;
@@ -223,6 +232,7 @@ export function ProcessorForm(props: {
   return (
     <form noValidate onSubmit={submit} className="flex flex-col gap-4">
       {save.error === null ? null : <FormError error={save.error} />}
+      <FormSummary problems={errors} fields={SUMMARY_FIELDS} />
       <ProcessorFields
         creating={processor === null}
         values={values}

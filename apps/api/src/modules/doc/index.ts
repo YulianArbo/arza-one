@@ -4,6 +4,7 @@
 // ejecuta la disposición final y extrae el texto para la búsqueda (B21); los demás módulos usan
 // este índice, nunca las tablas doc_.
 export { DocModule } from './interface/doc.module.js';
+export { ProfileImagesModule } from './interface/profile-images.module.js';
 export {
   FileNotReadyError,
   scanUploadedFile,

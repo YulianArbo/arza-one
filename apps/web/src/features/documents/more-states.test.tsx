@@ -182,8 +182,9 @@ describe('versión nueva desde la vigente', () => {
     );
     expect(await screen.findByDisplayValue('Control de documentos')).toBeVisible();
     await userEvent.click(screen.getByRole('button', { name: 'Crear versión' }));
-    expect(await screen.findByText(/Suba el archivo y espere/)).toBeVisible();
-    expect(screen.getByText(/Cuente en pocas palabras/)).toBeVisible();
+    // Cada problema junto a su campo y en el resumen de errores.
+    expect(await screen.findAllByText(/Suba el archivo y espere/)).toHaveLength(2);
+    expect(screen.getAllByText(/Cuente en pocas palabras/)).toHaveLength(2);
     expect(sent.some((r) => r.method === 'POST' && r.path.endsWith('/versions'))).toBe(false);
   });
 });

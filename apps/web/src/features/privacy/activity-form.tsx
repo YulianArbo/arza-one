@@ -10,6 +10,7 @@ import {
 } from '@arza/contracts';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
+import { FormSummary } from '../../components/form-summary';
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { CheckboxField, TextInput } from '../organization/record-dialog';
@@ -68,6 +69,20 @@ const MESSAGES: Readonly<Record<string, string>> = {
   international_transfers: 'Describa las transferencias en al menos 5 caracteres, o deje vacío.',
 };
 
+const SUMMARY_FIELDS = [
+  { field: 'name', id: 'actividad-nombre', label: 'Nombre' },
+  { field: 'purpose', id: 'actividad-finalidad', label: 'Finalidad' },
+  { field: 'legal_basis', id: 'actividad-fundamento', label: 'Fundamento legal' },
+  { field: 'retention', id: 'actividad-conservacion', label: 'Tiempo de conservación' },
+  {
+    field: 'international_transfers',
+    id: 'actividad-transferencias',
+    label: 'Transferencias internacionales',
+  },
+  { field: 'data_categories', id: 'actividad-categoria', label: 'Datos que trata' },
+  { field: 'holder_types', id: 'actividad-titular', label: 'De quiénes' },
+];
+
 function problemsOf(values: ActivityValues): Record<string, string> {
   const result = createActivityRequestSchema.safeParse(bodyOf(values));
   if (result.success) return {};
@@ -92,7 +107,7 @@ function Choices<T extends string>(props: {
   readonly onChange: (selected: T[]) => void;
 }): JSX.Element {
   return (
-    <fieldset className="flex flex-col gap-2">
+    <fieldset id={props.id} className="flex flex-col gap-2">
       <legend className="mb-1 text-sm font-medium">{props.legend}</legend>
       <div className="grid gap-2 sm:grid-cols-2">
         {props.options.map((option) => (
@@ -252,6 +267,7 @@ export function ActivityForm(props: {
   return (
     <form noValidate onSubmit={submit} className="flex flex-col gap-4">
       {save.error === null ? null : <FormError error={save.error} />}
+      <FormSummary problems={errors} fields={SUMMARY_FIELDS} />
       <ActivityFields
         creating={activity === null}
         values={values}

@@ -55,6 +55,8 @@ export interface ApiClient {
   putFile(url: string, file: Blob): Promise<void>;
   /** Trae el contenido de un enlace temporal de descarga (B14), para la vista previa. */
   fetchFile(url: string): Promise<Blob>;
+  /** Foto de perfil o logo (B22A) que entrega la API con la sesión, para mostrarlo. */
+  image(path: string, signal?: AbortSignal): Promise<Blob>;
 }
 
 const CSRF_HEADER = 'X-CSRF-Token';
@@ -100,6 +102,12 @@ export function createApiClient(baseUrl: string, fetchImpl: typeof fetch = fetch
       const response = await send(fetchImpl, apiEndpoint(baseUrl, path), init);
       if (!response.ok) throw toApiError(response, await readJson(response));
       return { fileName: fileNameOf(response), content: await response.blob() };
+    },
+
+    async image(path, signal): Promise<Blob> {
+      const response = await send(fetchImpl, apiEndpoint(baseUrl, path), { method: 'GET' }, signal);
+      if (!response.ok) throw toApiError(response, await readJson(response));
+      return response.blob();
     },
 
     ...fileLinkMethods(fetchImpl),

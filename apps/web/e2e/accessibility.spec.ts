@@ -25,6 +25,7 @@ const ME = {
   kind: 'internal',
   last_login_at: null,
   password_changed_at: null,
+  has_photo: false,
 };
 const PROFILE_API: ApiRoutes = { '/v1/me': { body: ME }, '/v1/me/mfa': { body: MFA } };
 

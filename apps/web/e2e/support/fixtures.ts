@@ -11,12 +11,43 @@ const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
 const OWN_ORIGINS = new Set([new URL(E2E_WEB_URL).origin, new URL(E2E_API_URL).origin]);
 
+const EMPTY_FUNNEL = {
+  generated_at: '2026-10-24T15:00:00.000Z',
+  stages: [],
+  totals: {
+    open_count: 0,
+    open_value: '0.00',
+    weighted_value: '0.00',
+    won_count: 0,
+    won_value: '0.00',
+    lost_count: 0,
+    lost_value: '0.00',
+    win_rate: null,
+    leads_count: 0,
+    converted_leads: 0,
+    lead_conversion_rate: null,
+  },
+  lost_reasons: [],
+  rows: [],
+};
+
 /**
- * Lo que la estructura de cualquier pantalla pide (la campanita, B16) y las listas que cualquier
- * ficha muestra (comentarios y adjuntos): vacías salvo que la prueba diga otra cosa.
+ * Lo que la estructura de cualquier pantalla pide (la campanita, B16), el tablero de Inicio (B22A)
+ * y las listas que cualquier ficha muestra (comentarios y adjuntos): vacías salvo que la prueba
+ * diga otra cosa.
  */
 const EMPTY_LISTS: Readonly<Record<string, unknown>> = {
   '/v1/me/notifications': { items: [], unread_count: 0 },
+  // La barra superior pide el perfil para la foto y el portal su empresa (B22A).
+  '/v1/me': {
+    ...INTERNAL_SESSION.user,
+    last_login_at: null,
+    password_changed_at: null,
+    has_photo: false,
+  },
+  '/v1/me/company': { company: null },
+  '/v1/tasks/mine': { data: [], next_cursor: null },
+  '/v1/crm/reports/funnel': EMPTY_FUNNEL,
   '/v1/comments': { items: [] },
   '/v1/attachments': { items: [] },
   '/v1/files': { data: [] },

@@ -56,7 +56,7 @@ function SectionCard({ section }: { readonly section: Section }): JSX.Element {
       href={section.href}
       className="rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
-      <Card className="h-full transition-colors hover:border-primary">
+      <Card className="h-full hover-invert">
         <CardHeader className="flex flex-row items-start gap-3 [&_svg]:size-5 [&_svg]:shrink-0">
           {section.icon}
           <div className="space-y-1">

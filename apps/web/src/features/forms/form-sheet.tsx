@@ -9,6 +9,7 @@ import {
 } from '@arza/contracts';
 import type { JSX } from 'react';
 
+import { FormSummary } from '../../components/form-summary';
 import { formatDate } from '../../lib/format/date-time';
 import { checklistOf, FieldInput, tableOf } from './form-inputs';
 
@@ -42,8 +43,16 @@ interface FormSheetProps {
 
 /** El formato para diligenciar. */
 export function FormSheet({ definition, values, problems, onChange }: FormSheetProps): JSX.Element {
+  const fields = definition.sections.flatMap((section) =>
+    section.fields.map((field) => ({
+      field: field.key,
+      id: `campo-${field.key}`,
+      label: field.label,
+    })),
+  );
   return (
     <div className="flex flex-col gap-6">
+      <FormSummary problems={problems} fields={fields} />
       {definition.sections.map((section) => (
         <section
           key={section.key}

@@ -78,12 +78,22 @@ export const userDetailResponseSchema = userSummarySchema.extend({
   security: userSecuritySchema.nullable().describe('Null si su rol no puede verlos'),
 });
 
-export const inviteUserRequestSchema = z.strictObject({
-  email: emailSchema,
-  display_name: z.string().trim().min(2).max(120).nullable().default(null),
-  kind: userKindSchema,
-  role_ids: z.array(z.uuid()).max(20).default([]).describe('Roles además del automático'),
-});
+export const inviteUserRequestSchema = z
+  .strictObject({
+    email: emailSchema,
+    display_name: z.string().trim().min(2).max(120).nullable().default(null),
+    kind: userKindSchema,
+    role_ids: z.array(z.uuid()).max(20).default([]).describe('Roles además del automático'),
+    party_id: z
+      .uuid()
+      .nullable()
+      .default(null)
+      .describe('Empresa cliente de una persona del portal (B22A); vacía para las internas'),
+  })
+  .refine((invite) => (invite.kind === 'portal') === (invite.party_id !== null), {
+    path: ['party_id'],
+    message: 'Elija la empresa cliente de la persona del portal; las internas no llevan empresa.',
+  });
 
 export const inviteUserResponseSchema = z.object({
   id: z.uuid(),

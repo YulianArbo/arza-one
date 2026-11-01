@@ -7,7 +7,7 @@ import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 import { AuditModule } from './modules/audit/index.js';
 import { CoreModule } from './modules/core/index.js';
 import { CrmModule } from './modules/crm/index.js';
-import { DocModule } from './modules/doc/index.js';
+import { DocModule, ProfileImagesModule } from './modules/doc/index.js';
 import { IamModule } from './modules/iam/index.js';
 import { PartyModule } from './modules/party/index.js';
 import { NtfModule } from './modules/ntf/index.js';
@@ -37,6 +37,7 @@ const BUSINESS_MODULES = [
   CoreModule,
   PartyModule,
   DocModule,
+  ProfileImagesModule,
   WfModule,
   NtfModule,
   PrivacyModule,

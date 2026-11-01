@@ -9,9 +9,11 @@ import { DueDiligenceUseCase } from '../application/due-diligence.js';
 import { MergeUseCase } from '../application/merge.js';
 import { PartiesUseCase } from '../application/parties.js';
 import { PartyConsentsUseCase } from '../application/party-consents.js';
+import { PartyLogoUseCase } from '../application/party-logo.js';
 import { PartyQueries } from '../application/party-queries.js';
 import { TimelineUseCase } from '../application/timeline.js';
 import { PartiesController } from './parties.controller.js';
+import { PartyLogoController } from './party-logo.controller.js';
 import { PartyDirectoryModule } from './party-directory.module.js';
 import { PartyRecordsController } from './party-records.controller.js';
 
@@ -22,11 +24,12 @@ import { PartyRecordsController } from './party-records.controller.js';
  */
 @Module({
   imports: [PartyDirectoryModule],
-  controllers: [PartiesController, PartyRecordsController],
+  controllers: [PartiesController, PartyLogoController, PartyRecordsController],
   providers: [
     PartyQueries,
     PartiesUseCase,
     PartyConsentsUseCase,
+    PartyLogoUseCase,
     ContactsUseCase,
     BankAccountsUseCase,
     DueDiligenceUseCase,

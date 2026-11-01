@@ -58,7 +58,7 @@ export function NotificationsMenu(): JSX.Element {
           {count === 0 ? null : (
             <span
               aria-hidden="true"
-              className="absolute -top-0.5 -right-0.5 min-w-4 rounded-full bg-primary px-1 text-[10px] leading-4 font-semibold text-primary-foreground"
+              className="absolute -top-0.5 -right-0.5 min-w-4 rounded-full bg-action px-1 text-[10px] leading-4 font-semibold text-action-foreground"
             >
               {badgeCount(count)}
             </span>

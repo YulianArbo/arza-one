@@ -270,6 +270,7 @@ export const dueDiligenceStateSchema = z
   .describe('Estado del último conocimiento del tercero');
 
 export const partyDetailSchema = partySummarySchema.extend({
+  has_logo: z.boolean().describe('Tiene logo (B22A); solo las organizaciones'),
   first_name: z.string().nullable(),
   last_name: z.string().nullable(),
   legal_name: z.string().nullable(),

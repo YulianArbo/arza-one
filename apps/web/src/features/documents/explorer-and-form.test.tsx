@@ -150,8 +150,9 @@ describe('documento nuevo', () => {
     renderForm();
     await userEvent.click(await screen.findByRole('button', { name: 'Crear documento' }));
     expect(await screen.findByText('Elija el tipo de documento.')).toBeVisible();
-    expect(screen.getByText(/Un documento del SGC lleva el proceso/)).toBeVisible();
-    expect(screen.getByText(/Suba el archivo y espere/)).toBeVisible();
+    // Cada problema junto a su campo y en el resumen de errores.
+    expect(screen.getAllByText(/Un documento del SGC lleva el proceso/)).toHaveLength(2);
+    expect(screen.getAllByText(/Suba el archivo y espere/)).toHaveLength(2);
     expect(sent.some((r) => r.method === 'POST' && r.path === '/v1/documents')).toBe(false);
   });
 });

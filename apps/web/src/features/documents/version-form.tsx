@@ -11,13 +11,28 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useState, type JSX, type SubmitEvent } from 'react';
 
 import { PageHeader } from '../../components/app-shell/page-header';
+import { FormSummary } from '../../components/form-summary';
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { QueryState } from '../administration/query-state';
 import { documentPath } from './labels';
 import { useDocument, useSaveVersion, useVersions } from './queries';
 import { RequestSelect } from './request-select';
-import { VersionFields, versionProblems, type VersionValues } from './version-fields';
+import {
+  VersionFields,
+  versionProblems,
+  versionSummaryFields,
+  type VersionValues,
+} from './version-fields';
+
+const SUMMARY_FIELDS = [
+  {
+    field: 'change_request_id',
+    id: 'version-solicitud',
+    label: 'Solicitud de Acción Documental aprobada',
+  },
+  ...versionSummaryFields('version'),
+];
 
 // Versión nueva o corrección del borrador propio (B18). Una versión vigente no se modifica: los
 // cambios van en una versión nueva, que se publica cuando la aprueba otra persona. Desde B19 la
@@ -97,6 +112,7 @@ function VersionFormBody(props: FormProps): JSX.Element {
       aria-label="Versión del documento"
     >
       {save.error === null ? null : <FormError error={save.error} />}
+      <FormSummary problems={errors} fields={SUMMARY_FIELDS} />
       {request.needed ? (
         <RequestSelect
           id="version-solicitud"

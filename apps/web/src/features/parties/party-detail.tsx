@@ -23,6 +23,7 @@ import {
 } from './labels';
 import { MergeDialog } from './merge-dialog';
 import { PartyForm } from './party-form';
+import { PartyLogo } from './party-logo';
 import { useParty } from './queries';
 import { RecordActivity } from '../records/record-activity';
 import { SectionTabs, type SectionTab } from './section-tabs';
@@ -108,6 +109,7 @@ function Detail({ party }: { readonly party: PartyDetail }): JSX.Element {
         </Badge>
       </div>
       <Actions party={party} />
+      <PartyLogo party={party} />
       <SectionTabs label={`Ficha de ${party.name}`} tabs={tabsOf(party, canSeeAccounts)} />
     </>
   );
@@ -117,7 +119,10 @@ export function PartyDetailPanel({ id }: { readonly id: string }): JSX.Element {
   const party = useParty(id);
   return (
     <div className="flex flex-col gap-4">
-      <Link href={PARTIES_PATH} className="text-sm text-primary underline-offset-4 hover:underline">
+      <Link
+        href={PARTIES_PATH}
+        className="inline-flex min-h-6 items-center self-start text-sm text-primary underline-offset-4 hover:underline"
+      >
         ← Volver a Terceros
       </Link>
       <QueryState query={party} loadingLabel="Cargando la ficha del tercero">

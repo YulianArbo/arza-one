@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
 import { useApiClient } from '../../lib/api/api-provider';
+import { FormSummary } from '../../components/form-summary';
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { useParties } from '../parties/queries';
@@ -114,6 +115,11 @@ const FIELDS: readonly TextFieldSpec<'title' | 'value' | 'expectedClose'>[] = [
   },
 ];
 
+const SUMMARY_FIELDS = [
+  { field: 'party_id', id: 'oportunidad-cliente', label: 'Cliente' },
+  ...FIELDS,
+];
+
 function useSaveOpportunity() {
   const api = useApiClient();
   const router = useRouter();
@@ -164,6 +170,7 @@ export function OpportunityForm(): JSX.Element {
   return (
     <form noValidate onSubmit={form.submit} className="flex max-w-3xl flex-col gap-4">
       {form.save.error === null ? null : <FormError error={form.save.error} />}
+      <FormSummary problems={form.problems} fields={SUMMARY_FIELDS} />
       <ClientPicker
         values={form.values}
         error={form.problems['party_id']}

@@ -4,6 +4,7 @@ import { FormField } from '@arza/ui';
 import { useState, type JSX } from 'react';
 
 import { NEW_PASSWORD_HINT, confirmationError, newPasswordError } from './password-checks';
+import { PasswordStrength } from './password-strength';
 
 export interface NewPasswordState {
   readonly password: string;
@@ -68,6 +69,7 @@ export function NewPasswordFields({
         }}
         error={state.passwordError}
       />
+      <PasswordStrength password={state.password} />
       <FormField
         id="contrasena-repetida"
         label="Repita la contraseña"

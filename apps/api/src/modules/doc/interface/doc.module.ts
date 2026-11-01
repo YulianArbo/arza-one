@@ -91,7 +91,7 @@ import { VersionsController } from './versions.controller.js';
     { provide: FileLinks, useFactory: (valkey: Redis) => new FileLinks(valkey), inject: [VALKEY] },
     { provide: FILE_LINKS_BASE_URL, useFactory: (config: Env) => config.API_URL, inject: [CONFIG] },
   ],
-  exports: [AttachedFileLinks],
+  exports: [AttachedFileLinks, FilesUseCase, FileStorage],
 })
 export class DocModule implements OnModuleInit {
   onModuleInit(): void {

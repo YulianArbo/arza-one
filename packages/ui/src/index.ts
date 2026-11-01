@@ -12,7 +12,14 @@ export {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from './components/alert-dialog.js';
+export { Avatar, type AvatarProps } from './components/avatar.js';
 export { Badge, type BadgeProps } from './components/badge.js';
+export { BarChart, type BarItem } from './charts/bar-chart.js';
+export { DonutChart, type DonutItem } from './charts/donut-chart.js';
+export { FunnelBars, type FunnelStep } from './charts/funnel-bars.js';
+export { LineChart, type LineSeries } from './charts/line-chart.js';
+export { StatCard, type StatCardProps } from './charts/stat-card.js';
+export { ErrorSummary, type FieldProblem } from './states/error-summary.js';
 export {
   Breadcrumb,
   BreadcrumbItem,
