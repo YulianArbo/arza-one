@@ -123,9 +123,10 @@
   --color-sidebar-active: var(--sidebar-active);
   --color-sidebar-hover: var(--sidebar-hover);
 
-  /* Tipografía autoalojada: solo Inter (B22A). Los títulos usan 600; nada más grueso. */
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-heading: 'Inter', system-ui, sans-serif;
+  /* Tipografía autoalojada: solo Montserrat (decisión del 31/10/2026, reemplaza a Inter de B22A).
+     Los títulos usan 600; nada más grueso. */
+  --font-sans: 'Montserrat', system-ui, sans-serif;
+  --font-heading: 'Montserrat', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
   --font-weight-bold: 600;
 
