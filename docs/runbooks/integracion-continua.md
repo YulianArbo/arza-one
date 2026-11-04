@@ -56,6 +56,23 @@ cambie su valor.
 Para correr todo una sola vez sobre una rama: **Actions → Integración continua → Run workflow** y
 elija la rama.
 
+### Tareas 1 a 5 en el runner propio (ADR-025)
+
+Con la variable de repositorio `CI_RUNNER` en `local` (mismo lugar que `CI_FULL_RUN`), las tareas
+1-3, 4 y 5 corren en el runner propio de WSL2 en lugar de una máquina de GitHub. Solo en dos casos:
+un cambio enviado a `main`, o un pull request abierto desde una rama de este repositorio por el
+dueño del repositorio, que también hizo el último envío o la nueva ejecución. Los pull requests de
+Renovate, los de forks y los de cualquier otra persona siguen en GitHub. Las demás tareas, el
+despliegue y ZAP no cambian. Para volver a GitHub, borre la variable.
+
+- El runner debe estar encendido, con Docker Desktop abierto. Si no lo está, las tareas esperan
+  hasta 24 horas y fallan, y «Verificaciones» queda en rojo.
+- No esquiva un bloqueo de facturación: la tarea 0 y «Verificaciones» siguen en GitHub. Si GitHub
+  no las inicia, nada corre y nada se puede integrar.
+- Límite de seguridad: quien puede escribir en el repositorio puede cambiar `ci.yml` y enviar
+  código al runner. Solo es seguro mientras esos sean el dueño y Renovate. Para no exponer el
+  equipo, detenga el runner cuando no lo necesite.
+
 La verificación 10 corre los lunes a la 1:00 a. m. (hora de Bogotá) y se puede lanzar a mano en
 GitHub: **Actions → Análisis dinámico semanal (OWASP ZAP) → Run workflow**. Analiza una copia
 levantada dentro de GitHub ([`infra/compose/ci.yml`](../../infra/compose/ci.yml)). Pasará a
