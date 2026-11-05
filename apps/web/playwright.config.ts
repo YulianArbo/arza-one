@@ -19,6 +19,8 @@ export default defineConfig({
     locale: 'es-CO',
     timezoneId: 'America/Bogota',
     trace: 'retain-on-failure',
+    // Sin animaciones (B22A): la revisión axe no debe medir el contraste a mitad de una entrada.
+    contextOptions: { reducedMotion: 'reduce' },
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
