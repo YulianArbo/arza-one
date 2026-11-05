@@ -39,7 +39,7 @@ const signatureEventSchema = z.object({
 /** Cómo terminó el proceso de firma (B25): al responsable y al autor del contrato. */
 const SIGNATURE_UPDATES: Readonly<Record<string, string>> = {
   'envelope.completed':
-    'quedó firmado electrónicamente por todas las partes; el documento firmado y su certificado están en la ficha',
+    'quedó firmado electrónicamente por todas las partes; el documento firmado y su certificado están en la ficha, y el Líder técnico ya puede crear su proyecto',
   'signature.envelope.rejected':
     'un firmante rechazó el documento; revise el motivo en la pestaña Firmas',
   'signature.envelope.expired': 'venció el plazo para firmar sin que firmaran todos',
@@ -53,7 +53,10 @@ const CONTRACT_UPDATES: Readonly<Record<string, { to: 'author' | 'responsible'; 
     text: 'la Dirección lo aprobó; su PDF definitivo ya se prepara',
   },
   'contract.returned': { to: 'author', text: 'la Dirección lo devolvió para corregir' },
-  'contract.signed': { to: 'responsible', text: 'se registró la copia firmada y quedó vigente' },
+  'contract.signed': {
+    to: 'responsible',
+    text: 'se registró la copia firmada y quedó vigente; el Líder técnico ya puede crear su proyecto',
+  },
   'contract.expired': { to: 'responsible', text: 'terminó su plazo' },
 };
 

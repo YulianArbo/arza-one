@@ -87,6 +87,9 @@ export const DATABASE_BOUND_FILES = [
   // CRM (B22): todo menos las reglas del dominio (dinero, embudo, CSV), que se prueban solas.
   'src/modules/crm/application/**/*.ts',
   'src/modules/crm/interface/**/*.ts',
+  // Proyectos (B26): todo menos las reglas y los flujos del dominio, que se prueban solos.
+  'src/modules/project/application/**/*.ts',
+  'src/modules/project/interface/**/*.ts',
 ];
 
 /** Procesos que solo arrancan algo; se prueban a mano o como proceso real. */

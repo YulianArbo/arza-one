@@ -730,6 +730,26 @@ verificación pública. Tablas y reglas en [`sig.md`](../../docs/manual/datos/si
 Dirección con su persona en Terceros (su nombre y su documento salen de allí), mientras Talento
 humano (M12) vincula a los colaboradores.
 
+## Proyectos: estructura y tablero (B26, módulo `src/modules/project`)
+
+Proyectos creados desde un contrato vigente o con la autorización expresa de la Dirección, su
+equipo, hitos, iteraciones, lista de pendientes, tablero de trabajo y enlaces (ficha 17.8). Horas,
+entregables, actas, riesgos y liberaciones llegan con el B27. Tablas y reglas en
+[`prj.md`](../../docs/manual/datos/prj.md).
+
+| Regla                                       | Cómo se cumple                                                                                                                                                                                       |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Creación desde el contrato                  | `GET /v1/projects/options` lista los contratos vigentes sin proyecto (`contractsInForce()`, índice de Contratos); `POST /v1/projects` toma su cliente y su valor. Un contrato, un proyecto           |
+| Sin contrato vigente, autoriza la Dirección | `actions/start` exige contrato vigente o autorización (`assertMayStart()`); `actions/request-authorization` abre el trámite `prj.start` en Mis tareas, que la Dirección decide (`followStartFlow()`) |
+| Un miembro solo ve sus proyectos            | `project.read_member` es «solo lo propio» con los miembros activos como `involved_user_ids` (`canSeeProject()`, `visibleProjects()`); lo ajeno responde 404. La pertenencia se lee en cada solicitud |
+| El equipo gestiona los ítems                | `project.item.manage` sobre el registro (`findProjectForItems()`); el Líder técnico, en todos los proyectos. Editar el proyecto, hitos, iteraciones y enlaces pide `project.update`                  |
+| Criterios para entrar a una iteración       | `actions/plan` y `prj_items_sprint_check`: una épica o un ítem sin criterios de aceptación no entra; quitar los criterios de un ítem planeado se rechaza                                             |
+| Tablero                                     | `actions/move`: avanza de a una columna o vuelve a cualquiera anterior (`canMoveItem()`), con el proyecto en ejecución o en riesgo y con `If-Match`. Terminar pide `review_url` y `test_note`        |
+| Tiempo real                                 | `GET /v1/projects/{id}/board`; la web lo vuelve a pedir cada 10 s (`BOARD_REFRESH_SECONDS`). Una versión vieja responde 409 y no pisa el cambio de otro                                              |
+| Hitos                                       | `billingExceeds()` con decimal.js: entre todos, máximo 100 % del valor, con la fila del proyecto bloqueada                                                                                           |
+| Iteraciones                                 | Dentro de las fechas del proyecto; una en curso por proyecto (`prj_sprints_one_active`); al cerrar, lo no terminado vuelve a pendientes                                                              |
+| Avisos                                      | `project.created` al líder, `project.member.added` a quien entra y la decisión de la Dirección al líder (`prj_project_update`)                                                                       |
+
 ## Flujos y tareas (B15, módulo `src/modules/wf`)
 
 Motor de flujos definido por datos (ficha 17.5, numeral 13.2, ADR-011). Las tablas están en

@@ -58,6 +58,10 @@ export const NOTIFICATION_KINDS = {
     label: 'Novedad de un contrato a su cargo',
     variables: ['nombre', 'contrato', 'novedad'],
   },
+  prj_project_update: {
+    label: 'Novedad de un proyecto suyo',
+    variables: ['nombre', 'proyecto', 'novedad'],
+  },
 } as const satisfies Record<string, { label: string; variables: readonly string[] }>;
 
 export type NotificationKind = keyof typeof NOTIFICATION_KINDS;

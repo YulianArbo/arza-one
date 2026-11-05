@@ -59,6 +59,12 @@ export const DEFAULT_TEMPLATES: Readonly<Record<NotificationKind, TemplateText>>
     body: 'El contrato {{contrato}} tiene una novedad: {{novedad}}. Revíselo en ARZA ONE › Contratos.',
     urgent: false,
   },
+  // B26: al líder del proyecto y a quien entra al equipo.
+  prj_project_update: {
+    subject: 'Proyecto {{proyecto}}: {{novedad}}',
+    body: 'El proyecto {{proyecto}} tiene una novedad: {{novedad}}. Revíselo en ARZA ONE › Proyectos.',
+    urgent: false,
+  },
 };
 
 /** Variables que el texto usa y que este tipo de aviso no ofrece. */

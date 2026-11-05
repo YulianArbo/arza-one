@@ -110,6 +110,12 @@ model Tenant {
   sigSigners              SigSigner[]
   sigEvents               SigEvent[]
   sigVerifications        SigVerification[]
+  prjProjects             PrjProject[]
+  prjMembers              PrjMember[]
+  prjMilestones           PrjMilestone[]
+  prjSprints              PrjSprint[]
+  prjItems                PrjItem[]
+  prjExternalLinks        PrjExternalLink[]
 
   @@map("core_tenants")
 }
@@ -2573,4 +2579,187 @@ model SigVerification {
 
   @@index([tenantId, envelopeId])
   @@map("sig_verifications")
+}
+
+/// Proyectos (B26, ficha 17.8). El contrato y el cliente se guardan por identificador, sin llaves
+/// hacia tablas de otros módulos (numeral 8.3).
+model PrjProject {
+  id                     String            @id @default(uuid(7)) @db.Uuid
+  tenantId               String            @map("tenant_id") @db.Uuid
+  code                   String
+  contractId             String?           @map("contract_id") @db.Uuid
+  partyId                String            @map("party_id") @db.Uuid
+  name                   String
+  type                   String
+  methodology            String
+  description            String?
+  status                 String            @default("planning")
+  /// Por qué está en riesgo o pausado.
+  statusReason           String?           @map("status_reason")
+  startsOn               DateTime          @map("starts_on") @db.Date
+  endsOn                 DateTime          @map("ends_on") @db.Date
+  budgetHours            Decimal           @map("budget_hours") @db.Decimal(7, 1)
+  budgetAmount           Decimal?          @map("budget_amount") @db.Decimal(18, 2)
+  managerId              String            @map("manager_id") @db.Uuid
+  /// Autorización de la Dirección para iniciar sin contrato vigente: none, requested, granted, denied.
+  authorizationStatus    String            @default("none") @map("authorization_status")
+  authorizationReason    String?           @map("authorization_reason")
+  authorizationNote      String?           @map("authorization_note")
+  authorizationDecidedBy String?           @map("authorization_decided_by") @db.Uuid
+  authorizationDecidedAt DateTime?         @map("authorization_decided_at") @db.Timestamptz(6)
+  workflowInstanceId     String?           @map("workflow_instance_id") @db.Uuid
+  startedAt              DateTime?         @map("started_at") @db.Timestamptz(6)
+  createdAt              DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy              String?           @map("created_by") @db.Uuid
+  updatedAt              DateTime          @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy              String?           @map("updated_by") @db.Uuid
+  version                Int               @default(1)
+  deletedAt              DateTime?         @map("deleted_at") @db.Timestamptz(6)
+  tenant                 Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  members                PrjMember[]
+  milestones             PrjMilestone[]
+  sprints                PrjSprint[]
+  items                  PrjItem[]
+  links                  PrjExternalLink[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@index([tenantId, status])
+  @@index([tenantId, contractId])
+  @@map("prj_projects")
+}
+
+/// Equipo del proyecto. Retirar a un miembro le quita el acceso de inmediato (deleted_at).
+model PrjMember {
+  id            String     @id @default(uuid(7)) @db.Uuid
+  tenantId      String     @map("tenant_id") @db.Uuid
+  projectId     String     @map("project_id") @db.Uuid
+  userId        String     @map("user_id") @db.Uuid
+  role          String
+  allocationPct Int        @map("allocation_pct") @db.SmallInt
+  createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?    @map("created_by") @db.Uuid
+  updatedAt     DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?    @map("updated_by") @db.Uuid
+  version       Int        @default(1)
+  deletedAt     DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  project       PrjProject @relation(fields: [tenantId, projectId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, projectId])
+  @@index([tenantId, userId])
+  @@map("prj_members")
+}
+
+/// Hitos con el porcentaje del valor que se factura al cumplirlos; entre todos, máximo 100 %.
+model PrjMilestone {
+  id         String     @id @default(uuid(7)) @db.Uuid
+  tenantId   String     @map("tenant_id") @db.Uuid
+  projectId  String     @map("project_id") @db.Uuid
+  name       String
+  dueOn      DateTime   @map("due_on") @db.Date
+  billingPct Decimal    @map("billing_pct") @db.Decimal(5, 2)
+  status     String     @default("pending")
+  doneAt     DateTime?  @map("done_at") @db.Timestamptz(6)
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?    @map("created_by") @db.Uuid
+  updatedAt  DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?    @map("updated_by") @db.Uuid
+  version    Int        @default(1)
+  deletedAt  DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  project    PrjProject @relation(fields: [tenantId, projectId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, projectId])
+  @@map("prj_milestones")
+}
+
+/// Iteraciones. Solo una en curso por proyecto; al cerrarla, lo no terminado vuelve a pendientes.
+model PrjSprint {
+  id        String     @id @default(uuid(7)) @db.Uuid
+  tenantId  String     @map("tenant_id") @db.Uuid
+  projectId String     @map("project_id") @db.Uuid
+  name      String
+  startsOn  DateTime   @map("starts_on") @db.Date
+  endsOn    DateTime   @map("ends_on") @db.Date
+  goal      String?
+  status    String     @default("planned")
+  closedAt  DateTime?  @map("closed_at") @db.Timestamptz(6)
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy String?    @map("created_by") @db.Uuid
+  updatedAt DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy String?    @map("updated_by") @db.Uuid
+  version   Int        @default(1)
+  deletedAt DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  project   PrjProject @relation(fields: [tenantId, projectId], references: [tenantId, id], onDelete: Restrict)
+  items     PrjItem[]
+
+  @@unique([tenantId, id])
+  @@index([tenantId, projectId])
+  @@map("prj_sprints")
+}
+
+/// Épicas, historias, tareas y defectos, numerados dentro de su proyecto (PRY-2026-0001-12).
+model PrjItem {
+  id                 String     @id @default(uuid(7)) @db.Uuid
+  tenantId           String     @map("tenant_id") @db.Uuid
+  projectId          String     @map("project_id") @db.Uuid
+  parentId           String?    @map("parent_id") @db.Uuid
+  type               String
+  number             Int
+  code               String
+  title              String
+  description        String?
+  acceptanceCriteria String?    @map("acceptance_criteria")
+  status             String     @default("pending")
+  priority           String     @default("normal")
+  estimateHours      Decimal?   @map("estimate_hours") @db.Decimal(4, 1)
+  assigneeId         String?    @map("assignee_id") @db.Uuid
+  sprintId           String?    @map("sprint_id") @db.Uuid
+  /// Enlace a la revisión de código y nota de pruebas, exigidos para terminar (B27: FT-TEC-002).
+  reviewUrl          String?    @map("review_url")
+  testNote           String?    @map("test_note")
+  doneAt             DateTime?  @map("done_at") @db.Timestamptz(6)
+  createdAt          DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy          String?    @map("created_by") @db.Uuid
+  updatedAt          DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy          String?    @map("updated_by") @db.Uuid
+  version            Int        @default(1)
+  deletedAt          DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant             Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  project            PrjProject @relation(fields: [tenantId, projectId], references: [tenantId, id], onDelete: Restrict)
+  parent             PrjItem?   @relation("PrjItemParent", fields: [tenantId, parentId], references: [tenantId, id], onDelete: Restrict)
+  children           PrjItem[]  @relation("PrjItemParent")
+  sprint             PrjSprint? @relation(fields: [tenantId, sprintId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, projectId, number])
+  @@index([tenantId, projectId, status])
+  @@index([tenantId, sprintId])
+  @@map("prj_items")
+}
+
+/// Enlaces al repositorio, a los entornos y al diseño. ARZA ONE guarda el enlace, no el código.
+model PrjExternalLink {
+  id        String     @id @default(uuid(7)) @db.Uuid
+  tenantId  String     @map("tenant_id") @db.Uuid
+  projectId String     @map("project_id") @db.Uuid
+  kind      String
+  url       String
+  label     String
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy String?    @map("created_by") @db.Uuid
+  updatedAt DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy String?    @map("updated_by") @db.Uuid
+  version   Int        @default(1)
+  deletedAt DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  project   PrjProject @relation(fields: [tenantId, projectId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, projectId])
+  @@map("prj_external_links")
 }
