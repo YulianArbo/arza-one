@@ -42,3 +42,31 @@ describe('avisos de contratos', () => {
     expect(bodies).toContain('vence el 20/10/2026');
   });
 });
+
+describe('avisos de la firma electrónica', () => {
+  it('el cierre del proceso llega al responsable y al autor, una vez a cada uno', async () => {
+    const author = await scenario.people('autor-firma', ['COMERCIAL']);
+    const responsible = await scenario.people('responsable-firma', ['COMERCIAL']);
+    const base = { contract_id: uuidv7(), document_code: 'CTR-2026-0102' };
+    const events: [string, object][] = [
+      [
+        'signature.envelope.rejected',
+        { ...base, author_id: author.id, responsible_id: responsible.id },
+      ],
+      ['signature.envelope.expired', { ...base, author_id: author.id, responsible_id: author.id }],
+      ['signature.envelope.cancelled', { ...base, author_id: null, responsible_id: null }],
+    ];
+    for (const [type, payload] of events) {
+      await scenario.event(type, { ...payload }, WORKDAY);
+    }
+    await scenario.publishOutbox();
+    const count = async (userId: string) =>
+      (
+        await scenario.inTenant((tx) =>
+          tx.notification.findMany({ where: { userId, kind: 'ctr_contract_update' } }),
+        )
+      ).length;
+    expect(await count(author.id)).toBe(2);
+    expect(await count(responsible.id)).toBe(1);
+  });
+});
