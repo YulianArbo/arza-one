@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { errorCode } from '../iam/support/iam-fixtures.js';
+import { DAY } from './support/contract-scenario.js';
 import { SignatureScenario } from './support/signature-scenario.js';
 
 // Casos límite de la firma electrónica (B25): la firma de un otrosí, un documento que aún no se
@@ -80,5 +81,39 @@ describe('documentos del proceso', () => {
       const response = await scenario.post(path, sales.session, { document });
       expect(errorCode(response)).toBe('CONTRACT_PDF_NOT_READY');
     }
+  });
+});
+
+describe('plazos y turnos de la firma', () => {
+  it('la empresa no firma un proceso sin enviar ni uno vencido; vencido no se envía', async () => {
+    const sales = await scenario.sales();
+    const draft = await scenario.prepared(sales);
+    const early = await scenario.companySigns(draft.director, draft.envelopeId);
+    expect(errorCode(early)).toBe('SIGNATURE_STATUS_INVALID');
+    const sent = await scenario.sentEnvelope(sales);
+    scenario.clock.advance(16 * DAY);
+    const director = await scenario.refresh(draft.director);
+    expect(errorCode(await scenario.companySigns(director, sent.envelopeId))).toBe(
+      'SIGNATURE_STATUS_INVALID',
+    );
+    expect(errorCode(await scenario.sendEnvelope(director, draft))).toBe(
+      'SIGNATURE_STATUS_INVALID',
+    );
+  });
+
+  it('un contrato que ya está vigente no vuelve a firma', async () => {
+    const sales = await scenario.sales();
+    const client = await scenario.signingClient(sales);
+    const director = await scenario.signingDirector(sales);
+    const contractId = await scenario.approvedFor(sales, client);
+    const signed = await scenario.contractStep(sales, contractId, 'register-signature', {
+      file_id: await scenario.signedCopy(sales),
+      signed_on: scenario.day(0),
+    });
+    expect(signed.status, signed.text).toBe(204);
+    const body = scenario.envelopeBody(contractId, client, director);
+    expect(errorCode(await scenario.post('/v1/signature-envelopes', sales.session, body))).toBe(
+      'SIGNATURE_STATUS_INVALID',
+    );
   });
 });
