@@ -51,11 +51,15 @@ test('las tipografías se sirven desde el propio servidor', async ({ page }) => 
   await page.goto('/app/sistema-de-diseno');
   await waitForAppShell(page);
   await page.evaluate(() => document.fonts.ready);
+  // Solo Montserrat (31/10/2026): cargada de verdad y usada por el texto de la página.
   const loaded = await page.evaluate(() => ({
-    inter: document.fonts.check('400 14px Inter'),
-    montserrat: document.fonts.check('700 24px Montserrat'),
+    montserrat: [...document.fonts].some(
+      (face) => face.family.includes('Montserrat') && face.status === 'loaded',
+    ),
+    family: getComputedStyle(document.body).fontFamily,
   }));
-  expect(loaded).toEqual({ inter: true, montserrat: true });
+  expect(loaded.montserrat).toBe(true);
+  expect(loaded.family).toMatch(/^"?Montserrat/);
   expect(fontRequests.length).toBeGreaterThan(0);
   for (const url of fontRequests) {
     expect(new URL(url).origin).toBe(new URL(page.url()).origin);

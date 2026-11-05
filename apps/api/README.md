@@ -686,6 +686,70 @@ vigentes. Tablas y reglas en [`crm.md`](../../docs/manual/datos/crm.md) y
 | Evidencia                 | Aceptar o rechazar guarda fecha, IP, navegador, nombre, motivo y la huella del PDF; abrir la cotización o su PDF queda en la auditoría (`crm.quote.client_view` · `client_download`)                                                         |
 | Permiso denegado          | Desde B23, cada 403 por permiso deja el evento de seguridad `access.permission_denied` (anexo D, M05-H012)                                                                                                                                   |
 
+## Contratos (B24, módulo `src/modules/contract`)
+
+Contratos, acuerdos de confidencialidad y órdenes de servicio generados desde las plantillas
+CT-COM y OS-COM con la biblioteca de cláusulas aprobadas, control de cláusulas modificadas,
+aprobación de la Dirección, PDF definitivo, firma manuscrita digitalizada, obligaciones, otrosíes,
+prórrogas, terminación y alertas de vencimiento (ficha 17.7). Tablas y reglas en
+[`ctr.md`](../../docs/manual/datos/ctr.md).
+
+| Regla                                      | Cómo se cumple                                                                                                                                                                                                                    |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Idéntico al modelo salvo las variables     | `fillClause()` (contratos) reemplaza solo las variables `{{así}}`; `fitsModel()` comprueba que todo lo demás es igual letra por letra. `composeClauses()` (dominio) arma el texto desde la plantilla y la biblioteca              |
+| Una cláusula modificada exige la Dirección | Al guardar el borrador, una cláusula cuyo texto o título se aparta de la biblioteca queda `modified` y una agregada `added`. Aprobar exige `reviewed_clause_ids` con todas ellas; desde Mis tareas no se aprueba (`reviewInCard`) |
+| Solo la Dirección aprueba                  | `contract.approve`, `terminate`, `renew` y `clause.manage` son de la Dirección en la matriz; el flujo `ctr.contract` asigna la tarea al rol; `assertNotAuthor()` impide aprobar el propio                                         |
+| Un aprobado no se edita                    | La API solo edita borradores y el disparador `ctr_keep_contracts` impide cambiar el contenido fuera de borrador; las cláusulas solo se escriben en borrador (`ctr_keep_contract_clauses`)                                         |
+| PDF definitivo                             | `ctr.pdf-render` (cada 20 s): `contractHtml()` arma el texto con el marco institucional, Gotenberg lo convierte y `storeGeneratedPdf()` (doc) lo guarda con su huella SHA-256                                                     |
+| Firma manuscrita                           | `register-signature` recibe un PDF que la persona subió y pasó el antivirus, con fecha entre la aprobación y hoy; el contrato queda vigente                                                                                       |
+| Alertas a 90, 60 y 30 días                 | `ctr.follow-up` (cada día, 6:15): `expiryAlertDue()` decide el umbral; el contrato queda «por vencer» y el responsable recibe la tarea del flujo `ctr.expiry` (con `initiator`) y el aviso; al pasar el fin queda terminado       |
+| Obligaciones                               | El mismo trabajo avisa al responsable 7 días antes y marca vencida la que pasó su fecha                                                                                                                                           |
+| Otrosíes y prórrogas                       | El otrosí lo aprueba la Dirección (flujo `ctr.amendment`); la prórroga la crea la Dirección ya aprobada; los dos rigen al registrar su copia firmada, que cambia la fecha de fin o el valor                                       |
+| Solo lo propio                             | Talento humano y Colaborador ven los contratos de los que son responsables o autores (`visibleContracts()`, `canSeeContract()`); los demás responden 404                                                                          |
+| Desde la cotización aceptada               | `acceptedQuote()` (índice del CRM) llena el asistente; el aviso `crm.quote.accepted` lleva a `/app/contratos/nuevo?cotizacion=…`                                                                                                  |
+
+### Firma electrónica (B25, en el mismo módulo)
+
+Nivel 2 del capítulo 19: enlace único y código de seis números al correo, paquete de evidencia y
+verificación pública. Tablas y reglas en [`sig.md`](../../docs/manual/datos/sig.md).
+
+| Regla                                  | Cómo se cumple                                                                                                                                                                                                    |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Solo se envía lo aprobado              | `assertSignable()`: contrato `approved` u otrosí `approved` de un contrato vigente, con su PDF listo. El documento queda `in_signature` y su archivo y huella no cambian (`sig_envelopes_keep`)                   |
+| Firmantes autorizados y verificados    | `prepareEnvelope()`: solo contactos `can_sign` del cliente con correo y documento, el conocimiento del tercero aprobado (`partyVerified()`) y, por la empresa, una persona de la Dirección vinculada a su persona |
+| Comercial prepara, la Dirección envía  | `signature.envelope.create` y `signature.envelope.send`/`cancel` según la matriz; el envío exige `If-Match` e `Idempotency-Key` (`idempotencyKeyFrom()`, plataforma); la misma llave no lo repite                 |
+| Orden de firma                         | `signerOnTurn()`: el cliente en el orden elegido y la empresa de última. Al firmante del cliente le llega su enlace; a la empresa, la tarea del flujo `sig.company`, que solo se cierra firmando desde la ficha   |
+| Código al correo                       | `POST /v1/public/signatures/code` lo pide (uno por minuto); el worker lo genera y lo envía (`sig.work`, cada 10 s): la base guarda su huella. 10 minutos y 5 intentos por enlace; al quinto se bloquea            |
+| La empresa firma con su segundo factor | `actions/sign` exige `@RecentAuthentication()` (contraseña y código, B09) y que sea la persona elegida                                                                                                            |
+| Evidencia encadenada                   | `appendSignatureEvent()` bloquea el proceso y agrega el evento con la huella del anterior (`linkHash()`); la base no deja cambiarlos ni borrarlos (`sig_append_only`); `chainIntact()` lo comprueba               |
+| Documento firmado y certificado        | Al firmar todos, el worker une con Gotenberg (`mergeWithGotenberg()`) el PDF aprobado, la página de firmas y el certificado (`@arza/templates`), guarda los dos con su huella y deja el contrato vigente          |
+| Verificación pública                   | `POST /v1/public/verifications` con el código o con la huella que calcula el navegador; responde `valid`, `mismatch` o `not_found` sin contenido ni nombres. Cambiar un byte cambia la huella                     |
+| Recordatorios y vencimiento            | `sig.follow-up` (cada día, 7:00): recuerda cada 3 días, hasta 3 veces, con un enlace nuevo; pasado el plazo, el proceso vence y el documento vuelve a «aprobado»                                                  |
+
+`pnpm contratos:vincular-firmante --correo <correo> --documento <número>` vincula la cuenta de la
+Dirección con su persona en Terceros (su nombre y su documento salen de allí), mientras Talento
+humano (M12) vincula a los colaboradores.
+
+## Proyectos: estructura y tablero (B26, módulo `src/modules/project`)
+
+Proyectos creados desde un contrato vigente o con la autorización expresa de la Dirección, su
+equipo, hitos, iteraciones, lista de pendientes, tablero de trabajo y enlaces (ficha 17.8). Horas,
+entregables, actas, riesgos y liberaciones llegan con el B27. Tablas y reglas en
+[`prj.md`](../../docs/manual/datos/prj.md).
+
+| Regla                                       | Cómo se cumple                                                                                                                                                                                       |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Creación desde el contrato                  | `GET /v1/projects/options` lista los contratos vigentes sin proyecto (`contractsInForce()`, índice de Contratos); `POST /v1/projects` toma su cliente y su valor. Un contrato, un proyecto           |
+| Sin contrato vigente, autoriza la Dirección | `actions/start` exige contrato vigente o autorización (`assertMayStart()`); `actions/request-authorization` abre el trámite `prj.start` en Mis tareas, que la Dirección decide (`followStartFlow()`) |
+| Un miembro solo ve sus proyectos            | `project.read_member` es «solo lo propio» con los miembros activos como `involved_user_ids` (`canSeeProject()`, `visibleProjects()`); lo ajeno responde 404. La pertenencia se lee en cada solicitud |
+| El equipo gestiona los ítems                | `project.item.manage` sobre el registro (`findProjectForItems()`); el Líder técnico, en todos los proyectos. Editar el proyecto, hitos, iteraciones y enlaces pide `project.update`                  |
+| Criterios para entrar a una iteración       | `actions/plan` y `prj_items_sprint_check`: una épica o un ítem sin criterios de aceptación no entra; quitar los criterios de un ítem planeado se rechaza                                             |
+| Tablero                                     | `actions/move`: avanza de a una columna o vuelve a cualquiera anterior (`canMoveItem()`), con el proyecto en ejecución o en riesgo y con `If-Match`. Terminar pide `review_url` y `test_note`        |
+| Tiempo real                                 | `GET /v1/projects/{id}/board`; la web lo vuelve a pedir cada 10 s (`BOARD_REFRESH_SECONDS`). Una versión vieja responde 409 y no pisa el cambio de otro                                              |
+| Hitos                                       | `billingExceeds()` con decimal.js: entre todos, máximo 100 % del valor, con la fila del proyecto bloqueada                                                                                           |
+| Iteraciones                                 | Dentro de las fechas del proyecto; una en curso por proyecto (`prj_sprints_one_active`); al cerrar, lo no terminado vuelve a pendientes                                                              |
+| Avisos                                      | `project.created` al líder, `project.member.added` a quien entra y la decisión de la Dirección al líder (`prj_project_update`)                                                                       |
+
 ## Flujos y tareas (B15, módulo `src/modules/wf`)
 
 Motor de flujos definido por datos (ficha 17.5, numeral 13.2, ADR-011). Las tablas están en

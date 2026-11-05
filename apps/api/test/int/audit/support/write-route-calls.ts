@@ -31,6 +31,8 @@ import { MEDIA_ROUTE_CALLS } from './media-route-calls.js';
 import { NTF_ROUTE_CALLS } from './ntf-route-calls.js';
 import { PARTY_ROUTE_CALLS } from './party-route-calls.js';
 import { PRIVACY_ROUTE_CALLS } from './privacy-route-calls.js';
+import { PROJECT_ROUTE_CALLS } from './project-route-calls.js';
+import { CONTRACT_ROUTE_CALLS } from './contract-route-calls.js';
 import { QUOTE_ROUTE_CALLS } from './quote-route-calls.js';
 import { WF_ROUTE_CALLS } from './wf-route-calls.js';
 
@@ -302,5 +304,7 @@ export const WRITE_ROUTE_CALLS: Readonly<Record<string, RouteCall>> = {
   ...PRIVACY_ROUTE_CALLS,
   ...CRM_ROUTE_CALLS,
   ...QUOTE_ROUTE_CALLS,
+  ...CONTRACT_ROUTE_CALLS,
+  ...PROJECT_ROUTE_CALLS,
   ...MEDIA_ROUTE_CALLS,
 };

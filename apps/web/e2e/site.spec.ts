@@ -1,7 +1,8 @@
 import { mockSession } from './support/api-mock';
 import { accessibilityViolations, expect, test, useTheme } from './support/fixtures';
 
-// Vitrina pública (B22A): lo que depende de otros bloques lo dice y no simula funcionar.
+// Vitrina pública (B22A): lo que depende de otros bloques lo dice y no simula funcionar. La
+// verificación de documentos funciona desde el B25.
 
 for (const theme of ['light', 'dark'] as const) {
   test(`la vitrina no tiene violaciones de accesibilidad en modo ${theme}`, async ({ page }) => {
@@ -16,9 +17,12 @@ for (const theme of ['light', 'dark'] as const) {
 test('lo pendiente dice «Disponible pronto» y no hay formularios simulados', async ({ page }) => {
   await mockSession(page, 'none');
   await page.goto('/');
-  for (const id of ['proyectos', 'noticias', 'cotizar', 'verificar', 'pqrsf']) {
+  for (const id of ['proyectos', 'noticias', 'cotizar', 'pqrsf']) {
     await expect(page.locator(`#${id}`).getByText('Disponible pronto')).toBeVisible();
   }
+  // Desde el B25 la verificación de documentos funciona: lleva a su página.
+  const verify = page.locator('#verificar').getByRole('link', { name: 'Verificar un documento' });
+  await expect(verify).toHaveAttribute('href', '/verificar');
   await expect(page.locator('main form')).toHaveCount(0);
   await expect(page.locator('main input')).toHaveCount(0);
 });

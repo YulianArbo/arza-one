@@ -35,3 +35,16 @@ export {
   type QuoteDocumentLine,
   type QuoteDocumentTax,
 } from './quote-document.js';
+export {
+  contractDocumentBody,
+  type ContractDocument,
+  type ContractDocumentClause,
+  type ContractSignature,
+} from './contract-document.js';
+export {
+  evidenceCertificateBody,
+  signaturesPageBody,
+  type EvidenceEvent,
+  type SignatureEvidence,
+  type SignedBy,
+} from './signature-evidence.js';

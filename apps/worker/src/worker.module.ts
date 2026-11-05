@@ -13,6 +13,7 @@ import {
   convertWithGotenberg,
   extractPdfText,
   fileStorageFrom,
+  mergeWithGotenberg,
   scanWithClamav,
   stampWithGotenberg,
 } from '@arza/api/doc';
@@ -80,6 +81,7 @@ class WorkerRuntime implements OnApplicationBootstrap, OnApplicationShutdown {
       convertOffice: async (source) => convertWithGotenberg(gotenberg, source),
       convertHtml: async (document) => convertHtmlWithGotenberg(gotenberg, document),
       stamp: async (pdf, text) => stampWithGotenberg(gotenberg, pdf, text),
+      mergePdfs: async (pdfs) => mergeWithGotenberg(gotenberg, pdfs),
       extractText: extractPdfText,
     });
     this.queueWorkers = startQueueWorkers(router, {

@@ -59,14 +59,12 @@ const MODULES: readonly NavigationItem[] = [
     label: 'Contratos',
     icon: FileSignature,
     permissions: ['contract.read'],
-    block: 'B24',
   },
   {
     slug: 'proyectos',
     label: 'Proyectos',
     icon: FolderKanban,
     permissions: ['project.read_all', 'project.read_member'],
-    block: 'B26',
   },
   {
     slug: 'servicio',

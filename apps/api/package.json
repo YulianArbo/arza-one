@@ -35,6 +35,10 @@
     "./crm": {
       "types": "./dist/modules/crm/index.d.ts",
       "default": "./dist/modules/crm/index.js"
+    },
+    "./contract": {
+      "types": "./dist/modules/contract/index.d.ts",
+      "default": "./dist/modules/contract/index.js"
     }
   },
   "scripts": {
@@ -51,6 +55,7 @@
     "db:seed:demo": "node --env-file-if-exists=../../.env dist/platform/database/seed/seed-main.js --demo",
     "iam:invitar": "node --env-file-if-exists=../../.env dist/modules/iam/interface/cli/invite-main.js",
     "iam:asignar-rol": "node --env-file-if-exists=../../.env dist/modules/iam/interface/cli/assign-role-main.js",
+    "contratos:vincular-firmante": "node --env-file-if-exists=../../.env dist/modules/contract/interface/cli/link-signer-main.js",
     "iam:reiniciar-segundo-factor": "node --env-file-if-exists=../../.env dist/modules/iam/interface/cli/reset-second-factor-main.js",
     "doc:importar-listado": "node --env-file-if-exists=../../.env dist/modules/doc/interface/cli/import-master-list-main.js",
     "doc:importar-retencion": "node --env-file-if-exists=../../.env dist/modules/doc/interface/cli/import-retention-main.js"

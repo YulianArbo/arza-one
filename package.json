@@ -27,6 +27,7 @@
     "db:seed:demo": "turbo run build --filter=@arza/api --output-logs=errors-only && pnpm --filter @arza/api db:seed:demo",
     "iam:invitar": "turbo run build --filter=@arza/api --output-logs=errors-only && pnpm --filter @arza/api iam:invitar",
     "iam:asignar-rol": "turbo run build --filter=@arza/api --output-logs=errors-only && pnpm --filter @arza/api iam:asignar-rol",
+    "contratos:vincular-firmante": "turbo run build --filter=@arza/api --output-logs=errors-only && pnpm --filter @arza/api contratos:vincular-firmante",
     "iam:reiniciar-segundo-factor": "turbo run build --filter=@arza/api --output-logs=errors-only && pnpm --filter @arza/api iam:reiniciar-segundo-factor",
     "doc:importar-listado": "turbo run build --filter=@arza/api --output-logs=errors-only && pnpm --filter @arza/api doc:importar-listado",
     "doc:importar-retencion": "turbo run build --filter=@arza/api --output-logs=errors-only && pnpm --filter @arza/api doc:importar-retencion",

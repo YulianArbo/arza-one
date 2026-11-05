@@ -11,8 +11,8 @@ const dateTime = z.iso.datetime({ offset: true });
 
 /** Registros que admiten comentarios y adjuntos. Cada módulo nuevo agrega el suyo. */
 export const commentableEntityTypeSchema = z
-  .enum(['party', 'wf_instance'])
-  .describe('Tercero o trámite');
+  .enum(['party', 'wf_instance', 'ctr_contract'])
+  .describe('Tercero, trámite o contrato');
 
 export type CommentableEntityType = z.infer<typeof commentableEntityTypeSchema>;
 

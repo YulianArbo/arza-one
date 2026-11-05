@@ -15,6 +15,7 @@ import { BriefcaseBusiness } from 'lucide-react';
 import Link from 'next/link';
 import { useState, type JSX } from 'react';
 
+import { useDropZone } from '../../components/drop-zone';
 import { useApiClient } from '../../lib/api/api-provider';
 import { formatDate } from '../../lib/format/date-time';
 import { FormError } from '../access/form-alert';
@@ -22,7 +23,7 @@ import { QueryState } from '../administration/query-state';
 import { usePermissions } from '../session/permissions';
 import { useCrmAction } from './crm-action';
 import { CRM_PATHS, OPPORTUNITY_STAGES, STAGE_TONES, bogotaToday, formatPesos } from './labels';
-import { OpportunityCard, useDropZone } from './opportunity-card';
+import { OPPORTUNITY_DRAG, OpportunityCard } from './opportunity-card';
 import { useOpportunities } from './queries';
 
 // Embudo de oportunidades (B22, ficha 17.6; numeral 16.4): el tablero con una columna por etapa
@@ -83,7 +84,7 @@ function ColumnHeader(props: ColumnProps & { readonly headingId: string }): JSX.
 function Column(props: ColumnProps): JSX.Element {
   const today = bogotaToday();
   const headingId = `etapa-${props.stage}`;
-  const zone = useDropZone(props.canMove, (id) => {
+  const zone = useDropZone(OPPORTUNITY_DRAG, props.canMove, (id) => {
     props.onDrop(id, props.stage);
   });
   return (
