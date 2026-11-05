@@ -76,6 +76,12 @@ export const DATABASE_BOUND_FILES = [
   // Privacidad (B17): casos de uso y controladores.
   'src/modules/privacy/application/**/*.ts',
   'src/modules/privacy/interface/**/*.ts',
+  // Parámetros tributarios (B23): casos de uso y controladores.
+  'src/modules/fin/application/**/*.ts',
+  'src/modules/fin/interface/**/*.ts',
+  // Contratos (B24): todo menos las reglas del dominio, que se prueban solas.
+  'src/modules/contract/application/**/*.ts',
+  'src/modules/contract/interface/**/*.ts',
   // CRM (B22): todo menos las reglas del dominio (dinero, embudo, CSV), que se prueban solas.
   'src/modules/crm/application/**/*.ts',
   'src/modules/crm/interface/**/*.ts',
