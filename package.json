@@ -13,7 +13,7 @@
     "build:types": "turbo run build --filter=./packages/* --filter=@arza/api --output-logs=errors-only",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "test:int": "turbo run test:int",
+    "test:int": "turbo run test:int --log-order=stream",
     "test:e2e": "turbo run test:e2e",
     "e2e:install": "pnpm --filter @arza/web e2e:install",
     "env:local": "node infra/scripts/local/env-local.ts",
