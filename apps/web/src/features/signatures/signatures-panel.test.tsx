@@ -169,3 +169,55 @@ describe('documento firmado', () => {
     expect(screen.getByRole('button', { name: 'Certificado de evidencia' })).toBeVisible();
   });
 });
+
+// El cliente rechazó: el evento trae su nombre y no su dirección.
+const REJECTED = {
+  status: 'rejected',
+  closed_reason: 'El cliente rechazó la firma.',
+  chain_intact: false,
+  events: [
+    {
+      id: '01999a00-0000-7000-8000-0000000e0302',
+      type: 'created',
+      signer_name: 'Laura Gómez',
+      occurred_at: '2026-10-30T16:00:00.000Z',
+      ip: null,
+      user_agent: null,
+      hash: 'e'.repeat(64),
+    },
+  ],
+};
+
+const REJECTED_SIGNERS = [
+  {
+    ...(COMPANY_TURN_SIGNERS[0] ?? {}),
+    status: 'rejected',
+    signed_at: null,
+    rejected_at: '2026-10-30T16:00:00.000Z',
+    reject_reason: 'El valor no es el acordado.',
+  },
+  COMPANY_TURN_SIGNERS[1] ?? {},
+];
+
+describe('procesos cerrados o en preparación del firmado', () => {
+  it('un rechazo muestra el motivo, quién rechazó y si la cadena cambió', async () => {
+    serve(SIGNATURE_SALES, [envelope(REJECTED, REJECTED_SIGNERS)]);
+    await openTab();
+    expect(await screen.findByText('El cliente rechazó la firma.')).toBeVisible();
+    expect(screen.getByText('La cadena de eventos cambió')).toBeVisible();
+    expect(screen.getByText('El valor no es el acordado.')).toBeVisible();
+    expect(screen.getByText(/· Laura Gómez$/u)).toBeInTheDocument();
+  });
+
+  it('firmado por todos, avisa mientras se prepara el documento firmado', async () => {
+    serve(SIGNATURE_SALES, [envelope({ ...COMPLETED, signed: null })]);
+    await openTab();
+    expect(await screen.findByText(/Preparando el documento firmado/u)).toBeVisible();
+  });
+
+  it('en firma, dice hasta cuándo y en qué orden', async () => {
+    serve(SIGNATURE_SALES, [envelope(COMPANY_TURN, COMPANY_TURN_SIGNERS)]);
+    await openTab();
+    expect(await screen.findByText(/Firman en orden; la empresa, de última/u)).toBeVisible();
+  });
+});

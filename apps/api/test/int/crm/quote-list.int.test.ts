@@ -34,6 +34,25 @@ describe('listado de cotizaciones', () => {
     const next = await list(sales, `limit=1&cursor=${page.next_cursor ?? ''}`);
     expect(next.data[0]?.id).not.toBe(page.data[0]?.id);
   });
+
+  it('busca por el código de la cotización', async () => {
+    const sales = await scenario.sales();
+    const id = await scenario.quote(sales);
+    const { code } = await scenario.quoteDetail(sales, id);
+    const found = await list(sales, `q=${encodeURIComponent(code)}&view=all`);
+    expect(found.data.map((row) => row.id)).toEqual([id]);
+  });
+});
+
+describe('parámetros tributarios', () => {
+  it('el historial de un impuesto que no existe no se encuentra', async () => {
+    const accountant = await scenario.person('contador-impuestos', ['CONTADOR']);
+    const response = await scenario.get(
+      '/v1/finance/tax-parameters/NO_EXISTE/history',
+      accountant.session,
+    );
+    expect(response.status).toBe(404);
+  });
 });
 
 describe('detalle de la cotización', () => {
