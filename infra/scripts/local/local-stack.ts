@@ -101,7 +101,7 @@ const DATABASE_WAIT_SECONDS = 60;
  * Programa que intenta conectarse al puerto una vez por segundo hasta lograrlo o agotar el plazo.
  * Corre en un Node aparte porque los guiones locales son síncronos.
  */
-export function databaseProbe(address: DatabaseAddress, seconds = DATABASE_WAIT_SECONDS): string {
+function databaseProbe(address: DatabaseAddress, seconds = DATABASE_WAIT_SECONDS): string {
   return [
     "const net = require('node:net');",
     `const deadline = Date.now() + ${String(seconds * 1000)};`,
