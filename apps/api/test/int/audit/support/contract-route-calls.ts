@@ -21,9 +21,11 @@ import {
   versioned,
   type PendingRequest,
 } from './contract-steps.js';
+import { SIGNATURE_ROUTE_CALLS } from './signature-route-calls.js';
 
 // Llamadas del recorrido de escrituras (B11) para Contratos (B24): contratos, obligaciones, otrosíes,
-// prórrogas y la biblioteca de cláusulas. Lo que cada llamada necesita lo prepara contract-steps.
+// prórrogas y la biblioteca de cláusulas, y la firma electrónica (B25, en signature-route-calls). Lo
+// que cada llamada necesita lo prepara contract-steps.
 
 type RouteCall = (scenario: AccessScenario) => Promise<PendingRequest>;
 
@@ -35,6 +37,7 @@ const CLAUSE = {
 };
 
 export const CONTRACT_ROUTE_CALLS: Record<string, RouteCall> = {
+  ...SIGNATURE_ROUTE_CALLS,
   'POST /v1/contracts': async (s) => {
     const { sales } = await people(s);
     const options = contractOptionsSchema.parse(

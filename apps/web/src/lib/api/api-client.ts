@@ -22,6 +22,8 @@ interface PostOptions<T> {
   csrfToken?: string;
   /** Versión del registro que se vio (If-Match), en las acciones que la piden. */
   version?: number;
+  /** Llave única de la operación (Idempotency-Key), en las que la piden, como enviar a firma. */
+  idempotencyKey?: string;
 }
 
 interface PatchOptions<T> extends PostOptions<T> {
@@ -164,6 +166,7 @@ async function sendWithBody<T>(
   };
   if (options.csrfToken !== undefined) headers[CSRF_HEADER] = options.csrfToken;
   if (options.version !== undefined) headers['If-Match'] = `"${String(options.version)}"`;
+  if (options.idempotencyKey !== undefined) headers['Idempotency-Key'] = options.idempotencyKey;
   const init = { method, headers, body: JSON.stringify(options.body) };
   const response = await send(fetchImpl, url, init);
   const body = await readJson(response);

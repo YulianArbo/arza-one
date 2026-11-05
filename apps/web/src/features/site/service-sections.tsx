@@ -14,7 +14,7 @@ import type { JSX } from 'react';
 import { COMPANY } from './site-content';
 import { SectionHeading, SoonBadge } from './site-sections';
 
-// Atención en la vitrina (B22A): cotización (B23), verificar documento y PQRSF (B29, B41),
+// Atención en la vitrina (B22A): cotización (B23), verificar documento (B25) y PQRSF (B29, B41),
 // contacto y acceso a la plataforma. Lo que no funciona todavía lo dice.
 
 const QUOTE_STEPS = ['Servicio', 'Datos de contacto', 'Confirmación'] as const;
@@ -62,6 +62,9 @@ function DeskCard(props: {
   readonly icon: LucideIcon;
   readonly title: string;
   readonly text: string;
+  /** La página que ya funciona; sin ella, la tarjeta dice «Disponible pronto». */
+  readonly href?: string;
+  readonly action?: string;
 }): JSX.Element {
   const Icon = props.icon;
   return (
@@ -75,7 +78,13 @@ function DeskCard(props: {
         {props.title}
       </h2>
       <p className="text-sm text-muted-foreground">{props.text}</p>
-      <SoonBadge />
+      {props.href === undefined ? (
+        <SoonBadge />
+      ) : (
+        <Button asChild variant="outline" className="self-start">
+          <Link href={props.href}>{props.action}</Link>
+        </Button>
+      )}
     </article>
   );
 }
@@ -90,7 +99,9 @@ export function DeskSection(): JSX.Element {
         id="verificar"
         icon={FileSearch}
         title="Verificar un documento"
-        text="Compruebe que un documento emitido por ARZA TECH es auténtico y está vigente."
+        text="Compruebe que un documento firmado electrónicamente en ARZA ONE es el original, con su código o con el archivo."
+        href="/verificar"
+        action="Verificar un documento"
       />
       <DeskCard
         id="pqrsf"

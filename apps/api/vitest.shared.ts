@@ -49,6 +49,8 @@ export const DATABASE_BOUND_FILES = [
   'src/modules/iam/infrastructure/role-store.ts',
   'src/modules/iam/infrastructure/user-directory-store.ts',
   'src/modules/iam/infrastructure/people-directory.ts',
+  // Persona del firmante (B25).
+  'src/modules/iam/application/person-link.ts',
   // Auditoría y trazabilidad (B11): todo menos el formato CSV, que se prueba solo.
   'src/modules/audit/application/**/*.ts',
   'src/modules/audit/infrastructure/**/*.ts',
@@ -85,6 +87,9 @@ export const DATABASE_BOUND_FILES = [
   // CRM (B22): todo menos las reglas del dominio (dinero, embudo, CSV), que se prueban solas.
   'src/modules/crm/application/**/*.ts',
   'src/modules/crm/interface/**/*.ts',
+  // Proyectos (B26): todo menos las reglas y los flujos del dominio, que se prueban solos.
+  'src/modules/project/application/**/*.ts',
+  'src/modules/project/interface/**/*.ts',
 ];
 
 /** Procesos que solo arrancan algo; se prueban a mano o como proceso real. */
@@ -94,4 +99,5 @@ export const ENTRY_POINTS = [
   'src/modules/iam/interface/cli/**',
   'src/modules/doc/interface/cli/import-master-list-main.ts',
   'src/modules/doc/interface/cli/import-retention-main.ts',
+  'src/modules/contract/interface/cli/link-signer-main.ts',
 ];

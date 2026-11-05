@@ -48,7 +48,8 @@ type ContractEntity =
   | 'ctr_amendment'
   | 'ctr_clause'
   | 'ctr_clause_library'
-  | 'ctr_template';
+  | 'ctr_template'
+  | 'sig_envelope';
 
 export interface ContractChange {
   /** Acción de la auditoría, como «contract.approve». */

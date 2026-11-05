@@ -7,6 +7,7 @@ export { WfModule } from './interface/wf.module.js';
 export { seedWorkflowDemo } from './application/wf-demo-seed.js';
 export { escalateOverdueTasks, type OverdueCheckDependencies } from './application/overdue.js';
 export {
+  closeWorkflowAsOwner,
   hasActiveWorkflow,
   requestTransition,
   startWorkflow,

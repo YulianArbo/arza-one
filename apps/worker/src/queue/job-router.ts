@@ -32,6 +32,11 @@ import {
 import { processOverdueCheck, type OverdueCheckJobDependencies } from '../jobs/overdue-check.js';
 import { processPdfRender, type PdfRenderJobDependencies } from '../jobs/pdf-render.js';
 import {
+  processSignatureFollowUp,
+  processSignatureWork,
+  type SignatureWorkJobDependencies,
+} from '../jobs/signature-work.js';
+import {
   processQuoteExpire,
   processQuoteWork,
   type QuoteWorkJobDependencies,
@@ -60,7 +65,8 @@ export type JobDependencies = ExampleEmailDependencies &
   TextExtractJobDependencies &
   ActivityRemindJobDependencies &
   QuoteWorkJobDependencies &
-  ContractWorkJobDependencies;
+  ContractWorkJobDependencies &
+  SignatureWorkJobDependencies;
 
 /** Procesador que recibe los datos del trabajo; su resultado no se usa. */
 function withData(process: (data: unknown) => Promise<unknown>): JobHandler {
@@ -95,6 +101,8 @@ function handlers(deps: JobDependencies): ReadonlyMap<string, JobHandler> {
     [JOBS.crmQuoteExpire.name, withoutData(async () => processQuoteExpire(deps))],
     [JOBS.ctrPdfRender.name, withoutData(async () => processContractPdfs(deps))],
     [JOBS.ctrFollowUp.name, withoutData(async () => processContractFollowUp(deps))],
+    [JOBS.sigWork.name, withoutData(async () => processSignatureWork(deps))],
+    [JOBS.sigFollowUp.name, withoutData(async () => processSignatureFollowUp(deps))],
   ]);
 }
 

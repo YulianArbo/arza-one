@@ -1,5 +1,6 @@
 import type { Party } from '../../../generated/prisma/client.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
+import { toCalendarDate } from '../../core/index.js';
 import { partyName } from './party-support.js';
 
 // El tercero como lo necesita un contrato (B24, ficha 17.7): nombre, documento, dirección y quiénes
@@ -7,9 +8,13 @@ import { partyName } from './party-support.js';
 // index.ts del módulo, dentro de su propia transacción.
 
 interface ContractSigner {
+  /** La persona en Terceros: firma electrónica (B25) la guarda como firmante. */
+  readonly personId: string;
   readonly name: string;
   /** «CC 1020304050», o null si el contacto no tiene documento. */
   readonly document: string | null;
+  /** El correo registrado, al que llega el enlace de firma; null si no lo tiene. */
+  readonly email: string | null;
 }
 
 export interface ContractParty {
@@ -48,10 +53,7 @@ export async function contractParty(
       : [];
   const signers = contacts
     .filter((contact) => contact.person.deletedAt === null)
-    .map((contact) => ({
-      name: partyName(contact.person),
-      document: documentText(contact.person),
-    }));
+    .map((contact) => signerOf(contact.person));
   return {
     id: party.id,
     name: partyName(party),
@@ -61,9 +63,49 @@ export async function contractParty(
     email: party.email,
     isUsable: party.deletedAt === null && party.status !== 'blocked' && party.status !== 'inactive',
     // Una persona firma por sí misma.
-    signers:
-      party.kind === 'person'
-        ? [{ name: partyName(party), document: documentText(party) }]
-        : signers,
+    signers: party.kind === 'person' ? [signerOf(party)] : signers,
   };
+}
+
+function signerOf(person: Party): ContractSigner {
+  return {
+    personId: person.id,
+    name: partyName(person),
+    document: documentText(person),
+    email: person.email,
+  };
+}
+
+/** El conocimiento del tercero vigente está aprobado (numeral 19.4): su última revisión. */
+export async function partyVerified(
+  tx: TenantTransaction,
+  partyId: string,
+  today: string,
+): Promise<boolean> {
+  const latest = await tx.dueDiligence.findFirst({
+    where: { partyId, deletedAt: null },
+    orderBy: { createdAt: 'desc' },
+  });
+  if (latest?.status !== 'approved') return false;
+  return latest.nextReviewOn === null || toCalendarDate(latest.nextReviewOn) >= today;
+}
+
+/** La persona de Terceros con ese número de documento, para vincularla con su cuenta. */
+export async function personByDocument(
+  tx: TenantTransaction,
+  idNumber: string,
+): Promise<ContractSigner | null> {
+  const person = await tx.party.findFirst({
+    where: { kind: 'person', idNumber, deletedAt: null },
+  });
+  return person === null ? null : signerOf(person);
+}
+
+/** Nombre, documento y correo de una persona de Terceros, para quien firma por la empresa. */
+export async function signingPerson(
+  tx: TenantTransaction,
+  personId: string,
+): Promise<ContractSigner | null> {
+  const person = await tx.party.findFirst({ where: { id: personId, kind: 'person' } });
+  return person === null ? null : signerOf(person);
 }

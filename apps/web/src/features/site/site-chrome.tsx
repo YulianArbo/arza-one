@@ -114,7 +114,7 @@ const FOOTER_COLUMNS = [
     links: [
       { href: '/iniciar-sesion', label: 'Plataforma empresarial' },
       { href: '/iniciar-sesion', label: 'Portal de clientes' },
-      { href: '/#verificar', label: 'Verificar documento' },
+      { href: '/verificar', label: 'Verificar documento' },
     ],
   },
   {

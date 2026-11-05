@@ -4,22 +4,22 @@ import { describe, expect, it } from 'vitest';
 import { findNavigationItem } from '../../components/app-shell/navigation';
 import { ModulePlaceholder } from './module-placeholder';
 
-// Proyectos sigue en construcción (B26); Contratos ya está construido (B24).
-const PROJECTS = findNavigationItem('proyectos');
+// Servicio sigue en construcción (B28); Proyectos ya está construido (B26).
+const SERVICE = findNavigationItem('servicio');
 
 describe('pantalla de un módulo en construcción', () => {
   it('con permiso explica en qué bloque se construye', () => {
-    if (!PROJECTS) throw new Error('Falta el módulo de proyectos');
-    render(<ModulePlaceholder item={PROJECTS} granted={new Set(['project.read_all'])} />);
-    expect(screen.getByRole('heading', { level: 1, name: 'Proyectos' })).toBeVisible();
-    expect(screen.getByText(/bloque B26/)).toBeVisible();
+    if (!SERVICE) throw new Error('Falta el módulo de servicio');
+    render(<ModulePlaceholder item={SERVICE} granted={new Set(['service.ticket.read'])} />);
+    expect(screen.getByRole('heading', { level: 1, name: 'Servicio' })).toBeVisible();
+    expect(screen.getByText(/bloque B28/)).toBeVisible();
   });
 
   it('sin permiso no revela nada del módulo (permiso denegado, 16.5)', () => {
-    if (!PROJECTS) throw new Error('Falta el módulo de proyectos');
-    render(<ModulePlaceholder item={PROJECTS} granted={new Set(['crm.lead.read'])} />);
+    if (!SERVICE) throw new Error('Falta el módulo de servicio');
+    render(<ModulePlaceholder item={SERVICE} granted={new Set(['crm.lead.read'])} />);
     expect(screen.getByRole('alert')).toHaveTextContent('No tiene acceso a esta sección');
-    expect(screen.queryByText('Proyectos')).toBeNull();
-    expect(screen.queryByText(/B26/)).toBeNull();
+    expect(screen.queryByText('Servicio')).toBeNull();
+    expect(screen.queryByText(/B28/)).toBeNull();
   });
 });

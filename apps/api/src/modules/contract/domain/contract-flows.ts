@@ -105,3 +105,49 @@ export const EXPIRY_FLOW_DATA = {
     } satisfies TransitionInput,
   ],
 };
+
+// - Firma de la empresa (B25): cuando firmaron todos los del cliente, la persona de la Dirección que
+//   firma por la empresa recibe «Firmar …». Firma desde la ficha, donde confirma que es ella; la
+//   tarea se cierra sola al firmar, o si el proceso se rechaza, se anula o vence.
+export const SIGNATURE_FLOW = 'sig.company';
+
+export const SIGNATURE_STATES = { sign: 'sign', signed: 'signed', closed: 'closed' } as const;
+
+export const SIGNATURE_ACTIONS = { sign: 'sign', close: 'close' } as const;
+
+export const SIGNATURE_FLOW_DATA = {
+  key: SIGNATURE_FLOW,
+  name: 'Firma de la empresa',
+  description:
+    'Capítulo 19: la Dirección firma de última, desde la ficha del contrato, con su sesión y su segundo factor.',
+  entityType: SIGNATURE_FLOW,
+  states: [
+    state('sign', 'Firmar por la empresa', 'initial', {
+      sla_hours: APPROVAL_SLA_HOURS,
+      priority: 'high',
+      assignee: { type: 'initiator' },
+    }),
+    state('signed', 'Firmado', 'final', {}),
+    state('closed', 'Cerrado sin firmar', 'final', {}),
+  ],
+  transitions: [
+    {
+      from_state: 'sign',
+      to_state: 'signed',
+      action: 'sign',
+      label: 'Firmar desde la ficha',
+      required_permission: 'contract.read',
+      condition: null,
+      requires_comment: false,
+    } satisfies TransitionInput,
+    {
+      from_state: 'sign',
+      to_state: 'closed',
+      action: 'close',
+      label: 'Cerrar',
+      required_permission: 'signature.envelope.cancel',
+      condition: null,
+      requires_comment: true,
+    } satisfies TransitionInput,
+  ],
+};

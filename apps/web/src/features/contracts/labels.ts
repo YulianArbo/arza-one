@@ -42,6 +42,7 @@ export const CONTRACT_STATUS_TONES: Readonly<Record<ContractStatus, Tone>> = {
   draft: 'neutral',
   in_review: 'warning',
   approved: 'info',
+  in_signature: 'info',
   active: 'success',
   expiring: 'warning',
   terminated: 'neutral',
@@ -62,6 +63,7 @@ export const OBLIGATION_TONES: Readonly<Record<ObligationStatus, Tone>> = {
 export const AMENDMENT_TONES: Readonly<Record<AmendmentStatus, Tone>> = {
   in_review: 'warning',
   approved: 'info',
+  in_signature: 'info',
   returned: 'neutral',
   signed: 'success',
 };

@@ -65,7 +65,6 @@ const MODULES: readonly NavigationItem[] = [
     label: 'Proyectos',
     icon: FolderKanban,
     permissions: ['project.read_all', 'project.read_member'],
-    block: 'B26',
   },
   {
     slug: 'servicio',

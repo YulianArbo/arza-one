@@ -41,3 +41,10 @@ export {
   type ContractDocumentClause,
   type ContractSignature,
 } from './contract-document.js';
+export {
+  evidenceCertificateBody,
+  signaturesPageBody,
+  type EvidenceEvent,
+  type SignatureEvidence,
+  type SignedBy,
+} from './signature-evidence.js';

@@ -51,6 +51,7 @@ export const amendmentKindSchema = z.enum(
 export const AMENDMENT_STATUSES = {
   in_review: 'En revisión',
   approved: 'Aprobado, por firmar',
+  in_signature: 'En firma electrónica',
   returned: 'Devuelto',
   signed: 'Firmado y vigente',
 } as const;
