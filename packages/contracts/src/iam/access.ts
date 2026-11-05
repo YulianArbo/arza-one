@@ -23,6 +23,7 @@ export const ACCESS_ERROR_CODES = {
   delegationNotFound: 'DELEGATION_NOT_FOUND',
   positionNotFound: 'POSITION_NOT_FOUND',
   positionInactive: 'POSITION_INACTIVE',
+  clientCompanyInvalid: 'CLIENT_COMPANY_INVALID',
 } as const;
 
 export const permissionCodeSchema = z

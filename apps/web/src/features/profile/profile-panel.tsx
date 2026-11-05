@@ -1,6 +1,6 @@
 'use client';
 
-import { meResponseSchema, type ChangePasswordRequest } from '@arza/contracts';
+import type { ChangePasswordRequest } from '@arza/contracts';
 import {
   Button,
   Card,
@@ -11,7 +11,7 @@ import {
   ErrorState,
   LoadingState,
 } from '@arza/ui';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useState, type SubmitEvent, type JSX } from 'react';
 
@@ -22,22 +22,16 @@ import { FormError } from '../access/form-alert';
 import { CurrentPasswordField } from '../access/current-password-field';
 import { NewPasswordFields, useNewPassword } from '../access/new-password-fields';
 import { SubmitButton } from '../access/submit-button';
+import { ImageField } from '../media/image-field';
+import { MEDIA_KEYS, MY_PHOTO_PATH, useMe } from '../media/media-queries';
 import { NTF_PATHS } from '../notifications/labels';
 import { SESSIONS_PATH } from '../session/access-routes';
 import { useSession } from '../session/session-provider';
 import { MyRolesCard } from './my-roles-card';
 import { SecondFactorCard } from './second-factor-card';
 
-function useProfile() {
-  const api = useApiClient();
-  return useQuery({
-    queryKey: ['me'],
-    queryFn: ({ signal }) => api.get('/v1/me', { schema: meResponseSchema, signal }),
-  });
-}
-
 function ProfileData(): JSX.Element {
-  const profile = useProfile();
+  const profile = useMe();
   if (profile.isPending) return <LoadingState label="Cargando su perfil" />;
   if (profile.isError) {
     const apiError = profile.error instanceof ApiError ? profile.error : undefined;
@@ -122,6 +116,38 @@ function ChangePasswordForm(): JSX.Element {
   );
 }
 
+const PHOTO_TARGET = {
+  uploads: '/v1/me/photo/uploads',
+  image: MY_PHOTO_PATH,
+  refresh: [MEDIA_KEYS.me],
+};
+
+/** Foto de perfil (B22A): la ven las demás personas en lugar de sus iniciales. */
+function PhotoCard(): JSX.Element {
+  const me = useMe().data;
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Foto de perfil</CardTitle>
+        <CardDescription>Aparece en la barra superior en lugar de sus iniciales.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {me === undefined ? (
+          <LoadingState label="Cargando su foto" />
+        ) : (
+          <ImageField
+            target={PHOTO_TARGET}
+            name={me.display_name ?? me.email}
+            hasImage={me.has_photo}
+            noun="foto"
+            editable
+          />
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 /** Enlace a «Sesiones activas» (B09). */
 function SessionsCard(): JSX.Element {
   return (
@@ -178,6 +204,7 @@ export function ProfilePanel(): JSX.Element {
           <ChangePasswordForm />
         </CardContent>
       </Card>
+      <PhotoCard />
       <SecondFactorCard />
       <SessionsCard />
       <NotificationsCard />

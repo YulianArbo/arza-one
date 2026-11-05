@@ -1,4 +1,3 @@
-import { Card, CardContent, CardDescription, CardHeader } from '@arza/ui';
 import type { JSX, ReactNode } from 'react';
 
 interface AccessCardProps {
@@ -7,15 +6,20 @@ interface AccessCardProps {
   readonly children: ReactNode;
 }
 
-/** Tarjeta de las pantallas de acceso: título, explicación breve y formulario. */
+/** Encabezado y formulario de las pantallas de acceso, sin marco: el fondo es la página (B22A). */
 export function AccessCard({ title, description, children }: AccessCardProps): JSX.Element {
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <h1 className="font-heading text-2xl font-bold">{title}</h1>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent>{children}</CardContent>
-    </Card>
+    <section
+      aria-labelledby="acceso-titulo"
+      className="flex w-full max-w-sm flex-col gap-6 animate-enter"
+    >
+      <header className="flex flex-col gap-1.5">
+        <h1 id="acceso-titulo" className="text-2xl font-semibold tracking-tight">
+          {title}
+        </h1>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </header>
+      {children}
+    </section>
   );
 }

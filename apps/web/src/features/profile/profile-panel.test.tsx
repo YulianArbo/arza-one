@@ -24,6 +24,7 @@ const ME = {
   ...SESSION.user,
   last_login_at: '2026-10-09T20:15:00.000Z',
   password_changed_at: null,
+  has_photo: false,
 };
 
 const NEW_PASSWORD = 'arepa de choclo con queso';

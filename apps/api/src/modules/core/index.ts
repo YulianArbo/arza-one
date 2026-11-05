@@ -17,8 +17,14 @@ export {
   businessHoursDeadline,
   nextBusinessMoment,
 } from './application/calendar.js';
-export { workScheduleOn } from './application/parameters.js';
+export { discountCapOn, workScheduleOn } from './application/parameters.js';
 export { companyIdentity, type CompanyIdentity } from './application/company-identity.js';
 export { superiorPositionId } from './application/positions.js';
 export { catalogLabels, isActiveCatalogCode } from './application/catalogs.js';
 export { addDays, bogotaToday, fromCalendarDate, toCalendarDate } from './domain/calendar-date.js';
+export {
+  currentAndScheduled,
+  previousValidTo,
+  validFromProblem,
+  type ValidFromProblem,
+} from './domain/parameter-policy.js';

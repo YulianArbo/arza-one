@@ -4,6 +4,7 @@ import { FormField, SelectField } from '@arza/ui';
 import { NIT_ID_TYPE, partyRoleSchema, type PartyRole } from '@arza/contracts';
 import type { JSX } from 'react';
 
+import type { SummaryField } from '../../components/form-summary';
 import { useCatalog } from '../organization/queries';
 import { CheckboxField } from '../organization/record-dialog';
 import { ROLE_LABELS } from './labels';
@@ -100,6 +101,18 @@ function CheckDigit({ form }: { readonly form: FieldsProps }): JSX.Element {
     />
   );
 }
+
+/** Campos del tercero en el orden del formulario, para el resumen de errores. */
+export const PARTY_SUMMARY_FIELDS: readonly SummaryField[] = [
+  { field: 'legal_name', id: 'tercero-legalName', label: 'Razón social' },
+  { field: 'first_name', id: 'tercero-firstName', label: 'Nombres' },
+  { field: 'last_name', id: 'tercero-lastName', label: 'Apellidos' },
+  { field: 'id_type', id: 'tercero-tipo-documento', label: 'Tipo de documento' },
+  { field: 'id_number', id: 'tercero-idNumber', label: 'Número de documento' },
+  { field: 'check_digit', id: 'tercero-digito', label: 'Dígito de verificación' },
+  { field: 'email', id: 'tercero-email', label: 'Correo' },
+  { field: 'phone', id: 'tercero-phone', label: 'Teléfono' },
+];
 
 const NIT_HINT = { hint: 'Sin puntos, sin guion y sin el dígito de verificación.' };
 

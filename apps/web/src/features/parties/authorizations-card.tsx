@@ -6,12 +6,13 @@ import { useState, type JSX, type SubmitEvent } from 'react';
 
 import { useApiClient } from '../../lib/api/api-provider';
 import { formatDate } from '../../lib/format/date-time';
+import { FormSummary } from '../../components/form-summary';
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { useAdminAction } from '../administration/admin-action';
 import { useCatalog } from '../organization/queries';
 import { RecordDialog } from '../organization/record-dialog';
-import { ConsentFields } from '../privacy/consent-fields';
+import { ConsentFields, consentSummaryFields } from '../privacy/consent-fields';
 import {
   EMPTY_CONSENT,
   consentBody,
@@ -82,6 +83,7 @@ function GrantForm(props: { readonly partyId: string; readonly onDone: () => voi
   return (
     <form noValidate onSubmit={submit} className="flex flex-col gap-4">
       {grant.error === null ? null : <FormError error={grant.error} />}
+      <FormSummary problems={errors} fields={consentSummaryFields('nueva-autorizacion')} />
       <ConsentFields
         idPrefix="nueva-autorizacion"
         notices={notices.data?.data ?? []}

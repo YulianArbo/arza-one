@@ -31,7 +31,8 @@ export interface CrmTarget {
   readonly version: number;
 }
 
-type CrmEntity = 'crm_lead' | 'crm_opportunity' | 'crm_activity' | 'crm_campaign';
+type CrmEntity =
+  'crm_lead' | 'crm_opportunity' | 'crm_activity' | 'crm_campaign' | 'crm_service' | 'crm_quote';
 
 export interface CrmChange {
   /** Acción de la auditoría, como «crm.opportunity.win». */

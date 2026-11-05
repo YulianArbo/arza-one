@@ -17,6 +17,7 @@ const ME = {
   ...INTERNAL_SESSION.user,
   last_login_at: '2026-10-09T20:15:00.000Z',
   password_changed_at: null,
+  has_photo: false,
 };
 
 /** Registra el cuerpo y las cabeceras de cada POST a la ruta dada y responde lo indicado. */
@@ -114,7 +115,7 @@ test.describe('perfil y salida', () => {
     await mockApi(page, { '/v1/me': { body: ME }, '/v1/me/mfa': { body: MFA } });
     const change = await capturePost(page, '/v1/me/password', 204);
     await page.goto('/app/perfil');
-    await expect(page.getByText('ana@demo-uno.test')).toBeVisible();
+    await expect(page.getByRole('main').getByText('ana@demo-uno.test')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Cambiar contraseña' })).toBeEnabled();
     await page.getByLabel('Contraseña actual').fill(PASSWORD);
     await page.getByLabel('Contraseña nueva').fill('arepa de choclo con queso');
@@ -128,7 +129,7 @@ test.describe('perfil y salida', () => {
     const logout = await capturePost(page, '/v1/auth/logout', 204);
     await page.goto('/app');
     await page.getByRole('button', { name: 'Menú del usuario' }).click();
-    await expect(page.getByText('Ana Pérez')).toBeVisible();
+    await expect(page.getByRole('menu').getByText('Ana Pérez')).toBeVisible();
     await page.getByRole('menuitem', { name: 'Cerrar sesión' }).click();
     await expect(page).toHaveURL(/\/iniciar-sesion\?motivo=sesion-cerrada$/);
     expect(logout[0]?.csrf).toBe(INTERNAL_SESSION.csrf_token);
@@ -137,7 +138,7 @@ test.describe('perfil y salida', () => {
   test('Mi perfil no tiene violaciones de accesibilidad', async ({ page, consoleErrors }) => {
     await mockApi(page, { '/v1/me': { body: ME }, '/v1/me/mfa': { body: MFA } });
     await page.goto('/app/perfil');
-    await expect(page.getByText('ana@demo-uno.test')).toBeVisible();
+    await expect(page.getByRole('main').getByText('ana@demo-uno.test')).toBeVisible();
     expect(await accessibilityViolations(page)).toEqual([]);
     expect(consoleErrors).toEqual([]);
   });

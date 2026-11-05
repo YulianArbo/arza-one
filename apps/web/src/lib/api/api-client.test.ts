@@ -159,6 +159,23 @@ describe('cliente de la API: edición con versión (B10)', () => {
   });
 });
 
+describe('cliente de la API: operaciones que no se repiten (B25)', () => {
+  it('POST envía la llave Idempotency-Key cuando la operación la pide', async () => {
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 204 }));
+    await createApiClient(BASE_URL, fetchImpl).post('/v1/signature-envelopes/x/actions/send', {
+      body: {},
+      version: 1,
+      csrfToken: 'codigo',
+      idempotencyKey: 'llave-de-la-operacion-1',
+    });
+    const init = fetchImpl.mock.calls[0]?.[1];
+    expect(init?.headers).toMatchObject({
+      'If-Match': '"1"',
+      'Idempotency-Key': 'llave-de-la-operacion-1',
+    });
+  });
+});
+
 describe('cliente de la API: borrados (B12)', () => {
   it('envía DELETE con la versión y el código antifalsificación', async () => {
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 204 }));
@@ -223,5 +240,21 @@ describe('cliente de la API: enlaces temporales de archivos (B14)', () => {
   it('trae el contenido de un enlace de descarga', async () => {
     const blob = await clientReturning(new Response('contenido')).fetchFile(LINK);
     expect(await blob.text()).toBe('contenido');
+  });
+});
+
+describe('fotos y logos (B22A)', () => {
+  it('trae la imagen con la sesión y entrega el error de la API', async () => {
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(new Response('png'));
+    const blob = await createApiClient(BASE_URL, fetchImpl).image('/v1/me/photo');
+    expect(await blob.text()).toBe('png');
+    const [url, init] = fetchImpl.mock.calls[0] ?? [];
+    expect(url).toHaveProperty('pathname', '/v1/me/photo');
+    expect(init?.credentials).toBe('include');
+    const body = {
+      error: { code: 'IMAGE_NOT_FOUND', message: 'No hay', details: [], correlation_id: 'c-3' },
+    };
+    const missing = clientReturning(jsonResponse(body, 404)).image('/v1/me/photo');
+    expect((await errorOf(missing)).code).toBe('IMAGE_NOT_FOUND');
   });
 });

@@ -10,6 +10,7 @@ import {
   summary,
 } from '../../test-support/admin-fixtures';
 import { SESSION, apiError, json, mockApi, renderWithApi } from '../../test-support/fake-api';
+import { ORGANIZATION } from '../../test-support/party-fixtures';
 import { RequireSession } from '../session/session-provider';
 import { UserList } from './user-list';
 
@@ -122,13 +123,17 @@ describe('invitar desde la lista', () => {
       display_name: null,
       kind: 'internal',
       role_ids: [ROLES.data[0]?.['id']],
+      party_id: null,
     });
     expect(invite?.headers['X-CSRF-Token']).toBe(SESSION.csrf_token);
   });
+});
 
-  it('para el portal ofrece los roles del portal y muestra el error de la API', async () => {
-    serve(ADMIN_PERMISSIONS, {
+describe('invitar a una persona del portal (B22A)', () => {
+  it('para el portal pide la empresa cliente, ofrece sus roles y muestra el error de la API', async () => {
+    const sent = serve(ADMIN_PERMISSIONS, {
       'POST /v1/users': () => apiError(409, 'EMAIL_TAKEN', 'Ya existe una cuenta con ese correo.'),
+      'GET /v1/parties': () => json({ data: [ORGANIZATION], next_cursor: null }),
     });
     renderWithApi(<Screen />);
     await userEvent.click(await screen.findByRole('button', { name: 'Invitar a una persona' }));
@@ -138,6 +143,17 @@ describe('invitar desde la lista', () => {
     await userEvent.type(within(dialog).getByLabelText('Nombre (opcional)'), 'Cliente');
     await userEvent.type(within(dialog).getByLabelText('Correo'), 'cliente@cliente.test');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Enviar invitación' }));
+    expect(
+      await within(dialog).findByText('Elija la empresa cliente de esta persona.'),
+    ).toBeVisible();
+    expect(sent.some((request) => request.method === 'POST')).toBe(false);
+    await userEvent.selectOptions(
+      await within(dialog).findByLabelText('Empresa cliente'),
+      ORGANIZATION.id,
+    );
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Enviar invitación' }));
     expect(await within(dialog).findByText('Ya existe una cuenta con ese correo.')).toBeVisible();
+    const invite = sent.find((request) => request.method === 'POST');
+    expect(invite?.body).toMatchObject({ kind: 'portal', party_id: ORGANIZATION.id });
   });
 });

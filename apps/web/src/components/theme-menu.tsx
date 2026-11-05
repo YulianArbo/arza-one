@@ -1,55 +1,47 @@
 'use client';
 
-import {
-  Button,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@arza/ui';
+import { cn } from '@arza/ui';
 import { Monitor, Moon, Sun } from 'lucide-react';
 import type { JSX } from 'react';
 
-import { parseTheme, THEME_LABELS, THEMES, type Theme } from '../lib/theme/theme';
+import { THEME_LABELS, THEMES, type Theme } from '../lib/theme/theme';
 import { useTheme } from '../lib/theme/theme-provider';
 
 const THEME_ICONS: Record<Theme, typeof Sun> = { light: Sun, dark: Moon, system: Monitor };
 
-/** Selector de modo claro, oscuro o según el sistema (16.2). */
+/** Selector de modo claro, oscuro o según el sistema, siempre a la vista (B22A). */
 export function ThemeMenu({ className }: { readonly className?: string }): JSX.Element {
   const { theme, setTheme } = useTheme();
-  const Icon = THEME_ICONS[theme];
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className={className}
-          aria-label={`Apariencia: ${THEME_LABELS[theme]}`}
-        >
-          <Icon aria-hidden="true" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel>Apariencia</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuRadioGroup
-          value={theme}
-          onValueChange={(value) => {
-            setTheme(parseTheme(value));
-          }}
-        >
-          {THEMES.map((option) => (
-            <DropdownMenuRadioItem key={option} value={option}>
-              {THEME_LABELS[option]}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div
+      role="group"
+      aria-label="Apariencia"
+      className={cn('inline-flex shrink-0 rounded-full border bg-card p-0.5', className)}
+    >
+      {THEMES.map((option) => {
+        const Icon = THEME_ICONS[option];
+        const pressed = theme === option;
+        return (
+          <button
+            key={option}
+            type="button"
+            aria-pressed={pressed}
+            aria-label={THEME_LABELS[option]}
+            title={THEME_LABELS[option]}
+            onClick={() => {
+              setTheme(option);
+            }}
+            className={cn(
+              'inline-flex size-7 items-center justify-center rounded-full transition-colors',
+              pressed
+                ? 'bg-foreground text-background'
+                : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            <Icon aria-hidden="true" className="size-3.5" />
+          </button>
+        );
+      })}
+    </div>
   );
 }

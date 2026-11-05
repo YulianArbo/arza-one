@@ -3,6 +3,11 @@ import { UnrecoverableError } from 'bullmq';
 
 import { processAccountEmail, type AccountEmailJobDependencies } from '../jobs/account-email.js';
 import {
+  processContractFollowUp,
+  processContractPdfs,
+  type ContractWorkJobDependencies,
+} from '../jobs/contract-work.js';
+import {
   processActivityRemind,
   type ActivityRemindJobDependencies,
 } from '../jobs/activity-remind.js';
@@ -26,6 +31,16 @@ import {
 } from '../jobs/notice-dispatch.js';
 import { processOverdueCheck, type OverdueCheckJobDependencies } from '../jobs/overdue-check.js';
 import { processPdfRender, type PdfRenderJobDependencies } from '../jobs/pdf-render.js';
+import {
+  processSignatureFollowUp,
+  processSignatureWork,
+  type SignatureWorkJobDependencies,
+} from '../jobs/signature-work.js';
+import {
+  processQuoteExpire,
+  processQuoteWork,
+  type QuoteWorkJobDependencies,
+} from '../jobs/quote-work.js';
 import { processTextExtract, type TextExtractJobDependencies } from '../jobs/text-extract.js';
 import { processVersionRender, type VersionRenderJobDependencies } from '../jobs/version-render.js';
 
@@ -48,7 +63,10 @@ export type JobDependencies = ExampleEmailDependencies &
   DispositionProposeJobDependencies &
   DispositionExecuteJobDependencies &
   TextExtractJobDependencies &
-  ActivityRemindJobDependencies;
+  ActivityRemindJobDependencies &
+  QuoteWorkJobDependencies &
+  ContractWorkJobDependencies &
+  SignatureWorkJobDependencies;
 
 /** Procesador que recibe los datos del trabajo; su resultado no se usa. */
 function withData(process: (data: unknown) => Promise<unknown>): JobHandler {
@@ -79,6 +97,12 @@ function handlers(deps: JobDependencies): ReadonlyMap<string, JobHandler> {
     [JOBS.docDispositionExecute.name, withoutData(async () => processDispositionExecute(deps))],
     [JOBS.docTextExtract.name, withoutData(async () => processTextExtract(deps))],
     [JOBS.crmActivityRemind.name, withoutData(async () => processActivityRemind(deps))],
+    [JOBS.crmQuoteWork.name, withoutData(async () => processQuoteWork(deps))],
+    [JOBS.crmQuoteExpire.name, withoutData(async () => processQuoteExpire(deps))],
+    [JOBS.ctrPdfRender.name, withoutData(async () => processContractPdfs(deps))],
+    [JOBS.ctrFollowUp.name, withoutData(async () => processContractFollowUp(deps))],
+    [JOBS.sigWork.name, withoutData(async () => processSignatureWork(deps))],
+    [JOBS.sigFollowUp.name, withoutData(async () => processSignatureFollowUp(deps))],
   ]);
 }
 

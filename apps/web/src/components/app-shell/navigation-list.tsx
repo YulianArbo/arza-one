@@ -29,7 +29,7 @@ export function NavigationList({
         <div key={group.label} className="flex flex-col gap-1">
           <h2
             className={cn(
-              'px-3 text-xs font-medium tracking-wide text-sidebar-foreground uppercase',
+              'px-3 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase',
               collapsible && 'sr-only lg:not-sr-only',
             )}
           >
@@ -73,8 +73,8 @@ function NavigationLink({
       aria-current={active ? 'page' : undefined}
       {...(onNavigate ? { onClick: onNavigate } : {})}
       className={cn(
-        'flex items-center gap-3 rounded-md px-3 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-hover focus-visible:outline-sidebar-active',
-        active && 'bg-sidebar-hover font-semibold text-sidebar-active',
+        'flex items-center gap-3 rounded-lg border border-transparent px-3 py-2 text-sm text-muted-foreground hover-invert',
+        active && 'border-border bg-muted font-medium text-foreground',
         collapsible && 'justify-center lg:justify-start',
       )}
     >

@@ -1,10 +1,11 @@
+import { ArrowLeft } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import type { JSX, ReactNode } from 'react';
 
 import { BrandLogo } from '../../components/brand-logo';
 import { ThemeMenu } from '../../components/theme-menu';
-import { ON_BRAND } from '../../lib/theme/theme';
+import { BrandPanel } from '../../features/access/brand-panel';
 
 // Pantallas de acceso (16.7): nunca indexables (15.6).
 export const metadata: Metadata = {
@@ -13,34 +14,45 @@ export const metadata: Metadata = {
 };
 
 /**
- * Acceso (B20A): panel de marca a la izquierda en escritorio y formulario a la derecha.
- * En celular el panel se reduce a la barra superior con el nombre de la plataforma.
+ * Acceso (B22A): panel de marca animado con el mensaje del día a la izquierda en escritorio, y el
+ * formulario a la derecha. En celular solo va la barra con el logo.
  */
 export default function AccessLayout({ children }: { children: ReactNode }): JSX.Element {
   return (
-    <div className="grid min-h-dvh lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
-      <aside className="hidden flex-col justify-between bg-sidebar p-10 text-sidebar-foreground lg:flex">
-        <Link href="/" className="self-start">
-          <BrandLogo onDark className="h-9 w-auto" />
-        </Link>
-        <div className="flex flex-col gap-2">
-          <p className="font-heading text-3xl font-bold">Su trabajo diario, en un solo lugar.</p>
-          <p className="opacity-80">ARZA ONE, la plataforma de ARZA TECH S.A.S.</p>
-        </div>
-      </aside>
+    <div className="grid min-h-dvh lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)]">
+      <BrandPanel />
       <div className="flex flex-col">
-        <header className="flex items-center justify-between bg-sidebar px-4 py-3 sm:px-8 lg:justify-end lg:bg-transparent">
-          <Link href="/" className="text-sidebar-foreground lg:hidden">
-            <BrandLogo onDark className="h-7 w-auto" />
+        <header className="flex items-center justify-between gap-3 px-4 py-4 sm:px-8">
+          <Link href="/" className="text-foreground lg:hidden">
+            <BrandLogo className="h-7 w-auto" />
           </Link>
-          <ThemeMenu className={`${ON_BRAND} lg:text-foreground lg:hover:bg-accent`} />
+          <Link
+            href="/"
+            className="hidden items-center gap-2 text-sm text-muted-foreground hover:text-foreground lg:inline-flex"
+          >
+            <ArrowLeft aria-hidden="true" className="size-4" />
+            Volver al sitio
+          </Link>
+          <ThemeMenu />
         </header>
         <main
           id="contenido"
-          className="flex flex-1 items-start justify-center px-4 py-10 sm:py-16 lg:items-center"
+          className="flex flex-1 items-start justify-center px-4 py-8 sm:py-12 lg:items-center"
         >
           {children}
         </main>
+        <footer className="flex justify-between gap-3 px-4 py-4 text-xs text-muted-foreground sm:px-8">
+          <span>ARZA ONE · ARZA TECH S.A.S.</span>
+          <span>
+            <Link href="/legal/terminos" className="hover:text-foreground">
+              Términos
+            </Link>{' '}
+            ·{' '}
+            <Link href="/legal/privacidad" className="hover:text-foreground">
+              Privacidad
+            </Link>
+          </span>
+        </footer>
       </div>
     </div>
   );

@@ -9,6 +9,7 @@ import { hasPermission, type AppAbility } from '../../../platform/access/ability
 import { permissionDenied } from '../../../platform/access/permission-denied.js';
 import type { Principal } from '../../../platform/access/principal.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
+import { visibleContractTitle } from '../../contract/index.js';
 import { visiblePartyName } from '../../party/index.js';
 import { visibleInstanceTitle } from '../../wf/index.js';
 import { recordNotFound } from './ntf-messages.js';
@@ -55,6 +56,16 @@ const RECORD_TYPES: Readonly<Record<CommentableEntityType, RecordType>> = {
       return title === null ? null : `el trámite «${title}»`;
     },
     link: (id) => `/app/mis-tareas/tramites/${id}`,
+  },
+  // B24: los anexos y comentarios del expediente contractual.
+  ctr_contract: {
+    read: ['contract.read'],
+    write: ['contract.update'],
+    label: async (tx, access, id) => {
+      const title = await visibleContractTitle(tx, access.ability, id);
+      return title === null ? null : `el contrato «${title}»`;
+    },
+    link: (id) => `/app/contratos/${id}`,
   },
 };
 

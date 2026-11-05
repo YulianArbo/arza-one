@@ -53,3 +53,53 @@ export const LEAD_FLOW_DATA = {
     step('contact', 'discarded', 'discard', 'Descartar', true),
   ],
 };
+
+// Aprobación de una cotización (B23, ficha 17.6): si algún descuento pasa el tope, la Dirección
+// recibe en Mis tareas «Aprobar la cotización …» y la aprueba o la devuelve con un comentario. Quien
+// la elaboró no la decide. Se puede atender desde la ficha de la cotización o desde la tarea.
+
+export const QUOTE_FLOW = 'crm.quote';
+
+export const QUOTE_FLOW_STATES = {
+  approval: 'approval',
+  approved: 'approved',
+  returned: 'returned',
+} as const;
+
+export const QUOTE_FLOW_ACTIONS = { approve: 'approve', return: 'return' } as const;
+
+/** Dos días hábiles para decidir. */
+const APPROVAL_SLA_HOURS = 16;
+
+function decision(to: string, action: string, label: string, comment: boolean) {
+  return {
+    from_state: 'approval',
+    to_state: to,
+    action,
+    label,
+    required_permission: 'crm.quote.approve',
+    condition: null,
+    requires_comment: comment,
+  } satisfies TransitionInput;
+}
+
+export const QUOTE_FLOW_DATA = {
+  key: QUOTE_FLOW,
+  name: 'Aprobación de cotizaciones',
+  description:
+    'PR-COM-001: la Dirección aprueba o devuelve la cotización cuyo descuento pasa el tope.',
+  entityType: QUOTE_FLOW,
+  states: [
+    state('approval', 'Aprobar la cotización', 'initial', {
+      sla_hours: APPROVAL_SLA_HOURS,
+      priority: 'high',
+      assignee: { type: 'role', role: 'DIRECCION' },
+    }),
+    state('approved', 'Aprobada', 'final', {}),
+    state('returned', 'Devuelta para corregir', 'final', {}),
+  ],
+  transitions: [
+    decision('approved', 'approve', 'Aprobar', false),
+    decision('returned', 'return', 'Devolver para corregir', true),
+  ],
+};

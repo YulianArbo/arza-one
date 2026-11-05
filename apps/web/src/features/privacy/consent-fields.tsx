@@ -5,6 +5,7 @@ import { Alert, AlertDescription, AlertTitle, SelectField } from '@arza/ui';
 import { CircleAlert } from 'lucide-react';
 import type { JSX } from 'react';
 
+import type { SummaryField } from '../../components/form-summary';
 import { formatDate } from '../../lib/format/date-time';
 import { useFiles } from '../files/queries';
 import { useCatalog } from '../organization/queries';
@@ -24,6 +25,18 @@ interface ConsentFieldsProps {
   readonly onChange: (values: ConsentValues) => void;
   /** Prefijo de los identificadores, por si hay dos formularios en la misma página. */
   readonly idPrefix: string;
+}
+
+/** Campos de la autorización para el resumen de errores del formulario que la incluye. */
+export function consentSummaryFields(idPrefix: string): readonly SummaryField[] {
+  return [
+    { field: 'notice_id', id: `${idPrefix}-texto`, label: 'Texto de autorización' },
+    { field: 'purposes', id: `${idPrefix}-finalidades`, label: 'Finalidades' },
+    { field: 'channel', id: `${idPrefix}-canal`, label: 'Cómo se obtuvo' },
+    { field: 'granted_on', id: `${idPrefix}-fecha`, label: 'Fecha de la autorización' },
+    { field: 'evidence_file_id', id: `${idPrefix}-soporte`, label: 'Soporte' },
+    { field: 'accepted', id: `${idPrefix}-acepta`, label: 'Autorización' },
+  ];
 }
 
 const CHANNEL_OPTIONS = [
@@ -70,6 +83,7 @@ function PurposeChoices(props: ConsentFieldsProps & { readonly notice: Notice })
   const error = props.errors['purposes'];
   return (
     <fieldset
+      id={`${idPrefix}-finalidades`}
       className="flex flex-col gap-2"
       aria-describedby={error === undefined ? undefined : `${idPrefix}-finalidades-error`}
     >

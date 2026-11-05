@@ -20,6 +20,7 @@ import {
   ManualClock,
   createIamTestApp,
   createUser,
+  freshIp,
   postWithSession,
   signInWithPassword,
   tenantScope,
@@ -87,8 +88,12 @@ export class IamScenario {
     return { email, id };
   }
 
+  /** Cada lectura llega desde otra dirección, como las escrituras: no agota el límite por minuto. */
   get(path: string, signedIn: SignedIn): request.Test {
-    return request(this.app.getHttpServer()).get(path).set('Cookie', signedIn.cookie);
+    return request(this.app.getHttpServer())
+      .get(path)
+      .set('X-Forwarded-For', freshIp())
+      .set('Cookie', signedIn.cookie);
   }
 
   async startSetup(session: SignedIn): Promise<SecondFactorSetupResponse> {

@@ -51,6 +51,11 @@ export const PARAMETER_DEFINITIONS = {
     description:
       'Días y horas de la jornada. Gobierna los vencimientos en días hábiles y las notificaciones.',
   },
+  'crm.discount_cap': {
+    label: 'Tope de descuento sin aprobación',
+    description:
+      'Descuento máximo por ítem que una cotización lleva sin aprobación de la Dirección (ficha 17.6).',
+  },
 } as const;
 
 export type ParameterKey = keyof typeof PARAMETER_DEFINITIONS;
@@ -59,8 +64,27 @@ export function isParameterKey(value: string): value is ParameterKey {
   return Object.hasOwn(PARAMETER_DEFINITIONS, value);
 }
 
-// shortcut: hoy hay un solo parámetro; con el segundo, este esquema pasa a ser una unión por clave.
-const parameterValueSchema = workScheduleSchema;
+/** Tope de descuento (B23): porcentaje con hasta dos decimales, de 0 a 100. */
+export const discountCapSchema = z.strictObject({
+  percent: z
+    .string()
+    .trim()
+    .regex(/^\d{1,3}(\.\d{1,2})?$/u, 'Escriba el porcentaje con punto decimal: 10.5')
+    .refine((value) => Number(value) <= 100, 'El tope no puede pasar de 100 %.'),
+});
+
+/** Esquema del valor de cada parámetro: la API valida la vigencia nueva con el de su clave. */
+export const PARAMETER_VALUE_SCHEMAS = {
+  'work.schedule': workScheduleSchema,
+  'crm.discount_cap': discountCapSchema,
+} as const satisfies Record<ParameterKey, z.ZodType>;
+
+const parameterValueSchema = z.union([workScheduleSchema, discountCapSchema]);
+
+/** El valor es un horario laboral (y no otro parámetro). */
+export function isWorkSchedule(value: ParameterValue): value is WorkSchedule {
+  return 'days' in value;
+}
 
 const personRefSchema = z.object({ id: z.uuid(), name: z.string() });
 
@@ -125,6 +149,8 @@ export const businessDaysResponseSchema = z.object({
 });
 
 export type WorkSchedule = z.infer<typeof workScheduleSchema>;
+export type DiscountCap = z.infer<typeof discountCapSchema>;
+export type ParameterValue = z.infer<typeof parameterValueSchema>;
 export type ParameterVersion = z.infer<typeof parameterVersionSchema>;
 export type ParameterSummary = z.infer<typeof parameterSummarySchema>;
 export type ParameterListResponse = z.infer<typeof parameterListResponseSchema>;

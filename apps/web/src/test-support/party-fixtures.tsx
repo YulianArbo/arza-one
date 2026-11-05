@@ -63,6 +63,7 @@ export const ORGANIZATION: PartyDetail = partyDetailSchema.parse({
     { role: 'supplier', since: '2025-03-01', is_active: false },
   ],
   due_diligence: { state: 'approved', next_review_on: '2027-01-15' },
+  has_logo: false,
   created_at: '2026-01-15T14:00:00.000Z',
 });
 

@@ -80,7 +80,12 @@ describe('formulario del tercero', () => {
     await userEvent.type(screen.getByLabelText('Número de documento'), '800197268');
     await userEvent.type(screen.getByLabelText('Dígito de verificación'), '5');
     await userEvent.click(screen.getByRole('button', { name: 'Guardar' }));
-    expect(await screen.findByText(/no corresponde a ese NIT/)).toBeVisible();
+    // Junto al dígito y en el resumen, que lleva hasta el campo.
+    expect(await screen.findAllByText(/no corresponde a ese NIT/)).toHaveLength(2);
+    expect(screen.getByRole('link', { name: /Dígito de verificación:/ })).toHaveAttribute(
+      'href',
+      '#tercero-digito',
+    );
     expect(sent.some((request) => request.method === 'POST')).toBe(false);
   });
 });

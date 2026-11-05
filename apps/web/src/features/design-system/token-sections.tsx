@@ -7,19 +7,12 @@ interface Swatch {
   className: string;
 }
 
-// Tokens de color del numeral 16.2. Las clases usan solo variables de la marca.
+// Tokens de color (B22A). Las clases usan solo variables de la marca.
 const SWATCHES: Swatch[] = [
-  {
-    name: 'Primario',
-    usage: 'Acción principal, enlaces, elemento activo',
-    className: 'bg-primary',
-  },
-  {
-    name: 'Marca oscuro',
-    usage: 'Menú lateral, encabezados, texto principal',
-    className: 'bg-brand-navy',
-  },
-  { name: 'Acento', usage: 'Resaltados y estados informativos', className: 'bg-brand-accent' },
+  { name: 'Acción', usage: 'Botón de la acción principal', className: 'bg-action' },
+  { name: 'Primario', usage: 'Enlaces y elemento activo', className: 'bg-primary' },
+  { name: 'Marca oscuro', usage: 'Panel de marca del acceso', className: 'bg-brand-navy' },
+  { name: 'Invertido', usage: 'Módulo o tarjeta bajo el cursor', className: 'bg-invert' },
   { name: 'Fondo', usage: 'Fondo de la aplicación', className: 'bg-background' },
   { name: 'Tarjeta', usage: 'Fondo de tarjetas y campos', className: 'bg-card' },
   { name: 'Éxito', usage: 'Operación correcta', className: 'bg-success' },
@@ -33,7 +26,7 @@ export function ColorSection(): JSX.Element {
     <Card aria-labelledby="colors-title">
       <CardHeader>
         <CardTitle id="colors-title">Colores</CardTitle>
-        <CardDescription>Del Manual de Identidad Corporativa MN-ADM-001.</CardDescription>
+        <CardDescription>Neutros en claro y oscuro con el azul de la marca.</CardDescription>
       </CardHeader>
       <CardContent>
         <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -63,10 +56,10 @@ export function TypographySection(): JSX.Element {
         <CardDescription>Alojadas en el propio servidor, sin llamadas a terceros.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
-        <p className="font-heading text-2xl font-bold">Montserrat 700 · Título de página</p>
-        <p className="font-heading text-lg font-semibold">Montserrat 600 · Título de sección</p>
-        <p>Inter 400 · Texto de la aplicación, base de 14 px.</p>
-        <p className="font-medium">Inter 500 · Etiquetas y datos destacados.</p>
+        <p className="text-2xl font-semibold tracking-tight">Montserrat 600 · Título de página</p>
+        <p className="text-lg font-semibold">Montserrat 600 · Título de sección</p>
+        <p>Montserrat 400 · Texto de la aplicación, base de 14 px.</p>
+        <p className="font-medium">Montserrat 500 · Etiquetas y datos destacados.</p>
       </CardContent>
     </Card>
   );

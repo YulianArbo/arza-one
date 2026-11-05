@@ -1,13 +1,18 @@
 'use client';
 
-import { workScheduleSchema, weeklyHours, type WorkSchedule } from '@arza/contracts';
+import {
+  workScheduleSchema,
+  weeklyHours,
+  type ParameterValue,
+  type WorkSchedule,
+} from '@arza/contracts';
 import { Checkbox, DialogFooter, FormField } from '@arza/ui';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
 import { useApiClient } from '../../lib/api/api-provider';
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
-import { useAdminAction } from '../administration/admin-action';
+import { useAdminAction, type AdminAction } from '../administration/admin-action';
 import { CORE_KEYS } from './queries';
 import { TextInput } from './record-dialog';
 
@@ -20,16 +25,20 @@ const DEFAULT: WorkSchedule = {
 };
 
 /** Mañana en Colombia (UTC−5), el primer día que se suele programar. */
-function tomorrowInBogota(): string {
+export function tomorrowInBogota(): string {
   return new Date(Date.now() - 5 * 3_600_000 + 86_400_000).toISOString().slice(0, 10);
 }
 
 interface Submission {
-  readonly value: WorkSchedule;
+  readonly value: ParameterValue;
   readonly validFrom: string;
 }
 
-function useSaveVersion(parameterKey: string, onSaved: () => void) {
+/** Guarda una vigencia nueva de un parámetro y recarga la lista y su historial. */
+export function useSaveVersion(
+  parameterKey: string,
+  onSaved: () => void,
+): AdminAction<Submission, void> {
   const api = useApiClient();
   return useAdminAction<Submission>({
     run: ({ value, validFrom }, csrfToken) =>

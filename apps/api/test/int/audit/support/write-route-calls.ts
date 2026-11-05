@@ -27,9 +27,13 @@ import { DOC_FORM_ROUTE_CALLS } from './doc-form-route-calls.js';
 import { DOC_REQUEST_ROUTE_CALLS } from './doc-request-route-calls.js';
 import { DOC_RETENTION_ROUTE_CALLS } from './doc-retention-route-calls.js';
 import { DOC_ROUTE_CALLS } from './doc-route-calls.js';
+import { MEDIA_ROUTE_CALLS } from './media-route-calls.js';
 import { NTF_ROUTE_CALLS } from './ntf-route-calls.js';
 import { PARTY_ROUTE_CALLS } from './party-route-calls.js';
 import { PRIVACY_ROUTE_CALLS } from './privacy-route-calls.js';
+import { PROJECT_ROUTE_CALLS } from './project-route-calls.js';
+import { CONTRACT_ROUTE_CALLS } from './contract-route-calls.js';
+import { QUOTE_ROUTE_CALLS } from './quote-route-calls.js';
 import { WF_ROUTE_CALLS } from './wf-route-calls.js';
 
 // Una petición válida a cada ruta de la API que escribe (B11, criterio de la ficha 17.20). Cada
@@ -299,4 +303,8 @@ export const WRITE_ROUTE_CALLS: Readonly<Record<string, RouteCall>> = {
   ...NTF_ROUTE_CALLS,
   ...PRIVACY_ROUTE_CALLS,
   ...CRM_ROUTE_CALLS,
+  ...QUOTE_ROUTE_CALLS,
+  ...CONTRACT_ROUTE_CALLS,
+  ...PROJECT_ROUTE_CALLS,
+  ...MEDIA_ROUTE_CALLS,
 };

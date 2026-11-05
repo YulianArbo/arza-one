@@ -7,11 +7,18 @@ import {
   type TransitionNotice,
   type WfContext,
 } from '../../wf/index.js';
-import { LEAD_FLOW, LEAD_FLOW_DATA, LEAD_FLOW_STATES } from '../domain/crm-flows.js';
+import {
+  LEAD_FLOW,
+  LEAD_FLOW_DATA,
+  LEAD_FLOW_STATES,
+  QUOTE_FLOW,
+  QUOTE_FLOW_DATA,
+} from '../domain/crm-flows.js';
+import { followQuoteFlow } from './quote-flow.js';
 import { recordCrmChange } from './crm-support.js';
 import { crmNotFound } from './crm-messages.js';
 
-// El flujo del prospecto en el motor (B22): la semilla lo publica en cada empresa la primera vez y,
+// Los flujos del prospecto (B22) y de la aprobación de cotizaciones (B23) en el motor: la semilla lo publica en cada empresa la primera vez y,
 // al arrancar el módulo, el CRM se inscribe para seguir sus pasos en la misma transacción
 // (ADR-023). Si la tarea se atiende desde Mis tareas, el prospecto cambia con ella.
 
@@ -27,6 +34,9 @@ export async function seedCrmWorkflows(
     const context = { tenantId, userId: null, meta: null, at: clock.now() };
     await database.withTenant({ tenantId, userId: null }, (tx) =>
       seedPublishedFlow(tx, context, LEAD_FLOW_DATA),
+    );
+    await database.withTenant({ tenantId, userId: null }, (tx) =>
+      seedPublishedFlow(tx, context, QUOTE_FLOW_DATA),
     );
   }
 }
@@ -81,4 +91,5 @@ async function followLeadFlow(
 
 export function followCrmWorkflows(): void {
   onWorkflowTransition(LEAD_FLOW, followLeadFlow);
+  onWorkflowTransition(QUOTE_FLOW, followQuoteFlow);
 }

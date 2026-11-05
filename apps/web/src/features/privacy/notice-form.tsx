@@ -9,6 +9,7 @@ import {
 import { Label, Textarea } from '@arza/ui';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
+import { FormSummary } from '../../components/form-summary';
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { useCatalog } from '../organization/queries';
@@ -80,7 +81,7 @@ function PurposeOptions(props: {
   );
   const { draft, onChange } = props;
   return (
-    <fieldset className="flex flex-col gap-2">
+    <fieldset id="aviso-finalidades" className="flex flex-col gap-2">
       <legend className="mb-1 text-sm font-medium">Finalidades que ofrece</legend>
       {items.map((item) => (
         <CheckboxField
@@ -138,11 +139,18 @@ function useNoticeForm({ noticeKey, draft, base, onSaved }: NoticeFormProps) {
   return { values, setValues, errors, save, submit };
 }
 
+const SUMMARY_FIELDS = [
+  { field: 'title', id: 'aviso-titulo', label: 'Título' },
+  { field: 'body', id: 'aviso-texto', label: 'Texto completo' },
+  { field: 'purposes', id: 'aviso-finalidades', label: 'Finalidades que ofrece' },
+];
+
 export function NoticeForm(props: NoticeFormProps): JSX.Element {
   const { values, setValues, errors, save, submit } = useNoticeForm(props);
   return (
     <form noValidate onSubmit={submit} className="flex flex-col gap-4">
       {save.error === null ? null : <FormError error={save.error} />}
+      <FormSummary problems={errors} fields={SUMMARY_FIELDS} />
       <TextInput
         id="aviso-titulo"
         label="Título"

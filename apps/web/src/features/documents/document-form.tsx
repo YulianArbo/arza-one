@@ -10,6 +10,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { useCallback, useState, type JSX, type SubmitEvent } from 'react';
 
+import { FormSummary } from '../../components/form-summary';
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { useCatalog, useOrgUnits } from '../organization/queries';
@@ -21,8 +22,21 @@ import {
   EMPTY_VERSION,
   VersionFields,
   versionProblems,
+  versionSummaryFields,
   type VersionValues,
 } from './version-fields';
+
+const SUMMARY_FIELDS = [
+  { field: 'folder_id', id: 'documento-carpeta', label: 'Carpeta' },
+  { field: 'doc_type', id: 'documento-tipo', label: 'Tipo de documento' },
+  { field: 'process_id', id: 'documento-proceso', label: 'Proceso' },
+  {
+    field: 'change_request_id',
+    id: 'documento-solicitud',
+    label: 'Solicitud de Acción Documental aprobada',
+  },
+  ...versionSummaryFields('documento'),
+];
 
 // Documento nuevo (B18): nace con su versión 00 en borrador. El código lo pone el sistema al
 // guardar: TIPO-PROCESO-NNN en el SGC, sin saltos (PR-SGC-001). Desde B19 un documento del SGC se
@@ -196,6 +210,7 @@ export function DocumentForm({ folderId }: { readonly folderId: string | null })
       aria-label="Nuevo documento"
     >
       {save.error === null ? null : <FormError error={save.error} />}
+      <FormSummary problems={errors} fields={SUMMARY_FIELDS} />
       <PlacementFields values={values} errors={errors} onChange={setValues} />
       <ControlFields values={values} errors={errors} onChange={setValues} />
       <CreationRequest values={values} errors={errors} onChange={setValues} />

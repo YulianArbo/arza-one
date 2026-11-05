@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
 import { useApiClient } from '../../lib/api/api-provider';
+import { FormSummary } from '../../components/form-summary';
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { queryString, useDuplicates } from '../parties/queries';
@@ -84,8 +85,26 @@ const FIELDS: readonly TextFieldSpec<'title' | 'value' | 'expectedClose'>[] = [
   },
 ];
 
+function ClientSelect(props: {
+  readonly lead: LeadDetail;
+  readonly value: string;
+  readonly onChange: (partyId: string) => void;
+}): JSX.Element {
+  return (
+    <SelectField
+      id="conversion-cliente"
+      label="Cliente de la oportunidad"
+      hint="Si la empresa no aparece, regístrela primero en Terceros."
+      options={useClientOptions(props.lead)}
+      value={props.value}
+      onChange={(event) => {
+        props.onChange(event.target.value);
+      }}
+    />
+  );
+}
+
 export function ConvertForm({ lead }: { readonly lead: LeadDetail }): JSX.Element {
-  const clients = useClientOptions(lead);
   const convert = useConvert(lead);
   const empty = { partyId: lead.person.id, title: '', value: '', expectedClose: '' };
   const [values, setValues] = useState<Conversion>(empty);
@@ -99,14 +118,12 @@ export function ConvertForm({ lead }: { readonly lead: LeadDetail }): JSX.Elemen
   return (
     <form noValidate onSubmit={submit} className="flex flex-col gap-4">
       {convert.error === null ? null : <FormError error={convert.error} />}
-      <SelectField
-        id="conversion-cliente"
-        label="Cliente de la oportunidad"
-        hint="Si la empresa no aparece, regístrela primero en Terceros."
-        options={clients}
+      <FormSummary problems={problems} fields={FIELDS} />
+      <ClientSelect
+        lead={lead}
         value={values.partyId}
-        onChange={(event) => {
-          setValues({ ...values, partyId: event.target.value });
+        onChange={(partyId) => {
+          setValues({ ...values, partyId });
         }}
       />
       <TextFields

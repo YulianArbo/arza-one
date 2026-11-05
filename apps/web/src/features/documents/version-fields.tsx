@@ -3,6 +3,7 @@
 import { Label, SelectField, Textarea } from '@arza/ui';
 import type { JSX } from 'react';
 
+import type { SummaryField as SummaryFieldSpec } from '../../components/form-summary';
 import { usePositions } from '../organization/queries';
 import { TextInput, idOrNull, optionsOf } from '../organization/record-dialog';
 import { CLASSIFICATION_OPTIONS, classificationHint } from './labels';
@@ -123,12 +124,22 @@ function DataFields({ prefix, values, errors, onChange }: DataProps): JSX.Elemen
   );
 }
 
+/** Campos de la versión para el resumen de errores del formulario que los incluye. */
+export function versionSummaryFields(prefix: string): readonly SummaryFieldSpec[] {
+  return [
+    { field: 'title', id: `${prefix}-titulo`, label: 'Título' },
+    { field: 'source_file_id', id: `${prefix}-archivo`, label: 'Archivo fuente' },
+    { field: 'change_summary', id: `${prefix}-cambios`, label: 'Qué cambia en esta versión' },
+  ];
+}
+
 export function VersionFields(props: VersionFieldsProps): JSX.Element {
   const { prefix, values, errors, onChange } = props;
   return (
     <>
       <DataFields prefix={prefix} values={values} errors={errors} onChange={onChange} />
       <SourceUpload
+        id={`${prefix}-archivo`}
         current={props.current}
         onChange={props.onSource}
         error={errors['source_file_id']}

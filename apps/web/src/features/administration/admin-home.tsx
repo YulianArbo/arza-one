@@ -152,7 +152,7 @@ function SectionCard({ section }: { readonly section: Section }): JSX.Element {
       href={section.href}
       className="rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
-      <Card className="h-full transition-colors hover:border-primary">{content}</Card>
+      <Card className="h-full hover-invert">{content}</Card>
     </Link>
   );
 }

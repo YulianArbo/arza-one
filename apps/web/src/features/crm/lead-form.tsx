@@ -5,15 +5,16 @@ import { Button } from '@arza/ui';
 import { useRouter } from 'next/navigation';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
+import { FormSummary } from '../../components/form-summary';
 import { useApiClient } from '../../lib/api/api-provider';
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { queryString } from '../parties/queries';
-import { ConsentFields } from '../privacy/consent-fields';
+import { ConsentFields, consentSummaryFields } from '../privacy/consent-fields';
 import { consentErrors, type ConsentErrors } from '../privacy/consent-values';
 import { useCrmAction } from './crm-action';
 import { CRM_PATHS } from './labels';
-import { ExistingPerson, LeadFields, PersonFields } from './lead-form-fields';
+import { ExistingPerson, LEAD_SUMMARY_FIELDS, LeadFields, PersonFields } from './lead-form-fields';
 import {
   EMPTY_LEAD,
   leadBody,
@@ -25,6 +26,9 @@ import { useLeadNotices } from './queries';
 
 // Registrar un prospecto (B22, ficha 17.6; numeral 16.4, patrón de formulario). Todo prospecto
 // guarda su autorización de tratamiento (B17). Si la persona ya está en Terceros, se usa esa.
+
+const CONSENT_PREFIX = 'prospecto-autorizacion';
+const SUMMARY_FIELDS = [...LEAD_SUMMARY_FIELDS, ...consentSummaryFields(CONSENT_PREFIX)];
 
 function Consent(props: {
   readonly values: LeadFormValues;
@@ -38,7 +42,7 @@ function Consent(props: {
   }
   return (
     <ConsentFields
-      idPrefix="prospecto-autorizacion"
+      idPrefix={CONSENT_PREFIX}
       notices={notices.data.data}
       values={props.values.consent}
       errors={props.errors}
@@ -90,8 +94,7 @@ function useLeadForm() {
   const refreshProbe = (): void => {
     setProbe(probeOf(values));
   };
-  const invalid = Object.keys(errors).length + Object.keys(consent).length > 0;
-  return { values, setValues, errors, consent, invalid, probe, refreshProbe, save, submit };
+  return { values, setValues, errors, consent, probe, refreshProbe, save, submit };
 }
 
 function FormButtons({ pending }: { readonly pending: boolean }): JSX.Element {
@@ -118,11 +121,7 @@ export function LeadForm(): JSX.Element {
   return (
     <form noValidate onSubmit={form.submit} className="flex max-w-3xl flex-col gap-4">
       {form.save.error === null ? null : <FormError error={form.save.error} />}
-      {form.invalid ? (
-        <p role="alert" className="text-sm font-medium text-destructive">
-          Revise los datos marcados antes de guardar.
-        </p>
-      ) : null}
+      <FormSummary problems={{ ...form.errors, ...form.consent }} fields={SUMMARY_FIELDS} />
       <PersonFields {...fields} onProbe={form.refreshProbe} />
       {form.values.partyId === '' ? <ExistingPerson {...fields} probe={form.probe} /> : null}
       <LeadFields {...fields} />
