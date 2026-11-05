@@ -146,7 +146,8 @@ alcanzaba (0,2 GB de 7,3 GB). Pasos y resultados:
 
 1. Foto de perfil y logo del cliente dentro de este bloque, como etapa aparte con migración, API y
    pruebas de permiso, aislamiento y auditoría.
-2. Solo Inter.
+2. Solo Inter. **Cambiada el 31/10/2026** por el dueño del producto: toda la plataforma usa solo
+   Montserrat (títulos y texto), sin Inter.
 3. Mensaje del día: 7 mensajes fijos, uno por día de la semana.
 4. Las secciones que dependen de otros bloques se construyen con su diseño y «Disponible pronto»;
    no simulan funcionar.
@@ -166,8 +167,10 @@ Reemplazan los de B20A. Antes de construir una pantalla nueva:
 2. **Colores**: solo los tokens de `tokens.css`, en claro y oscuro. El azul de acción
    (`bg-action`) es para la acción principal de la pantalla, una sola. Los estados usan sus tonos
    (`success`, `warning`, `destructive`, `info`) como píldoras de fondo tenue.
-3. **Tipografía**: Inter; números de ancho fijo en cifras, fechas y códigos; JetBrains Mono solo
-   donde ayuda a leer un código.
+3. **Tipografía**: Montserrat en toda la plataforma (desde el 31/10/2026; antes Inter), con
+   pesos 400, 500 y 600; números de ancho fijo en cifras, fechas y códigos; JetBrains Mono solo
+   donde ayuda a leer un código. Montserrat es más ancha: revise que los textos largos, las
+   tablas y los encabezados no se corten ni se desborden a 390 px.
 4. **Superficies**: tarjetas con borde fino y radio `xl`, sin sombra en reposo ni degradados ni
    vidrio. La sombra queda para menús, diálogos y la tarjeta que se quiere destacar.
 5. **Movimiento**: módulos y tarjetas que se pueden abrir usan `hover-invert`; las entradas usan
