@@ -86,8 +86,9 @@ describe('todas las rutas reales de la API declaran su acceso', () => {
     const open = routes.filter((route) => route.access === 'public').map((route) => route.path);
     for (const path of open) {
       // Enlaces temporales de archivos (B14): la llave del enlace es la autorización.
+      // El enlace de la cotización (B23, decisión 8): la llave va en el cuerpo de la petición.
       expect(path).toMatch(
-        /^\/(health|version|v1\/auth\/(login|password\/\w+|invitation\/accept)|v1\/files\/(uploads|downloads)\/:token)$/,
+        /^\/(health|version|v1\/auth\/(login|password\/\w+|invitation\/accept)|v1\/files\/(uploads|downloads)\/:token|v1\/public\/quotes\/(view|pdf|accept|reject))$/,
       );
     }
   });
