@@ -63,6 +63,7 @@ beforeAll(async () => {
     convertOffice: async () => Promise.reject(new Error('no se usa en esta prueba')),
     convertHtml: async () => Promise.reject(new Error('no se usa en esta prueba')),
     stamp: async () => Promise.reject(new Error('no se usa en esta prueba')),
+    mergePdfs: async () => Promise.reject(new Error('no se usa en esta prueba')),
     extractText: async () => Promise.reject(new Error('no se usa en esta prueba')),
   });
   workers = startQueueWorkers(router, {

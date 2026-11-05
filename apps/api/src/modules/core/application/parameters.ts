@@ -1,12 +1,16 @@
 import { Inject, Injectable } from '@nestjs/common';
 import {
   PARAMETER_DEFINITIONS,
+  PARAMETER_VALUE_SCHEMAS,
+  discountCapSchema,
   isParameterKey,
   workScheduleSchema,
   type CreateParameterVersionRequest,
+  type DiscountCap,
   type ParameterHistoryResponse,
   type ParameterKey,
   type ParameterSummary,
+  type ParameterValue,
   type ParameterVersion,
   type WorkSchedule,
 } from '@arza/contracts';
@@ -25,7 +29,11 @@ import {
   validFromProblem,
 } from '../domain/parameter-policy.js';
 import { auditCore } from './core-audit.js';
-import { parameterUnknown, parameterValidFromInvalid } from './core-messages.js';
+import {
+  parameterUnknown,
+  parameterValidFromInvalid,
+  parameterValueInvalid,
+} from './core-messages.js';
 
 interface Dated {
   readonly row: Parameter;
@@ -46,14 +54,19 @@ async function versionsOf(tx: TenantTransaction, key: string): Promise<Dated[]> 
   }));
 }
 
-async function viewsOf(tx: TenantTransaction, versions: readonly Dated[]) {
+/** El valor guardado, leído con el esquema de su clave. */
+function valueOf(key: ParameterKey, row: Parameter): ParameterValue {
+  return PARAMETER_VALUE_SCHEMAS[key].parse(row.value);
+}
+
+async function viewsOf(tx: TenantTransaction, key: ParameterKey, versions: readonly Dated[]) {
   const ids = versions.flatMap(({ row }) => (row.createdBy === null ? [] : [row.createdBy]));
   const people = await peopleById(tx, ids);
   return (version: Dated): ParameterVersion => {
     const person = version.row.createdBy === null ? undefined : people.get(version.row.createdBy);
     return {
       id: version.row.id,
-      value: workScheduleSchema.parse(version.row.value),
+      value: valueOf(key, version.row),
       valid_from: version.validFrom,
       valid_to: version.validTo,
       created_at: version.row.createdAt.toISOString(),
@@ -105,8 +118,9 @@ export class ParametersUseCase {
     return this.database.withTenant(principal, async (tx) => {
       const summaries: ParameterSummary[] = [];
       for (const [key, definition] of Object.entries(PARAMETER_DEFINITIONS)) {
+        if (!isParameterKey(key)) continue;
         const versions = await versionsOf(tx, key);
-        const view = await viewsOf(tx, versions);
+        const view = await viewsOf(tx, key, versions);
         const { current, scheduled } = currentAndScheduled(versions, today);
         summaries.push({
           key,
@@ -123,7 +137,7 @@ export class ParametersUseCase {
     const known = knownKey(key);
     return this.database.withTenant(principal, async (tx) => {
       const versions = await versionsOf(tx, known);
-      const view = await viewsOf(tx, versions);
+      const view = await viewsOf(tx, known, versions);
       return { key: known, label: PARAMETER_DEFINITIONS[known].label, data: versions.map(view) };
     });
   }
@@ -135,6 +149,9 @@ export class ParametersUseCase {
     meta: RequestMeta,
   ): Promise<void> {
     const known = knownKey(key);
+    if (!PARAMETER_VALUE_SCHEMAS[known].safeParse(input.value).success) {
+      throw parameterValueInvalid();
+    }
     const at = this.clock.now();
     await this.database.withTenant(principal, async (tx) => {
       const [latest] = await versionsOf(tx, known);
@@ -155,7 +172,7 @@ export class ParametersUseCase {
           changes: {
             key: known,
             value: {
-              from: latest === undefined ? null : workScheduleSchema.parse(latest.row.value),
+              from: latest === undefined ? null : valueOf(known, latest.row),
               to: input.value,
             },
             valid_from: input.valid_from,
@@ -175,4 +192,14 @@ export async function workScheduleOn(
   const versions = await versionsOf(tx, 'work.schedule');
   const { current } = currentAndScheduled(versions, date);
   return current === null ? null : workScheduleSchema.parse(current.row.value);
+}
+
+/** Tope de descuento sin aprobación vigente en una fecha (B23); null si nunca se definió. */
+export async function discountCapOn(
+  tx: TenantTransaction,
+  date: string,
+): Promise<DiscountCap | null> {
+  const versions = await versionsOf(tx, 'crm.discount_cap');
+  const { current } = currentAndScheduled(versions, date);
+  return current === null ? null : discountCapSchema.parse(current.row.value);
 }

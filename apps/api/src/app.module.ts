@@ -5,9 +5,12 @@ import type { Redis } from 'ioredis';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 
 import { AuditModule } from './modules/audit/index.js';
+import { ContractModule } from './modules/contract/index.js';
+import { ProjectModule } from './modules/project/index.js';
 import { CoreModule } from './modules/core/index.js';
 import { CrmModule } from './modules/crm/index.js';
 import { DocModule, ProfileImagesModule } from './modules/doc/index.js';
+import { FinModule } from './modules/fin/index.js';
 import { IamModule } from './modules/iam/index.js';
 import { PartyModule } from './modules/party/index.js';
 import { NtfModule } from './modules/ntf/index.js';
@@ -41,7 +44,10 @@ const BUSINESS_MODULES = [
   WfModule,
   NtfModule,
   PrivacyModule,
+  FinModule,
   CrmModule,
+  ContractModule,
+  ProjectModule,
 ];
 
 /**

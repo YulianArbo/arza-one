@@ -60,3 +60,69 @@ export function campaignNameTaken(): AppError {
     'Ya existe una campaña con ese nombre. Use otro nombre o edite la existente.',
   );
 }
+
+export function serviceNameTaken(): AppError {
+  return new AppError(
+    HttpStatus.CONFLICT,
+    CRM_ERROR_CODES.serviceDuplicate,
+    'Ya existe un servicio con ese nombre en el portafolio. Use otro nombre o edite el existente.',
+  );
+}
+
+export function serviceInvalid(): AppError {
+  return new AppError(
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    CRM_ERROR_CODES.serviceInvalid,
+    'El servicio no existe o ya no está activo en el portafolio. Elija otro de la lista.',
+  );
+}
+
+export function taxInvalid(): AppError {
+  return new AppError(
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    CRM_ERROR_CODES.taxInvalid,
+    'Ese impuesto no tiene una tarifa vigente. Elija uno de la lista o pida al Contador que lo registre.',
+  );
+}
+
+export function validUntilInvalid(): AppError {
+  return new AppError(
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    CRM_ERROR_CODES.validUntilInvalid,
+    'La vigencia debe terminar hoy o más adelante. Elija otra fecha.',
+  );
+}
+
+export function selfApproval(): AppError {
+  return new AppError(
+    HttpStatus.FORBIDDEN,
+    CRM_ERROR_CODES.selfApproval,
+    'Quien elaboró la cotización no puede aprobarla ni devolverla.',
+  );
+}
+
+export function pdfNotReady(): AppError {
+  return new AppError(
+    HttpStatus.CONFLICT,
+    CRM_ERROR_CODES.pdfNotReady,
+    'El PDF de la cotización todavía se está preparando. Intente de nuevo en unos segundos.',
+  );
+}
+
+export function quoteLinkInvalid(): AppError {
+  return new AppError(
+    HttpStatus.NOT_FOUND,
+    CRM_ERROR_CODES.quoteLinkInvalid,
+    'El enlace no es válido. Revise que lo copió completo o pida a quien le envió la cotización uno nuevo.',
+  );
+}
+
+/** Mensaje del numeral 14.2: «La cotización venció el 15/10/2026 y no puede aceptarse». */
+export function quoteExpired(validUntil: string): AppError {
+  const [year, month, day] = validUntil.split('-');
+  return new AppError(
+    HttpStatus.CONFLICT,
+    CRM_ERROR_CODES.quoteExpired,
+    `La cotización venció el ${day ?? ''}/${month ?? ''}/${year ?? ''} y no puede aceptarse.`,
+  );
+}

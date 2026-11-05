@@ -95,6 +95,27 @@ model Tenant {
   crmLeads                CrmLead[]
   crmOpportunities        CrmOpportunity[]
   crmActivities           CrmActivity[]
+  crmServices             CrmService[]
+  crmQuotes               CrmQuote[]
+  crmQuoteItems           CrmQuoteItem[]
+  finTaxParameters        FinTaxParameter[]
+  ctrClauses              CtrClause[]
+  ctrTemplates            CtrTemplate[]
+  ctrTemplateClauses      CtrTemplateClause[]
+  ctrContracts            CtrContract[]
+  ctrContractClauses      CtrContractClause[]
+  ctrObligations          CtrObligation[]
+  ctrAmendments           CtrAmendment[]
+  sigEnvelopes            SigEnvelope[]
+  sigSigners              SigSigner[]
+  sigEvents               SigEvent[]
+  sigVerifications        SigVerification[]
+  prjProjects             PrjProject[]
+  prjMembers              PrjMember[]
+  prjMilestones           PrjMilestone[]
+  prjSprints              PrjSprint[]
+  prjItems                PrjItem[]
+  prjExternalLinks        PrjExternalLink[]
 
   @@map("core_tenants")
 }
@@ -1971,6 +1992,7 @@ model CrmOpportunity {
   tenant         Tenant        @relation(fields: [tenantId], references: [id], onDelete: Restrict)
   lead           CrmLead?      @relation(fields: [tenantId, leadId], references: [tenantId, id], onDelete: Restrict)
   activities     CrmActivity[]
+  quotes         CrmQuote[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, code])
@@ -2012,4 +2034,732 @@ model CrmActivity {
   @@index([tenantId, assigneeId, doneAt])
   @@index([tenantId, dueAt])
   @@map("crm_activities")
+}
+
+/// Portafolio de servicios con su tarifa vigente (B23). Guarda la clave del impuesto, no la tarifa:
+/// la tarifa se lee de fin_tax_parameters al cotizar.
+model CrmService {
+  id          String         @id @default(uuid(7)) @db.Uuid
+  tenantId    String         @map("tenant_id") @db.Uuid
+  code        String
+  name        String
+  description String?
+  unit        String
+  basePrice   Decimal        @map("base_price") @db.Decimal(18, 2)
+  taxKey      String         @map("tax_key")
+  isActive    Boolean        @default(true) @map("is_active")
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?        @map("created_by") @db.Uuid
+  updatedAt   DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?        @map("updated_by") @db.Uuid
+  version     Int            @default(1)
+  deletedAt   DateTime?      @map("deleted_at") @db.Timestamptz(6)
+  tenant      Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  quoteItems  CrmQuoteItem[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, name])
+  @@map("crm_services")
+}
+
+/// Cotizaciones (B23): borrador → en aprobación → aprobada → enviada → aceptada, rechazada o
+/// vencida; una versión nueva reemplaza a la anterior. Cada versión es una fila con el mismo código.
+/// Una cotización fuera de borrador no cambia su contenido (lo revisa la base). La evidencia de la
+/// aceptación o el rechazo en línea queda en las columnas response_*.
+model CrmQuote {
+  id                 String         @id @default(uuid(7)) @db.Uuid
+  tenantId           String         @map("tenant_id") @db.Uuid
+  code               String
+  versionNumber      Int            @map("version_number")
+  previousId         String?        @map("previous_id") @db.Uuid
+  opportunityId      String         @map("opportunity_id") @db.Uuid
+  partyId            String         @map("party_id") @db.Uuid
+  status             String         @default("draft")
+  validUntil         DateTime       @map("valid_until") @db.Date
+  paymentTerms       String         @map("payment_terms")
+  deliveryTerms      String         @map("delivery_terms")
+  warranty           String?
+  notes              String?
+  subtotal           Decimal        @db.Decimal(18, 2)
+  discountTotal      Decimal        @map("discount_total") @db.Decimal(18, 2)
+  taxTotal           Decimal        @map("tax_total") @db.Decimal(18, 2)
+  total              Decimal        @db.Decimal(18, 2)
+  largestDiscount    Decimal        @map("largest_discount") @db.Decimal(5, 2)
+  /// Tope vigente cuando se pidió el envío; vacío mientras es borrador.
+  discountCap        Decimal?       @map("discount_cap") @db.Decimal(5, 2)
+  requiresApproval   Boolean        @default(false) @map("requires_approval")
+  /// El trámite de la aprobación de la Dirección en Mis tareas, si la necesitó.
+  workflowInstanceId String?        @map("workflow_instance_id") @db.Uuid
+  submittedAt        DateTime?      @map("submitted_at") @db.Timestamptz(6)
+  decidedBy          String?        @map("decided_by") @db.Uuid
+  decidedAt          DateTime?      @map("decided_at") @db.Timestamptz(6)
+  decisionNote       String?        @map("decision_note")
+  /// none mientras no está aprobada; pending hasta que el worker genera el PDF FT-COM-001.
+  pdfStatus          String         @default("none") @map("pdf_status")
+  pdfFileId          String?        @map("pdf_file_id") @db.Uuid
+  pdfSha256          String?        @map("pdf_sha256")
+  recipientName      String?        @map("recipient_name")
+  recipientEmail     String?        @map("recipient_email")
+  sentBy             String?        @map("sent_by") @db.Uuid
+  sentAt             DateTime?      @map("sent_at") @db.Timestamptz(6)
+  emailSentAt        DateTime?      @map("email_sent_at") @db.Timestamptz(6)
+  /// Huella SHA-256 de la llave del enlace del cliente; la llave solo va en el correo.
+  linkTokenHash      String?        @unique @map("link_token_hash")
+  linkExpiresAt      DateTime?      @map("link_expires_at") @db.Timestamptz(6)
+  response           String?
+  respondedAt        DateTime?      @map("responded_at") @db.Timestamptz(6)
+  respondedByName    String?        @map("responded_by_name")
+  responseReason     String?        @map("response_reason")
+  responseIp         String?        @map("response_ip")
+  responseUserAgent  String?        @map("response_user_agent")
+  responsePdfSha256  String?        @map("response_pdf_sha256")
+  closedAt           DateTime?      @map("closed_at") @db.Timestamptz(6)
+  createdAt          DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy          String?        @map("created_by") @db.Uuid
+  updatedAt          DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy          String?        @map("updated_by") @db.Uuid
+  version            Int            @default(1)
+  deletedAt          DateTime?      @map("deleted_at") @db.Timestamptz(6)
+  tenant             Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  opportunity        CrmOpportunity @relation(fields: [tenantId, opportunityId], references: [tenantId, id], onDelete: Restrict)
+  previous           CrmQuote?      @relation("QuoteVersions", fields: [tenantId, previousId], references: [tenantId, id], onDelete: Restrict)
+  next               CrmQuote[]     @relation("QuoteVersions")
+  items              CrmQuoteItem[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code, versionNumber])
+  @@index([tenantId, opportunityId])
+  @@index([tenantId, status])
+  @@index([tenantId, createdAt])
+  @@map("crm_quotes")
+}
+
+/// Ítems de una cotización. Guardan la tarifa del impuesto usada y los totales de la línea, para
+/// que una cotización enviada nunca cambie aunque cambien el portafolio o los impuestos.
+model CrmQuoteItem {
+  id              String      @id @default(uuid(7)) @db.Uuid
+  tenantId        String      @map("tenant_id") @db.Uuid
+  quoteId         String      @map("quote_id") @db.Uuid
+  position        Int         @db.SmallInt
+  serviceId       String?     @map("service_id") @db.Uuid
+  description     String
+  unit            String
+  quantity        Decimal     @db.Decimal(9, 2)
+  unitPrice       Decimal     @map("unit_price") @db.Decimal(18, 2)
+  discountPercent Decimal     @map("discount_percent") @db.Decimal(5, 2)
+  taxKey          String      @map("tax_key")
+  taxRate         Decimal     @map("tax_rate") @db.Decimal(5, 2)
+  lineSubtotal    Decimal     @map("line_subtotal") @db.Decimal(18, 2)
+  lineDiscount    Decimal     @map("line_discount") @db.Decimal(18, 2)
+  lineTax         Decimal     @map("line_tax") @db.Decimal(18, 2)
+  lineTotal       Decimal     @map("line_total") @db.Decimal(18, 2)
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?     @map("created_by") @db.Uuid
+  updatedAt       DateTime    @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy       String?     @map("updated_by") @db.Uuid
+  version         Int         @default(1)
+  deletedAt       DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  tenant          Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  quote           CrmQuote    @relation(fields: [tenantId, quoteId], references: [tenantId, id], onDelete: Restrict)
+  service         CrmService? @relation(fields: [tenantId, serviceId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, quoteId])
+  @@index([tenantId, serviceId])
+  @@map("crm_quote_items")
+}
+
+// Finanzas (M10): parámetros tributarios, adelantados en B23 ------------------------------------
+
+/// Parámetros tributarios vigentes (numeral 12.4), validados por el Contador. Cada clave tiene
+/// vigencias: un cambio crea una fila nueva y cierra la anterior el día antes.
+model FinTaxParameter {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  key        String
+  label      String
+  rate       Decimal   @db.Decimal(5, 2)
+  validFrom  DateTime  @map("valid_from") @db.Date
+  validTo    DateTime? @map("valid_to") @db.Date
+  legalBasis String    @map("legal_basis")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?   @map("created_by") @db.Uuid
+  updatedAt  DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?   @map("updated_by") @db.Uuid
+  version    Int       @default(1)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, key, validFrom])
+  @@map("fin_tax_parameters")
+}
+
+// Contratos (M06, B24) ---------------------------------------------------------------------------
+
+/// Biblioteca de cláusulas aprobadas. Cada cambio es una versión nueva; los contratos guardan la
+/// versión que usaron. El texto lleva variables {{así}} que se llenan al generar el contrato.
+model CtrClause {
+  id             String    @id @default(uuid(7)) @db.Uuid
+  tenantId       String    @map("tenant_id") @db.Uuid
+  key            String
+  clauseVersion  Int       @map("clause_version")
+  title          String
+  body           String
+  /// Lleva número (PRIMERA, SEGUNDA…); el encabezado de las partes no.
+  numbered       Boolean
+  /// El asesor jurídico ya validó el texto (numeral 19.4).
+  legalValidated Boolean   @default(false) @map("legal_validated")
+  approvedBy     String?   @map("approved_by") @db.Uuid
+  approvedAt     DateTime  @map("approved_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy      String?   @map("created_by") @db.Uuid
+  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy      String?   @map("updated_by") @db.Uuid
+  version        Int       @default(1)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, key, clauseVersion])
+  @@map("ctr_clause_library")
+}
+
+/// Plantillas CT-COM y OS-COM: qué cláusulas de la biblioteca lleva cada una y en qué orden.
+model CtrTemplate {
+  id            String              @id @default(uuid(7)) @db.Uuid
+  tenantId      String              @map("tenant_id") @db.Uuid
+  code          String
+  name          String
+  kind          String
+  formatVersion String              @map("format_version")
+  isActive      Boolean             @default(true) @map("is_active")
+  createdAt     DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?             @map("created_by") @db.Uuid
+  updatedAt     DateTime            @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?             @map("updated_by") @db.Uuid
+  version       Int                 @default(1)
+  deletedAt     DateTime?           @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  clauses       CtrTemplateClause[]
+  contracts     CtrContract[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@map("ctr_templates")
+}
+
+model CtrTemplateClause {
+  id         String      @id @default(uuid(7)) @db.Uuid
+  tenantId   String      @map("tenant_id") @db.Uuid
+  templateId String      @map("template_id") @db.Uuid
+  position   Int         @db.SmallInt
+  clauseKey  String      @map("clause_key")
+  /// No se puede quitar del contrato.
+  required   Boolean
+  createdAt  DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?     @map("created_by") @db.Uuid
+  updatedAt  DateTime    @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?     @map("updated_by") @db.Uuid
+  version    Int         @default(1)
+  deletedAt  DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  template   CtrTemplate @relation(fields: [tenantId, templateId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, templateId, position])
+  @@unique([tenantId, templateId, clauseKey])
+  @@map("ctr_template_clauses")
+}
+
+/// Contratos y órdenes de servicio. El cliente (pty_parties), la cotización (crm_quotes), el
+/// responsable y los PDF (doc_files) se guardan por identificador, sin llaves hacia otros módulos.
+model CtrContract {
+  id                   String              @id @default(uuid(7)) @db.Uuid
+  tenantId             String              @map("tenant_id") @db.Uuid
+  code                 String
+  kind                 String
+  templateId           String              @map("template_id") @db.Uuid
+  partyId              String              @map("party_id") @db.Uuid
+  quoteId              String?             @map("quote_id") @db.Uuid
+  title                String
+  object               String
+  value                Decimal?            @db.Decimal(18, 2)
+  paymentTerms         String?             @map("payment_terms")
+  startsOn             DateTime            @map("starts_on") @db.Date
+  endsOn               DateTime            @map("ends_on") @db.Date
+  renewal              String
+  responsibleId        String?             @map("responsible_id") @db.Uuid
+  clientSignerName     String              @map("client_signer_name")
+  clientSignerDocument String              @map("client_signer_document")
+  /// Valores con que se llenaron las variables de las cláusulas, tal como se imprimieron.
+  variableValues       Json                @map("variable_values")
+  hasModifiedClauses   Boolean             @default(false) @map("has_modified_clauses")
+  status               String              @default("draft")
+  workflowInstanceId   String?             @map("workflow_instance_id") @db.Uuid
+  submittedAt          DateTime?           @map("submitted_at") @db.Timestamptz(6)
+  decidedBy            String?             @map("decided_by") @db.Uuid
+  decidedAt            DateTime?           @map("decided_at") @db.Timestamptz(6)
+  decisionNote         String?             @map("decision_note")
+  legalNote            String?             @map("legal_note")
+  /// none mientras no está aprobado; pending hasta que el worker genera el PDF definitivo.
+  pdfStatus            String              @default("none") @map("pdf_status")
+  pdfFileId            String?             @map("pdf_file_id") @db.Uuid
+  pdfSha256            String?             @map("pdf_sha256")
+  signedFileId         String?             @map("signed_file_id") @db.Uuid
+  signedOn             DateTime?           @map("signed_on") @db.Date
+  signedBy             String?             @map("signed_by") @db.Uuid
+  terminatedOn         DateTime?           @map("terminated_on") @db.Date
+  terminationReason    String?             @map("termination_reason")
+  terminatedBy         String?             @map("terminated_by") @db.Uuid
+  /// Última alerta de vencimiento enviada: 90, 60 o 30 días.
+  lastAlertDays        Int?                @map("last_alert_days") @db.SmallInt
+  closedAt             DateTime?           @map("closed_at") @db.Timestamptz(6)
+  createdAt            DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy            String?             @map("created_by") @db.Uuid
+  updatedAt            DateTime            @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy            String?             @map("updated_by") @db.Uuid
+  version              Int                 @default(1)
+  deletedAt            DateTime?           @map("deleted_at") @db.Timestamptz(6)
+  tenant               Tenant              @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  template             CtrTemplate         @relation(fields: [tenantId, templateId], references: [tenantId, id], onDelete: Restrict)
+  clauses              CtrContractClause[]
+  obligations          CtrObligation[]
+  amendments           CtrAmendment[]
+  envelopes            SigEnvelope[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@index([tenantId, status])
+  @@index([tenantId, partyId])
+  @@index([tenantId, quoteId])
+  @@index([tenantId, responsibleId])
+  @@index([tenantId, createdAt])
+  @@map("ctr_contracts")
+}
+
+/// El texto del contrato, cláusula por cláusula. Una modificada o nueva exige a la Dirección.
+model CtrContractClause {
+  id            String      @id @default(uuid(7)) @db.Uuid
+  tenantId      String      @map("tenant_id") @db.Uuid
+  contractId    String      @map("contract_id") @db.Uuid
+  position      Int         @db.SmallInt
+  clauseKey     String?     @map("clause_key")
+  clauseVersion Int?        @map("clause_version")
+  title         String
+  body          String
+  /// library, modified o added.
+  origin        String
+  numbered      Boolean
+  required      Boolean
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?     @map("created_by") @db.Uuid
+  updatedAt     DateTime    @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?     @map("updated_by") @db.Uuid
+  version       Int         @default(1)
+  deletedAt     DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  contract      CtrContract @relation(fields: [tenantId, contractId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, contractId])
+  @@map("ctr_contract_clauses")
+}
+
+/// Obligaciones e hitos del contrato, con su responsable y su fecha.
+model CtrObligation {
+  id            String      @id @default(uuid(7)) @db.Uuid
+  tenantId      String      @map("tenant_id") @db.Uuid
+  contractId    String      @map("contract_id") @db.Uuid
+  description   String
+  responsibleId String      @map("responsible_id") @db.Uuid
+  dueOn         DateTime    @map("due_on") @db.Date
+  status        String      @default("pending")
+  doneAt        DateTime?   @map("done_at") @db.Timestamptz(6)
+  doneBy        String?     @map("done_by") @db.Uuid
+  doneNote      String?     @map("done_note")
+  /// Cuando se avisó al responsable que se acerca la fecha.
+  remindedAt    DateTime?   @map("reminded_at") @db.Timestamptz(6)
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?     @map("created_by") @db.Uuid
+  updatedAt     DateTime    @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?     @map("updated_by") @db.Uuid
+  version       Int         @default(1)
+  deletedAt     DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  contract      CtrContract @relation(fields: [tenantId, contractId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, contractId])
+  @@index([tenantId, status, dueOn])
+  @@map("ctr_obligations")
+}
+
+/// Otrosíes y prórrogas. Su texto no cambia después de creado; rigen al registrar la firmada.
+model CtrAmendment {
+  id                 String      @id @default(uuid(7)) @db.Uuid
+  tenantId           String      @map("tenant_id") @db.Uuid
+  contractId         String      @map("contract_id") @db.Uuid
+  code               String
+  sequence           Int         @db.SmallInt
+  kind               String
+  status             String
+  summary            String
+  body               String
+  effectiveOn        DateTime    @map("effective_on") @db.Date
+  newEndsOn          DateTime?   @map("new_ends_on") @db.Date
+  newValue           Decimal?    @map("new_value") @db.Decimal(18, 2)
+  workflowInstanceId String?     @map("workflow_instance_id") @db.Uuid
+  decidedBy          String?     @map("decided_by") @db.Uuid
+  decidedAt          DateTime?   @map("decided_at") @db.Timestamptz(6)
+  decisionNote       String?     @map("decision_note")
+  pdfStatus          String      @default("none") @map("pdf_status")
+  pdfFileId          String?     @map("pdf_file_id") @db.Uuid
+  pdfSha256          String?     @map("pdf_sha256")
+  signedFileId       String?     @map("signed_file_id") @db.Uuid
+  signedOn           DateTime?   @map("signed_on") @db.Date
+  signedBy           String?     @map("signed_by") @db.Uuid
+  createdAt          DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy          String?     @map("created_by") @db.Uuid
+  updatedAt          DateTime    @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy          String?     @map("updated_by") @db.Uuid
+  version            Int         @default(1)
+  deletedAt          DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  tenant             Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  contract           CtrContract @relation(fields: [tenantId, contractId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, contractId, sequence])
+  @@map("ctr_amendments")
+}
+
+/// Proceso de firma electrónica de un contrato o un otrosí aprobado (B25, capítulo 19).
+model SigEnvelope {
+  id                 String            @id @default(uuid(7)) @db.Uuid
+  tenantId           String            @map("tenant_id") @db.Uuid
+  code               String
+  source             String
+  contractId         String            @map("contract_id") @db.Uuid
+  amendmentId        String?           @map("amendment_id") @db.Uuid
+  /// El PDF aprobado que se firma y su huella: no cambian.
+  documentFileId     String            @map("document_file_id") @db.Uuid
+  documentSha256     String            @map("document_sha256")
+  documentCode       String            @map("document_code")
+  documentTitle      String            @map("document_title")
+  level              Int               @default(2) @db.SmallInt
+  status             String            @default("draft")
+  message            String?
+  expiresAt          DateTime          @map("expires_at") @db.Timestamptz(6)
+  sentAt             DateTime?         @map("sent_at") @db.Timestamptz(6)
+  sentBy             String?           @map("sent_by") @db.Uuid
+  /// Llave Idempotency-Key con que se envió: repetir el envío con ella no cambia nada.
+  sendKey            String?           @map("send_key")
+  completedAt        DateTime?         @map("completed_at") @db.Timestamptz(6)
+  closedAt           DateTime?         @map("closed_at") @db.Timestamptz(6)
+  closedReason       String?           @map("closed_reason")
+  /// Huella del último evento de la cadena; la del documento mientras no hay eventos.
+  lastEventHash      String            @map("last_event_hash")
+  eventCount         Int               @default(0) @map("event_count")
+  workflowInstanceId String?           @map("workflow_instance_id") @db.Uuid
+  /// none hasta que firman todos; pending mientras el worker arma el documento firmado.
+  sealStatus         String            @default("none") @map("seal_status")
+  signedFileId       String?           @map("signed_file_id") @db.Uuid
+  signedSha256       String?           @map("signed_sha256")
+  evidenceFileId     String?           @map("evidence_file_id") @db.Uuid
+  verificationCode   String?           @map("verification_code")
+  createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy          String?           @map("created_by") @db.Uuid
+  updatedAt          DateTime          @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy          String?           @map("updated_by") @db.Uuid
+  version            Int               @default(1)
+  deletedAt          DateTime?         @map("deleted_at") @db.Timestamptz(6)
+  tenant             Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  contract           CtrContract       @relation(fields: [tenantId, contractId], references: [tenantId, id], onDelete: Restrict)
+  signers            SigSigner[]
+  events             SigEvent[]
+  verifications      SigVerification[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([verificationCode])
+  @@index([tenantId, contractId])
+  @@index([tenantId, status])
+  @@index([signedSha256])
+  @@map("sig_envelopes")
+}
+
+/// Quien firma: una persona autorizada del cliente o la persona de la Dirección.
+model SigSigner {
+  id              String      @id @default(uuid(7)) @db.Uuid
+  tenantId        String      @map("tenant_id") @db.Uuid
+  envelopeId      String      @map("envelope_id") @db.Uuid
+  kind            String
+  partyId         String?     @map("party_id") @db.Uuid
+  userId          String?     @map("user_id") @db.Uuid
+  name            String
+  email           String
+  idNumber        String      @map("id_number")
+  role            String
+  signOrder       Int         @map("sign_order") @db.SmallInt
+  status          String      @default("waiting")
+  /// Huella de la llave del último enlace enviado; la llave solo va en el correo.
+  linkTokenHash   String?     @map("link_token_hash")
+  linkExpiresAt   DateTime?   @map("link_expires_at") @db.Timestamptz(6)
+  /// Correo por enviar: invitation, reminder o copy.
+  mailPending     String?     @map("mail_pending")
+  codeRequestedAt DateTime?   @map("code_requested_at") @db.Timestamptz(6)
+  codeHash        String?     @map("code_hash")
+  codeExpiresAt   DateTime?   @map("code_expires_at") @db.Timestamptz(6)
+  codeSentAt      DateTime?   @map("code_sent_at") @db.Timestamptz(6)
+  codeAttempts    Int         @default(0) @map("code_attempts") @db.SmallInt
+  codeLocked      Boolean     @default(false) @map("code_locked")
+  ticketHash      String?     @map("ticket_hash")
+  ticketExpiresAt DateTime?   @map("ticket_expires_at") @db.Timestamptz(6)
+  openedAt        DateTime?   @map("opened_at") @db.Timestamptz(6)
+  reminders       Int         @default(0) @db.SmallInt
+  lastNotifiedAt  DateTime?   @map("last_notified_at") @db.Timestamptz(6)
+  method          String?
+  signedAt        DateTime?   @map("signed_at") @db.Timestamptz(6)
+  signIp          String?     @map("sign_ip")
+  signUserAgent   String?     @map("sign_user_agent")
+  acceptanceText  String?     @map("acceptance_text")
+  rejectedAt      DateTime?   @map("rejected_at") @db.Timestamptz(6)
+  rejectReason    String?     @map("reject_reason")
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?     @map("created_by") @db.Uuid
+  updatedAt       DateTime    @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy       String?     @map("updated_by") @db.Uuid
+  version         Int         @default(1)
+  deletedAt       DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  tenant          Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  envelope        SigEnvelope @relation(fields: [tenantId, envelopeId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, envelopeId, signOrder])
+  @@unique([linkTokenHash])
+  @@index([tenantId, envelopeId])
+  @@map("sig_signers")
+}
+
+/// Cadena de eventos del proceso de firma: solo se agrega; cada eslabón lleva la huella del anterior.
+model SigEvent {
+  id         String      @id @default(uuid(7)) @db.Uuid
+  tenantId   String      @map("tenant_id") @db.Uuid
+  envelopeId String      @map("envelope_id") @db.Uuid
+  signerId   String?     @map("signer_id") @db.Uuid
+  sequence   Int
+  type       String
+  ip         String?
+  userAgent  String?     @map("user_agent")
+  occurredAt DateTime    @map("occurred_at") @db.Timestamptz(6)
+  details    Json        @default("{}")
+  prevHash   String      @map("prev_hash")
+  hash       String
+  tenant     Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  envelope   SigEnvelope @relation(fields: [tenantId, envelopeId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, envelopeId, sequence])
+  @@index([tenantId, envelopeId])
+  @@map("sig_events")
+}
+
+/// Consultas a la página pública de verificación que encontraron un documento firmado.
+model SigVerification {
+  id         String      @id @default(uuid(7)) @db.Uuid
+  tenantId   String      @map("tenant_id") @db.Uuid
+  envelopeId String      @map("envelope_id") @db.Uuid
+  method     String
+  result     String
+  ip         String?
+  verifiedAt DateTime    @map("verified_at") @db.Timestamptz(6)
+  tenant     Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  envelope   SigEnvelope @relation(fields: [tenantId, envelopeId], references: [tenantId, id], onDelete: Restrict)
+
+  @@index([tenantId, envelopeId])
+  @@map("sig_verifications")
+}
+
+/// Proyectos (B26, ficha 17.8). El contrato y el cliente se guardan por identificador, sin llaves
+/// hacia tablas de otros módulos (numeral 8.3).
+model PrjProject {
+  id                     String            @id @default(uuid(7)) @db.Uuid
+  tenantId               String            @map("tenant_id") @db.Uuid
+  code                   String
+  contractId             String?           @map("contract_id") @db.Uuid
+  partyId                String            @map("party_id") @db.Uuid
+  name                   String
+  type                   String
+  methodology            String
+  description            String?
+  status                 String            @default("planning")
+  /// Por qué está en riesgo o pausado.
+  statusReason           String?           @map("status_reason")
+  startsOn               DateTime          @map("starts_on") @db.Date
+  endsOn                 DateTime          @map("ends_on") @db.Date
+  budgetHours            Decimal           @map("budget_hours") @db.Decimal(7, 1)
+  budgetAmount           Decimal?          @map("budget_amount") @db.Decimal(18, 2)
+  managerId              String            @map("manager_id") @db.Uuid
+  /// Autorización de la Dirección para iniciar sin contrato vigente: none, requested, granted, denied.
+  authorizationStatus    String            @default("none") @map("authorization_status")
+  authorizationReason    String?           @map("authorization_reason")
+  authorizationNote      String?           @map("authorization_note")
+  authorizationDecidedBy String?           @map("authorization_decided_by") @db.Uuid
+  authorizationDecidedAt DateTime?         @map("authorization_decided_at") @db.Timestamptz(6)
+  workflowInstanceId     String?           @map("workflow_instance_id") @db.Uuid
+  startedAt              DateTime?         @map("started_at") @db.Timestamptz(6)
+  createdAt              DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy              String?           @map("created_by") @db.Uuid
+  updatedAt              DateTime          @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy              String?           @map("updated_by") @db.Uuid
+  version                Int               @default(1)
+  deletedAt              DateTime?         @map("deleted_at") @db.Timestamptz(6)
+  tenant                 Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  members                PrjMember[]
+  milestones             PrjMilestone[]
+  sprints                PrjSprint[]
+  items                  PrjItem[]
+  links                  PrjExternalLink[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@index([tenantId, status])
+  @@index([tenantId, contractId])
+  @@map("prj_projects")
+}
+
+/// Equipo del proyecto. Retirar a un miembro le quita el acceso de inmediato (deleted_at).
+model PrjMember {
+  id            String     @id @default(uuid(7)) @db.Uuid
+  tenantId      String     @map("tenant_id") @db.Uuid
+  projectId     String     @map("project_id") @db.Uuid
+  userId        String     @map("user_id") @db.Uuid
+  role          String
+  allocationPct Int        @map("allocation_pct") @db.SmallInt
+  createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?    @map("created_by") @db.Uuid
+  updatedAt     DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?    @map("updated_by") @db.Uuid
+  version       Int        @default(1)
+  deletedAt     DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  project       PrjProject @relation(fields: [tenantId, projectId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, projectId])
+  @@index([tenantId, userId])
+  @@map("prj_members")
+}
+
+/// Hitos con el porcentaje del valor que se factura al cumplirlos; entre todos, máximo 100 %.
+model PrjMilestone {
+  id         String     @id @default(uuid(7)) @db.Uuid
+  tenantId   String     @map("tenant_id") @db.Uuid
+  projectId  String     @map("project_id") @db.Uuid
+  name       String
+  dueOn      DateTime   @map("due_on") @db.Date
+  billingPct Decimal    @map("billing_pct") @db.Decimal(5, 2)
+  status     String     @default("pending")
+  doneAt     DateTime?  @map("done_at") @db.Timestamptz(6)
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?    @map("created_by") @db.Uuid
+  updatedAt  DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?    @map("updated_by") @db.Uuid
+  version    Int        @default(1)
+  deletedAt  DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  project    PrjProject @relation(fields: [tenantId, projectId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, projectId])
+  @@map("prj_milestones")
+}
+
+/// Iteraciones. Solo una en curso por proyecto; al cerrarla, lo no terminado vuelve a pendientes.
+model PrjSprint {
+  id        String     @id @default(uuid(7)) @db.Uuid
+  tenantId  String     @map("tenant_id") @db.Uuid
+  projectId String     @map("project_id") @db.Uuid
+  name      String
+  startsOn  DateTime   @map("starts_on") @db.Date
+  endsOn    DateTime   @map("ends_on") @db.Date
+  goal      String?
+  status    String     @default("planned")
+  closedAt  DateTime?  @map("closed_at") @db.Timestamptz(6)
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy String?    @map("created_by") @db.Uuid
+  updatedAt DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy String?    @map("updated_by") @db.Uuid
+  version   Int        @default(1)
+  deletedAt DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  project   PrjProject @relation(fields: [tenantId, projectId], references: [tenantId, id], onDelete: Restrict)
+  items     PrjItem[]
+
+  @@unique([tenantId, id])
+  @@index([tenantId, projectId])
+  @@map("prj_sprints")
+}
+
+/// Épicas, historias, tareas y defectos, numerados dentro de su proyecto (PRY-2026-0001-12).
+model PrjItem {
+  id                 String     @id @default(uuid(7)) @db.Uuid
+  tenantId           String     @map("tenant_id") @db.Uuid
+  projectId          String     @map("project_id") @db.Uuid
+  parentId           String?    @map("parent_id") @db.Uuid
+  type               String
+  number             Int
+  code               String
+  title              String
+  description        String?
+  acceptanceCriteria String?    @map("acceptance_criteria")
+  status             String     @default("pending")
+  priority           String     @default("normal")
+  estimateHours      Decimal?   @map("estimate_hours") @db.Decimal(4, 1)
+  assigneeId         String?    @map("assignee_id") @db.Uuid
+  sprintId           String?    @map("sprint_id") @db.Uuid
+  /// Enlace a la revisión de código y nota de pruebas, exigidos para terminar (B27: FT-TEC-002).
+  reviewUrl          String?    @map("review_url")
+  testNote           String?    @map("test_note")
+  doneAt             DateTime?  @map("done_at") @db.Timestamptz(6)
+  createdAt          DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy          String?    @map("created_by") @db.Uuid
+  updatedAt          DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy          String?    @map("updated_by") @db.Uuid
+  version            Int        @default(1)
+  deletedAt          DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant             Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  project            PrjProject @relation(fields: [tenantId, projectId], references: [tenantId, id], onDelete: Restrict)
+  parent             PrjItem?   @relation("PrjItemParent", fields: [tenantId, parentId], references: [tenantId, id], onDelete: Restrict)
+  children           PrjItem[]  @relation("PrjItemParent")
+  sprint             PrjSprint? @relation(fields: [tenantId, sprintId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, projectId, number])
+  @@index([tenantId, projectId, status])
+  @@index([tenantId, sprintId])
+  @@map("prj_items")
+}
+
+/// Enlaces al repositorio, a los entornos y al diseño. ARZA ONE guarda el enlace, no el código.
+model PrjExternalLink {
+  id        String     @id @default(uuid(7)) @db.Uuid
+  tenantId  String     @map("tenant_id") @db.Uuid
+  projectId String     @map("project_id") @db.Uuid
+  kind      String
+  url       String
+  label     String
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy String?    @map("created_by") @db.Uuid
+  updatedAt DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy String?    @map("updated_by") @db.Uuid
+  version   Int        @default(1)
+  deletedAt DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  project   PrjProject @relation(fields: [tenantId, projectId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, projectId])
+  @@map("prj_external_links")
 }

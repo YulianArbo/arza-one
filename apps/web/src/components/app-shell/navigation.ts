@@ -59,14 +59,12 @@ const MODULES: readonly NavigationItem[] = [
     label: 'Contratos',
     icon: FileSignature,
     permissions: ['contract.read'],
-    block: 'B24',
   },
   {
     slug: 'proyectos',
     label: 'Proyectos',
     icon: FolderKanban,
     permissions: ['project.read_all', 'project.read_member'],
-    block: 'B26',
   },
   {
     slug: 'servicio',
@@ -93,8 +91,7 @@ const MODULES: readonly NavigationItem[] = [
     slug: 'finanzas',
     label: 'Finanzas',
     icon: Landmark,
-    permissions: ['finance.invoice.read', 'finance.budget.read'],
-    block: 'B31',
+    permissions: ['finance.invoice.read', 'finance.budget.read', 'finance.tax_parameter.manage'],
   },
   {
     slug: 'talento-y-sst',

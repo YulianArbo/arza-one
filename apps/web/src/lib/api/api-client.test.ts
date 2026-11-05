@@ -159,6 +159,23 @@ describe('cliente de la API: edición con versión (B10)', () => {
   });
 });
 
+describe('cliente de la API: operaciones que no se repiten (B25)', () => {
+  it('POST envía la llave Idempotency-Key cuando la operación la pide', async () => {
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 204 }));
+    await createApiClient(BASE_URL, fetchImpl).post('/v1/signature-envelopes/x/actions/send', {
+      body: {},
+      version: 1,
+      csrfToken: 'codigo',
+      idempotencyKey: 'llave-de-la-operacion-1',
+    });
+    const init = fetchImpl.mock.calls[0]?.[1];
+    expect(init?.headers).toMatchObject({
+      'If-Match': '"1"',
+      'Idempotency-Key': 'llave-de-la-operacion-1',
+    });
+  });
+});
+
 describe('cliente de la API: borrados (B12)', () => {
   it('envía DELETE con la versión y el código antifalsificación', async () => {
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 204 }));

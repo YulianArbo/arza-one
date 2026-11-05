@@ -116,7 +116,7 @@ Reintentos: 1, 5, 15 y 60 minutos.
 | ------------- | ----------- | ---- | ----------------------------------------------------------------- |
 | `id`          | uuid        | No   | Llave primaria                                                    |
 | `tenant_id`   | uuid        | No   | Empresa                                                           |
-| `entity_type` | text        | No   | `party` (tercero) o `wf_instance` (trámite)                       |
+| `entity_type` | text        | No   | `party` (tercero), `wf_instance` (trámite) o `ctr_contract` (B24) |
 | `entity_id`   | uuid        | No   | El registro                                                       |
 | `body`        | text        | No   | 1 a 4000 caracteres                                               |
 | `visibility`  | text        | No   | `internal` por ahora; `public` llegará con el portal              |
@@ -133,7 +133,7 @@ created_at)`.
 | ------------- | ---- | ---- | ------------------------------------------------------------- |
 | `id`          | uuid | No   | Llave primaria                                                |
 | `tenant_id`   | uuid | No   | Empresa                                                       |
-| `entity_type` | text | No   | `party` o `wf_instance`                                       |
+| `entity_type` | text | No   | `party`, `wf_instance` o `ctr_contract` (B24)                 |
 | `entity_id`   | uuid | No   | El registro                                                   |
 | `file_id`     | uuid | No   | Archivo de `doc_files`, subido por quien adjunta y disponible |
 | `label`       | text | No   | 1 a 120 caracteres                                            |

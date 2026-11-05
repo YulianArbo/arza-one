@@ -14,6 +14,7 @@ export {
 } from './application/position-directory.js';
 export { peopleById, usersInPosition } from './infrastructure/user-directory-store.js';
 export { findLoginUser, type IdentityRef } from './infrastructure/identity-lookup.js';
+export { linkUserToPerson, type PersonLink } from './application/person-link.js';
 export {
   activeInternalUserByEmail,
   activeRoleCodes,
@@ -25,8 +26,10 @@ export {
   type ReceivedDelegation,
 } from './infrastructure/people-directory.js';
 export {
+  accountsWithRoles,
   activeUsersWithRoles,
   noticeRecipients,
+  type CompanySignerAccount,
   type NoticeRecipient,
 } from './infrastructure/notice-recipients.js';
 export {

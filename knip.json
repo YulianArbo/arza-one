@@ -13,11 +13,13 @@
         "src/modules/wf/index.ts",
         "src/modules/ntf/index.ts",
         "src/modules/crm/index.ts",
+        "src/modules/contract/index.ts",
         "src/modules/iam/interface/cli/invite-main.ts",
         "src/modules/iam/interface/cli/reset-second-factor-main.ts",
         "src/modules/iam/interface/cli/assign-role-main.ts",
         "src/modules/doc/interface/cli/import-master-list-main.ts",
-        "src/modules/doc/interface/cli/import-retention-main.ts"
+        "src/modules/doc/interface/cli/import-retention-main.ts",
+        "src/modules/contract/interface/cli/link-signer-main.ts"
       ],
       "ignoreDependencies": ["@prisma/client"]
     },

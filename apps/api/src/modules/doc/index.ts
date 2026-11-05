@@ -49,11 +49,16 @@ export { extractPdfText } from './infrastructure/pdf-text.js';
 export {
   convertHtmlWithGotenberg,
   convertWithGotenberg,
+  mergeWithGotenberg,
   stampWithGotenberg,
 } from './infrastructure/gotenberg-converter.js';
 export {
   AttachedFileLinks,
   attachedFiles,
   isAttachableFile,
+  openAvailableFile,
   type AttachedFile,
+  type OpenedFile,
 } from './application/attached-files.js';
+export { storePdf as storeGeneratedPdf } from './application/generated-pdf.js';
+export { FileStorage } from './infrastructure/file-storage.js';

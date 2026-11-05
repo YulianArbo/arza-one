@@ -13,6 +13,8 @@ export const PLATFORM_ERROR_CODES = {
   internalError: 'INTERNAL_ERROR',
   versionRequired: 'VERSION_REQUIRED',
   versionConflict: 'VERSION_CONFLICT',
+  idempotencyKeyRequired: 'IDEMPOTENCY_KEY_REQUIRED',
+  idempotencyKeyReused: 'IDEMPOTENCY_KEY_REUSED',
 } as const;
 
 const errorDetailSchema = z.object({

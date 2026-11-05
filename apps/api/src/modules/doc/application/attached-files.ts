@@ -1,3 +1,5 @@
+import type { Readable } from 'node:stream';
+
 import { Inject, Injectable } from '@nestjs/common';
 import { allowedFileTypeSchema, type Attachment, type DownloadLinkResponse } from '@arza/contracts';
 
@@ -6,6 +8,7 @@ import { recordAuditEvent } from '../../../platform/audit/audit-recorder.js';
 import { CLOCK, type Clock } from '../../../platform/clock/clock.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
+import type { FileStorage } from '../infrastructure/file-storage.js';
 import { fileNotAvailable } from './file-messages.js';
 import { FileLinkIssuer } from './file-link-issuer.js';
 
@@ -84,4 +87,33 @@ export class AttachedFileLinks {
     });
     return link;
   }
+}
+
+/** Un archivo disponible abierto para entregarlo tal cual, con su nombre y su tipo. */
+export interface OpenedFile {
+  readonly fileName: string;
+  readonly mimeType: string;
+  readonly sizeBytes: number;
+  readonly content: Readable;
+}
+
+/**
+ * Abre un archivo disponible para entregarlo sin enlace temporal, como el PDF de una cotización al
+ * cliente que la abre sin sesión (B23). El módulo dueño del registro ya verificó que puede verlo.
+ */
+export async function openAvailableFile(
+  tx: TenantTransaction,
+  storage: Pick<FileStorage, 'stream'>,
+  fileId: string,
+): Promise<OpenedFile | null> {
+  const file = await tx.file.findFirst({
+    where: { id: fileId, scanStatus: 'available', deletedAt: null },
+  });
+  if (file === null) return null;
+  return {
+    fileName: file.fileName,
+    mimeType: file.mimeType,
+    sizeBytes: file.sizeBytes,
+    content: await storage.stream(file.storageKey),
+  };
 }

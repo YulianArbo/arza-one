@@ -19,12 +19,14 @@ const unusedDeps: JobDependencies = {
     read: async () => Promise.reject(new Error('no se usa')),
     put: async () => Promise.reject(new Error('no se usa')),
     delete: async () => Promise.reject(new Error('no se usa')),
+    stream: async () => Promise.reject(new Error('no se usa')),
   },
   antivirus: async () => Promise.reject(new Error('no se usa')),
   convert: async () => Promise.reject(new Error('no se usa')),
   convertOffice: async () => Promise.reject(new Error('no se usa')),
   convertHtml: async () => Promise.reject(new Error('no se usa')),
   stamp: async () => Promise.reject(new Error('no se usa')),
+  mergePdfs: async () => Promise.reject(new Error('no se usa')),
   extractText: async () => Promise.reject(new Error('no se usa')),
 };
 
@@ -36,19 +38,25 @@ describe('enrutador de trabajos', () => {
       'Los datos del trabajo no son válidos',
     );
   });
+});
 
+describe('enrutador de trabajos', () => {
   it('envía el correo de una cuenta a su procesador', async () => {
     const route = createJobRouter(unusedDeps);
     await expect(route({ name: JOBS.accountEmail.name, data: {} })).rejects.toThrow(
       'Los datos del trabajo no son válidos',
     );
   });
+});
 
+describe('enrutador de trabajos', () => {
   it('envía la verificación diaria de la auditoría a su procesador', async () => {
     const route = createJobRouter(unusedDeps);
     await expect(route({ name: JOBS.auditChainCheck.name, data: {} })).rejects.toThrow('no se usa');
   });
+});
 
+describe('enrutador de trabajos', () => {
   it('envía el análisis de un archivo a su procesador', async () => {
     const route = createJobRouter(unusedDeps);
     await expect(route({ name: JOBS.fileScan.name, data: {} })).rejects.toThrow(
@@ -64,29 +72,55 @@ describe('enrutador de trabajos de documentos y avisos', () => {
       'Los datos del trabajo no son válidos',
     );
   });
+});
 
+describe('enrutador de trabajos de documentos y avisos', () => {
   it('envía el escalamiento de tareas vencidas a su procesador', async () => {
     const route = createJobRouter(unusedDeps);
     await expect(route({ name: JOBS.wfOverdueCheck.name, data: {} })).rejects.toThrow('no se usa');
   });
+});
 
+describe('enrutador de trabajos de documentos y avisos', () => {
   it('envía la generación de los PDF de los formatos a su procesador', async () => {
     const route = createJobRouter(unusedDeps);
     await expect(route({ name: JOBS.docPdfRender.name, data: {} })).rejects.toThrow('no se usa');
   });
+});
 
-  it('envía la disposición, el texto y los recordatorios del CRM a sus procesadores', async () => {
+describe('enrutador de trabajos de documentos y avisos', () => {
+  it('envía la disposición, el texto y los trabajos del CRM a sus procesadores', async () => {
     const route = createJobRouter(unusedDeps);
     for (const job of [
       JOBS.docDispositionPropose,
       JOBS.docDispositionExecute,
       JOBS.docTextExtract,
       JOBS.crmActivityRemind,
+      JOBS.crmQuoteWork,
+      JOBS.crmQuoteExpire,
     ]) {
       await expect(route({ name: job.name, data: {} })).rejects.toThrow('no se usa');
     }
   });
+});
 
+describe('enrutador de trabajos de documentos y avisos', () => {
+  it('envía los trabajos de cotizaciones, contratos y firma a sus procesadores', async () => {
+    const route = createJobRouter(unusedDeps);
+    for (const job of [
+      JOBS.crmQuoteWork,
+      JOBS.crmQuoteExpire,
+      JOBS.ctrPdfRender,
+      JOBS.ctrFollowUp,
+      JOBS.sigWork,
+      JOBS.sigFollowUp,
+    ]) {
+      await expect(route({ name: job.name, data: {} })).rejects.toThrow('no se usa');
+    }
+  });
+});
+
+describe('enrutador de trabajos de documentos y avisos', () => {
   it('rechaza sin reintento un trabajo sin procesador', async () => {
     const route = createJobRouter(unusedDeps);
     const failure = route({ name: 'desconocido.trabajo', data: {} });

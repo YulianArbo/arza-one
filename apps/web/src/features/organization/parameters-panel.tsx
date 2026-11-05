@@ -1,6 +1,12 @@
 'use client';
 
-import { weeklyHours, type ParameterSummary, type WorkSchedule } from '@arza/contracts';
+import {
+  isWorkSchedule,
+  weeklyHours,
+  type ParameterSummary,
+  type ParameterValue,
+  type WorkSchedule,
+} from '@arza/contracts';
 import {
   Card,
   CardContent,
@@ -16,6 +22,7 @@ import type { JSX } from 'react';
 import { formatDate, formatDateTime } from '../../lib/format/date-time';
 import { QueryState } from '../administration/query-state';
 import { usePermissions } from '../session/permissions';
+import { DiscountCapForm } from './discount-cap-form';
 import { ScheduleForm } from './schedule-form';
 import { useParameterHistory, useParameters } from './queries';
 import { RecordDialog } from './record-dialog';
@@ -41,14 +48,20 @@ export function describeSchedule(schedule: WorkSchedule): string {
   return `De ${describeDays(schedule.days)}, ${shifts}: ${String(weeklyHours(schedule))} horas a la semana.`;
 }
 
-function ScheduleHistory({ parameterKey }: { readonly parameterKey: string }): JSX.Element {
+/** El valor en palabras: el horario o el tope de descuento. */
+export function describeValue(value: ParameterValue): string {
+  if (isWorkSchedule(value)) return describeSchedule(value);
+  return `Hasta ${value.percent.replace(/\.00$/u, '').replace('.', ',')} % por ítem sin aprobación de la Dirección.`;
+}
+
+function ParameterHistory({ parameterKey }: { readonly parameterKey: string }): JSX.Element {
   const history = useParameterHistory(parameterKey);
   return (
     <QueryState query={history} loadingLabel="Cargando el historial">
       {(data) => (
         <SimpleTable
           caption="Historial de vigencias"
-          headers={['Desde', 'Hasta', 'Horario', 'Registró']}
+          headers={['Desde', 'Hasta', 'Valor', 'Registró']}
         >
           {data.data.map((version) => (
             <TableRow key={version.id}>
@@ -56,7 +69,7 @@ function ScheduleHistory({ parameterKey }: { readonly parameterKey: string }): J
               <TableCell>
                 {version.valid_to === null ? 'Sigue vigente' : formatDate(version.valid_to)}
               </TableCell>
-              <TableCell>{describeSchedule(version.value)}</TableCell>
+              <TableCell>{describeValue(version.value)}</TableCell>
               <TableCell>
                 {version.created_by?.name ?? 'El sistema'}
                 <span className="block text-xs text-muted-foreground">
@@ -79,16 +92,30 @@ function ParameterValues({ parameter }: { readonly parameter: ParameterSummary }
         <span className="font-medium">Vigente hoy: </span>
         {current === null
           ? 'sin valor'
-          : `${describeSchedule(current.value)} Desde el ${formatDate(current.valid_from)}.`}
+          : `${describeValue(current.value)} Desde el ${formatDate(current.valid_from)}.`}
       </p>
       {scheduled === null ? null : (
         <p>
           <span className="font-medium">Cambio programado: </span>
-          {`${describeSchedule(scheduled.value)} Desde el ${formatDate(scheduled.valid_from)}.`}
+          {`${describeValue(scheduled.value)} Desde el ${formatDate(scheduled.valid_from)}.`}
         </p>
       )}
     </>
   );
+}
+
+/** El formulario de cada parámetro, según su valor. */
+function ParameterForm(props: {
+  readonly parameterKey: string;
+  readonly initial: ParameterValue | null;
+  readonly onSaved: () => void;
+}): JSX.Element {
+  if (props.parameterKey === 'work.schedule') {
+    const initial = props.initial !== null && isWorkSchedule(props.initial) ? props.initial : null;
+    return <ScheduleForm {...props} initial={initial} />;
+  }
+  const initial = props.initial !== null && !isWorkSchedule(props.initial) ? props.initial : null;
+  return <DiscountCapForm {...props} initial={initial} />;
 }
 
 function ParameterCard({ parameter }: { readonly parameter: ParameterSummary }): JSX.Element {
@@ -110,7 +137,7 @@ function ParameterCard({ parameter }: { readonly parameter: ParameterSummary }):
               description="El valor actual no se borra: queda en el historial hasta el día anterior al cambio."
             >
               {(close) => (
-                <ScheduleForm
+                <ParameterForm
                   parameterKey={parameter.key}
                   initial={(scheduled ?? current)?.value ?? null}
                   onSaved={close}
@@ -119,7 +146,7 @@ function ParameterCard({ parameter }: { readonly parameter: ParameterSummary }):
             </RecordDialog>
           </div>
         ) : null}
-        <ScheduleHistory parameterKey={parameter.key} />
+        <ParameterHistory parameterKey={parameter.key} />
       </CardContent>
     </Card>
   );

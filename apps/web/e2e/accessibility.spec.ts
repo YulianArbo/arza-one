@@ -36,7 +36,7 @@ const PAGES = [
   { path: '/app', ready: 'Mis tareas' },
   { path: '/app/estado-del-sistema', ready: 'Todo funciona' },
   { path: '/app/sistema-de-diseno', ready: 'Estados de pantalla' },
-  { path: '/app/contratos', ready: 'Este módulo está en construcción' },
+  { path: '/app/servicio', ready: 'Este módulo está en construcción' },
   { path: '/portal', ready: 'Su portal estará disponible pronto', session: 'portal' },
   { path: '/iniciar-sesion', ready: '¿Olvidó su contraseña?', session: 'none' },
   { path: '/recuperar-contrasena', ready: 'Enviar enlace', session: 'none' },

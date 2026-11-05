@@ -77,6 +77,15 @@ const EXTRAS: Readonly<Partial<Record<InternalRoleCode, readonly PermissionCode[
   AUDITOR: ['audit.event.export'],
 };
 
+/**
+ * Permisos que la letra de la matriz daría, pero que el manual reserva a otro rol. Una cotización
+ * con descuento sobre el tope exige aprobación de la Dirección (ficha 17.6); Comercial la elabora y
+ * no la aprueba (decisión del dueño, B23).
+ */
+const WITHHELD: Readonly<Partial<Record<InternalRoleCode, readonly PermissionCode[]>>> = {
+  COMERCIAL: ['crm.quote.approve'],
+};
+
 /** Solo por permiso nominal además del rol (numeral 15.4, clasificación): ningún rol lo trae. */
 export const NOMINAL_ONLY_PERMISSIONS: readonly PermissionCode[] = ['doc.restricted.read'];
 
@@ -122,8 +131,9 @@ function internalGrants(role: InternalRoleCode): RoleGrant[] {
     const grant = grantedByLetters(permission, lettersOf(permission.group, role));
     return grant === null ? [] : [grant];
   });
+  const withheld = WITHHELD[role] ?? [];
   const extras = (EXTRAS[role] ?? []).map((code) => ({ code, own: false }));
-  return [...fromMatrix, ...extras];
+  return [...fromMatrix.filter((grant) => !withheld.includes(grant.code)), ...extras];
 }
 
 const PORTAL_CODES: readonly PermissionCode[] =

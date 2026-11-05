@@ -56,10 +56,10 @@ export function TypographySection(): JSX.Element {
         <CardDescription>Alojadas en el propio servidor, sin llamadas a terceros.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
-        <p className="text-2xl font-semibold tracking-tight">Inter 600 · Título de página</p>
-        <p className="text-lg font-semibold">Inter 600 · Título de sección</p>
-        <p>Inter 400 · Texto de la aplicación, base de 14 px.</p>
-        <p className="font-medium">Inter 500 · Etiquetas y datos destacados.</p>
+        <p className="text-2xl font-semibold tracking-tight">Montserrat 600 · Título de página</p>
+        <p className="text-lg font-semibold">Montserrat 600 · Título de sección</p>
+        <p>Montserrat 400 · Texto de la aplicación, base de 14 px.</p>
+        <p className="font-medium">Montserrat 500 · Etiquetas y datos destacados.</p>
       </CardContent>
     </Card>
   );

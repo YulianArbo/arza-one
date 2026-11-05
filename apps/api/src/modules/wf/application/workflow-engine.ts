@@ -49,18 +49,27 @@ export interface StartRequest {
   readonly entityId: string;
   readonly title: string;
   readonly facts: WorkflowFacts;
+  /**
+   * A nombre de quién corre el trámite cuando lo inicia el sistema (B24: la alerta de vencimiento
+   * de un contrato es del responsable del contrato). Vacío: quien lo inicia.
+   */
+  readonly initiator?: string;
+}
+
+/** El registro tiene un trámite abierto de ese tipo. */
+export async function hasActiveWorkflow(
+  tx: TenantTransaction,
+  entityType: string,
+  entityId: string,
+): Promise<boolean> {
+  const active = await tx.workflowInstance.count({
+    where: { entityType, entityId, completedAt: null, deletedAt: null },
+  });
+  return active > 0;
 }
 
 async function assertNoActiveInstance(tx: TenantTransaction, request: StartRequest) {
-  const active = await tx.workflowInstance.count({
-    where: {
-      entityType: request.entityType,
-      entityId: request.entityId,
-      completedAt: null,
-      deletedAt: null,
-    },
-  });
-  if (active > 0) throw instanceActive();
+  if (await hasActiveWorkflow(tx, request.entityType, request.entityId)) throw instanceActive();
 }
 
 async function startableFlow(tx: TenantTransaction, request: StartRequest): Promise<StoredFlow> {
@@ -91,7 +100,7 @@ export async function startWorkflow(
       title: request.title,
       currentState: initial.key,
       facts: { ...request.facts },
-      startedBy: context.userId,
+      startedBy: request.initiator ?? context.userId,
       startedAt: context.at,
     },
   });
@@ -195,4 +204,31 @@ export async function requestTransition(
     onBehalfOf: attending?.onBehalfOf ?? null,
     taskId: attending?.task.id ?? null,
   });
+}
+
+/**
+ * El módulo dueño del registro cierra el trámite por su cuenta, sin una persona que atienda la
+ * tarea: por ejemplo, cuando el proceso de firma termina, se anula o vence (B25). Hace la transición
+ * definida desde el estado actual; si el trámite ya no está en ese punto, no hace nada.
+ */
+export async function closeWorkflowAsOwner(
+  tx: TenantTransaction,
+  context: WfContext,
+  ask: { readonly instanceId: string; readonly action: string; readonly comment: string | null },
+): Promise<boolean> {
+  const instance = await lockInstance(tx, ask.instanceId);
+  if (instance === null) return false;
+  if (instance.completedAt !== null) return false;
+  const flow = await findFlow(tx, instance.definitionId);
+  const transition = flow === null ? null : findTransition(flow, instance.currentState, ask.action);
+  if (flow === null || transition === null) return false;
+  await applyTransition(tx, context, {
+    instance,
+    flow,
+    transition,
+    comment: ask.comment,
+    onBehalfOf: null,
+    taskId: null,
+  });
+  return true;
 }

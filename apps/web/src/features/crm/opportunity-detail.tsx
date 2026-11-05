@@ -13,6 +13,7 @@ import { ActivitiesPanel } from './activities-panel';
 import { FactsCard, factLink, type Fact } from './crm-facts';
 import { CRM_PATHS, OPPORTUNITY_STAGES, STAGE_TONES, formatPesos } from './labels';
 import { OpportunityActions } from './opportunity-actions';
+import { OpportunityQuotes } from './opportunity-quotes';
 import { useOpportunity } from './queries';
 
 // Ficha de la oportunidad (B22, numeral 16.3): etapa, acciones permitidas, valores y actividades.
@@ -61,6 +62,7 @@ function Detail({ opportunity }: { readonly opportunity: OpportunityDetail }): J
       </div>
       <OpportunityActions opportunity={opportunity} />
       <FactsCard title="Datos de la oportunidad" facts={factsOf(opportunity)} />
+      <OpportunityQuotes opportunityId={opportunity.id} open={isOpenStage(opportunity.stage)} />
       <ActivitiesPanel
         target={{ leadId: null, opportunityId: opportunity.id }}
         open={isOpenStage(opportunity.stage)}

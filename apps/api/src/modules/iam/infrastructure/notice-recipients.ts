@@ -49,3 +49,25 @@ export async function activeUsersWithRoles(
   });
   return users.map((user) => user.id);
 }
+
+/** Quien puede firmar por la empresa (B25): su cuenta y la persona de Terceros que es. */
+export interface CompanySignerAccount {
+  readonly id: string;
+  readonly email: string;
+  readonly displayName: string | null;
+  readonly partyId: string | null;
+}
+
+/** Colaboradores activos con alguno de los roles, con su correo y su persona en Terceros. */
+export async function accountsWithRoles(
+  tx: TenantTransaction,
+  roleCodes: readonly string[],
+  now: Date,
+): Promise<CompanySignerAccount[]> {
+  const ids = await activeUsersWithRoles(tx, roleCodes, now);
+  return tx.user.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, email: true, displayName: true, partyId: true },
+    orderBy: { displayName: 'asc' },
+  });
+}

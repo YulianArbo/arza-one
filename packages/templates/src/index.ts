@@ -27,3 +27,24 @@ export {
   TemplateSyntaxError,
 } from './output-html.js';
 export { docxTemplateVariables, fillDocxTemplate } from './output-docx.js';
+export {
+  percentText,
+  pesos,
+  quoteDocumentBody,
+  type QuoteDocument,
+  type QuoteDocumentLine,
+  type QuoteDocumentTax,
+} from './quote-document.js';
+export {
+  contractDocumentBody,
+  type ContractDocument,
+  type ContractDocumentClause,
+  type ContractSignature,
+} from './contract-document.js';
+export {
+  evidenceCertificateBody,
+  signaturesPageBody,
+  type EvidenceEvent,
+  type SignatureEvidence,
+  type SignedBy,
+} from './signature-evidence.js';

@@ -11,6 +11,8 @@ export default defineConfig({
     // Cada archivo abre sus propias conexiones a la misma base: con más de cuatro a la vez, en un
     // equipo de ocho núcleos las transacciones de preparación esperan más de lo permitido (B16).
     maxWorkers: 4,
+    // Sin aislar cada archivo: comparten los módulos ya cargados (ninguna prueba cambia globales).
+    isolate: false,
     hookTimeout: 180_000,
     coverage: {
       provider: 'v8',

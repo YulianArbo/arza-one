@@ -57,13 +57,19 @@ describe('origen de las operaciones que modifican datos', () => {
 });
 
 describe('cabeceras entre la web y la API', () => {
-  it('deja enviar la versión al editar y leer el nombre de una descarga', async () => {
+  it('deja enviar la versión y la llave de la operación, y leer el nombre de una descarga', async () => {
     const preflight = await request(app.getHttpServer())
       .options('/v1/roles/x')
       .set('Origin', 'http://localhost:3000')
       .set('Access-Control-Request-Method', 'PATCH')
       .set('Access-Control-Request-Headers', 'content-type,if-match,x-csrf-token');
     expect(preflight.headers['access-control-allow-headers']).toContain('If-Match');
+    const send = await request(app.getHttpServer())
+      .options('/v1/signature-envelopes/x/actions/send')
+      .set('Origin', 'http://localhost:3000')
+      .set('Access-Control-Request-Method', 'POST')
+      .set('Access-Control-Request-Headers', 'content-type,if-match,idempotency-key,x-csrf-token');
+    expect(send.headers['access-control-allow-headers']).toContain('Idempotency-Key');
     const response = await request(app.getHttpServer())
       .get('/version')
       .set('Origin', 'http://localhost:3000');
