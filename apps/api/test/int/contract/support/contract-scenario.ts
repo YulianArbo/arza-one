@@ -186,12 +186,13 @@ export class ContractScenario extends QuoteScenario {
     return file.id;
   }
 
-  /** Eventos de auditoría de un registro, en orden. */
+  /** Eventos de auditoría de un registro, en el orden de la cadena: con el reloj de prueba quieto
+   * varios eventos tienen la misma hora. */
   async auditActions(entityId: string): Promise<string[]> {
     const events = await tenantScope(
       this.db,
       this.tenant.id,
-    )((tx) => tx.auditEvent.findMany({ where: { entityId }, orderBy: { occurredAt: 'asc' } }));
+    )((tx) => tx.auditEvent.findMany({ where: { entityId }, orderBy: { seq: 'asc' } }));
     return events.map((event) => event.action);
   }
 }
