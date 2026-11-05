@@ -2,6 +2,7 @@ import {
   funnelReportSchema,
   opportunityListResponseSchema,
   serviceListResponseSchema,
+  taxParameterListResponseSchema,
 } from '@arza/contracts';
 import { describe, expect, it } from 'vitest';
 
@@ -92,5 +93,48 @@ describe('periodo del informe del embudo', () => {
       expect(response.status, response.text).toBe(200);
       expect(funnelReportSchema.parse(response.body).totals.open_count).toBe(1);
     }
+  });
+});
+
+describe('impuesto que aún no rige', () => {
+  it('se lista sin tarifa vigente y no se puede usar todavía en una cotización', async () => {
+    const accountant = await scenario.person('contador-futuro', ['CONTADOR']);
+    const created = await scenario.post('/v1/finance/tax-parameters/versions', accountant.session, {
+      key: 'IVA_FUTURO',
+      label: 'IVA futuro',
+      rate: '7',
+      valid_from: scenario.day(20),
+      legal_basis: 'Ley de prueba, art. 1.',
+    });
+    expect(created.status, created.text).toBe(204);
+    const list = taxParameterListResponseSchema.parse(
+      (await scenario.get('/v1/finance/tax-parameters', accountant.session)).body,
+    );
+    expect(list.data.find((tax) => tax.key === 'IVA_FUTURO')).toMatchObject({
+      current: null,
+      scheduled: { rate: '7.00' },
+    });
+    const sales = await scenario.sales();
+    const opportunityId = await scenario.opportunity(sales);
+    const body = scenario.quoteBody(opportunityId, { items: [item({ tax_key: 'IVA_FUTURO' })] });
+    expect(errorCode(await scenario.post('/v1/crm/quotes', sales.session, body))).toBe(
+      'CRM_TAX_INVALID',
+    );
+  });
+});
+
+describe('descarte de un prospecto nuevo', () => {
+  it('sin nota, cierra su tarea con el motivo', async () => {
+    const sales = await scenario.sales();
+    const id = await scenario.lead(sales);
+    const { version } = await scenario.leadDetail(sales, id);
+    const path = `/v1/crm/leads/${id}/actions/discard`;
+    const discard = await scenario.action(path, sales, version, { reason: 'OTHER', note: null });
+    expect(discard.status, discard.text).toBe(204);
+    expect(await scenario.leadDetail(sales, id)).toMatchObject({
+      status: 'discarded',
+      discard_note: null,
+    });
+    expect((await scenario.contactTasks(id)).instance?.currentState).toBe('discarded');
   });
 });
