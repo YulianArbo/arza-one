@@ -2,6 +2,7 @@ import { envelopeListResponseSchema } from '@arza/contracts';
 import { describe, expect, it } from 'vitest';
 
 import type { Person } from '../iam/support/access-scenario.js';
+import { errorCode } from '../iam/support/iam-fixtures.js';
 import { SignatureScenario, type SigningClient } from './support/signature-scenario.js';
 
 // Firma electrónica de un otrosí (B25): igual que la del contrato, y al sellarse el otrosí rige y
@@ -67,5 +68,36 @@ describe('firma electrónica de un otrosí', () => {
       value: '13000000.00',
       amendments: [{ status: 'signed' }],
     });
+  });
+});
+
+describe('otrosí de un contrato terminado', () => {
+  it('no se envía a firma si el contrato ya no está vigente', async () => {
+    const sales = await scenario.sales();
+    const client = await scenario.signingClient(sales);
+    const director = await scenario.signingDirector(sales);
+    const { contractId, amendmentId } = await approvedAmendment(sales, client);
+    const reason = { terminated_on: scenario.day(0), reason: 'El cliente cerró la operación.' };
+    const ended = await scenario.contractStep(director, contractId, 'terminate', reason);
+    expect(ended.status, ended.text).toBe(204);
+    const body = scenario.envelopeBody(contractId, client, director, {
+      source: 'amendment',
+      source_id: amendmentId,
+    });
+    expect(errorCode(await scenario.post('/v1/signature-envelopes', sales.session, body))).toBe(
+      'SIGNATURE_STATUS_INVALID',
+    );
+  });
+});
+
+describe('quién firma por la empresa', () => {
+  it('una persona de la Dirección sin su documento en Terceros no firma', async () => {
+    const sales = await scenario.sales();
+    const client = await scenario.signingClient(sales);
+    const contractId = await scenario.approvedFor(sales, client);
+    const unlinked = await scenario.person('direccion-sin-persona', ['DIRECCION']);
+    const body = scenario.envelopeBody(contractId, client, unlinked);
+    const response = await scenario.post('/v1/signature-envelopes', sales.session, body);
+    expect(response.status, response.text).toBe(422);
   });
 });
