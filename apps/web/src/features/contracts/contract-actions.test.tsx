@@ -252,3 +252,27 @@ describe('otrosíes', () => {
     });
   });
 });
+
+describe('otrosíes ya decididos', () => {
+  it('uno firmado muestra la nota, el texto sin cambios de fechas y sus dos copias', async () => {
+    const signed = {
+      ...AMENDMENT,
+      status: 'signed',
+      new_ends_on: null,
+      new_value: null,
+      decision_note: 'Conforme con el alcance.',
+      pdf_ready: true,
+      signed_on: '2026-11-03',
+    };
+    serveContracts(CONTRACT_WRITER, detailRoute({ ...ACTIVE, amendments: [signed] }));
+    renderDetail();
+    await userEvent.click(await screen.findByRole('tab', { name: 'Otrosíes' }));
+    expect(
+      await screen.findByText('Nota de la Dirección: «Conforme con el alcance.»'),
+    ).toBeVisible();
+    expect(screen.getByText('Rige desde 01/11/2026')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'PDF' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Copia firmada' })).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Aprobar' })).toBeNull();
+  });
+});
