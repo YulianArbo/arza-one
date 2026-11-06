@@ -66,6 +66,13 @@ describe('un miembro solo ve sus proyectos', () => {
       update: false,
       manage_members: false,
       manage_items: true,
+      log_time: true,
+      approve_time: false,
+      deliver: false,
+      manage_releases: false,
+      manage_incidents: false,
+      close: false,
+      see_money: false,
     });
     const item = await scenario.item(developer, mine);
     expect(
