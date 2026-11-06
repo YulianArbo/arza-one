@@ -30,10 +30,10 @@ const obligationEventSchema = z.object({
 });
 
 const signatureEventSchema = z.object({
-  contract_id: z.uuid(),
+  contract_id: z.uuid().nullable().default(null),
   document_code: z.string(),
-  author_id: z.uuid().nullable(),
-  responsible_id: z.uuid().nullable(),
+  author_id: z.uuid().nullable().default(null),
+  responsible_id: z.uuid().nullable().default(null),
 });
 
 /** Cómo terminó el proceso de firma (B25): al responsable y al autor del contrato. */
@@ -120,12 +120,14 @@ const onObligation: Handler = (_tx, event) => {
 const onSignatureUpdate: Handler = (_tx, event) => {
   const payload = signatureEventSchema.parse(event.payload);
   const text = SIGNATURE_UPDATES[event.eventType];
-  if (text === undefined) return Promise.resolve([]);
+  // Las actas de entrega de los proyectos (B27) no tienen contrato: avisa Proyectos.
+  const contractId = payload.contract_id;
+  if (text === undefined || contractId === null) return Promise.resolve([]);
   const people = [...new Set([payload.responsible_id, payload.author_id])].filter(
     (id): id is string => id !== null && id !== event.actorId,
   );
   return Promise.resolve(
-    people.map((userId) => notice(userId, payload.document_code, text, payload.contract_id)),
+    people.map((userId) => notice(userId, payload.document_code, text, contractId)),
   );
 };
 

@@ -109,7 +109,7 @@ export function envelopeView(
     code: envelope.code,
     source: signatureSourceSchema.parse(envelope.source),
     document: {
-      id: envelope.amendmentId ?? envelope.contractId,
+      id: envelope.amendmentId ?? envelope.contractId ?? envelope.sourceId ?? envelope.id,
       code: envelope.documentCode,
       title: envelope.documentTitle,
       sha256: envelope.documentSha256,
