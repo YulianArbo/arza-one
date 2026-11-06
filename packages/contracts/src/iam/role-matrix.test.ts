@@ -132,3 +132,18 @@ describe('documento de permisos por rol', () => {
     );
   });
 });
+
+describe('permisos de Proyectos del B27', () => {
+  it('el acta de entrega la envía quien lidera; el equipo registra sus horas (B27)', () => {
+    expect(codesOf('EQUIPO_PROYECTO')).not.toContain('project.deliverable.submit');
+    expect(codesOf('EQUIPO_PROYECTO', true)).toContain('project.time.log');
+    expect(codesOf('EQUIPO_PROYECTO')).not.toContain('project.time.approve');
+    expect(codesOf('LIDER_TECNICO', false)).toEqual(
+      expect.arrayContaining([
+        'project.deliverable.submit',
+        'project.time.approve',
+        'project.close',
+      ]),
+    );
+  });
+});

@@ -87,6 +87,15 @@ export const projectSummarySchema = z.object({
   version: versionSchema,
 });
 
+export const controlSettingsSchema = z.object({
+  hour_cost: moneySchema.nullable().describe('Solo para quien ve la rentabilidad'),
+  respond_days: z.number().int(),
+  tacit_acceptance: z.boolean(),
+  tacit_clause: z.string().nullable(),
+  closing_note: z.string().nullable().describe('Lecciones aprendidas, al cerrar'),
+  closed_at: dateTimeSchema.nullable(),
+});
+
 export const projectDetailSchema = projectSummarySchema.extend({
   type: projectTypeSchema,
   methodology: projectMethodologySchema,
@@ -108,10 +117,18 @@ export const projectDetailSchema = projectSummarySchema.extend({
   milestones: z.array(milestoneSchema),
   sprints: z.array(sprintSchema),
   links: z.array(linkSchema),
+  control: controlSettingsSchema,
   can: z.object({
     update: z.boolean().describe('Editar, cambiar el estado, hitos, iteraciones y enlaces'),
     manage_members: z.boolean(),
     manage_items: z.boolean(),
+    log_time: z.boolean().describe('Registrar sus horas en este proyecto'),
+    approve_time: z.boolean(),
+    deliver: z.boolean().describe('Entregar al cliente y enviar el acta'),
+    manage_releases: z.boolean(),
+    manage_incidents: z.boolean(),
+    close: z.boolean(),
+    see_money: z.boolean().describe('Ver el costo de la hora y la rentabilidad'),
   }),
 });
 
@@ -152,3 +169,4 @@ export type ProjectDetail = z.infer<typeof projectDetailSchema>;
 export type ProjectListQuery = z.infer<typeof projectListQuerySchema>;
 export type ProjectListResponse = z.infer<typeof projectListResponseSchema>;
 export type ProjectOptions = z.infer<typeof projectOptionsSchema>;
+export type ControlSettings = z.infer<typeof controlSettingsSchema>;
