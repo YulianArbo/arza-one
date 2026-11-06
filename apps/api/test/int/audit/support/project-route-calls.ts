@@ -29,7 +29,7 @@ export interface Crew {
   readonly base: string;
 }
 
-export async function leaderOf(s: AccessScenario): Promise<Person> {
+async function leaderOf(s: AccessScenario): Promise<Person> {
   await seedProjects(apiDatabase(), [s.tenant.id], systemClock);
   return s.person('lider-proyectos-recorrido', ['LIDER_TECNICO']);
 }

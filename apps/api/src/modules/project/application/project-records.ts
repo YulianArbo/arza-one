@@ -59,7 +59,7 @@ function canSeeProject(ability: AppAbility, memberIds: readonly string[]): boole
   );
 }
 
-export function canManageItems(ability: AppAbility, memberIds: readonly string[]): boolean {
+function canManageItems(ability: AppAbility, memberIds: readonly string[]): boolean {
   return canOnRecord(ability, 'project.item.manage', involved(memberIds));
 }
 

@@ -14,7 +14,6 @@ import {
   type AcceptanceStatus,
   type DeliverableStatus,
   type IncidentSeverity,
-  type MilestoneStatus,
   type ProjectRiskLevel,
   type ReviewResult,
   type TimeEntryStatus,
@@ -83,12 +82,6 @@ export const PROJECT_STATUS_TONES: Readonly<Record<ProjectStatus, Tone>> = {
   paused: 'neutral',
   closing: 'info',
   closed: 'neutral',
-};
-
-export const MILESTONE_TONES: Readonly<Record<MilestoneStatus, Tone>> = {
-  pending: 'info',
-  done: 'success',
-  billable: 'success',
 };
 
 export const TIME_TONES: Readonly<Record<TimeEntryStatus, Tone>> = {

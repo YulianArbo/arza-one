@@ -26,7 +26,7 @@ const ENTRY = {
   version: 1,
 };
 
-export const TIME_ENTRIES = {
+const TIME_ENTRIES = {
   data: [
     ENTRY,
     {
@@ -43,7 +43,7 @@ export const TIME_ENTRIES = {
   total_hours: 5.5,
 };
 
-export const TIME_OPTIONS = {
+const TIME_OPTIONS = {
   projects: [
     {
       id: PROJECT_ID,
@@ -56,7 +56,7 @@ export const TIME_OPTIONS = {
   today: '2026-11-05',
 };
 
-export function deliverable(overrides: object = {}): object {
+function deliverable(overrides: object = {}): object {
   return {
     id: DELIVERABLE_ID,
     name: 'Portal de autogestión',
@@ -71,7 +71,7 @@ export function deliverable(overrides: object = {}): object {
   };
 }
 
-export const ACCEPTANCE = {
+const ACCEPTANCE = {
   id: '01999a00-0000-7000-8000-0000000e0602',
   status: 'accepted',
   record_code: 'FT-TEC-001-2026-0001',
@@ -95,7 +95,7 @@ export const DELIVERY_OPTIONS = {
   form_ready: true,
 };
 
-export const RISK = {
+const RISK = {
   id: RISK_ID,
   description: 'Cambia la interfaz del proveedor de pagos.',
   probability: 4,
@@ -107,7 +107,7 @@ export const RISK = {
   version: 1,
 };
 
-export const RELEASE = {
+const RELEASE = {
   id: '01999a00-0000-7000-8000-0000000e0a01',
   version_label: '1.0.0',
   environment: 'test',
@@ -117,7 +117,7 @@ export const RELEASE = {
   released_by: LEADER,
 };
 
-export const INCIDENT = {
+const INCIDENT = {
   id: INCIDENT_ID,
   code: 'INC-2026-0001',
   title: 'Caída del portal',
@@ -134,7 +134,7 @@ export const INCIDENT = {
   version: 1,
 };
 
-export const INDICATORS = {
+const INDICATORS = {
   progress: { planned: 2, done: 1, percent: 50 },
   hours: { budget: 480.5, logged: 10, approved: 6, billable: 4, pending: 4, used_pct: 1 },
   schedule: { elapsed_pct: 10, deviation_pts: 40 },

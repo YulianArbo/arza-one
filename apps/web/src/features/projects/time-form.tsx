@@ -22,7 +22,7 @@ import { useProjectAction } from './queries';
 // general del proyecto), si se cobran al cliente y qué se hizo. Máximo siete días de atraso; la API
 // revisa además que la persona no pase de 24 horas en el día.
 
-export interface LoggableProject {
+interface LoggableProject {
   readonly id: string;
   readonly label: string;
   readonly items: readonly {

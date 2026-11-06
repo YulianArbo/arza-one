@@ -3,7 +3,6 @@
 import {
   BOARD_REFRESH_SECONDS,
   boardSchema,
-  codeReviewListResponseSchema,
   deliverableListResponseSchema,
   deliveryOptionsSchema,
   incidentListResponseSchema,
@@ -21,7 +20,6 @@ import {
   type ProjectDetail,
   type ProjectListResponse,
   type ProjectOptions,
-  type CodeReviewListResponse,
   type DeliverableListResponse,
   type DeliveryOptions,
   type IncidentListResponse,
@@ -133,10 +131,6 @@ export function useDeliverables(id: string): UseQueryResult<DeliverableListRespo
 
 export function useDeliveryOptions(id: string, enabled: boolean): UseQueryResult<DeliveryOptions> {
   return usePart(id, 'deliverables/options', deliveryOptionsSchema, enabled);
-}
-
-export function useCodeReviews(id: string): UseQueryResult<CodeReviewListResponse> {
-  return usePart(id, 'code-reviews', codeReviewListResponseSchema);
 }
 
 export function useRisks(id: string): UseQueryResult<RiskListResponse> {
