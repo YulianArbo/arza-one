@@ -127,6 +127,12 @@ const ctrFollowUpJobSchema = z.object({});
 const sigWorkJobSchema = z.object({});
 const sigFollowUpJobSchema = z.object({});
 
+/**
+ * Actas de entrega de los proyectos (B27): cada pocos segundos, la que ya tiene su PDF sale a firma
+ * del cliente y la que el cliente respondió deja aceptado o devuelto su entregable. Del sistema.
+ */
+const prjAcceptanceWorkJobSchema = z.object({});
+
 export type TenantJob = z.infer<typeof tenantJobSchema>;
 export type ExampleEmailJob = z.infer<typeof exampleEmailJobSchema>;
 export type AccountEmailJob = z.infer<typeof accountEmailJobSchema>;
@@ -226,6 +232,11 @@ export const JOBS = {
     name: 'sig.follow-up',
     schema: sigFollowUpJobSchema,
   },
+  prjAcceptanceWork: {
+    queue: QUEUES.platform,
+    name: 'prj.acceptance-work',
+    schema: prjAcceptanceWorkJobSchema,
+  },
 } as const;
 
 /** Trabajos programados: el worker los registra al arrancar (expresión cron, hora de Bogotá). */
@@ -262,6 +273,13 @@ export const SCHEDULED_JOBS = [
   { id: 'sig.work.every-10-seconds', job: JOBS.sigWork, pattern: '*/10 * * * * *' },
   // Cada día a las 7:00: recordatorios y vencimiento de los procesos de firma, antes de la jornada.
   { id: 'sig.follow-up.daily', job: JOBS.sigFollowUp, pattern: '0 7 * * *' },
+  // Cada 20 segundos: el acta de una entrega sale a firma apenas su PDF está listo, y la respuesta
+  // del cliente llega al proyecto poco después de que firma o devuelve.
+  {
+    id: 'prj.acceptance-work.every-20-seconds',
+    job: JOBS.prjAcceptanceWork,
+    pattern: '*/20 * * * * *',
+  },
 ] as const;
 
 export type JobDefinition = (typeof JOBS)[keyof typeof JOBS];

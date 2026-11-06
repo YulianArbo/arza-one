@@ -114,6 +114,7 @@ describe('enrutador de trabajos de documentos y avisos', () => {
       JOBS.ctrFollowUp,
       JOBS.sigWork,
       JOBS.sigFollowUp,
+      JOBS.prjAcceptanceWork,
     ]) {
       await expect(route({ name: job.name, data: {} })).rejects.toThrow('no se usa');
     }
