@@ -562,6 +562,11 @@ GRANT SELECT, INSERT, UPDATE ON "prj_incidents" TO app_user;
 -- Trabajo del worker ---------------------------------------------------------------------------
 -- Las empresas con actas por enviar a firma o esperando la respuesta del cliente: cada pocos
 -- segundos el worker envía las listas y lee cómo terminó la firma (B27).
+-- La función corre como dueña del esquema: lee las actas de todas las empresas solo para saber cuáles
+-- tienen trabajo (como doc_tenants_with_pending_pdfs).
+CREATE POLICY "prj_acceptances_worker_lookup" ON "prj_acceptances"
+    FOR SELECT TO migration_user USING (true);
+
 CREATE FUNCTION "prj_tenants_with_acceptances"() RETURNS SETOF UUID
     LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
     AS $$ SELECT DISTINCT tenant_id FROM prj_acceptances

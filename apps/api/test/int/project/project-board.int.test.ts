@@ -5,7 +5,7 @@ import { ProjectScenario } from './support/project-scenario.js';
 
 // Lista de pendientes, iteraciones y tablero (B26, ficha 17.8): la numeración por proyecto, la
 // jerarquía, los criterios de aceptación para entrar a una iteración, las columnas del tablero y la
-// evidencia para terminar.
+// evidencia para terminar (desde el B27, una revisión de código FT-TEC-002 aprobada).
 
 const scenario = new ProjectScenario('tablero de proyectos');
 
@@ -96,6 +96,7 @@ describe('iteraciones', () => {
     for (const status of ['in_progress', 'in_review', 'in_testing']) {
       await scenario.itemStep(leader, id, finished, 'move', { status });
     }
+    await scenario.approveReview(leader, id, finished);
     await scenario.itemStep(leader, id, finished, 'move', { status: 'done', ...EVIDENCE });
     expect((await scenario.sprintStep(leader, id, first, 'close')).status).toBe(204);
     expect((await scenario.itemOf(leader, id, open)).sprint_id).toBeNull();
@@ -121,6 +122,13 @@ describe('tablero', () => {
     }
     const bare = await scenario.itemStep(leader, id, item, 'move', { status: 'done' });
     expect(errorCode(bare)).toBe('PROJECT_ITEM_EVIDENCE_REQUIRED');
+    // Desde el B27, sin una revisión FT-TEC-002 aprobada tampoco termina, aunque traiga la nota.
+    const unreviewed = await scenario.itemStep(leader, id, item, 'move', {
+      status: 'done',
+      ...EVIDENCE,
+    });
+    expect(errorCode(unreviewed)).toBe('PROJECT_ITEM_EVIDENCE_REQUIRED');
+    await scenario.approveReview(leader, id, item);
     const done = await scenario.itemStep(leader, id, item, 'move', { status: 'done', ...EVIDENCE });
     expect(done.status, done.text).toBe(204);
     const board = await scenario.board(leader, id);

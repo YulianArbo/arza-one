@@ -8,6 +8,7 @@ import {
   type CodeReviewListQuery,
   type CodeReviewRequest,
 } from '@arza/contracts';
+import { v7 as uuidv7 } from 'uuid';
 import { z } from 'zod';
 
 import type { PrjCodeReview, PrjItem, PrjProject } from '../../../generated/prisma/client.js';
@@ -17,7 +18,7 @@ import { CLOCK, type Clock } from '../../../platform/clock/clock.js';
 import { DatabaseService } from '../../../platform/database/database.service.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import { bogotaToday } from '../../core/index.js';
-import { CODE_REVIEW_CODE, recordSystemForm } from '../../doc/index.js';
+import { CODE_REVIEW_CODE, recordSystemForm, type SystemFormRecord } from '../../doc/index.js';
 import { reviewProblem } from '../domain/control-rules.js';
 import type { ItemRequester } from './items.js';
 import { typeOf } from './item-records.js';
@@ -114,13 +115,16 @@ async function reviewableItem(
   return item;
 }
 
-/** Llena el registro FT-TEC-002 de la revisión y lo une a ella; devuelve su código. */
+/**
+ * Llena el registro FT-TEC-002 de la revisión, antes de guardarla: la revisión no se edita después
+ * (la base no admite cambios en prj_code_reviews).
+ */
 async function recordChecklist(
   tx: TenantTransaction,
   actor: ProjectActor,
   target: { readonly project: PrjProject; readonly item: PrjItem; readonly reviewId: string },
   input: CodeReviewRequest,
-): Promise<string> {
+): Promise<SystemFormRecord> {
   const { project, item, reviewId } = target;
   const reviewerId = actor.userId ?? '';
   const reviewer = (await peopleNames(tx, [reviewerId])).get(reviewerId) ?? 'Colaborador';
@@ -135,11 +139,7 @@ async function recordChecklist(
     ),
   });
   if (record === null) throw formUnavailable(CODE_REVIEW_CODE);
-  await tx.prjCodeReview.update({
-    where: { id: reviewId },
-    data: { checklistRecordId: record.id, recordCode: record.code },
-  });
-  return record.code;
+  return record;
 }
 
 @Injectable()
@@ -159,18 +159,21 @@ export class CodeReviewsUseCase {
       const { project } = await findProjectForItems(tx, requester.ability, projectId);
       assertOpen(project);
       const item = await reviewableItem(tx, projectId, input, actor.userId ?? '');
+      const id = uuidv7();
+      const record = await recordChecklist(tx, actor, { project, item, reviewId: id }, input);
       const review = await tx.prjCodeReview.create({
-        data: { tenantId: actor.tenantId, projectId, ...reviewData(item, input, actor) },
+        data: {
+          id,
+          tenantId: actor.tenantId,
+          projectId,
+          ...reviewData(item, input, actor),
+          checklistRecordId: record.id,
+          recordCode: record.code,
+        },
       });
-      const recordCode = await recordChecklist(
-        tx,
-        actor,
-        { project, item, reviewId: review.id },
-        input,
-      );
       await recordProjectChange(tx, actor, {
-        action: 'project.code_review.create',
-        event: 'project.code_review.created',
+        action: 'project.review.create',
+        event: 'project.review.created',
         entityType: 'prj_code_review',
         entityId: review.id,
         changes: {
@@ -178,7 +181,7 @@ export class CodeReviewsUseCase {
           item: item.code,
           result: input.result,
           not_met: input.answers.filter((answer) => answer === 'no').length,
-          record_code: recordCode,
+          record_code: record.code,
         },
         payload: { project_id: projectId, code: project.code, item_id: item.id },
       });

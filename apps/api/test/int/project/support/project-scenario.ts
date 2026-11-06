@@ -1,4 +1,5 @@
 import {
+  CODE_REVIEW_CHECKLIST,
   boardSchema,
   itemListResponseSchema,
   projectDetailSchema,
@@ -9,26 +10,29 @@ import {
 import type request from 'supertest';
 import { beforeAll, expect } from 'vitest';
 
+import { seedDocForms } from '../../../../src/modules/doc/index.js';
 import { publishTenantEvents } from '../../../../src/modules/ntf/application/publisher.js';
 import { seedNotificationTemplates } from '../../../../src/modules/ntf/index.js';
 import { seedProjects } from '../../../../src/modules/project/index.js';
 import { systemClock } from '../../../../src/platform/clock/clock.js';
-import { ContractScenario } from '../../contract/support/contract-scenario.js';
+import { SignatureScenario } from '../../contract/support/signature-scenario.js';
 import type { Person } from '../../iam/support/access-scenario.js';
 import { tenantScope } from '../../iam/support/iam-fixtures.js';
 import { apiDatabase } from '../../support/integration-database.js';
 
 // Escenario de las pruebas de Proyectos (B26): el de Contratos (para tener un contrato vigente) más
 // el flujo de autorización de la Dirección, el Líder técnico que crea los proyectos y las personas
-// del equipo. Datos ficticios.
+// del equipo. Desde el B27 parte del de firma electrónica (las actas se firman) y siembra los
+// formatos FT-TEC-001 y FT-TEC-002. Datos ficticios.
 
-export class ProjectScenario extends ContractScenario {
+export class ProjectScenario extends SignatureScenario {
   constructor(label: string) {
     super(label);
     beforeAll(async () => {
       const tenants = [this.tenant.id, this.otherTenant.id];
       await seedProjects(this.db, tenants, systemClock);
       await seedNotificationTemplates(this.db, tenants, systemClock);
+      await seedDocForms(apiDatabase(), tenants, systemClock);
     });
   }
 
@@ -155,6 +159,45 @@ export class ProjectScenario extends ContractScenario {
       item.version,
       body,
     );
+  }
+
+  /**
+   * Revisión de código FT-TEC-002 aprobada (B27): el ítem queda a cargo de alguien del equipo y el
+   * líder lo revisa. El ítem debe estar en revisión o en pruebas.
+   */
+  async approveReview(leader: Person, projectId: string, itemId: string): Promise<string> {
+    const author = await this.person(`autor-${crypto.randomUUID().slice(0, 6)}`, [
+      'EQUIPO_PROYECTO',
+    ]);
+    await this.addMember(leader, projectId, author);
+    const item = await this.itemOf(leader, projectId, itemId);
+    const assigned = await this.put(
+      `/v1/projects/${projectId}/items/${itemId}`,
+      leader,
+      {
+        parent_id: item.parent?.id ?? null,
+        title: item.title,
+        description: item.description,
+        acceptance_criteria: item.acceptance_criteria,
+        priority: item.priority,
+        estimate_hours: item.estimate_hours,
+        assignee_id: author.id,
+      },
+      item.version,
+    );
+    expect(assigned.status, assigned.text).toBe(204);
+    return this.create(`/v1/projects/${projectId}/code-reviews`, leader, this.reviewBody(itemId));
+  }
+
+  reviewBody(itemId: string, overrides: object = {}): Record<string, unknown> {
+    return {
+      item_id: itemId,
+      reference_url: 'https://git.example.com/portal/pull/12',
+      answers: Array.from({ length: CODE_REVIEW_CHECKLIST.length }, () => 'yes'),
+      result: 'approved',
+      notes: null,
+      ...overrides,
+    };
   }
 
   /** Iteración planeada dentro de las fechas del proyecto. */

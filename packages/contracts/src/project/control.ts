@@ -226,3 +226,8 @@ export const riskListResponseSchema = z.object({ data: z.array(riskSchema) });
 export const releaseListResponseSchema = z.object({ data: z.array(releaseSchema) });
 export const codeReviewListResponseSchema = z.object({ data: z.array(codeReviewSchema) });
 export const incidentListResponseSchema = z.object({ data: z.array(incidentSchema) });
+
+export type RiskListResponse = z.infer<typeof riskListResponseSchema>;
+export type ReleaseListResponse = z.infer<typeof releaseListResponseSchema>;
+export type CodeReviewListResponse = z.infer<typeof codeReviewListResponseSchema>;
+export type IncidentListResponse = z.infer<typeof incidentListResponseSchema>;
