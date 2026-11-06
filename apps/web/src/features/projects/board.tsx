@@ -21,11 +21,12 @@ import { DoneDialog, type Evidence } from './done-dialog';
 import { ITEM_DRAG, ItemCard } from './item-card';
 import { ITEM_STATUSES } from './labels';
 import { useBoard, useProjectAction } from './queries';
+import { ReviewDialog } from './review-dialog';
 
 // Tablero de trabajo (B26, ficha 17.8; numeral 16.4, tablero de tarjetas): una columna por estado.
 // Las tarjetas se arrastran con el ratón o se mueven con «Mover a…», con el teclado; la API valida
 // el paso igual que el flujo. Se refresca solo cada 10 segundos para ver lo que otros movieron.
-// Terminar pide el enlace a la revisión de código y la nota de pruebas.
+// Terminar pide la revisión de código FT-TEC-002 aprobada (B27) y la nota de pruebas.
 
 interface Move {
   readonly item: ProjectItem;
@@ -37,11 +38,7 @@ function useMove(projectId: string) {
   const api = useApiClient();
   return useProjectAction<Move>(({ item, status, evidence }, csrfToken) =>
     api.post(`/v1/projects/${projectId}/items/${item.id}/actions/move`, {
-      body: {
-        status,
-        review_url: evidence?.review_url ?? null,
-        test_note: evidence?.test_note ?? null,
-      },
+      body: { status, review_url: null, test_note: evidence?.test_note ?? null },
       version: item.version,
       csrfToken,
     }),
@@ -53,6 +50,7 @@ interface ColumnProps {
   readonly items: readonly ProjectItem[];
   readonly canMove: boolean;
   readonly onMove: (item: ProjectItem, status: ItemStatus) => void;
+  readonly onReview: (item: ProjectItem) => void;
 }
 
 function Column(props: ColumnProps): JSX.Element {
@@ -74,38 +72,51 @@ function Column(props: ColumnProps): JSX.Element {
       </h3>
       <ul className="flex flex-col gap-2">
         {mine.map((item) => (
-          <ItemCard key={item.id} item={item} canMove={props.canMove} onMove={props.onMove} />
+          <ItemCard
+            key={item.id}
+            item={item}
+            canMove={props.canMove}
+            onMove={props.onMove}
+            onReview={props.onReview}
+          />
         ))}
       </ul>
     </section>
   );
 }
 
-/** Mover una tarjeta: terminar sin evidencia abre primero el diálogo que la pide. */
+/** Mover una tarjeta: terminar abre primero el diálogo que pide la revisión y las pruebas. */
 function useBoardMoves(projectId: string) {
   const move = useMove(projectId);
   const [finishing, setFinishing] = useState<ProjectItem | null>(null);
+  const [reviewing, setReviewing] = useState<ProjectItem | null>(null);
   const onMove = (item: ProjectItem, status: ItemStatus): void => {
     if (status === item.status) return;
-    const needsEvidence = item.review_url === null || item.test_note === null;
-    if (status === 'done' && needsEvidence) setFinishing(item);
+    if (status === 'done') setFinishing(item);
     else move.execute({ item, status });
   };
   const finish = (item: ProjectItem, evidence: Evidence): void => {
     setFinishing(null);
     move.execute({ item, status: 'done', evidence });
   };
+  const review = (item: ProjectItem): void => {
+    setFinishing(null);
+    setReviewing(item);
+  };
   const cancel = (): void => {
     setFinishing(null);
+    setReviewing(null);
   };
-  return { move, finishing, onMove, finish, cancel };
+  return { move, finishing, reviewing, onMove, finish, review, cancel };
 }
 
 function BoardColumns(props: {
   readonly project: ProjectDetail;
   readonly items: readonly ProjectItem[];
 }): JSX.Element {
-  const { move, finishing, onMove, finish, cancel } = useBoardMoves(props.project.id);
+  const { move, finishing, reviewing, onMove, finish, review, cancel } = useBoardMoves(
+    props.project.id,
+  );
   const canMove = props.project.can.manage_items && WORKING_STATUSES.includes(props.project.status);
   return (
     <>
@@ -122,10 +133,12 @@ function BoardColumns(props: {
             items={props.items}
             canMove={canMove}
             onMove={onMove}
+            onReview={review}
           />
         ))}
       </div>
-      <DoneDialog item={finishing} onClose={cancel} onConfirm={finish} />
+      <DoneDialog item={finishing} onClose={cancel} onConfirm={finish} onReview={review} />
+      <ReviewDialog projectId={props.project.id} item={reviewing} onClose={cancel} />
       {move.dialog}
     </>
   );

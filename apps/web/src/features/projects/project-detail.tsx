@@ -1,8 +1,7 @@
 'use client';
 
 import type { ProjectDetail } from '@arza/contracts';
-import { Alert, AlertDescription, Badge, EmptyState } from '@arza/ui';
-import { Clock } from 'lucide-react';
+import { Alert, AlertDescription, Badge } from '@arza/ui';
 import Link from 'next/link';
 import type { JSX } from 'react';
 
@@ -16,6 +15,9 @@ import { partyPath } from '../parties/labels';
 import { SectionTabs, type SectionTab } from '../parties/section-tabs';
 import { BacklogPanel } from './backlog';
 import { BoardPanel } from './board';
+import { DeliverablesPanel } from './deliverables-panel';
+import { IncidentsPanel } from './incidents-panel';
+import { IndicatorsPanel } from './indicators-panel';
 import {
   AUTHORIZATION_STATUSES,
   PROJECT_METHODOLOGIES,
@@ -28,11 +30,15 @@ import { LinksPanel } from './links-panel';
 import { MilestonesPanel } from './milestones-panel';
 import { ProjectActions } from './project-actions';
 import { useProject } from './queries';
+import { ReleasesPanel } from './releases-panel';
+import { RisksPanel } from './risks-panel';
 import { SprintsPanel } from './sprints-panel';
 import { TeamPanel } from './team-panel';
+import { TimePanel } from './time-panel';
 
 // Ficha del proyecto (B26, numerales 16.3 y 16.4): estado, acciones permitidas y las secciones de
-// la ficha 17.8 en pestañas. Horas, entregables, actas, riesgos y liberaciones llegan con el B27.
+// la ficha 17.8 en pestañas. Desde el B27: horas, entregables con su acta, riesgos, liberaciones,
+// incidentes e indicadores.
 
 interface Props {
   readonly project: ProjectDetail;
@@ -41,6 +47,12 @@ interface Props {
 /** Lo que está pasando y lo que sigue, en una frase. */
 function statusMessage(project: ProjectDetail): string | null {
   const { status, authorization } = project;
+  if (status === 'closing') {
+    return 'En cierre: termine lo pendiente; se cierra con todos los entregables aceptados, sin incidentes abiertos ni horas por aprobar.';
+  }
+  if (status === 'closed') {
+    return `Cerrado: solo se consulta. Lecciones aprendidas: «${project.control.closing_note ?? ''}».`;
+  }
   if (status === 'at_risk' || status === 'paused') {
     return `${PROJECT_STATUSES[status]}: ${project.status_reason ?? ''}`;
   }
@@ -88,16 +100,6 @@ function summaryFacts(project: ProjectDetail): Fact[] {
   return facts;
 }
 
-function ComingSoon(): JSX.Element {
-  return (
-    <EmptyState
-      icon={<Clock />}
-      title="Disponible pronto"
-      description="El registro de horas, los entregables, las actas de entrega, los riesgos y las liberaciones llegan en la siguiente etapa."
-    />
-  );
-}
-
 function tabsOf(project: ProjectDetail): SectionTab[] {
   return [
     {
@@ -111,7 +113,24 @@ function tabsOf(project: ProjectDetail): SectionTab[] {
     { id: 'hitos', label: 'Hitos', content: () => <MilestonesPanel project={project} /> },
     { id: 'equipo', label: 'Equipo', content: () => <TeamPanel project={project} /> },
     { id: 'enlaces', label: 'Enlaces', content: () => <LinksPanel project={project} /> },
-    { id: 'entregas', label: 'Horas y entregables', content: () => <ComingSoon /> },
+    { id: 'horas', label: 'Horas', content: () => <TimePanel project={project} /> },
+    {
+      id: 'entregables',
+      label: 'Entregables',
+      content: () => <DeliverablesPanel project={project} />,
+    },
+    { id: 'riesgos', label: 'Riesgos', content: () => <RisksPanel project={project} /> },
+    {
+      id: 'liberaciones',
+      label: 'Liberaciones',
+      content: () => <ReleasesPanel project={project} />,
+    },
+    { id: 'incidentes', label: 'Incidentes', content: () => <IncidentsPanel project={project} /> },
+    {
+      id: 'indicadores',
+      label: 'Indicadores',
+      content: () => <IndicatorsPanel project={project} />,
+    },
   ];
 }
 
@@ -129,7 +148,9 @@ function Detail({ project }: Props): JSX.Element {
         </span>
       </div>
       {message === null ? null : (
-        <Alert tone={project.status === 'planning' ? 'info' : 'warning'}>
+        <Alert
+          tone={['planning', 'closing', 'closed'].includes(project.status) ? 'info' : 'warning'}
+        >
           <AlertDescription>{message}</AlertDescription>
         </Alert>
       )}

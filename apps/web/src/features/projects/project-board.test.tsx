@@ -3,7 +3,7 @@ import { userEvent } from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Screen } from '../../test-support/core-fixtures';
-import { noContent, renderWithApi } from '../../test-support/fake-api';
+import { json, noContent, renderWithApi } from '../../test-support/fake-api';
 import {
   ITEM_ID,
   PROJECT_ID,
@@ -11,12 +11,14 @@ import {
   PROJECT_READER,
   SPRINT_ID,
   detailRoute,
+  projectItem,
   serveProjects,
+  CAN_NOTHING,
 } from '../../test-support/project-fixtures';
 import { ProjectDetailPanel } from './project-detail';
 
 // Tablero, lista de pendientes e iteraciones de un proyecto (B26): «Mover a» solo ofrece los pasos
-// posibles, terminar pide la revisión de código y las pruebas, y un ítem sin criterios lo marca la
+// posibles, terminar pide la revisión de código FT-TEC-002 aprobada (B27) y las pruebas, y un ítem sin criterios lo marca la
 // lista.
 
 vi.mock('next/navigation', () => ({
@@ -41,7 +43,9 @@ async function openTab(name: string): Promise<void> {
   await userEvent.click(await screen.findByRole('tab', { name }));
 }
 
-const MOVE = `POST /v1/projects/${PROJECT_ID}/items/${ITEM_ID}/actions/move`;
+const BASE = `/v1/projects/${PROJECT_ID}`;
+const MOVE = `POST ${BASE}/items/${ITEM_ID}/actions/move`;
+const reviewed = projectItem({ last_review: 'approved' });
 
 describe('tablero', () => {
   it('muestra una columna por estado; «Mover a» no se salta columnas', async () => {
@@ -59,8 +63,43 @@ describe('tablero', () => {
 });
 
 describe('tablero', () => {
-  it('terminar pide el enlace a la revisión de código y las pruebas', async () => {
-    const sent = serveProjects(PROJECT_LEADER, { [MOVE]: () => noContent() });
+  it('terminar sin revisión aprobada lleva a revisar el código (FT-TEC-002)', async () => {
+    const sent = serveProjects(PROJECT_LEADER, {
+      [`POST ${BASE}/code-reviews`]: () => json({ id: ITEM_ID }, 201),
+    });
+    await openTab('Tablero');
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Mover #2 Consultar facturas a otra columna' }),
+    );
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Terminado' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByText(/aún no tiene una revisión de código aprobada/u)).toBeVisible();
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Revisar el código' }));
+    const review = await screen.findByRole('dialog', { name: /Revisar el código/u });
+    await userEvent.click(within(review).getByRole('button', { name: 'Guardar la revisión' }));
+    expect(within(review).getAllByText(/Responda todos los puntos/u).length).toBeGreaterThan(0);
+    await userEvent.type(
+      within(review).getByLabelText('Solicitud de cambios en el repositorio'),
+      'https://git.example.com/portal/pull/12',
+    );
+    for (const radio of within(review).getAllByRole('radio', { name: 'Cumple' })) {
+      await userEvent.click(radio);
+    }
+    await userEvent.click(within(review).getByRole('button', { name: 'Guardar la revisión' }));
+    await vi.waitFor(() => {
+      const posted = sent.find((request) => request.path.endsWith('/code-reviews'));
+      expect(posted?.body).toMatchObject({ item_id: ITEM_ID, result: 'approved' });
+    });
+  });
+});
+
+describe('terminar con revisión', () => {
+  it('con la revisión aprobada, terminar pide las pruebas', async () => {
+    const sent = serveProjects(PROJECT_LEADER, {
+      [MOVE]: () => noContent(),
+      [`GET ${BASE}/board`]: () =>
+        json({ sprint: null, items: [reviewed], refreshed_at: '2026-11-05T15:00:00.000Z' }),
+    });
     await openTab('Tablero');
     await userEvent.click(
       await screen.findByRole('button', { name: 'Mover #2 Consultar facturas a otra columna' }),
@@ -68,18 +107,14 @@ describe('tablero', () => {
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Terminado' }));
     const dialog = await screen.findByRole('dialog');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Terminar' }));
-    expect(within(dialog).getAllByText(/https:\/\//u).length).toBeGreaterThan(0);
-    await userEvent.type(
-      within(dialog).getByLabelText('Enlace a la revisión de código'),
-      'https://git.example.com/portal/pull/12',
-    );
+    expect(within(dialog).getAllByText(/qué pruebas/u).length).toBeGreaterThan(0);
     await userEvent.type(within(dialog).getByLabelText('Pruebas hechas'), 'Pruebas manuales.');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Terminar' }));
     await vi.waitFor(() => {
       const move = sent.find((request) => request.path.endsWith('/actions/move'));
       expect(move?.body).toEqual({
         status: 'done',
-        review_url: 'https://git.example.com/portal/pull/12',
+        review_url: null,
         test_note: 'Pruebas manuales.',
       });
       expect(move?.headers['If-Match']).toBe('"4"');
@@ -90,7 +125,7 @@ describe('tablero', () => {
 describe('tablero', () => {
   it('quien solo lee el proyecto no puede mover tarjetas', async () => {
     serveProjects(PROJECT_READER, {
-      ...detailRoute({ can: { update: false, manage_members: false, manage_items: false } }),
+      ...detailRoute({ can: CAN_NOTHING }),
     });
     await openTab('Tablero');
     expect(await screen.findByText(/lo mueve el equipo del proyecto/u)).toBeVisible();
