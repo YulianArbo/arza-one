@@ -61,3 +61,32 @@ export function addBusinessHours(from: Date, hours: number, calendar: WorkHoursC
   }
   throw new Error('El horario laboral no tiene horas hábiles.');
 }
+
+/** Minutos hábiles de un día que caen entre `start` y `end` (milisegundos en hora local). */
+function minutesWithin(day: string, start: number, end: number, calendar: WorkHoursCalendar) {
+  const midnight = fromCalendarDate(day).getTime();
+  let minutes = 0;
+  for (const shift of calendar.shifts) {
+    const from = Math.max(start, midnight + shift.start * MINUTE_MS);
+    const to = Math.min(end, midnight + shift.end * MINUTE_MS);
+    if (to > from) minutes += (to - from) / MINUTE_MS;
+  }
+  return minutes;
+}
+
+/**
+ * Minutos hábiles entre dos instantes: los que cuenta el reloj de un tiquete entre que se reanuda y
+ * se pausa (B28). Lo que cae fuera de las jornadas, en fines de semana o festivos, no cuenta.
+ */
+export function businessMinutesBetween(from: Date, to: Date, calendar: WorkHoursCalendar): number {
+  const start = from.getTime() - BOGOTA_OFFSET_MS;
+  const end = to.getTime() - BOGOTA_OFFSET_MS;
+  let minutes = 0;
+  let day = toCalendarDate(new Date(start));
+  const last = toCalendarDate(new Date(end));
+  for (let checked = 0; checked < MAX_DAYS && day <= last; checked += 1) {
+    if (isBusinessDay(day, calendar)) minutes += minutesWithin(day, start, end, calendar);
+    day = addDays(day, 1);
+  }
+  return Math.round(minutes);
+}
