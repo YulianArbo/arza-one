@@ -8,6 +8,7 @@ import {
   milestoneStatusSchema,
   projectMethodologySchema,
   projectTypeSchema,
+  reviewResultSchema,
   sprintStatusSchema,
   type ProjectDetail,
   type ProjectItem,
@@ -32,7 +33,7 @@ import type { ProjectContract } from '../../contract/index.js';
 import { statusOf } from './project-records.js';
 import { personRef } from './project-support.js';
 
-// Cómo se muestra cada registro de Proyectos (B26), tal como lo define packages/contracts.
+// Cómo se muestra cada registro de Proyectos (B26 y B27), tal como lo define packages/contracts.
 
 /** Lo que la vista necesita además del proyecto: nombres, cliente, contrato y avance. */
 export interface ProjectContext {
@@ -135,12 +136,23 @@ export function detailView(
     milestones: parts.milestones.map(milestoneView),
     sprints: parts.sprints.map(({ sprint, items }) => sprintView(sprint, items)),
     links: parts.links.map(linkView),
+    control: {
+      hour_cost:
+        parts.can.see_money && project.hourCost !== null ? project.hourCost.toFixed(2) : null,
+      respond_days: project.respondDays,
+      tacit_acceptance: project.tacitAcceptance,
+      tacit_clause: project.tacitClause,
+      closing_note: project.closingNote,
+      closed_at: project.closedAt?.toISOString() ?? null,
+    },
     can: parts.can,
   };
 }
 
 export type ItemWithParent = PrjItem & {
   readonly parent: Pick<PrjItem, 'id' | 'number' | 'title'> | null;
+  /** La última revisión de código, si tiene (B27). */
+  readonly codeReviews: readonly { readonly result: string }[];
 };
 
 export function itemView(item: ItemWithParent, names: ReadonlyMap<string, string>): ProjectItem {
@@ -163,6 +175,10 @@ export function itemView(item: ItemWithParent, names: ReadonlyMap<string, string
     sprint_id: item.sprintId,
     review_url: item.reviewUrl,
     test_note: item.testNote,
+    last_review:
+      item.codeReviews[0] === undefined
+        ? null
+        : reviewResultSchema.parse(item.codeReviews[0].result),
     done_at: item.doneAt?.toISOString() ?? null,
     version: item.version,
   };

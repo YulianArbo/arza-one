@@ -1,8 +1,14 @@
-import { projectStatusSchema, type ProjectStatus } from '@arza/contracts';
+import {
+  projectStatusSchema,
+  type PermissionCode,
+  type ProjectDetail,
+  type ProjectStatus,
+} from '@arza/contracts';
 
 import type { PrjProject, Prisma } from '../../../generated/prisma/client.js';
 import {
   canOnRecord,
+  hasPermission,
   hasUnconditionalPermission,
   type AppAbility,
 } from '../../../platform/access/ability.js';
@@ -11,7 +17,7 @@ import { permissionDenied } from '../../../platform/access/permission-denied.js'
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import { versionConflict } from '../../../platform/http/if-match.js';
 import { toCalendarDate } from '../../core/index.js';
-import { projectNotFound, statusInvalid } from './project-messages.js';
+import { projectClosed, projectNotFound, statusInvalid } from './project-messages.js';
 
 // Lectura de un proyecto y quién puede hacer qué con él (B26, ficha 17.8). Quien solo ve «lo
 // propio» (Equipo de proyecto) ve los proyectos donde es miembro activo; para los demás, un
@@ -55,6 +61,40 @@ function canSeeProject(ability: AppAbility, memberIds: readonly string[]): boole
 
 export function canManageItems(ability: AppAbility, memberIds: readonly string[]): boolean {
   return canOnRecord(ability, 'project.item.manage', involved(memberIds));
+}
+
+/** El permiso sobre este proyecto: sobre todos, o solo donde la persona es miembro activo. */
+export function canOnProject(
+  ability: AppAbility,
+  code: PermissionCode,
+  memberIds: readonly string[],
+): boolean {
+  return canOnRecord(ability, code, involved(memberIds));
+}
+
+/** Ve el costo de la hora y la rentabilidad: quien ve todos los proyectos, no el equipo (B27). */
+export function seesMoney(ability: AppAbility): boolean {
+  return hasUnconditionalPermission(ability, 'project.read_all');
+}
+
+/** Qué puede hacer la persona en este proyecto, para que la pantalla no ofrezca lo imposible. */
+export function projectAbilities(
+  ability: AppAbility,
+  userId: string,
+  memberIds: readonly string[],
+): ProjectDetail['can'] {
+  return {
+    update: hasPermission(ability, 'project.update'),
+    manage_members: hasPermission(ability, 'project.member.manage'),
+    manage_items: canManageItems(ability, memberIds),
+    log_time: memberIds.includes(userId) && canOnProject(ability, 'project.time.log', memberIds),
+    approve_time: hasPermission(ability, 'project.time.approve'),
+    deliver: canOnProject(ability, 'project.deliverable.submit', memberIds),
+    manage_releases: hasPermission(ability, 'project.release.manage'),
+    manage_incidents: hasPermission(ability, 'project.incident.manage'),
+    close: hasPermission(ability, 'project.close'),
+    see_money: seesMoney(ability),
+  };
 }
 
 /** El proyecto con su equipo, si la persona puede verlo; si no, «no existe». */
@@ -104,6 +144,11 @@ export async function lockProject(tx: TenantTransaction, id: string): Promise<vo
 
 export function statusOf(project: Pick<PrjProject, 'status'>): ProjectStatus {
   return projectStatusSchema.parse(project.status);
+}
+
+/** Un proyecto cerrado solo se consulta (B27). */
+export function assertOpen(project: Pick<PrjProject, 'status'>): void {
+  if (statusOf(project) === 'closed') throw projectClosed();
 }
 
 /** El equipo trabaja: en ejecución o en riesgo. */
