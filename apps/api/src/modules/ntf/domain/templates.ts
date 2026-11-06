@@ -65,6 +65,18 @@ export const DEFAULT_TEMPLATES: Readonly<Record<NotificationKind, TemplateText>>
     body: 'El proyecto {{proyecto}} tiene una novedad: {{novedad}}. Revíselo en ARZA ONE › Proyectos.',
     urgent: false,
   },
+  // B28: a quien atiende o pidió un tiquete, y a quien decide una compensación.
+  svc_ticket_update: {
+    subject: 'Tiquete {{tiquete}}: {{novedad}}',
+    body: 'El tiquete {{tiquete}} tiene una novedad: {{novedad}}. Revíselo en ARZA ONE › Servicio.',
+    urgent: false,
+  },
+  // B28: plazo al 80 %, plazo vencido y tiquete crítico (PT-TEC-003): se entregan de inmediato.
+  svc_ticket_alert: {
+    subject: 'Atención: tiquete {{tiquete}}',
+    body: 'El tiquete {{tiquete}} necesita atención: {{novedad}}. Ábralo en ARZA ONE › Servicio.',
+    urgent: true,
+  },
 };
 
 /** Variables que el texto usa y que este tipo de aviso no ofrece. */

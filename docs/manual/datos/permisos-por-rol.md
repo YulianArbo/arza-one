@@ -19,7 +19,7 @@ permisos de una persona son la suma de sus roles vigentes.
 | Comercial | `COMERCIAL` | Interno | 51 | 9 |
 | Líder técnico | `LIDER_TECNICO` | Interno | 46 | 8 |
 | Equipo de proyecto | `EQUIPO_PROYECTO` | Interno | 20 | 17 |
-| Servicio al cliente | `SERVICIO` | Interno | 43 | 9 |
+| Servicio al cliente | `SERVICIO` | Interno | 44 | 9 |
 | Administrativo y financiero | `ADMIN_FINANCIERO` | Interno | 57 | 5 |
 | Contador | `CONTADOR` | Interno | 15 | 2 |
 | Talento humano | `TALENTO_HUMANO` | Interno | 39 | 9 |
@@ -139,7 +139,7 @@ Desarrolladores, QA, diseñadores. Solo los proyectos donde es miembro. 20 permi
 
 ## Servicio al cliente (`SERVICIO`)
 
-Líder y técnicos de servicio al cliente. Tiquetes, PQRSF, encuestas, base de conocimiento. 43 permisos.
+Líder y técnicos de servicio al cliente. Tiquetes, PQRSF, encuestas, base de conocimiento. 44 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Terceros (M02):** Ver terceros · Crear terceros · Editar terceros · Fusionar terceros duplicados · Registrar el conocimiento del tercero
@@ -149,7 +149,7 @@ Líder y técnicos de servicio al cliente. Tiquetes, PQRSF, encuestas, base de c
 - **Comercial (M05):** Ver prospectos · Ver oportunidades · Ver cotizaciones · Ver informes comerciales
 - **Contratos y firma (M06):** Ver contratos · Ver las evidencias de firma
 - **Proyectos (M07):** Ver todos los proyectos · Ver los proyectos donde es miembro
-- **Servicio al cliente (M08):** Ver tiquetes · Crear tiquetes · Asignar tiquetes · Resolver tiquetes · Cerrar tiquetes · Ver PQRSF · Clasificar PQRSF · Responder PQRSF · Aprobar respuestas de PQRSF · Administrar encuestas de satisfacción · Administrar la base de conocimiento · Aprobar compensaciones al cliente
+- **Servicio al cliente (M08):** Ver tiquetes · Crear tiquetes · Asignar tiquetes · Resolver tiquetes · Cerrar tiquetes · Ver PQRSF · Clasificar PQRSF · Responder PQRSF · Aprobar respuestas de PQRSF · Administrar encuestas de satisfacción · Administrar la base de conocimiento · Aprobar compensaciones al cliente · Configurar los acuerdos de tiempo y las garantías
 - **Compras y activos (M11):** Solicitar compras (solo lo propio) · Solicitar viajes (solo lo propio) · Ver activos (solo lo propio)
 - **Calidad (M14):** Reportar no conformidades (solo lo propio) · Gestionar acciones de mejora (solo lo propio) · Registrar mediciones de indicadores (solo lo propio)
 - **Innovación (M15):** Proponer ideas (solo lo propio)
