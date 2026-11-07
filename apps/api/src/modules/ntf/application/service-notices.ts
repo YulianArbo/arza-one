@@ -5,13 +5,16 @@ import { processOwnerPositionId } from '../../core/index.js';
 import { activeUsersInPosition, activeUsersWithRoles } from '../../iam/index.js';
 import type { Handler, Notice } from './notice-types.js';
 
-// Avisos de la mesa de ayuda (B28). Quien recibe un tiquete asignado o escalado se entera; el
-// responsable y el líder de Servicio al cliente reciben la alerta del 80 % del plazo y la del plazo
+// Avisos de Servicio al cliente. Mesa de ayuda (B28): quien recibe un tiquete asignado o escalado se
+// entera; el responsable y el líder de Servicio al cliente reciben la alerta del 80 % del plazo y la del plazo
 // vencido (ficha 17.9; decisión 4: el líder es quien ocupa el cargo dueño del proceso SAC o, si no
 // hay, Servicio al cliente). Un tiquete crítico avisa de inmediato al Líder técnico, al líder de
 // Servicio y a la Dirección (PT-TEC-003, decisión 5). Quien pidió el tiquete sabe que se resolvió;
 // quien decide compensaciones, que hay una por decidir; quien la propuso, cómo se decidió. Nadie
-// recibe aviso de lo que hizo él mismo.
+// recibe aviso de lo que hizo él mismo. PQRSF (B29): Servicio sabe que llegó una; quien la tramita,
+// que se la asignaron; quien aprueba, que hay una respuesta por aprobar; quien redactó, que se la
+// devolvieron o se aprobó; el Oficial de datos y Calidad, los traslados (decisiones 5 y 6); y quien
+// la tramita y el líder, que está por vencer o venció (decisión 11).
 
 const ticketSchema = z.object({
   id: z.uuid(),
@@ -119,7 +122,88 @@ const onCompensationDecided: Handler = (_tx, event) => {
   );
 };
 
+// PQRSF (B29) -----------------------------------------------------------------------------------
+
+const pqrsfSchema = z.object({
+  id: z.uuid(),
+  code: z.string(),
+  assignee_id: z.uuid().nullable(),
+  drafted_by: z.uuid().nullable(),
+});
+
+function pqrsfNotice(userId: string, code: string, novedad: string, id: string): Notice {
+  return {
+    userId,
+    kind: 'svc_pqrsf_update',
+    values: { pqrsf: code, novedad },
+    link: `/app/servicio/pqrsf/${id}`,
+  };
+}
+
+type Recipients = (
+  tx: TenantTransaction,
+  pqrsf: z.infer<typeof pqrsfSchema>,
+  now: Date,
+) => Promise<(string | null)[]>;
+
+/** Un aviso de PQRSF: a quiénes y con qué texto; nadie recibe aviso de lo que hizo él mismo. */
+function pqrsfHandler(text: string, recipients: Recipients): Handler {
+  return async (tx, event, now) => {
+    const pqrsf = pqrsfSchema.parse(event.payload);
+    const users = others(await recipients(tx, pqrsf, now), event.actorId);
+    return users.map((userId) => pqrsfNotice(userId, pqrsf.code, text, pqrsf.id));
+  };
+}
+
+const toAssignee: Recipients = (_tx, pqrsf) => Promise.resolve([pqrsf.assignee_id]);
+const toDrafter: Recipients = (_tx, pqrsf) => Promise.resolve([pqrsf.drafted_by]);
+const toRoles =
+  (roles: readonly string[]): Recipients =>
+  async (tx, _pqrsf, now) =>
+    activeUsersWithRoles(tx, roles, now);
+
+/** Aprueba cualquier persona de Servicio al cliente distinta de quien la redactó (decisión 7). */
+const toApprovers: Recipients = async (tx, pqrsf, now) =>
+  (await activeUsersWithRoles(tx, ['SERVICIO'], now)).filter((id) => id !== pqrsf.drafted_by);
+
+const toAssigneeAndLeaders: Recipients = async (tx, pqrsf, now) => [
+  pqrsf.assignee_id,
+  ...(await serviceLeaders(tx, now)),
+];
+
+const PQRSF_HANDLERS: Readonly<Record<string, Handler>> = {
+  'service.pqrsf.filed': pqrsfHandler(
+    'se radicó una PQRSF nueva; clasifíquela y asígnela',
+    async (tx, _pqrsf, now) => serviceLeaders(tx, now),
+  ),
+  'service.pqrsf.classified': pqrsfHandler('se la asignaron a usted para tramitarla', toAssignee),
+  'service.pqrsf.assigned': pqrsfHandler('se la asignaron a usted para tramitarla', toAssignee),
+  'service.pqrsf.submitted': pqrsfHandler('hay una respuesta por aprobar o devolver', toApprovers),
+  'service.pqrsf.returned': pqrsfHandler(
+    'le devolvieron la respuesta; revise qué hay que corregir',
+    toDrafter,
+  ),
+  'service.pqrsf.responded': pqrsfHandler(
+    'aprobaron la respuesta y se envía a quien la presentó',
+    async (_tx, pqrsf) => Promise.resolve([pqrsf.drafted_by, pqrsf.assignee_id]),
+  ),
+  'service.pqrsf.transferred_to_privacy': pqrsfHandler(
+    'trata de datos personales: se trasladó a Privacidad y sigue los plazos de la Ley 1581',
+    toRoles(['OFICIAL_DATOS']),
+  ),
+  'service.pqrsf.nonconformity_requested': pqrsfHandler(
+    'es una queja o un reclamo procedente: registre la no conformidad en Calidad',
+    toRoles(['CALIDAD']),
+  ),
+  'service.pqrsf.warned': pqrsfHandler(
+    'le quedan dos días hábiles para responder',
+    toAssigneeAndLeaders,
+  ),
+  'service.pqrsf.breached': pqrsfHandler('venció su plazo de respuesta', toAssigneeAndLeaders),
+};
+
 export const SERVICE_HANDLERS: Readonly<Record<string, Handler>> = {
+  ...PQRSF_HANDLERS,
   'service.ticket.created': onCreated,
   ...Object.fromEntries(Object.keys(ALERTS).map((type) => [type, onClockAlert])),
   ...Object.fromEntries(Object.keys(ASSIGNEE_UPDATES).map((type) => [type, onAssigneeUpdate])),

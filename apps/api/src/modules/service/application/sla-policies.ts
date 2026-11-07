@@ -24,6 +24,7 @@ import {
   type ServiceActor,
   type ServiceTarget,
 } from './service-support.js';
+import { surveyFor } from './surveys.js';
 
 // Acuerdos de tiempo por prioridad (wf_sla_policies, decisión 2 del B28): horas para la primera
 // respuesta y para la solución, y si el reloj cuenta horas hábiles o corre las 24 horas. Cada
@@ -85,7 +86,7 @@ function policyView(policy: SlaPolicy): SlaPolicyView {
   };
 }
 
-/** Semilla de la mesa de ayuda: los acuerdos de fábrica que falten en cada empresa. */
+/** Semilla de Servicio al cliente: los acuerdos y la encuesta de fábrica que falten (B28, B29). */
 export async function seedService(
   database: Pick<DatabaseService, 'withTenant'>,
   tenantIds: readonly string[],
@@ -95,6 +96,7 @@ export async function seedService(
     const actor: ServiceActor = { tenantId, userId: null, meta: null, at: clock.now() };
     await database.withTenant({ tenantId, userId: null }, async (tx) => {
       for (const priority of PRIORITY_ORDER) await policyFor(tx, actor, priority);
+      await surveyFor(tx, actor);
     });
   }
 }

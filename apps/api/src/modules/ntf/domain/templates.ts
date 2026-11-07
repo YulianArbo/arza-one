@@ -78,6 +78,13 @@ export const DEFAULT_TEMPLATES: Readonly<Record<NotificationKind, TemplateText>>
     body: 'El tiquete {{tiquete}} necesita atención: {{novedad}}. Ábralo en ARZA ONE › Servicio.',
     urgent: true,
   },
+  // B29: radicada, asignada, por aprobar, devuelta, respondida, trasladada a Privacidad o a Calidad,
+  // por vencer y vencida. No es urgente: los plazos son de días hábiles (decisión 11).
+  svc_pqrsf_update: {
+    subject: 'PQRSF {{pqrsf}}: {{novedad}}',
+    body: 'La PQRSF {{pqrsf}} tiene una novedad: {{novedad}}. Revísela en ARZA ONE › Servicio › PQRSF.',
+    urgent: false,
+  },
 };
 
 /** Variables que el texto usa y que este tipo de aviso no ofrece. */

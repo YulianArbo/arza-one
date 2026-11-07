@@ -17,8 +17,9 @@ import { DatabaseService } from '../../../platform/database/database.service.js'
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import { commercialParties } from '../../party/index.js';
 import { deliverableRefs, projectRefs } from '../../project/index.js';
-import { peopleNames, personRef } from './service-support.js';
-import { assignablePeople } from './ticket-flow.js';
+import { peopleNames } from './service-support.js';
+import { ticketSurvey } from './surveys.js';
+import { assigneeOptions } from './ticket-flow.js';
 import {
   findVisibleTicket,
   TICKET_LINKS,
@@ -80,7 +81,7 @@ function peopleOf(tickets: readonly TicketWithLinks[]) {
   return tickets.flatMap((ticket) => [ticket.assigneeId, ticket.requesterId, ticket.createdBy]);
 }
 
-async function detailLinks(tx: TenantTransaction, ticket: TicketWithLinks) {
+async function detailLinks(tx: TenantTransaction, ticket: TicketWithLinks, now: Date) {
   const projectId = ticket.projectId;
   const deliverableId = ticket.deliverableId;
   const project =
@@ -93,6 +94,7 @@ async function detailLinks(tx: TenantTransaction, ticket: TicketWithLinks) {
     project:
       project === undefined ? null : { id: project.id, code: project.code, name: project.name },
     deliverable: deliverable === undefined ? null : { id: deliverable.id, name: deliverable.name },
+    survey: await ticketSurvey(tx, ticket.id, now),
   };
 }
 
@@ -146,20 +148,14 @@ export class TicketQueries {
       const names = await peopleNames(tx, peopleOf([ticket]));
       const summary = ticketSummary(ticket, names, await partyNames(tx, [ticket]), now);
       const can = ticketAbilities(ability, ticket, principal.userId);
-      return ticketDetail(ticket, summary, names, await detailLinks(tx, ticket), can);
+      return ticketDetail(ticket, summary, names, await detailLinks(tx, ticket, now), can);
     });
   }
 
   async options(principal: Principal): Promise<TicketOptions> {
     const now = this.clock.now();
     return this.database.withTenant(principal, async (tx) => {
-      const ids = await assignablePeople(tx, now);
-      const names = await peopleNames(tx, ids);
-      const people = ids.flatMap((personId) => {
-        const ref = personRef(names, personId);
-        return ref === null ? [] : [ref];
-      });
-      return { assignees: people.sort((a, b) => a.name.localeCompare(b.name, 'es')) };
+      return { assignees: await assigneeOptions(tx, now) };
     });
   }
 }

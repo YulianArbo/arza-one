@@ -60,6 +60,7 @@ function ticketFields(input: UpdateTicketRequest) {
     category: input.category,
     priority: input.priority,
     requesterName: input.requester_name,
+    requesterEmail: input.requester_email,
   };
 }
 

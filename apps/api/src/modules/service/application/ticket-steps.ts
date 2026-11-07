@@ -25,6 +25,7 @@ import {
   type ServiceActor,
   type ServiceTarget,
 } from './service-support.js';
+import { inviteToSurvey } from './surveys.js';
 import { addTicketNote } from './ticket-notes.js';
 import { findVisibleTicket, isAgent, isRequester, ticketFor } from './ticket-records.js';
 import {
@@ -200,6 +201,8 @@ export class TicketStepsUseCase {
         },
         changes: { within_sla: ticket.breachedAt === null },
       });
+      // Al resolver, quien lo pidió recibe la encuesta de satisfacción (B29, ficha 17.9).
+      await inviteToSurvey(tx, actor, ticket);
     });
   }
 

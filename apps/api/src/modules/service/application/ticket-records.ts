@@ -118,6 +118,7 @@ export function ticketSummary(
 export interface DetailLinks {
   readonly project: { readonly id: string; readonly code: string; readonly name: string } | null;
   readonly deliverable: { readonly id: string; readonly name: string } | null;
+  readonly survey: TicketDetail['survey'];
 }
 
 export function ticketDetail(
@@ -132,6 +133,8 @@ export function ticketDetail(
     description: ticket.description,
     channel: ticketChannelSchema.parse(ticket.channel),
     requester_name: ticket.requesterName,
+    requester_email: ticket.requesterEmail,
+    survey: links.survey,
     project: links.project,
     deliverable: links.deliverable,
     warranty:
