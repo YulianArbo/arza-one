@@ -2,6 +2,7 @@ import { Module, type OnModuleInit } from '@nestjs/common';
 
 import { DocModule } from '../../doc/index.js';
 
+import { ClientSharingUseCase } from '../application/client-sharing.js';
 import { ClosingUseCase } from '../application/closing.js';
 import { CodeReviewsUseCase } from '../application/code-reviews.js';
 import { ControlQueries } from '../application/control-queries.js';
@@ -21,6 +22,7 @@ import { TimeEntriesUseCase } from '../application/time-entries.js';
 import { TimeQueries } from '../application/time-queries.js';
 import { ProjectControlController } from './project-control.controller.js';
 import { ProjectDeliveryController } from './project-delivery.controller.js';
+import { ProjectSharingController } from './project-sharing.controller.js';
 import { ProjectTeamController } from './project-team.controller.js';
 import { MyTimeController, ProjectTimeController } from './project-time.controller.js';
 import { ProjectWorkController } from './project-work.controller.js';
@@ -44,8 +46,10 @@ import { ProjectsController } from './projects.controller.js';
     MyTimeController,
     ProjectDeliveryController,
     ProjectControlController,
+    ProjectSharingController,
   ],
   providers: [
+    ClientSharingUseCase,
     TimeEntriesUseCase,
     TimeQueries,
     DeliverablesUseCase,

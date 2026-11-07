@@ -20,3 +20,16 @@ export {
   type CareWorkDependencies,
   type CareWorkResult,
 } from './application/care-work.js';
+export {
+  clientArticle,
+  clientArticles,
+  clientPqrsf,
+  clientTicket,
+  clientTicketCounts,
+  clientTickets,
+  createClientTicket,
+  fileClientPqrsf,
+  replyClientTicket,
+  type ClientServiceScope,
+} from './application/client-support.js';
+export type { ServiceActor } from './application/service-support.js';

@@ -138,3 +138,19 @@ export function closingBlocked(problems: readonly string[]): AppError {
 export function projectClosed(): AppError {
   return statusInvalid('El proyecto está cerrado: solo se puede consultar.');
 }
+
+export function sharedFileInvalid(): AppError {
+  return new AppError(
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    PROJECT_ERROR_CODES.fileInvalid,
+    'Suba el archivo usted mismo y espere a que pase la revisión antivirus antes de compartirlo.',
+  );
+}
+
+export function sharedFileDuplicate(): AppError {
+  return new AppError(
+    HttpStatus.CONFLICT,
+    PROJECT_ERROR_CODES.fileInvalid,
+    'Ese archivo ya está compartido con el cliente en este proyecto.',
+  );
+}

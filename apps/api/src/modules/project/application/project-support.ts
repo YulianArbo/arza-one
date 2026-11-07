@@ -47,7 +47,9 @@ type ProjectEntity =
   | 'prj_risk'
   | 'prj_release'
   | 'prj_code_review'
-  | 'prj_incident';
+  | 'prj_incident'
+  | 'prj_client_access'
+  | 'prj_shared_file';
 
 export interface ProjectChange {
   /** Acción de la auditoría, como «project.member.add». */

@@ -8,6 +8,7 @@ import { AuditModule } from './modules/audit/index.js';
 import { ContractModule } from './modules/contract/index.js';
 import { ProjectModule } from './modules/project/index.js';
 import { ServiceModule } from './modules/service/index.js';
+import { PortalModule } from './modules/portal/index.js';
 import { CoreModule } from './modules/core/index.js';
 import { CrmModule } from './modules/crm/index.js';
 import { DocModule, ProfileImagesModule } from './modules/doc/index.js';
@@ -50,6 +51,7 @@ const BUSINESS_MODULES = [
   ContractModule,
   ProjectModule,
   ServiceModule,
+  PortalModule,
 ];
 
 /**
