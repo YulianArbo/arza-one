@@ -3,7 +3,7 @@ import { userEvent } from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Screen } from '../../test-support/core-fixtures';
-import { json, noContent, renderWithApi } from '../../test-support/fake-api';
+import { apiError, json, noContent, renderWithApi } from '../../test-support/fake-api';
 import {
   PROJECT_ID,
   PROJECT_LEADER,
@@ -122,5 +122,24 @@ describe('portal del cliente: solo lectura', () => {
     expect(await screen.findByText(/está oculto en el portal/u)).toBeVisible();
     expect(screen.queryByRole('button', { name: 'Compartir un archivo' })).toBeNull();
     expect(screen.queryByRole('button', { name: /Dejar de compartir/u })).toBeNull();
+  });
+});
+
+describe('portal del cliente: mostrar con error', () => {
+  it('ofrece mostrar el proyecto oculto y muestra el error de la API', async () => {
+    const file = { ...SHARED.data[0], shared_by: null };
+    serveProjects(PROJECT_LEADER, {
+      [`GET ${BASE}/shared-files`]: () => json({ ...SHARED, visible: false, data: [file] }),
+      [`PUT ${BASE}/portal`]: () => apiError(500, 'INTERNAL', 'Algo falló. Intente de nuevo.'),
+      [`DELETE ${BASE}/shared-files/${SHARED_ID}`]: () =>
+        apiError(500, 'INTERNAL', 'No se pudo retirar.'),
+    });
+    await openPortalTab();
+    await userEvent.click(await screen.findByRole('button', { name: 'Mostrar en el portal' }));
+    expect(await screen.findByText('Algo falló. Intente de nuevo.')).toBeVisible();
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Dejar de compartir Manual de usuario' }),
+    );
+    expect(await screen.findByText('No se pudo retirar.')).toBeVisible();
   });
 });

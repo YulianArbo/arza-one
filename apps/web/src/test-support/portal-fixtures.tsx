@@ -23,7 +23,7 @@ const CONTRACT_ID = '01999a00-0000-7000-8000-0000000fa201';
 export const TICKET_ID = '01999a00-0000-7000-8000-0000000fa301';
 export const ARTICLE_ID = '01999a00-0000-7000-8000-0000000fa401';
 export const USER_ID = '01999a00-0000-7000-8000-0000000fa501';
-const SHARED_ID = '01999a00-0000-7000-8000-0000000fa601';
+export const SHARED_ID = '01999a00-0000-7000-8000-0000000fa601';
 
 const PORTAL_SESSION = {
   ...SESSION,
@@ -107,7 +107,7 @@ const SUMMARY = {
   awaiting_client: 1,
 } as const;
 
-const PROJECT: PortalProjectDetail = {
+export const PROJECT: PortalProjectDetail = {
   ...SUMMARY,
   description: 'Consulta de facturas y certificados.',
   milestones: [SUMMARY.next_milestone],
@@ -147,7 +147,7 @@ export function signature(overrides: Partial<PortalSignature> = {}): PortalSigna
   };
 }
 
-const CONTRACTS = {
+export const CONTRACTS = {
   data: [
     {
       id: CONTRACT_ID,
@@ -192,7 +192,7 @@ export function ticketDetail(overrides: Partial<PortalTicketDetail> = {}): Porta
   };
 }
 
-const USERS: PortalUserList = {
+export const USERS: PortalUserList = {
   projects: [{ id: PROJECT_ID, code: 'PRY-2026-0001', name: 'Portal de autogestión' }],
   data: [
     {
@@ -220,7 +220,7 @@ const USERS: PortalUserList = {
   ],
 };
 
-const MY_DATA = {
+export const MY_DATA = {
   display_name: 'Ana Cliente',
   email: 'compras@cliente.test',
   company: 'Demo Uno S.A.S.',
@@ -250,7 +250,7 @@ const ARTICLE = {
   published_at: '2026-11-01T15:00:00.000Z',
 };
 
-const DOCUMENTS = {
+export const DOCUMENTS = {
   data: [
     {
       id: SHARED_ID,

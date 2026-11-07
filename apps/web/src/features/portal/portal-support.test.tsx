@@ -50,8 +50,8 @@ describe('pedir soporte', () => {
     const dialog = await screen.findByRole('dialog');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Enviar solicitud' }));
     expect(within(dialog).getAllByText('Escriba un asunto corto.').length).toBeGreaterThan(0);
-    await userEvent.type(within(dialog).getByLabelText('Asunto'), 'No abre el reporte');
-    await userEvent.type(within(dialog).getByLabelText('Qué pasa'), 'El reporte queda en blanco.');
+    await userEvent.type(within(dialog).getByLabelText('Asunto'), 'Falla');
+    await userEvent.type(within(dialog).getByLabelText('Qué pasa'), 'Queda en blanco.');
     await userEvent.selectOptions(within(dialog).getByLabelText('Proyecto (opcional)'), PROJECT_ID);
     await userEvent.click(within(dialog).getByRole('button', { name: 'Enviar solicitud' }));
     await vi.waitFor(() => {
