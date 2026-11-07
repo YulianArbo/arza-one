@@ -165,6 +165,11 @@ público, a la que llegan las PQRSF radicadas sin sesión. Sin ella el despliegu
 formulario público de PQRSF responde «no está disponible». Para activarlo, agregue la línea
 `PUBLIC_SITE_TAX_ID=<NIT registrado en Administración › Empresa>` al `.env` del servidor.
 
+El portal del cliente (B30) no deja entrar mientras no estén publicados los **Términos de uso del
+portal** y la **Política de tratamiento de datos personales**. Después de desplegar, el Oficial de
+Protección de Datos los publica en Privacidad › Textos legales (los borradores provisionales de la
+semilla dicen «PENDIENTE DE CONCEPTO JURÍDICO» y deben reemplazarse por los textos aprobados).
+
 La llave se crea dentro del servidor y no se muestra. **No la cambie después**: los segundos
 factores ya configurados dejarían de funcionar y habría que reiniciarlos
 (`pnpm iam:reiniciar-segundo-factor`). El anexo F pide rotarla «con procedimiento»; ese

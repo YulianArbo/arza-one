@@ -39,6 +39,7 @@ numeral 20.1). Se actualiza en el mismo pull request que cambia el modelo
 | ------------------------- | --------------------------------------------- | ----------------- |
 | `privacy_policy`          | Política de tratamiento (PL-DG-002)           | No                |
 | `privacy_notice`          | Aviso de privacidad                           | No                |
+| `portal_terms`            | Términos de uso del portal del cliente (B30)  | No                |
 | `authorization_customer`  | Autorización de clientes (FT-DG-003)          | Sí                |
 | `authorization_supplier`  | Autorización de proveedores                   | Sí                |
 | `authorization_employee`  | Autorización de colaboradores                 | Sí                |

@@ -281,6 +281,36 @@ modificar, pero no borrar (tampoco en `iam_permissions`).
 `revoked_reason` admite además `account_locked`: bloquear una cuenta desde la pantalla de
 usuarios cierra sus sesiones.
 
+## iam_terms_acceptances · Términos aceptados en el portal (B30)
+
+Evidencia de que cada persona del portal leyó y aceptó los términos de uso del portal
+(`portal_terms`) y la política de tratamiento de datos (`privacy_policy`) vigentes (ficha 17.10,
+decisión 8). Una fila por versión aceptada; cuando se publica una versión nueva, el portal vuelve a
+pedir la aceptación.
+
+| Columna                    | Tipo        | Nulo | Regla                                                       |
+| -------------------------- | ----------- | ---- | ----------------------------------------------------------- |
+| `id`, `tenant_id`          | uuid        | No   | Llave primaria y empresa                                    |
+| `user_id`                  | uuid        | No   | Quien aceptó                                                |
+| `notice_id`                | uuid        | No   | Versión exacta del texto (`prv_notices`, por identificador) |
+| `notice_key`               | text        | No   | `portal_terms` o `privacy_policy`                           |
+| `version_number`           | integer     | No   | Número de la versión aceptada, 1 o más                      |
+| `accepted_at`              | timestamptz | No   | Cuándo                                                      |
+| `ip_address`, `user_agent` | text        | Sí   | Desde dónde                                                 |
+| control                    |             |      | Columnas de control                                         |
+
+Índices: único `(tenant_id, user_id, notice_id)` y `(tenant_id, user_id)`. Seguridad por fila
+forzada. `app_user` solo lee e inserta: la aceptación no se edita ni se borra. Auditoría:
+`iam.portal_terms.accept`.
+
+## Cuentas del portal (B30)
+
+`iam_users.party_id` (desde B22A) liga cada cuenta del portal a su empresa cliente y es la base del
+aislamiento entre clientes. El administrador del cliente invita, cambia de rol (`iam.role.assign`
+con su alerta de permisos) y activa o desactiva (`iam.portal_user.status`; desactivar cierra sus
+sesiones) solo a las cuentas de su empresa. La persona corrige su nombre
+(`iam.portal_user.rename`) y descarga su copia de datos (`iam.portal_user.export`).
+
 ## Auditoría
 
 Las tablas `aud_events` y `aud_security_events`, con las acciones y los eventos de seguridad que

@@ -74,11 +74,13 @@ Migraciones: `20261101000000_prj_projects_members_milestones_sprints_items_links
 | `respond_days`             | smallint      | No   | Días que tiene el cliente para responder un acta: 1 a 30, por omisión 10          |
 | `tacit_acceptance`         | boolean       | No   | El contrato prevé la aceptación tácita                                            |
 | `tacit_clause`             | text          | Sí   | Cláusula que la prevé; obligatoria si `tacit_acceptance`                          |
+| `portal_visible`           | boolean       | No   | Se ve en el portal del cliente desde que inicia; por omisión `true` (B30)        |
 | `closing_started_at`       | timestamptz   | Sí   | Desde cuándo está en cierre; obligatoria en cierre y cerrado                      |
 | `closed_at`, `closing_note`|               | Sí   | Cuándo se cerró y las lecciones aprendidas; obligatorias en cerrado               |
 
 Índices: `(tenant_id, code)` único, `(tenant_id, contract_id)` único cuando hay contrato
-(`prj_projects_contract_once`), `(tenant_id, status)`.
+(`prj_projects_contract_once`), `(tenant_id, status)` y `(tenant_id, party_id)` (B30: el portal
+busca los proyectos de cada cliente).
 
 ## prj_members · Equipo
 
@@ -240,6 +242,43 @@ cómo terminó la firma; `prj_tenants_with_acceptances()` dice qué empresas tie
 | `resolved_at`, `root_cause`, `actions` |           | Sí   | Obligatorios al resolver; la solución no antes de la detección     |
 | `reported_by`                        | uuid        | No   | Quién lo registró                                                  |
 | `form_record_id`                     | uuid        | Sí   | Reservado para un formato digital; el FT-TEC-004 es registro nativo |
+
+## prj_client_access · Proyectos que ve cada usuario del cliente (B30)
+
+El administrador del cliente decide desde el portal qué proyectos de su empresa ve cada uno de sus
+usuarios (decisión 3). El administrador ve todos los de su empresa y no necesita filas aquí.
+
+| Columna           | Tipo | Nulo | Regla                                                            |
+| ----------------- | ---- | ---- | ---------------------------------------------------------------- |
+| `id`, `tenant_id` | uuid | No   | Llave primaria y empresa                                         |
+| `project_id`      | uuid | No   | Proyecto de la misma empresa (llave `(tenant_id, project_id)`)   |
+| `user_id`         | uuid | No   | Cuenta del portal de la misma empresa cliente (lo revisa la API) |
+| control           |      |      | Columnas de control; quitar la asignación marca `deleted_at`    |
+
+Índices: `(tenant_id, project_id)`, `(tenant_id, user_id)` y único `(tenant_id, project_id,
+user_id)` entre las vigentes (`prj_client_access_live_key`). `app_user`: leer, insertar y
+modificar; sin borrar.
+
+## prj_shared_files · Archivos compartidos con el cliente (B30)
+
+Lo que el equipo comparte a propósito en el portal (decisión 5). Nada se comparte por defecto; los
+contratos y actas firmados el cliente ya los ve sin estar aquí.
+
+| Columna           | Tipo | Nulo | Regla                                                                         |
+| ----------------- | ---- | ---- | ----------------------------------------------------------------------------- |
+| `id`, `tenant_id` | uuid | No   | Llave primaria y empresa                                                      |
+| `project_id`      | uuid | No   | Proyecto (llave `(tenant_id, project_id)`)                                    |
+| `file_id`         | uuid | No   | Archivo que subió quien comparte y que pasó el antivirus                      |
+| `title`           | text | No   | Cómo lo ve el cliente, 3 a 160 letras                                         |
+| `shared_by`       | uuid | No   | Quién lo compartió                                                            |
+| control           |      |      | Columnas de control; dejar de compartir marca `deleted_at` (el archivo queda) |
+
+Índices: `(tenant_id, project_id)` y único `(tenant_id, project_id, file_id)` entre los vigentes
+(`prj_shared_files_live_key`). `app_user`: leer, insertar y modificar; sin borrar.
+
+Auditoría: `project.portal.visibility`, `project.file.share` · `unshare` y
+`project.client_access.set`. Bandeja de salida: `project.portal.changed`, `project.file.shared` ·
+`unshared` y `project.client.access.changed`, con identificadores y códigos.
 
 ## Otros módulos tocados por el B27
 
