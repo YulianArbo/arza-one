@@ -757,6 +757,26 @@ incidentes, indicadores y cierre. Tablas y reglas en
 | Riesgos, liberaciones e incidentes (B27)    | `risks` (`project.update`; uno alto publica `project.risk.high`), `releases` (`project.release.manage`; informe de pruebas en PDF obligatorio, sin edición) e `incidents` (`project.incident.manage`; `INC-AAAA-NNNN`; con datos personales avisa al Oficial de datos)                                                                                                        |
 | Indicadores y cierre (B27)                  | `indicators`: avance (el mismo de la ficha), horas, desviación y rentabilidad solo para quien ve todos los proyectos (`seesMoney()`). `control-settings` (costo de la hora, plazo y aceptación tácita), `actions/start-closing` y `actions/close` (`project.close`; `closingProblems()`); cerrado, toda escritura responde 409                                                |
 
+## Mesa de ayuda (B28, módulo `src/modules/service`)
+
+Tiquetes con niveles, prioridades y acuerdos de tiempo cuyo reloj se pausa en espera del cliente,
+alerta al 80 % del plazo, escalamiento, conversación con mensajes públicos y notas internas,
+garantías por entregable y compensaciones técnicas RE-SAC-001 (ficha 17.9). Tablas y reglas en
+[`svc.md`](../../docs/manual/datos/svc.md).
+
+| Regla                       | Cómo se cumple                                                                                                                                                                                                                                                                                      |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Quién ve qué                | `service.ticket.read` «solo lo propio» con quien lo pidió, lo registró o lo tiene asignado como `involved_user_ids` (`findVisibleTicket()`, `visibleTickets()`); lo ajeno responde 404. Las notas internas solo las ve quien lee todos los tiquetes                                                 |
+| Registro                    | `POST /v1/tickets` (`service.ticket.create`): código `TIQ-AAAA-NNNN`; cliente, proyecto y entregable por los índices de Terceros y Proyectos (`resolveLinks()`); quien solo registra lo propio queda como `requester_id`                                                                            |
+| Reloj del acuerdo           | `wf_sla_policies` por prioridad (`policyFor()` crea el de fábrica si falta). `sla-clock.ts` lleva los minutos consumidos en el calendario del acuerdo (horas hábiles con `businessHoursDeadline()` y `businessMinutesElapsed()` del núcleo, o corridas)                                             |
+| Recorrido                   | `actions/assign` · `escalate` (`service.ticket.assign`), `start` · `wait` · `resume` · `resolve` (`service.ticket.resolve`), `reopen` (quien atiende o quien lo pidió) y `close` (`service.ticket.close`), con `If-Match` y la tabla `TICKET_ACTIONS` (`applyStep()`)                               |
+| Pausa en espera del cliente | `wait` suma lo corrido y deja vacíos los vencimientos; `resume`, o un mensaje del cliente (`from_client`), los recalcula con lo que queda                                                                                                                                                           |
+| Alerta al 80 % y vencido    | El worker `svc.sla-work`, cada 5 minutos (`followTicketClocks()`): marca `warned_at` y `breached_at` una vez y publica `service.ticket.warned` · `breached`; el aviso `svc_ticket_alert` va al responsable y al líder del proceso SAC (respeta la jornada salvo que la plantilla se marque urgente) |
+| Cierre automático           | `resolve` programa `auto_close_at` al final del quinto día hábil; el mismo worker cierra los que nadie reabrió                                                                                                                                                                                      |
+| Tiquete crítico             | `service.ticket.created` con prioridad `critical` avisa de inmediato al Líder técnico, al líder de Servicio y a la Dirección (PT-TEC-003)                                                                                                                                                           |
+| Garantías                   | Proyectos avisa en la misma transacción con `onDeliverableAccepted()`; nace la garantía de 90 días. `GET /v1/warranties` (quien lee todos los tiquetes) y `PUT /v1/warranties/{id}` (`service.sla.manage`)                                                                                          |
+| Compensaciones              | `tickets/{id}/compensations`: propone quien atiende; `actions/decide` y `actions/apply` piden `service.compensation.approve` y nunca sobre la propia (también en la base). La aprobada publica `service.compensation.approved` para Facturación (B31)                                               |
+
 ## Flujos y tareas (B15, módulo `src/modules/wf`)
 
 Motor de flujos definido por datos (ficha 17.5, numeral 13.2, ADR-011). Las tablas están en
