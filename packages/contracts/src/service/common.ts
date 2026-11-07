@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-// Piezas comunes de la mesa de ayuda (M08, B28; ficha 17.9): códigos de error, estados, prioridades,
+// Piezas comunes de Servicio al cliente (M08, B28 y B29; ficha 17.9): códigos de error, estados, prioridades,
 // niveles, categorías, canales y las reglas del reloj del acuerdo de servicio.
 
 /** Códigos estables de los errores de la mesa de ayuda (numeral 14.2). */
@@ -12,6 +12,9 @@ export const SERVICE_ERROR_CODES = {
   levelInvalid: 'SERVICE_LEVEL_INVALID',
   compensationInvalid: 'SERVICE_COMPENSATION_INVALID',
   datesInvalid: 'SERVICE_DATES_INVALID',
+  approverInvalid: 'SERVICE_APPROVER_INVALID',
+  responseInvalid: 'SERVICE_RESPONSE_INVALID',
+  publicUnavailable: 'SERVICE_PUBLIC_UNAVAILABLE',
 } as const;
 
 function enumOf<T extends string>(labels: Readonly<Record<T, string>>) {

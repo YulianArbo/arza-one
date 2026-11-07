@@ -75,6 +75,8 @@ const EXTRAS: Readonly<Partial<Record<InternalRoleCode, readonly PermissionCode[
   SST: ['sst.medical.read', 'sst.medical.manage'],
   // «Solo lectura de evidencias y auditoría».
   AUDITOR: ['audit.event.export'],
+  // Las PQRSF sobre datos personales se le trasladan (B29, decisión 5): debe poder abrirlas.
+  OFICIAL_DATOS: ['service.pqrsf.read'],
 };
 
 /**
@@ -88,6 +90,12 @@ const WITHHELD: Readonly<Partial<Record<InternalRoleCode, readonly PermissionCod
   // técnico, no cualquier miembro del equipo (decisión 2 del B27).
   EQUIPO_PROYECTO: ['project.deliverable.submit'],
 };
+
+/**
+ * Permisos de lectura que todo rol interno tiene, lo lea o no en la matriz: la base de conocimiento
+ * es el manual de usuario de la plataforma (capítulo 22) y la ayuda del equipo (decisión 10 del B29).
+ */
+const EVERY_INTERNAL_ROLE: readonly PermissionCode[] = ['service.kb.read'];
 
 /** Solo por permiso nominal además del rol (numeral 15.4, clasificación): ningún rol lo trae. */
 export const NOMINAL_ONLY_PERMISSIONS: readonly PermissionCode[] = ['doc.restricted.read'];
@@ -135,8 +143,10 @@ function internalGrants(role: InternalRoleCode): RoleGrant[] {
     return grant === null ? [] : [grant];
   });
   const withheld = WITHHELD[role] ?? [];
-  const extras = (EXTRAS[role] ?? []).map((code) => ({ code, own: false }));
-  return [...fromMatrix.filter((grant) => !withheld.includes(grant.code)), ...extras];
+  const kept = fromMatrix.filter((grant) => !withheld.includes(grant.code));
+  const extraCodes = [...(EXTRAS[role] ?? []), ...EVERY_INTERNAL_ROLE];
+  const missing = extraCodes.filter((code) => !kept.some((grant) => grant.code === code));
+  return [...kept, ...[...new Set(missing)].map((code) => ({ code, own: false }))];
 }
 
 const PORTAL_CODES: readonly PermissionCode[] =
