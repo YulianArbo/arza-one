@@ -13,18 +13,36 @@ import { detail, running, type Crew } from './project-route-calls.js';
 const TERMS_BODY =
   'Texto de prueba de los términos del portal para el recorrido de auditoría. Datos ficticios.';
 
-const published = new Set<string>();
+/** El borrador de la clase, si quedó uno de otro paso del recorrido, y si ya hay uno publicado. */
+async function noticeState(s: AccessScenario, key: string) {
+  const notices = await tenantScope(
+    s.db,
+    s.tenant.id,
+  )((tx) => tx.privacyNotice.findMany({ where: { key, deletedAt: null } }));
+  return {
+    draft: notices.find((notice) => notice.status === 'draft') ?? null,
+    published: notices.some((notice) => notice.status === 'published'),
+  };
+}
 
+/**
+ * Deja publicados los términos del portal y la política de privacidad. Otro paso del recorrido
+ * (Privacidad) puede haber dejado un borrador, y solo se admite uno por clase: se publica ese.
+ */
 export async function publishTerms(s: AccessScenario): Promise<void> {
-  if (published.has(s.tenant.id)) return;
   const officer = await s.person('oficial-portal-recorrido', ['OFICIAL_DATOS']);
   for (const key of ['portal_terms', 'privacy_policy']) {
+    const state = await noticeState(s, key);
+    if (state.draft === null && state.published) continue;
     const body = { key, title: `Versión de recorrido de ${key}`, body: TERMS_BODY, purposes: [] };
-    const id = await created(s.post('/v1/notices', officer.session, body));
-    const done = await versioned(s.post(`/v1/notices/${id}/actions/publish`, officer.session), 1);
+    const draft = state.draft ?? {
+      id: await created(s.post('/v1/notices', officer.session, body)),
+      version: 1,
+    };
+    const path = `/v1/notices/${draft.id}/actions/publish`;
+    const done = await versioned(s.post(path, officer.session), draft.version);
     expect(done.status, done.text).toBe(200);
   }
-  published.add(s.tenant.id);
 }
 
 export async function portalAccount(
