@@ -44,6 +44,17 @@ function publicCall(s: AccessScenario, path: string, body: object): request.Test
     .send(body);
 }
 
+/**
+ * El sitio público de la API de pruebas es el de la empresa del escenario, por su NIT. El paso que
+ * edita la empresa en este mismo recorrido le cambia el NIT: aquí se le devuelve el del sitio.
+ */
+async function siteCompany(s: AccessScenario): Promise<void> {
+  await tenantScope(
+    s.db,
+    s.tenant.id,
+  )((tx) => tx.tenant.update({ where: { id: s.tenant.id }, data: { taxId: s.tenant.taxId } }));
+}
+
 interface Desk {
   readonly drafter: Person;
   readonly approver: Person;
@@ -55,6 +66,7 @@ interface Desk {
 async function filed(s: AccessScenario): Promise<Desk> {
   const drafter = await s.person('servicio-pqrsf-recorrido', ['SERVICIO']);
   const approver = await s.person('servicio-aprueba-pqrsf-recorrido', ['SERVICIO']);
+  await siteCompany(s);
   const response = await publicCall(s, 'pqrsf', FORM);
   const { code } = publicPqrsfFiledSchema.parse(response.body);
   const list = pqrsfListResponseSchema.parse(
@@ -149,7 +161,10 @@ async function surveyLink(s: AccessScenario): Promise<string> {
 }
 
 export const CARE_ROUTE_CALLS: Record<string, RouteCall> = {
-  'POST /v1/public/pqrsf': (s) => Promise.resolve({ test: publicCall(s, 'pqrsf', FORM) }),
+  'POST /v1/public/pqrsf': async (s) => {
+    await siteCompany(s);
+    return { test: publicCall(s, 'pqrsf', FORM) };
+  },
   'POST /v1/public/pqrsf/status': async (s) => {
     const d = await filed(s);
     return { test: publicCall(s, 'pqrsf/status', { code: d.code, email: FORM.email }) };

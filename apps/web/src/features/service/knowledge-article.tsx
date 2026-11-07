@@ -35,7 +35,7 @@ export function blocksOf(body: string): Block[] {
     });
 }
 
-export function ArticleBody({ body }: { readonly body: string }): JSX.Element {
+function ArticleBody({ body }: { readonly body: string }): JSX.Element {
   return (
     <div className="flex flex-col gap-3 text-sm leading-relaxed">
       {blocksOf(body).map((block, index) =>

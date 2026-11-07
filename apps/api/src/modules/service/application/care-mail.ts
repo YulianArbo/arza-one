@@ -23,7 +23,7 @@ function typeLabel(pqrsf: SvcPqrsf): string {
 }
 
 /** La página pública para consultar el estado de una PQRSF. */
-export function pqrsfStatusUrl(appUrl: string): string {
+function pqrsfStatusUrl(appUrl: string): string {
   return new URL('/pqrsf/consulta', appUrl).toString();
 }
 

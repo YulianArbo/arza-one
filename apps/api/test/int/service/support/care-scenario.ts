@@ -28,7 +28,7 @@ export interface SentMail {
   readonly text: string;
 }
 
-export const APP_URL = 'http://localhost:3000/app';
+const APP_URL = 'http://localhost:3000/app';
 
 let counter = 0;
 

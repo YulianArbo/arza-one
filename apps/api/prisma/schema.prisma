@@ -2507,6 +2507,7 @@ model SigEnvelope {
   @@index([tenantId, contractId])
   @@index([tenantId, status])
   @@index([signedSha256])
+  @@index([tenantId, sourceId])
   @@map("sig_envelopes")
 }
 

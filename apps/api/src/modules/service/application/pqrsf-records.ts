@@ -84,11 +84,11 @@ export function pqrsfPayload(pqrsf: SvcPqrsf): Record<string, string | null> {
   };
 }
 
-export function isOpen(pqrsf: Pick<SvcPqrsf, 'status'>): boolean {
+function isOpen(pqrsf: Pick<SvcPqrsf, 'status'>): boolean {
   return (OPEN_STATUSES as readonly string[]).includes(pqrsf.status);
 }
 
-export function dueStateOf(pqrsf: SvcPqrsf, now: Date): PqrsfDueState {
+function dueStateOf(pqrsf: SvcPqrsf, now: Date): PqrsfDueState {
   if (!isOpen(pqrsf)) return 'stopped';
   const today = bogotaToday(now);
   if (today > toCalendarDate(pqrsf.dueOn)) return 'overdue';
