@@ -12,7 +12,7 @@ export const TICKET_ID = '01999a00-0000-7000-8000-0000000f8001';
 export const COMPENSATION_ID = '01999a00-0000-7000-8000-0000000f8101';
 export const POLICY_ID = '01999a00-0000-7000-8000-0000000f8201';
 export const WARRANTY_ID = '01999a00-0000-7000-8000-0000000f8301';
-export const AGENT = { id: SESSION.user.id, name: 'Lucía Servicio' };
+const AGENT = { id: SESSION.user.id, name: 'Lucía Servicio' };
 export const OTHER_AGENT = { id: '01999a00-0000-7000-8000-00000000a009', name: 'Tomás Soporte' };
 
 function grantsOf(codes: readonly PermissionCode[], scope: 'all' | 'own' = 'all'): object {
@@ -47,7 +47,7 @@ const CAN_ALL = {
   decide_compensation: true,
 };
 
-export function ticketDetail(overrides: Partial<TicketDetail> = {}): TicketDetail {
+function ticketDetail(overrides: Partial<TicketDetail> = {}): TicketDetail {
   return {
     id: TICKET_ID,
     code: 'TIQ-2026-0001',
@@ -168,7 +168,7 @@ const POLICIES = ['critical', 'high', 'medium', 'low'].map((priority, index) => 
   version: 1,
 }));
 
-export const WARRANTY = {
+const WARRANTY = {
   id: WARRANTY_ID,
   project: { id: '01999a00-0000-7000-8000-0000000e0001', code: 'PRY-2026-0001', name: 'Portal' },
   deliverable: { id: '01999a00-0000-7000-8000-0000000e0901', name: 'Portal de autogestión' },

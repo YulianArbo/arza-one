@@ -104,7 +104,8 @@ export const SERVICE_ROUTE_CALLS: Record<string, RouteCall> = {
   'PUT /v1/tickets/{id}': async (s) => {
     const d = await desk(s);
     const body = { ...TICKET, priority: 'critical' };
-    return { test: versioned(put(s, d.base, d.agent, body), await version(s, d)) };
+    const current = await version(s, d);
+    return { test: versioned(put(s, d.base, d.agent, body), current) };
   },
   'POST /v1/tickets/{id}/actions/assign': async (s) => {
     const d = await desk(s);
@@ -171,9 +172,9 @@ export const SERVICE_ROUTE_CALLS: Record<string, RouteCall> = {
   },
   'PUT /v1/sla-policies/{id}': async (s) => {
     const agent = await s.person('servicio-recorrido', ['SERVICIO']);
-    const list = slaPolicyListResponseSchema.parse(
-      (await s.get('/v1/sla-policies', agent.session)).body,
-    );
+    const response = await s.get('/v1/sla-policies', agent.session);
+    if (response.status !== 200) throw new Error(`${String(response.status)} ${response.text}`);
+    const list = slaPolicyListResponseSchema.parse(response.body);
     const policy = list.data.find((row) => row.priority === 'low');
     const body = { first_response_hours: 16, resolution_hours: 72, calendar: 'business' };
     return {
