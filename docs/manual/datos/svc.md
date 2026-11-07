@@ -35,8 +35,8 @@ Migración: `20261107000000_svc_tickets_sla_warranties_compensations` (B28).
   `applied`. Con identificadores y códigos, nunca datos personales.
 - **Avisos** (B16): `svc_ticket_update` (asignado, escalado, reabierto, resuelto, compensación por
   decidir o decidida) y `svc_ticket_alert` (80 % del plazo, plazo vencido y tiquete
-  crítico, protocolo PT-TEC-003). Como todo aviso salvo el de seguridad, respeta la jornada del
-  colaborador; Administración › Plantillas puede marcarlo urgente.
+  crítico, protocolo PT-TEC-003). Es urgente: llega aunque sea fuera de la jornada (decisión del dueño
+  del producto, 06/11/2026). Administración › Plantillas puede quitarle la marca.
 
 ## El reloj del acuerdo de servicio
 

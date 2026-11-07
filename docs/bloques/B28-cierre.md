@@ -12,17 +12,17 @@ consume el **80 % del plazo**, se asigna y se **escala** por niveles, guarda la 
 (mensajes al cliente y notas internas), y lleva las **garantías** de los entregables y las
 **compensaciones** al cliente. Usted aprobó el plan con las doce recomendaciones; están al final.
 
-| Pieza              | Qué hace, en palabras sencillas                                                                                                                                                                                                                                                                                                              |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Bandeja            | **Servicio** en el menú. Vistas: todos los abiertos, mis tiquetes, sin asignar, **por vencer**, **vencidos**, en espera del cliente, y resueltos y cerrados. Lo que vence primero, arriba. Cada fila muestra el reloj («A tiempo», «Por vencer», «Vencido», «Pausado»)                                                                       |
-| Nuevo tiquete      | Asunto, qué pasa, categoría y prioridad. Servicio al cliente además elige el **cliente** de Terceros, quién reporta y **por dónde llegó** (registro interno, correo o teléfono). Un colaborador registra lo suyo, como una falla de ARZA ONE. Código `TIQ-2026-0001`                                                                         |
-| Reloj              | Cada prioridad tiene un plazo para la **primera respuesta** y otro para la **solución**. En «En espera del cliente» el reloj **se detiene** y, al reanudar, sigue con lo que le quedaba. El primer mensaje al cliente cuenta como primera respuesta                                                                                          |
-| Alertas            | Al **80 %** del plazo de solución, y otra vez al **vencer**, el responsable y el líder de Servicio reciben un aviso. Un tiquete **crítico** avisa al Líder técnico, al líder de Servicio y a la Dirección. Como todo aviso salvo el de seguridad, fuera del horario laboral llega al iniciar la jornada (vea la decisión pendiente al final) |
-| Recorrido          | Nuevo → asignado → en curso → en espera del cliente → resuelto → cerrado. **Asignar**, **escalar** (sube de nivel, con su motivo), empezar, poner en espera, reanudar, **resolver** (con la solución), reabrir y cerrar. Un resuelto **se cierra solo** a los 5 días hábiles                                                                 |
-| Conversación       | Mensajes **al cliente**, **notas internas** (el cliente y quien pidió el tiquete no las ven) y lo que **el cliente respondió** por correo o teléfono, que reanuda el reloj. No se editan ni se borran                                                                                                                                        |
-| Acuerdos de tiempo | **Servicio → Acuerdos de tiempo**: los plazos por prioridad y si cuentan horas hábiles o corridas. Solo Servicio al cliente los cambia                                                                                                                                                                                                       |
-| Garantías          | Cuando el cliente **acepta un entregable** en Proyectos, nace sola su garantía de **90 días**. **Servicio → Garantías** las muestra (vigentes, vencidas) y permite ajustar el fin y lo que cubre. Un tiquete sobre ese entregable dice **«En garantía»**                                                                                     |
-| Compensaciones     | En la ficha del tiquete: quien atiende **propone** un descuento en pesos, horas de soporte sin costo o días de extensión; **otra persona** con permiso la aprueba o rechaza (nadie aprueba la suya) y luego se marca **aplicada**. Registro RE-SAC-001                                                                                       |
+| Pieza              | Qué hace, en palabras sencillas                                                                                                                                                                                                                                                                                     |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bandeja            | **Servicio** en el menú. Vistas: todos los abiertos, mis tiquetes, sin asignar, **por vencer**, **vencidos**, en espera del cliente, y resueltos y cerrados. Lo que vence primero, arriba. Cada fila muestra el reloj («A tiempo», «Por vencer», «Vencido», «Pausado»)                                              |
+| Nuevo tiquete      | Asunto, qué pasa, categoría y prioridad. Servicio al cliente además elige el **cliente** de Terceros, quién reporta y **por dónde llegó** (registro interno, correo o teléfono). Un colaborador registra lo suyo, como una falla de ARZA ONE. Código `TIQ-2026-0001`                                                |
+| Reloj              | Cada prioridad tiene un plazo para la **primera respuesta** y otro para la **solución**. En «En espera del cliente» el reloj **se detiene** y, al reanudar, sigue con lo que le quedaba. El primer mensaje al cliente cuenta como primera respuesta                                                                 |
+| Alertas            | Al **80 %** del plazo de solución, y otra vez al **vencer**, el responsable y el líder de Servicio reciben un aviso. Un tiquete **crítico** avisa al Líder técnico, al líder de Servicio y a la Dirección. Estas alertas son **urgentes**: llegan aunque sea fuera del horario laboral (su decisión del 06/11/2026) |
+| Recorrido          | Nuevo → asignado → en curso → en espera del cliente → resuelto → cerrado. **Asignar**, **escalar** (sube de nivel, con su motivo), empezar, poner en espera, reanudar, **resolver** (con la solución), reabrir y cerrar. Un resuelto **se cierra solo** a los 5 días hábiles                                        |
+| Conversación       | Mensajes **al cliente**, **notas internas** (el cliente y quien pidió el tiquete no las ven) y lo que **el cliente respondió** por correo o teléfono, que reanuda el reloj. No se editan ni se borran                                                                                                               |
+| Acuerdos de tiempo | **Servicio → Acuerdos de tiempo**: los plazos por prioridad y si cuentan horas hábiles o corridas. Solo Servicio al cliente los cambia                                                                                                                                                                              |
+| Garantías          | Cuando el cliente **acepta un entregable** en Proyectos, nace sola su garantía de **90 días**. **Servicio → Garantías** las muestra (vigentes, vencidas) y permite ajustar el fin y lo que cubre. Un tiquete sobre ese entregable dice **«En garantía»**                                                            |
+| Compensaciones     | En la ficha del tiquete: quien atiende **propone** un descuento en pesos, horas de soporte sin costo o días de extensión; **otra persona** con permiso la aprueba o rechaza (nadie aprueba la suya) y luego se marca **aplicada**. Registro RE-SAC-001                                                              |
 
 **Tablas nuevas** (separadas por empresa con seguridad por fila): `svc_tickets`,
 `svc_ticket_messages`, `wf_sla_policies`, `svc_warranties` y `svc_compensations`. Diccionario en
@@ -105,11 +105,11 @@ auditada. Lo demás fueron ajustes de forma (funciones largas y exportaciones de
 Calidad (B38), porque Servicio ya está construido; la lista de rutas del OpenAPI incluye las 19
 nuevas; el documento de permisos por rol se regeneró (Servicio al cliente pasa de 43 a 44 permisos).
 
-**Una prueba existente que respeté y que cambia algo del plan:** la plataforma tiene la regla de que
-**solo la alerta de seguridad llega fuera del horario laboral** (derecho a la desconexión). Por eso
-la alerta de la mesa de ayuda **no es urgente al empezar**: fuera de horario, llega al iniciar la
-jornada. Para los tiquetes de horas hábiles no cambia nada, porque su reloj tampoco corre fuera de
-horario. Para los **críticos**, que corren las 24 horas, vea la decisión pendiente al final.
+**Una regla que cambió por su decisión:** la plataforma tenía la regla de que **solo la alerta de
+seguridad llega fuera del horario laboral** (derecho a la desconexión). Usted decidió que la alerta
+de la mesa de ayuda también llegue fuera de horario, para los tiquetes **críticos** que corren las
+24 horas. La prueba de esa regla ahora exige exactamente esas dos alertas urgentes, ni una más. Para
+los tiquetes de horas hábiles casi no cambia nada, porque su reloj no corre fuera de horario.
 
 ## Cómo lo prueba usted, paso a paso
 
@@ -244,10 +244,9 @@ proyecto y entregable: la bandeja y la ficha dicen **«En garantía»**.
     Además, la mesa de ayuda lleva su propio recorrido de estados en lugar del motor de flujos,
     para no llenar «Mis tareas» con un trámite por tiquete.
 
-## Decisión pendiente a su cargo
+## Decisión tomada después del plan (06/11/2026)
 
-**¿La alerta de la mesa de ayuda debe llegar también fuera del horario laboral?** Hoy, como todo
-aviso salvo el de seguridad, llega al iniciar la jornada. Si quiere que un tiquete **crítico**
-despierte a alguien a medianoche, un administrador lo activa sin programar en **Administración ›
-Plantillas › «Alerta de plazo o tiquete crítico» › marcar «Urgente»**. Le recomiendo hacerlo solo si
-hay un turno de soporte acordado por escrito con esas personas.
+13. La alerta de la mesa de ayuda (80 % del plazo, vencido y tiquete crítico) es **urgente**: llega
+    aunque sea fuera del horario laboral. Le recomiendo acordar por escrito un turno de soporte con
+    las personas que la recibirán. Si alguna vez quiere volver a la regla anterior, un administrador
+    le quita la marca en **Administración › Plantillas › «Alerta de plazo o tiquete crítico»**.
