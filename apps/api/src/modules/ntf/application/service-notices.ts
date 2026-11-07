@@ -187,11 +187,11 @@ const PQRSF_HANDLERS: Readonly<Record<string, Handler>> = {
     'aprobaron la respuesta y se envía a quien la presentó',
     async (_tx, pqrsf) => Promise.resolve([pqrsf.drafted_by, pqrsf.assignee_id]),
   ),
-  'service.pqrsf.transferred_to_privacy': pqrsfHandler(
+  'service.pqrsf.transferred': pqrsfHandler(
     'trata de datos personales: se trasladó a Privacidad y sigue los plazos de la Ley 1581',
     toRoles(['OFICIAL_DATOS']),
   ),
-  'service.pqrsf.nonconformity_requested': pqrsfHandler(
+  'service.pqrsf.nonconforming': pqrsfHandler(
     'es una queja o un reclamo procedente: registre la no conformidad en Calidad',
     toRoles(['CALIDAD']),
   ),

@@ -35,7 +35,7 @@ export const envSchema = z.object({
   PUBLIC_SITE_TAX_ID: z
     .string()
     .trim()
-    .regex(/^(\d[\d-]{4,19})?$/u, 'Escriba el NIT con números y guion: 900000000-0')
+    .max(60)
     .optional()
     .transform((value) => (value === '' ? undefined : value)),
 });

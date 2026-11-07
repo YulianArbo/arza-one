@@ -54,10 +54,11 @@ export interface ServiceChange {
   readonly payload: Prisma.InputJsonObject;
 }
 
-export async function recordServiceChange(
+/** Solo el rastro en la auditoría, sin evento: una consulta pública que conviene dejar registrada. */
+export async function recordServiceAudit(
   tx: TenantTransaction,
   actor: ServiceActor,
-  change: ServiceChange,
+  change: Omit<ServiceChange, 'event' | 'payload'>,
 ): Promise<void> {
   await recordAuditEvent(tx, {
     tenantId: actor.tenantId,
@@ -70,6 +71,14 @@ export async function recordServiceChange(
     changes: change.changes,
     meta: actor.meta,
   });
+}
+
+export async function recordServiceChange(
+  tx: TenantTransaction,
+  actor: ServiceActor,
+  change: ServiceChange,
+): Promise<void> {
+  await recordServiceAudit(tx, actor, change);
   await addOutboxEvent(tx, {
     tenantId: actor.tenantId,
     eventType: change.event,

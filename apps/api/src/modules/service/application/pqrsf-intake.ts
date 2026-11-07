@@ -21,6 +21,7 @@ import { publishedAuthorizationNotices } from '../../privacy/index.js';
 import { pqrsfAudit, pqrsfDeadline, pqrsfPayload } from './pqrsf-records.js';
 import {
   publicUnavailable,
+  recordServiceAudit,
   recordServiceChange,
   serviceActorOf,
   serviceMissing,
@@ -132,8 +133,12 @@ export class PqrsfIntakeUseCase {
   }
 
   /** Estado para quien la radicó. Sin coincidencia exacta de radicado y correo, «no existe». */
-  async publicStatus(input: PublicPqrsfStatusRequest): Promise<PublicPqrsfStatus> {
+  async publicStatus(
+    input: PublicPqrsfStatusRequest,
+    meta: RequestMeta,
+  ): Promise<PublicPqrsfStatus> {
     const tenantId = await this.siteTenant();
+    const actor: ServiceActor = { tenantId, userId: null, meta, at: this.clock.now() };
     return this.database.withTenant({ tenantId, userId: null }, async (tx) => {
       const pqrsf = await tx.svcPqrsf.findFirst({
         where: { code: input.code, requesterEmail: input.email, deletedAt: null },
@@ -144,6 +149,13 @@ export class PqrsfIntakeUseCase {
         );
       }
       const responded = pqrsf.responseSentAt !== null || pqrsf.status === 'closed';
+      // Queda registrado que se consultó, como cuando el cliente abre una cotización.
+      await recordServiceAudit(tx, actor, {
+        action: 'service.pqrsf.consult',
+        entityType: 'svc_pqrsf',
+        entityId: pqrsf.id,
+        changes: { code: pqrsf.code, status: pqrsf.status },
+      });
       return {
         code: pqrsf.code,
         type: pqrsfTypeSchema.parse(pqrsf.type),

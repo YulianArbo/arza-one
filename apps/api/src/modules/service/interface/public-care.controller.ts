@@ -79,22 +79,31 @@ export class PublicCareController {
   @Throttle(LOOKUP_THROTTLE)
   @ApiOperation({
     summary: 'Consultar una PQRSF',
-    description: 'Con el radicado y el correo con que se radicó.',
+    description: 'Con el radicado y el correo con que se radicó. Queda registrado.',
   })
   @ZodResponse({ status: HttpStatus.OK, type: PublicPqrsfStatus, description: 'Estado' })
   @ApiResponse(NOT_FOUND)
-  async status(@Body() body: PublicPqrsfStatusRequest): Promise<PublicPqrsfStatus> {
-    return this.intake.publicStatus(body);
+  async status(
+    @Body() body: PublicPqrsfStatusRequest,
+    @Meta() meta: RequestMeta,
+  ): Promise<PublicPqrsfStatus> {
+    return this.intake.publicStatus(body, meta);
   }
 
   @Post('surveys/view')
   @HttpCode(HttpStatus.OK)
   @Throttle(LOOKUP_THROTTLE)
-  @ApiOperation({ summary: 'Abrir la encuesta', description: 'Con la llave del correo.' })
+  @ApiOperation({
+    summary: 'Abrir la encuesta',
+    description: 'Con la llave del correo. Queda registrado que se abrió.',
+  })
   @ZodResponse({ status: HttpStatus.OK, type: PublicSurvey, description: 'Encuesta' })
   @ApiResponse(NOT_FOUND)
-  async viewSurvey(@Body() body: PublicSurveyRequest): Promise<PublicSurvey> {
-    return this.surveys.view(body);
+  async viewSurvey(
+    @Body() body: PublicSurveyRequest,
+    @Meta() meta: RequestMeta,
+  ): Promise<PublicSurvey> {
+    return this.surveys.view(body, meta);
   }
 
   @Post('surveys/answer')

@@ -8,7 +8,7 @@ import type { TenantTransaction } from '../../../platform/database/tenant-contex
 import { bogotaToday, companyIdentity, fromCalendarDate } from '../../core/index.js';
 import { ackMail, responseMail, surveyMail, surveyUrl, type CareMail } from './care-mail.js';
 import { OPEN_STATUSES, pqrsfAudit, pqrsfPayload } from './pqrsf-records.js';
-import { recordServiceChange, type ServiceActor } from './service-support.js';
+import { recordServiceAudit, recordServiceChange, type ServiceActor } from './service-support.js';
 import { surveyTokenHash } from './survey-public.js';
 
 // Trabajo de las PQRSF y las encuestas en el worker (B29). Cada 30 segundos, en cada empresa con
@@ -66,7 +66,7 @@ async function sendPqrsfMail(deps: CareWorkDependencies, tenantId: string, id: s
     const pqrsf = await tx.svcPqrsf.findUniqueOrThrow({ where: { id } });
     await recordServiceChange(tx, systemActor(tenantId, at), {
       action: 'service.pqrsf.mail',
-      event: `service.pqrsf.${prepared.kind === 'ack' ? 'acknowledged' : 'response_sent'}`,
+      event: `service.pqrsf.${prepared.kind === 'ack' ? 'acknowledged' : 'delivered'}`,
       entityType: 'svc_pqrsf',
       entityId: id,
       changes: { ...pqrsfAudit(pqrsf), mail: prepared.kind },
@@ -117,13 +117,20 @@ async function sendSurveyMail(deps: CareWorkDependencies, tenantId: string, id: 
   );
   if (mail === null) return false;
   await deps.mailer.send(mail);
-  await deps.database.withTenant(scopeOf(tenantId), (tx) =>
-    tx.svcSurveyResponse.updateMany({
+  return deps.database.withTenant(scopeOf(tenantId), async (tx) => {
+    const { count } = await tx.svcSurveyResponse.updateMany({
       where: { id, mailPending: true },
       data: { mailPending: false },
-    }),
-  );
-  return true;
+    });
+    if (count === 0) return false;
+    await recordServiceAudit(tx, systemActor(tenantId, deps.clock.now()), {
+      action: 'service.survey.mail',
+      entityType: 'svc_survey_response',
+      entityId: id,
+      changes: { mail: 'invitation' },
+    });
+    return true;
+  });
 }
 
 type Mark = 'warned' | 'breached';
@@ -200,19 +207,35 @@ async function workTenant(
   return { emails: pqrsfMails + surveyMails, warned, breached };
 }
 
-/** Revisa las PQRSF y las encuestas de todas las empresas con trabajo. */
-export async function followCustomerCare(deps: CareWorkDependencies): Promise<CareWorkResult> {
-  const now = deps.clock.now();
+/** Las empresas con correos por enviar o con PQRSF que llegaron a un aviso de plazo. */
+export async function tenantsWithCareWork(
+  deps: Pick<CareWorkDependencies, 'database'>,
+  now: Date,
+): Promise<string[]> {
   const today = bogotaToday(now);
-  const tenants = await deps.database.withoutTenant(
+  const rows = await deps.database.withoutTenant(
     (tx) => tx.$queryRaw<{ id: string }[]>`SELECT svc_tenants_with_care_work(${today}::date) AS id`,
   );
+  return rows.map((row) => row.id);
+}
+
+/** Revisa las PQRSF y las encuestas de las empresas dadas. */
+export async function followCustomerCareIn(
+  deps: CareWorkDependencies,
+  tenantIds: readonly string[],
+): Promise<CareWorkResult> {
+  const now = deps.clock.now();
   const total = { emails: 0, warned: 0, breached: 0 };
-  for (const { id } of tenants) {
+  for (const id of tenantIds) {
     const result = await workTenant(deps, id, now);
     total.emails += result.emails;
     total.warned += result.warned;
     total.breached += result.breached;
   }
   return total;
+}
+
+/** Revisa las PQRSF y las encuestas de todas las empresas con trabajo. */
+export async function followCustomerCare(deps: CareWorkDependencies): Promise<CareWorkResult> {
+  return followCustomerCareIn(deps, await tenantsWithCareWork(deps, deps.clock.now()));
 }

@@ -10,6 +10,7 @@ import type { TenantTransaction } from '../../../platform/database/tenant-contex
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
 import { companyIdentity } from '../../core/index.js';
 import {
+  recordServiceAudit,
   recordServiceChange,
   serviceMissing,
   statusInvalid,
@@ -69,12 +70,20 @@ export class SurveyPublicUseCase {
     return row.expiresAt !== null && row.expiresAt <= now ? 'expired' : 'open';
   }
 
-  async view(input: PublicSurveyRequest): Promise<PublicSurvey> {
+  async view(input: PublicSurveyRequest, meta: RequestMeta): Promise<PublicSurvey> {
     const found = await this.find(input.token);
     const now = this.clock.now();
+    const actor: ServiceActor = { tenantId: found.tenantId, userId: null, meta, at: now };
     return this.database.withTenant({ tenantId: found.tenantId, userId: null }, async (tx) => {
       const row = await this.invitation(tx, found.responseId);
       const ticket = await tx.svcTicket.findUniqueOrThrow({ where: { id: row.entityId } });
+      // Queda registrado que se abrió el enlace.
+      await recordServiceAudit(tx, actor, {
+        action: 'service.survey.view',
+        entityType: 'svc_survey_response',
+        entityId: row.id,
+        changes: { ticket_code: ticket.code },
+      });
       return {
         state: this.stateOf(row, now),
         company: (await companyIdentity(tx)).legalName,

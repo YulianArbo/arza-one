@@ -47,6 +47,14 @@ interface Step {
   readonly event: string;
 }
 
+/** El estado admite el paso; si no, lo dice con el nombre del estado. */
+function assertStep(pqrsf: SvcPqrsf, action: PqrsfAction): void {
+  const status = pqrsfStatusSchema.parse(pqrsf.status);
+  if (!canPqrsfStep(action, status)) {
+    throw statusInvalid(`Una PQRSF «${PQRSF_STATUSES[status]}» no admite ese paso.`);
+  }
+}
+
 async function applyPqrsfStep(
   tx: TenantTransaction,
   actor: ServiceActor,
@@ -54,10 +62,7 @@ async function applyPqrsfStep(
   version: number,
   step: Step,
 ): Promise<SvcPqrsf> {
-  const status = pqrsfStatusSchema.parse(pqrsf.status);
-  if (!canPqrsfStep(step.action, status)) {
-    throw statusInvalid(`Una PQRSF «${PQRSF_STATUSES[status]}» no admite ese paso.`);
-  }
+  assertStep(pqrsf, step.action);
   const { count } = await tx.svcPqrsf.updateMany({
     where: { id: pqrsf.id, version, status: pqrsf.status, deletedAt: null },
     data: step.data,
@@ -88,10 +93,7 @@ async function handOff(
 ): Promise<void> {
   await recordServiceChange(tx, actor, {
     action: kind === 'transfer' ? 'service.pqrsf.transfer' : 'service.pqrsf.request_nonconformity',
-    event:
-      kind === 'transfer'
-        ? 'service.pqrsf.transferred_to_privacy'
-        : 'service.pqrsf.nonconformity_requested',
+    event: kind === 'transfer' ? 'service.pqrsf.transferred' : 'service.pqrsf.nonconforming',
     entityType: 'svc_pqrsf',
     entityId: pqrsf.id,
     changes: pqrsfAudit(pqrsf),
@@ -187,6 +189,7 @@ export class PqrsfStepsUseCase {
     meta: RequestMeta,
   ): Promise<void> {
     await this.run(principal, meta, target.id, async (tx, actor, pqrsf) => {
+      assertStep(pqrsf, 'draft');
       if (pqrsf.approval === 'pending') {
         throw statusInvalid(
           'La respuesta está por aprobar. Espere la decisión o pida que la devuelvan.',
