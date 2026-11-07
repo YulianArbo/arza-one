@@ -1,5 +1,6 @@
 import { mockApi, mockHealthyApi, mockSession, type ApiRoutes } from './support/api-mock';
 import { accessibilityViolations, expect, test, useTheme } from './support/fixtures';
+import { PORTAL_API } from './support/portal-api';
 
 const TOKEN = 'a'.repeat(43);
 
@@ -37,7 +38,7 @@ const PAGES = [
   { path: '/app/estado-del-sistema', ready: 'Todo funciona' },
   { path: '/app/sistema-de-diseno', ready: 'Estados de pantalla' },
   { path: '/app/calidad', ready: 'Este módulo está en construcción' },
-  { path: '/portal', ready: 'Su portal estará disponible pronto', session: 'portal' },
+  { path: '/portal', ready: 'Bienvenido, Demo Uno S.A.S.', session: 'portal', api: PORTAL_API },
   { path: '/iniciar-sesion', ready: '¿Olvidó su contraseña?', session: 'none' },
   { path: '/recuperar-contrasena', ready: 'Enviar enlace', session: 'none' },
   { path: `/activar-cuenta#token=${TOKEN}`, ready: 'Activar cuenta', session: 'none' },
