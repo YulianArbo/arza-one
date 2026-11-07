@@ -9,6 +9,7 @@ import {
   indicatorsSchema,
   releaseListResponseSchema,
   riskListResponseSchema,
+  sharedFileListSchema,
   timeListResponseSchema,
   timeOptionsSchema,
   itemListResponseSchema,
@@ -28,6 +29,7 @@ import {
   type RiskListResponse,
   type TimeListResponse,
   type TimeOptions,
+  type SharedFileList,
 } from '@arza/contracts';
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import type { z } from 'zod';
@@ -131,6 +133,11 @@ export function useDeliverables(id: string): UseQueryResult<DeliverableListRespo
 
 export function useDeliveryOptions(id: string, enabled: boolean): UseQueryResult<DeliveryOptions> {
   return usePart(id, 'deliverables/options', deliveryOptionsSchema, enabled);
+}
+
+/** Si el proyecto se ve en el portal y lo compartido con el cliente (B30). */
+export function useSharedFiles(id: string): UseQueryResult<SharedFileList> {
+  return usePart(id, 'shared-files', sharedFileListSchema);
 }
 
 export function useRisks(id: string): UseQueryResult<RiskListResponse> {
