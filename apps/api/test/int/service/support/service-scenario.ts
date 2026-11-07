@@ -12,7 +12,7 @@ import { beforeAll, expect } from 'vitest';
 import { publishTenantEvents } from '../../../../src/modules/ntf/application/publisher.js';
 import { seedNotificationTemplates } from '../../../../src/modules/ntf/index.js';
 import {
-  followTicketClocks,
+  followTicketClocksIn,
   seedService,
   type SlaWorkResult,
 } from '../../../../src/modules/service/index.js';
@@ -113,9 +113,12 @@ export class ServiceScenario extends CrmScenario {
     this.clock.advance(minutes * MINUTE);
   }
 
-  /** Una pasada del reloj de los tiquetes en el worker. */
+  /**
+   * Una pasada del reloj de los tiquetes en el worker, en la empresa del escenario: el reloj
+   * adelantado de una prueba no alerta ni cierra los tiquetes de otro archivo.
+   */
   async clockWork(): Promise<SlaWorkResult> {
-    return followTicketClocks({ database: apiDatabase(), clock: this.clock });
+    return followTicketClocksIn({ database: apiDatabase(), clock: this.clock }, [this.tenant.id]);
   }
 
   async dispatchNotices(): Promise<void> {

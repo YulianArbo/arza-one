@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
+import { followTicketClocks } from '../../../src/modules/service/index.js';
+import { systemClock } from '../../../src/platform/clock/clock.js';
+import { apiDatabase } from '../support/integration-database.js';
 import { MINUTE, ServiceScenario } from './support/service-scenario.js';
 
 // Criterios del B28: «El reloj se pausa en espera del cliente» y «Un tiquete al 80 % del plazo
@@ -124,5 +127,15 @@ describe('resolver, reabrir y cerrar', () => {
     const closed = await scenario.ticketOf(agent, id);
     expect(closed.status).toBe('closed');
     expect((await scenario.step(agent, id, 'reopen', { reason: 'Otra vez.' })).status).toBe(409);
+  });
+});
+
+describe('la pasada programada', () => {
+  it('con el reloj de hoy recorre las empresas con trabajo sin tocar lo que aún no vence', async () => {
+    const agent = await scenario.agent();
+    const id = await scenario.working(agent);
+    const result = await followTicketClocks({ database: apiDatabase(), clock: systemClock });
+    expect(result.warned).toBeGreaterThanOrEqual(0);
+    expect(await clockMarks(id)).toEqual([]);
   });
 });
