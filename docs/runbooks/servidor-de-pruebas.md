@@ -167,7 +167,7 @@ formulario público de PQRSF responde «no está disponible». Para activarlo, a
 
 El portal del cliente (B30) no deja entrar mientras no estén publicados los **Términos de uso del
 portal** y la **Política de tratamiento de datos personales**. Después de desplegar, el Oficial de
-Protección de Datos los publica en Privacidad › Textos legales (los borradores provisionales de la
+Protección de Datos los publica en Privacidad › Avisos y versiones (los borradores provisionales de la
 semilla dicen «PENDIENTE DE CONCEPTO JURÍDICO» y deben reemplazarse por los textos aprobados).
 
 La llave se crea dentro del servidor y no se muestra. **No la cambie después**: los segundos
