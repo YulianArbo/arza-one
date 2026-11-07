@@ -19,11 +19,11 @@ type Routes = Record<string, Handler>;
 
 export const PROJECT_ID = '01999a00-0000-7000-8000-0000000fa001';
 export const ENVELOPE_ID = '01999a00-0000-7000-8000-0000000fa101';
-export const CONTRACT_ID = '01999a00-0000-7000-8000-0000000fa201';
+const CONTRACT_ID = '01999a00-0000-7000-8000-0000000fa201';
 export const TICKET_ID = '01999a00-0000-7000-8000-0000000fa301';
 export const ARTICLE_ID = '01999a00-0000-7000-8000-0000000fa401';
 export const USER_ID = '01999a00-0000-7000-8000-0000000fa501';
-export const SHARED_ID = '01999a00-0000-7000-8000-0000000fa601';
+const SHARED_ID = '01999a00-0000-7000-8000-0000000fa601';
 
 const PORTAL_SESSION = {
   ...SESSION,
@@ -76,7 +76,7 @@ export const TERMS: PortalTerms = {
   ],
 };
 
-export const HOME: PortalHome = {
+const HOME: PortalHome = {
   company: 'Demo Uno S.A.S.',
   projects: 1,
   next_milestones: [
@@ -107,7 +107,7 @@ const SUMMARY = {
   awaiting_client: 1,
 } as const;
 
-export const PROJECT: PortalProjectDetail = {
+const PROJECT: PortalProjectDetail = {
   ...SUMMARY,
   description: 'Consulta de facturas y certificados.',
   milestones: [SUMMARY.next_milestone],
@@ -147,7 +147,7 @@ export function signature(overrides: Partial<PortalSignature> = {}): PortalSigna
   };
 }
 
-export const CONTRACTS = {
+const CONTRACTS = {
   data: [
     {
       id: CONTRACT_ID,
@@ -192,7 +192,7 @@ export function ticketDetail(overrides: Partial<PortalTicketDetail> = {}): Porta
   };
 }
 
-export const USERS: PortalUserList = {
+const USERS: PortalUserList = {
   projects: [{ id: PROJECT_ID, code: 'PRY-2026-0001', name: 'Portal de autogestión' }],
   data: [
     {
@@ -220,7 +220,7 @@ export const USERS: PortalUserList = {
   ],
 };
 
-export const MY_DATA = {
+const MY_DATA = {
   display_name: 'Ana Cliente',
   email: 'compras@cliente.test',
   company: 'Demo Uno S.A.S.',
@@ -242,7 +242,7 @@ export const MY_EXPORT = {
   pqrsf: [],
 };
 
-export const ARTICLE = {
+const ARTICLE = {
   id: ARTICLE_ID,
   title: 'Cómo descargar su factura',
   summary: 'Pasos para descargarla.',
@@ -250,7 +250,7 @@ export const ARTICLE = {
   published_at: '2026-11-01T15:00:00.000Z',
 };
 
-export const DOCUMENTS = {
+const DOCUMENTS = {
   data: [
     {
       id: SHARED_ID,

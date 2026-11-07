@@ -42,7 +42,7 @@ import { save } from '../audit/audit-export-button';
 // y es la única barrera: la pantalla solo decide qué mostrar. Toda acción del portal vuelve a pedir
 // lo del portal (llave «portal»).
 
-export const PORTAL_KEY = ['portal'] as const;
+const PORTAL_KEY = ['portal'] as const;
 
 function usePortalQuery<T>(path: string, schema: z.ZodType<T>, enabled = true): UseQueryResult<T> {
   const api = useApiClient();

@@ -2,8 +2,8 @@ import type { ApiRoutes } from './api-mock';
 
 // La API del portal del cliente simulada (B30), para las pruebas de punta a punta. Datos ficticios.
 
-export const PORTAL_PROJECT = '01999a00-0000-7000-8000-0000000fa001';
-export const PORTAL_TICKET = '01999a00-0000-7000-8000-0000000fa301';
+const PORTAL_PROJECT = '01999a00-0000-7000-8000-0000000fa001';
+const PORTAL_TICKET = '01999a00-0000-7000-8000-0000000fa301';
 
 const TERMS_DOCUMENTS = [
   {

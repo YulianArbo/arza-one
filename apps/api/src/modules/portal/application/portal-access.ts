@@ -17,7 +17,7 @@ import { publishedNotices } from '../../privacy/index.js';
 // filtran: la empresa, la persona y si ve todo lo de su empresa o solo lo suyo.
 
 /** Los textos que el cliente acepta en su primer ingreso y cada vez que cambian (decisión 8). */
-export const TERMS_KEYS = ['portal_terms', 'privacy_policy'] as const;
+const TERMS_KEYS = ['portal_terms', 'privacy_policy'] as const;
 
 export interface PortalContext {
   readonly account: PortalAccount;
@@ -31,7 +31,7 @@ export interface PortalContext {
   readonly at: Date;
 }
 
-export function noCompany(): AppError {
+function noCompany(): AppError {
   return new AppError(
     HttpStatus.FORBIDDEN,
     PORTAL_ERROR_CODES.noCompany,
@@ -39,7 +39,7 @@ export function noCompany(): AppError {
   );
 }
 
-export function termsPending(): AppError {
+function termsPending(): AppError {
   return new AppError(
     HttpStatus.FORBIDDEN,
     PORTAL_ERROR_CODES.termsPending,
