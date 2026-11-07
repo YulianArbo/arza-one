@@ -1,11 +1,12 @@
-import { mockHealthyApi, mockSession } from './support/api-mock';
+import { mockApi, mockHealthyApi, mockSession } from './support/api-mock';
 import { accessibilityViolations, expect, test, useTheme } from './support/fixtures';
+import { PORTAL_API } from './support/portal-api';
 
 // B20A: el sitio público, el acceso y el portal se diseñan primero para celular (16.6).
 const MOBILE_PAGES = [
   { path: '/', ready: 'ARZA TECH S.A.S.', session: 'none' },
   { path: '/iniciar-sesion', ready: '¿Olvidó su contraseña?', session: 'none' },
-  { path: '/portal', ready: 'Su portal estará disponible pronto', session: 'portal' },
+  { path: '/portal', ready: 'Bienvenido, Demo Uno S.A.S.', session: 'portal' },
 ] as const;
 
 test.describe('superficies en celular', () => {
@@ -15,6 +16,7 @@ test.describe('superficies en celular', () => {
     test(`${path} no se desborda ni tiene violaciones`, async ({ page }) => {
       await mockHealthyApi(page);
       await mockSession(page, session);
+      if (session === 'portal') await mockApi(page, PORTAL_API);
       await page.goto(path);
       await expect(page.getByText(ready).first()).toBeVisible();
       const overflow = await page.evaluate(
