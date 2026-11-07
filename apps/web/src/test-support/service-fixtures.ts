@@ -68,6 +68,8 @@ function ticketDetail(overrides: Partial<TicketDetail> = {}): TicketDetail {
     description: 'Desde esta mañana el reporte queda en blanco.',
     channel: 'phone',
     requester_name: 'Ana Gómez',
+    requester_email: null,
+    survey: null,
     project: { id: '01999a00-0000-7000-8000-0000000e0001', code: 'PRY-2026-0001', name: 'Portal' },
     deliverable: { id: '01999a00-0000-7000-8000-0000000e0901', name: 'Portal de autogestión' },
     warranty: { id: WARRANTY_ID, ends_on: '2027-02-04' },

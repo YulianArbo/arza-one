@@ -1,15 +1,15 @@
 import type { Metadata } from 'next';
 import type { JSX } from 'react';
 
-import { TicketInbox } from '../../../../features/service/ticket-inbox';
+import { ServiceHome } from '../../../../features/service/service-home';
 import { RequirePermission } from '../../../../features/session/permissions';
 
-export const metadata: Metadata = { title: 'Mesa de ayuda' };
+export const metadata: Metadata = { title: 'Servicio al cliente' };
 
-export default function ServicePage(): JSX.Element {
+export default function Page(): JSX.Element {
   return (
-    <RequirePermission anyOf={['service.ticket.read']}>
-      <TicketInbox />
+    <RequirePermission anyOf={['service.ticket.read', 'service.pqrsf.read', 'service.kb.read']}>
+      <ServiceHome />
     </RequirePermission>
   );
 }

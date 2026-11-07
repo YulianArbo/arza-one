@@ -22,6 +22,7 @@ import {
   TICKET_PRIORITIES,
   TICKET_STATUSES,
   TICKET_STATUS_TONES,
+  TICKET_SURVEY_STATES,
 } from './labels';
 import { useTicket } from './queries';
 import { BackLink, hoursText } from './service-bits';
@@ -63,6 +64,14 @@ function clockMessage(ticket: TicketDetail): { tone: 'info' | 'warning'; text: s
   return null;
 }
 
+/** La encuesta que llegó al resolverlo (B29), en una frase. */
+function surveyText(ticket: TicketDetail): string {
+  const survey = ticket.survey;
+  if (survey === null) return 'Aún no se envía (sale al resolverlo)';
+  if (survey.state !== 'answered') return TICKET_SURVEY_STATES[survey.state];
+  return `Respondida: recomendación ${String(survey.score)} de 10, satisfacción ${String(survey.satisfaction)} de 5`;
+}
+
 function linkFacts(ticket: TicketDetail): Fact[] {
   return [
     [
@@ -70,6 +79,7 @@ function linkFacts(ticket: TicketDetail): Fact[] {
       ticket.party === null ? 'Interno' : factLink(partyPath(ticket.party.id), ticket.party.name),
     ],
     ['Quién reporta', ticket.requester_name ?? ticket.requester?.name ?? '—'],
+    ['Correo de quien reporta', ticket.requester_email ?? '—'],
     [
       'Proyecto',
       ticket.project === null
@@ -110,6 +120,7 @@ function summaryFacts(ticket: TicketDetail): Fact[] {
     ],
     ['Solución vence', ticket.resolved_at === null ? due(ticket.resolution_due_at) : '—'],
     ['Solución', ticket.resolution ?? '—'],
+    ['Encuesta de satisfacción', surveyText(ticket)],
     ['Registrado', `${formatDateTime(ticket.created_at)} por ${ticket.created_by?.name ?? '—'}`],
   ];
 }

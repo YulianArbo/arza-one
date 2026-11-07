@@ -39,6 +39,7 @@ import {
   TICKET_VIEWS,
 } from './labels';
 import { useTickets } from './queries';
+import { ServiceNav } from './service-nav';
 
 // Bandeja de tiquetes (B28, numeral 16.4, patrón de listado): por vista (míos, sin asignar, por
 // vencer, vencidos, en espera), lo que vence primero arriba, con el reloj de cada uno. Quien solo
@@ -191,6 +192,7 @@ export function TicketInbox(): JSX.Element {
   const [filters, setFilters] = useState(START);
   return (
     <div className="flex flex-col gap-4">
+      <ServiceNav current="tickets" />
       <PageHeader
         title="Mesa de ayuda"
         description="Tiquetes de soporte con su acuerdo de tiempo: el reloj se pausa mientras se espera al cliente."

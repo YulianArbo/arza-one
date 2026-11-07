@@ -107,6 +107,11 @@ export const PARAMETER_VALUE_SCHEMAS = {
 
 const parameterValueSchema = z.union([workScheduleSchema, discountCapSchema, pqrsfTermsSchema]);
 
+/** El valor son los plazos de respuesta de PQRSF (B29). */
+export function isPqrsfTerms(value: ParameterValue): value is PqrsfTerms {
+  return 'petition' in value;
+}
+
 /** El valor es un horario laboral (y no otro parámetro). */
 export function isWorkSchedule(value: ParameterValue): value is WorkSchedule {
   return 'days' in value;
