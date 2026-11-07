@@ -14,6 +14,7 @@ import type { PrivacyActor } from './privacy-support.js';
 const PURPOSES: Readonly<Record<EditableNoticeKey, readonly string[]>> = {
   privacy_policy: [],
   privacy_notice: [],
+  portal_terms: [],
   authorization_customer: ['COMMERCIAL', 'BILLING', 'SUPPORT', 'MARKETING'],
   authorization_supplier: ['SUPPLIER', 'BILLING'],
   authorization_employee: ['EMPLOYMENT'],

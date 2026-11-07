@@ -13,3 +13,4 @@ export * from './finance/index.js';
 export * from './contract/index.js';
 export * from './project/index.js';
 export * from './service/index.js';
+export * from './portal/index.js';
