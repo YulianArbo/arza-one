@@ -45,7 +45,7 @@ type ClockTicket = Pick<SvcTicket, 'slaConsumedMinutes' | 'firstResponseAt' | 'r
  * Vencimientos desde `from` con lo que queda del plazo. La primera respuesta ya dada conserva el
  * vencimiento que tenía.
  */
-export async function dueDates(
+async function dueDates(
   tx: TenantTransaction,
   policy: SlaPolicy,
   ticket: ClockTicket,

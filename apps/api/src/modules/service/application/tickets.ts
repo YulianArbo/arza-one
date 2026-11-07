@@ -100,7 +100,7 @@ export class TicketsUseCase {
     const forSelf = !hasUnconditionalPermission(ability, 'service.ticket.create');
     return this.database.withTenant(principal, async (tx) => {
       const links = await resolveLinks(tx, input, actor.at);
-      const policy = await policyFor(tx, actor.tenantId, input.priority);
+      const policy = await policyFor(tx, actor, input.priority);
       const ticket = await tx.svcTicket.create({
         data: {
           tenantId: actor.tenantId,
@@ -168,7 +168,7 @@ export class TicketsUseCase {
     priority: TicketPriority,
   ) {
     if (priority === ticket.priority) return {};
-    const next = await policyFor(tx, actor.tenantId, priority);
+    const next = await policyFor(tx, actor, priority);
     return reprioritizedClock(tx, ticket.slaPolicy, next, ticket, actor.at);
   }
 }

@@ -34,7 +34,7 @@ export class ServiceScenario extends CrmScenario {
     super(label);
     beforeAll(async () => {
       const tenants = [this.tenant.id, this.otherTenant.id];
-      await seedService(this.db, tenants);
+      await seedService(this.db, tenants, systemClock);
       await seedNotificationTemplates(this.db, tenants, systemClock);
     });
   }

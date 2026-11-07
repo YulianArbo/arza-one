@@ -1,9 +1,4 @@
-import {
-  CLOCK_RUNNING_STATUSES,
-  SLA_RULES,
-  type ClockState,
-  type TicketStatus,
-} from '@arza/contracts';
+import { SLA_RULES, type ClockState, type TicketStatus } from '@arza/contracts';
 
 // El reloj del acuerdo de servicio de un tiquete (B28, ficha 17.9). Corre desde que se registra y se
 // pausa «en espera del cliente»: el plazo consumido se guarda en minutos del calendario del acuerdo
@@ -37,10 +32,6 @@ export function remainingMinutes(terms: SlaTerms, consumed: number): Remaining {
     resolution: Math.max(0, terms.resolutionMinutes - consumed),
     warn: Math.max(0, warnAt - consumed),
   };
-}
-
-export function clockRuns(status: TicketStatus): boolean {
-  return CLOCK_RUNNING_STATUSES.includes(status);
 }
 
 /** Lo que el reloj necesita saber del tiquete para decir cómo va. */

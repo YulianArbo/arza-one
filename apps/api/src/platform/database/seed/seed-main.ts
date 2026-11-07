@@ -56,7 +56,7 @@ async function main(): Promise<void> {
     await seedCrmWorkflows(database, tenantIds, systemClock);
     await seedContracts(database, tenantIds, systemClock);
     await seedProjects(database, tenantIds, systemClock);
-    await seedService(database, tenantIds);
+    await seedService(database, tenantIds, systemClock);
     if (withDemo) {
       const demoIds = DEMO_TENANTS.map((tenant) => tenant.id);
       // Los terceros ficticios llegan con su autorización: primero se publican los textos.

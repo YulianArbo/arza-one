@@ -71,11 +71,12 @@ export const DEFAULT_TEMPLATES: Readonly<Record<NotificationKind, TemplateText>>
     body: 'El tiquete {{tiquete}} tiene una novedad: {{novedad}}. Revíselo en ARZA ONE › Servicio.',
     urgent: false,
   },
-  // B28: plazo al 80 %, plazo vencido y tiquete crítico (PT-TEC-003): se entregan de inmediato.
+  // B28: plazo al 80 %, plazo vencido y tiquete crítico (PT-TEC-003). Como todo aviso salvo el de
+  // seguridad, respeta la jornada; Administración › Plantillas puede marcarlo urgente.
   svc_ticket_alert: {
     subject: 'Atención: tiquete {{tiquete}}',
     body: 'El tiquete {{tiquete}} necesita atención: {{novedad}}. Ábralo en ARZA ONE › Servicio.',
-    urgent: true,
+    urgent: false,
   },
 };
 

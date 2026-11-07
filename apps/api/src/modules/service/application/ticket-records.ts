@@ -34,14 +34,14 @@ export type TicketWithLinks = SvcTicket & {
 export const TICKET_LINKS = { slaPolicy: true, warranty: true } as const;
 
 /** Las personas del tiquete: para el permiso «solo lo propio». */
-export function involvedIn(ticket: Pick<SvcTicket, 'requesterId' | 'assigneeId' | 'createdBy'>): {
+function involvedIn(ticket: Pick<SvcTicket, 'requesterId' | 'assigneeId' | 'createdBy'>): {
   involved_user_ids: string[];
 } {
   const ids = [ticket.requesterId, ticket.assigneeId, ticket.createdBy];
   return { involved_user_ids: ids.filter((id): id is string => id !== null) };
 }
 
-export function canOnTicket(ability: AppAbility, code: PermissionCode, ticket: SvcTicket): boolean {
+function canOnTicket(ability: AppAbility, code: PermissionCode, ticket: SvcTicket): boolean {
   return canOnRecord(ability, code, involvedIn(ticket));
 }
 
@@ -82,7 +82,7 @@ export function isRequester(ticket: SvcTicket, userId: string): boolean {
   return ticket.requesterId === userId;
 }
 
-export function inWarranty(warranty: SvcWarranty | null, now: Date): boolean {
+function inWarranty(warranty: SvcWarranty | null, now: Date): boolean {
   return warranty !== null && toCalendarDate(warranty.endsOn) >= bogotaToday(now);
 }
 

@@ -21,6 +21,7 @@ import {
   recordServiceChange,
   serviceActorOf,
   serviceNotFound,
+  type ServiceActor,
   type ServiceTarget,
 } from './service-support.js';
 
@@ -35,7 +36,7 @@ interface DefaultPolicy {
   readonly calendar: SlaCalendar;
 }
 
-export const DEFAULT_POLICIES: Readonly<Record<TicketPriority, DefaultPolicy>> = {
+const DEFAULT_POLICIES: Readonly<Record<TicketPriority, DefaultPolicy>> = {
   critical: { firstResponseHours: 1, resolutionHours: 4, calendar: 'continuous' },
   high: { firstResponseHours: 4, resolutionHours: 16, calendar: 'business' },
   medium: { firstResponseHours: 8, resolutionHours: 40, calendar: 'business' },
@@ -44,23 +45,36 @@ export const DEFAULT_POLICIES: Readonly<Record<TicketPriority, DefaultPolicy>> =
 
 const PRIORITY_ORDER = Object.keys(DEFAULT_POLICIES) as TicketPriority[];
 
-/** El acuerdo de la prioridad; si la empresa aún no lo tiene, lo crea con el de fábrica. */
+/**
+ * El acuerdo de la prioridad; si la empresa aún no lo tiene, lo crea con el de fábrica y deja su
+ * registro en la auditoría, como toda escritura.
+ */
 export async function policyFor(
   tx: TenantTransaction,
-  tenantId: string,
+  actor: ServiceActor,
   priority: TicketPriority,
 ): Promise<SlaPolicy> {
   const found = await tx.slaPolicy.findFirst({ where: { priority, deletedAt: null } });
   if (found !== null) return found;
   const preset = DEFAULT_POLICIES[priority];
-  await tx.slaPolicy.createMany({
-    data: [{ tenantId, priority, ...preset }],
+  const { count } = await tx.slaPolicy.createMany({
+    data: [{ tenantId: actor.tenantId, priority, ...preset }],
     skipDuplicates: true,
   });
-  return tx.slaPolicy.findFirstOrThrow({ where: { priority, deletedAt: null } });
+  const policy = await tx.slaPolicy.findFirstOrThrow({ where: { priority, deletedAt: null } });
+  if (count === 0) return policy;
+  await recordServiceChange(tx, actor, {
+    action: 'service.sla.create',
+    event: 'service.sla.created',
+    entityType: 'wf_sla_policy',
+    entityId: policy.id,
+    changes: policyView(policy),
+    payload: { priority },
+  });
+  return policy;
 }
 
-export function policyView(policy: SlaPolicy): SlaPolicyView {
+function policyView(policy: SlaPolicy): SlaPolicyView {
   return {
     id: policy.id,
     priority: ticketPrioritySchema.parse(policy.priority),
@@ -75,10 +89,12 @@ export function policyView(policy: SlaPolicy): SlaPolicyView {
 export async function seedService(
   database: Pick<DatabaseService, 'withTenant'>,
   tenantIds: readonly string[],
+  clock: Clock,
 ): Promise<void> {
   for (const tenantId of tenantIds) {
+    const actor: ServiceActor = { tenantId, userId: null, meta: null, at: clock.now() };
     await database.withTenant({ tenantId, userId: null }, async (tx) => {
-      for (const priority of PRIORITY_ORDER) await policyFor(tx, tenantId, priority);
+      for (const priority of PRIORITY_ORDER) await policyFor(tx, actor, priority);
     });
   }
 }
@@ -91,11 +107,16 @@ export class SlaPoliciesUseCase {
   ) {}
 
   async list(principal: Principal, ability: AppAbility): Promise<SlaPolicyListResponse> {
+    const at = this.clock.now();
+    const actor: ServiceActor = {
+      tenantId: principal.tenantId,
+      userId: principal.userId,
+      meta: null,
+      at,
+    };
     const policies = await this.database.withTenant(principal, async (tx) => {
       const all: SlaPolicy[] = [];
-      for (const priority of PRIORITY_ORDER) {
-        all.push(await policyFor(tx, principal.tenantId, priority));
-      }
+      for (const priority of PRIORITY_ORDER) all.push(await policyFor(tx, actor, priority));
       return all;
     });
     return {
