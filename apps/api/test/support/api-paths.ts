@@ -1,3 +1,4 @@
+import { PORTAL_PATHS } from './api-paths-portal.js';
 import { SERVICE_PATHS } from './api-paths-service.js';
 
 // Las rutas que publica la API (numeral 14.1): la prueba del OpenAPI las compara con las reales.
@@ -301,4 +302,4 @@ const PLATFORM_PATHS = [
 ];
 
 /** Rutas publicadas, en orden alfabético. */
-export const API_PATHS = [...PLATFORM_PATHS, ...SERVICE_PATHS].sort();
+export const API_PATHS = [...PLATFORM_PATHS, ...SERVICE_PATHS, ...PORTAL_PATHS].sort();
