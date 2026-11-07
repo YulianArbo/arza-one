@@ -777,6 +777,24 @@ garantías por entregable y compensaciones técnicas RE-SAC-001 (ficha 17.9). Ta
 | Garantías                   | Proyectos avisa en la misma transacción con `onDeliverableAccepted()`; nace la garantía de 90 días. `GET /v1/warranties` (quien lee todos los tiquetes) y `PUT /v1/warranties/{id}` (`service.sla.manage`)                                                                                                                 |
 | Compensaciones              | `tickets/{id}/compensations`: propone quien atiende; `actions/decide` y `actions/apply` piden `service.compensation.approve` y nunca sobre la propia (también en la base). La aprobada publica `service.compensation.approved` para Facturación (B31)                                                                      |
 
+## PQRSF, encuestas y base de conocimiento (B29, módulo `src/modules/service`)
+
+PQRSF con radicado, acuse y plazo en días hábiles, respuesta aprobada por otra persona y traslado a
+Privacidad o a Calidad; encuesta de satisfacción al resolver un tiquete con su NPS; base de
+conocimiento (ficha 17.9). Tablas y reglas en [`svc.md`](../../docs/manual/datos/svc.md).
+
+| Regla                     | Cómo se cumple                                                                                                                                                                                                                                                                             |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Radicación pública        | `POST /v1/public/pqrsf` (sin sesión, 5 por minuto por equipo): la empresa sale de `PUBLIC_SITE_TAX_ID` con `tenantIdByTaxId()` (función `core_tenant_by_tax_id`); sin ella responde 503. Código `PQRSF-AAAA-NNNN`, aceptación del aviso `authorization_contact` y campo trampa `website`   |
+| Plazo en días hábiles     | `pqrsfDeadline()`: parámetro con vigencia `service.pqrsf_terms` (por tipo o por la Ley 1581) y `businessDeadline()` del núcleo, contado desde el día siguiente; `warn_on` dos días hábiles antes                                                                                           |
+| Consulta de estado        | `POST /v1/public/pqrsf/status` con radicado y correo en el cuerpo; sin coincidencia exacta, 404. Queda en la auditoría (`service.pqrsf.consult`)                                                                                                                                           |
+| Recorrido                 | `actions/classify` · `assign` (`service.pqrsf.classify`), `draft` · `respond` (`service.pqrsf.respond`), `approve` · `return` (`service.pqrsf.approve`, nunca quien redactó; también en la base) y `close`, con `If-Match` y la tabla `PQRSF_ACTIONS`                                      |
+| Traslados                 | Clasificar con `privacy_kind` publica `service.pqrsf.transferred` (Privacidad, B42) y avisa al Oficial de datos; aprobar una queja o un reclamo procedente publica `service.pqrsf.nonconforming` (Calidad, B38) y avisa a Calidad                                                          |
+| Correos y avisos de plazo | El worker `svc.care-work`, cada 30 segundos (`followCustomerCare()`): acuse, respuesta e invitación a la encuesta (la llave del enlace solo va en el correo); `service.pqrsf.warned` · `breached` con el aviso `svc_pqrsf_update` (no urgente)                                             |
+| Encuesta                  | Al resolver, `inviteToSurvey()` en la misma transacción: al correo del usuario que lo pidió o `requester_email`; reemplaza la invitación anterior sin responder. `POST /v1/public/surveys/view` · `answer` (una vez; enlace de 30 días). `service.survey.answered` para el indicador (B39) |
+| NPS                       | `GET /v1/survey-responses` (quien lee todos los tiquetes): `npsOf()` (contratos) y promedio de satisfacción del periodo. `PUT /v1/surveys/{id}` (`service.survey.manage`) cambia textos y encendido                                                                                        |
+| Base de conocimiento      | `kb-articles` con `service.kb.read` (todo rol interno) y `service.kb.manage`; quien no administra solo ve lo publicado (un borrador responde 404). Tabla `KB_ACTIONS`                                                                                                                      |
+
 ## Flujos y tareas (B15, módulo `src/modules/wf`)
 
 Motor de flujos definido por datos (ficha 17.5, numeral 13.2, ADR-011). Las tablas están en
