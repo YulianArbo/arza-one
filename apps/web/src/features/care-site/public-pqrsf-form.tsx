@@ -143,10 +143,7 @@ function ConsentBox(props: {
         />
         <span>
           Autorizo el tratamiento de mis datos personales para atender esta solicitud, según la{' '}
-          <Link
-            href="/legal/privacidad"
-            className="text-primary underline-offset-4 hover:underline"
-          >
+          <Link href="/legal/privacidad" className="text-primary underline underline-offset-4">
             política de privacidad
           </Link>
           .
