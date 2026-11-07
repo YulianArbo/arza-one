@@ -133,6 +133,11 @@ const sigFollowUpJobSchema = z.object({});
  */
 const prjAcceptanceWorkJobSchema = z.object({});
 const svcSlaWorkJobSchema = z.object({});
+/**
+ * Correos y plazos de las PQRSF y las encuestas (B29): acuse, respuesta, invitación a la encuesta y
+ * avisos de «por vencer» y vencida. Es del sistema: recorre las empresas con trabajo.
+ */
+const svcCareWorkJobSchema = z.object({});
 
 export type TenantJob = z.infer<typeof tenantJobSchema>;
 export type ExampleEmailJob = z.infer<typeof exampleEmailJobSchema>;
@@ -243,6 +248,11 @@ export const JOBS = {
     name: 'svc.sla-work',
     schema: svcSlaWorkJobSchema,
   },
+  svcCareWork: {
+    queue: QUEUES.platform,
+    name: 'svc.care-work',
+    schema: svcCareWorkJobSchema,
+  },
 } as const;
 
 /** Trabajos programados: el worker los registra al arrancar (expresión cron, hora de Bogotá). */
@@ -289,6 +299,9 @@ export const SCHEDULED_JOBS = [
   // Cada 5 minutos: la alerta del 80 % y la del plazo vencido llegan a lo sumo cinco minutos tarde,
   // y los tiquetes resueltos que nadie reabrió se cierran (B28).
   { id: 'svc.sla-work.every-5-minutes', job: JOBS.svcSlaWork, pattern: '*/5 * * * *' },
+  // Cada 30 segundos: el acuse de una PQRSF y la encuesta de un tiquete resuelto llegan casi de
+  // inmediato; los avisos de plazo, a lo sumo medio minuto tarde (B29).
+  { id: 'svc.care-work.every-30-seconds', job: JOBS.svcCareWork, pattern: '*/30 * * * * *' },
 ] as const;
 
 export type JobDefinition = (typeof JOBS)[keyof typeof JOBS];
