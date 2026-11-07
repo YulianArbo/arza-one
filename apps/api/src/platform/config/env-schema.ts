@@ -28,6 +28,16 @@ export const envSchema = z.object({
   CSRF_SECRET: z.string().min(32),
   /** Llave del cifrado de campos sensibles, como los secretos del segundo factor (anexo F). */
   FIELD_ENCRYPTION_KEY: z.string().min(32),
+  /**
+   * NIT de la empresa dueña del sitio público (B29): allí llegan las PQRSF que se radican sin
+   * sesión. Vacío o sin definir, el formulario público responde que no está disponible.
+   */
+  PUBLIC_SITE_TAX_ID: z
+    .string()
+    .trim()
+    .regex(/^(\d[\d-]{4,19})?$/u, 'Escriba el NIT con números y guion: 900000000-0')
+    .optional()
+    .transform((value) => (value === '' ? undefined : value)),
 });
 
 export type Env = z.infer<typeof envSchema>;

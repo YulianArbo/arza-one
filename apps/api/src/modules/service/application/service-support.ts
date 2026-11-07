@@ -10,7 +10,7 @@ import type { RequestMeta } from '../../../platform/http/request-meta.js';
 import { addOutboxEvent } from '../../../platform/outbox/outbox.js';
 import { peopleById } from '../../iam/index.js';
 
-// Piezas comunes de la mesa de ayuda (B28): quién actúa, la auditoría y la bandeja de salida de cada
+// Piezas comunes de Servicio al cliente (B28 y B29): quién actúa, la auditoría y la bandeja de salida de cada
 // escritura en la misma transacción (ADR-012), los mensajes de error y los nombres de las personas.
 
 /** Quién actúa: una persona con sesión o el sistema (el reloj del worker). */
@@ -32,7 +32,15 @@ export interface ServiceTarget {
 }
 
 type ServiceEntity =
-  'wf_sla_policy' | 'svc_ticket' | 'svc_ticket_message' | 'svc_warranty' | 'svc_compensation';
+  | 'wf_sla_policy'
+  | 'svc_ticket'
+  | 'svc_ticket_message'
+  | 'svc_warranty'
+  | 'svc_compensation'
+  | 'svc_pqrsf'
+  | 'svc_survey'
+  | 'svc_survey_response'
+  | 'svc_kb_article';
 
 export interface ServiceChange {
   /** Acción de la auditoría, como «service.ticket.assign». */
@@ -92,6 +100,11 @@ export function serviceNotFound(what: string): AppError {
   return new AppError(HttpStatus.NOT_FOUND, SERVICE_ERROR_CODES.notFound, `${what} no existe.`);
 }
 
+/** «No existe» con un mensaje completo, como el de un enlace público que ya no sirve. */
+export function serviceMissing(detail: string): AppError {
+  return new AppError(HttpStatus.NOT_FOUND, SERVICE_ERROR_CODES.notFound, detail);
+}
+
 export function statusInvalid(detail: string): AppError {
   return new AppError(HttpStatus.CONFLICT, SERVICE_ERROR_CODES.statusInvalid, detail);
 }
@@ -126,4 +139,24 @@ export function compensationInvalid(detail: string): AppError {
 
 export function datesInvalid(detail: string): AppError {
   return new AppError(HttpStatus.UNPROCESSABLE_ENTITY, SERVICE_ERROR_CODES.datesInvalid, detail);
+}
+
+export function approverInvalid(): AppError {
+  return new AppError(
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    SERVICE_ERROR_CODES.approverInvalid,
+    'Quien redactó la respuesta no puede aprobarla. Pídale a otra persona que la apruebe.',
+  );
+}
+
+export function responseInvalid(detail: string): AppError {
+  return new AppError(HttpStatus.UNPROCESSABLE_ENTITY, SERVICE_ERROR_CODES.responseInvalid, detail);
+}
+
+export function publicUnavailable(): AppError {
+  return new AppError(
+    HttpStatus.SERVICE_UNAVAILABLE,
+    SERVICE_ERROR_CODES.publicUnavailable,
+    'El formulario no está disponible en este momento. Escríbanos al correo de atención al cliente.',
+  );
 }

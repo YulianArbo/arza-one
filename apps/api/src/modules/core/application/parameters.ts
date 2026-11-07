@@ -4,9 +4,11 @@ import {
   PARAMETER_VALUE_SCHEMAS,
   discountCapSchema,
   isParameterKey,
+  pqrsfTermsSchema,
   workScheduleSchema,
   type CreateParameterVersionRequest,
   type DiscountCap,
+  type PqrsfTerms,
   type ParameterHistoryResponse,
   type ParameterKey,
   type ParameterSummary,
@@ -202,4 +204,14 @@ export async function discountCapOn(
   const versions = await versionsOf(tx, 'crm.discount_cap');
   const { current } = currentAndScheduled(versions, date);
   return current === null ? null : discountCapSchema.parse(current.row.value);
+}
+
+/** Plazos de respuesta de PQRSF vigentes ese día (B29), o null si la empresa no los tiene. */
+export async function pqrsfTermsOn(
+  tx: TenantTransaction,
+  date: string,
+): Promise<PqrsfTerms | null> {
+  const versions = await versionsOf(tx, 'service.pqrsf_terms');
+  const { current } = currentAndScheduled(versions, date);
+  return current === null ? null : pqrsfTermsSchema.parse(current.row.value);
 }

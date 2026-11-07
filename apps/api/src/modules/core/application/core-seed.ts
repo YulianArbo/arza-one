@@ -1,3 +1,5 @@
+import { PQRSF_DEFAULT_TERMS } from '@arza/contracts';
+
 import type { Prisma } from '../../../generated/prisma/client.js';
 import type { Clock } from '../../../platform/clock/clock.js';
 import type { DatabaseService } from '../../../platform/database/database.service.js';
@@ -113,6 +115,10 @@ const STEPS: readonly (readonly [action: string, step: SeedStep])[] = [
   ...HOLIDAY_YEARS.map((year) => ['core.holiday.seed', holidaysOf(year)] as const),
   ['core.parameter.seed', parameterOf('work.schedule', WORK_SCHEDULE, WORK_SCHEDULE_VALID_FROM)],
   ['core.parameter.seed', parameterOf('crm.discount_cap', DISCOUNT_CAP, WORK_SCHEDULE_VALID_FROM)],
+  [
+    'core.parameter.seed',
+    parameterOf('service.pqrsf_terms', PQRSF_DEFAULT_TERMS, WORK_SCHEDULE_VALID_FROM),
+  ],
   ...CATALOGS.map((catalog) => ['core.catalog.seed', catalogOf(catalog)] as const),
   ['core.org_unit.seed', processes],
   ['core.position.seed', positions],

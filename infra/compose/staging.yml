@@ -87,6 +87,8 @@ services:
       RATE_LIMIT_MAX_REQUESTS: 100
       CSRF_SECRET: ${CSRF_SECRET:?}
       FIELD_ENCRYPTION_KEY: ${FIELD_ENCRYPTION_KEY:?}
+      # Empresa del sitio público: allí llegan las PQRSF radicadas sin sesión (B29).
+      PUBLIC_SITE_TAX_ID: ${PUBLIC_SITE_TAX_ID:-}
     mem_limit: 1g
 
   worker:

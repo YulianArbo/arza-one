@@ -22,7 +22,8 @@ type LinkInput = Pick<
   'party_id' | 'project_id' | 'deliverable_id'
 >;
 
-async function usableParty(tx: TenantTransaction, partyId: string): Promise<string> {
+/** El tercero existe y no está bloqueado; lo usan también las PQRSF (B29). */
+export async function usableParty(tx: TenantTransaction, partyId: string): Promise<string> {
   const party = (await commercialParties(tx, [partyId])).get(partyId);
   if (party?.isUsable !== true) {
     throw linkInvalid('El cliente no existe o está bloqueado. Elíjalo de la lista de Terceros.');
