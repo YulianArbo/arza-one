@@ -13,7 +13,7 @@ import { RecordDialog } from '../organization/record-dialog';
 
 // Piezas comunes de las pantallas del B32: consultas, acciones auditadas, campos y mensajes.
 
-export const LEDGER_KEY = ['finance', 'ledger'] as const;
+const LEDGER_KEY = ['finance', 'ledger'] as const;
 
 export function useLedgerQuery<T>(
   path: string,
@@ -120,7 +120,6 @@ export function ActionButton(props: {
   readonly pendingLabel: string;
   readonly ariaLabel: string;
   readonly run: (csrfToken: string) => Promise<unknown>;
-  readonly variant?: 'primary' | 'outline';
 }): JSX.Element {
   const [done, setDone] = useState(false);
   const action = useLedgerAction<undefined>(
@@ -134,7 +133,7 @@ export function ActionButton(props: {
       <Button
         type="button"
         size="sm"
-        variant={props.variant ?? 'outline'}
+        variant="outline"
         aria-label={props.ariaLabel}
         disabled={action.pending || done}
         onClick={() => {

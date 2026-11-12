@@ -5,7 +5,7 @@ import { Decimal } from 'decimal.js';
 
 export const Money = Decimal.clone({ precision: 40, rounding: Decimal.ROUND_HALF_UP });
 
-export type PettyCashType = 'opening' | 'voucher' | 'replenishment';
+type PettyCashType = 'opening' | 'voucher' | 'replenishment';
 
 export type PettyCashProblem =
   'already_open' | 'not_open' | 'insufficient_balance' | 'over_fund' | 'date_before_last';

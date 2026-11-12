@@ -1,3 +1,4 @@
+import type { PermissionCode } from '@arza/contracts';
 import { screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { JSX } from 'react';
@@ -32,7 +33,7 @@ vi.mock('next/navigation', () => ({
   usePathname: () => '/app/finanzas',
 }));
 
-const FINANCE = [
+const FINANCE: readonly PermissionCode[] = [
   'finance.ledger.read',
   'finance.petty_cash.manage',
   'finance.reconciliation.manage',
@@ -41,7 +42,7 @@ const FINANCE = [
   'finance.export',
 ];
 
-function serve(routes: object, permissions: string[] = FINANCE): SentRequest[] {
+function serve(routes: object, permissions: readonly PermissionCode[] = FINANCE): SentRequest[] {
   return mockApi({
     'GET /v1/auth/session': () => json(SESSION),
     'GET /v1/me/permissions': () => json(permissionsOf(permissions)),

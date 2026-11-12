@@ -21,7 +21,7 @@ export interface AccountingRow {
   readonly reference: string | null;
 }
 
-export const ACCOUNTING_HEADER = [
+const ACCOUNTING_HEADER = [
   'fecha',
   'tipo',
   'numero',

@@ -6,9 +6,9 @@ export const EXPENSE_ID = '01999a00-0000-7000-8000-0000000fb301';
 export const RECON_ID = '01999a00-0000-7000-8000-0000000fb401';
 export const PROJECT_ID = '01999a00-0000-7000-8000-0000000fb501';
 export const BATCH_ID = '01999a00-0000-7000-8000-0000000fb601';
-export const FILE_ID = '01999a00-0000-7000-8000-0000000fb701';
+const FILE_ID = '01999a00-0000-7000-8000-0000000fb701';
 
-export const CENTER = { id: CENTER_ID, code: 'CC-DEV', name: 'Desarrollo' };
+const CENTER = { id: CENTER_ID, code: 'CC-DEV', name: 'Desarrollo' };
 
 export const OPTIONS = {
   data: {

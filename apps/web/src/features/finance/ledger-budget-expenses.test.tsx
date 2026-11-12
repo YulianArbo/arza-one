@@ -1,3 +1,4 @@
+import type { PermissionCode } from '@arza/contracts';
 import { screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -40,7 +41,7 @@ const BUDGET_ROUTES = {
   [`POST /v1/finance/budgets/${BUDGET_ID}/approval`]: () => noContent(),
 };
 
-function serve(permissions: string[], extra: object = {}): SentRequest[] {
+function serve(permissions: readonly PermissionCode[], extra: object = {}): SentRequest[] {
   return mockApi({
     ...BUDGET_ROUTES,
     'GET /v1/me/permissions': () => json(permissionsOf(permissions)),
