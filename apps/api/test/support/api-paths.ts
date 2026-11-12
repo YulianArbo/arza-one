@@ -1,5 +1,6 @@
 import { FINANCE_PATHS } from './api-paths-finance.js';
 import { PORTAL_PATHS } from './api-paths-portal.js';
+import { PURCHASE_PATHS } from './api-paths-purchase.js';
 import { SERVICE_PATHS } from './api-paths-service.js';
 
 // Las rutas que publica la API (numeral 14.1): la prueba del OpenAPI las compara con las reales.
@@ -299,6 +300,6 @@ const PLATFORM_PATHS = [
   '/version',
 ];
 
-const ALL_PATHS = PLATFORM_PATHS.concat(FINANCE_PATHS, SERVICE_PATHS, PORTAL_PATHS);
+const ALL_PATHS = PLATFORM_PATHS.concat(FINANCE_PATHS, SERVICE_PATHS, PORTAL_PATHS, PURCHASE_PATHS);
 
 export const API_PATHS = ALL_PATHS.sort();

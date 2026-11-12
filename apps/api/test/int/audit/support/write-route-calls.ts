@@ -35,6 +35,7 @@ import { PARTY_ROUTE_CALLS } from './party-route-calls.js';
 import { PRIVACY_ROUTE_CALLS } from './privacy-route-calls.js';
 import { PORTAL_ROUTE_CALLS } from './portal-route-calls.js';
 import { PROJECT_CONTROL_ROUTE_CALLS } from './project-control-route-calls.js';
+import { PURCHASE_ROUTE_CALLS } from './purchase-route-calls.js';
 import { SERVICE_ROUTE_CALLS } from './service-route-calls.js';
 import { CARE_ROUTE_CALLS } from './care-route-calls.js';
 import { PROJECT_ROUTE_CALLS } from './project-route-calls.js';
@@ -318,5 +319,6 @@ export const WRITE_ROUTE_CALLS: Readonly<Record<string, RouteCall>> = {
   ...PORTAL_ROUTE_CALLS,
   ...FINANCE_ROUTE_CALLS,
   ...LEDGER_ROUTE_CALLS,
+  ...PURCHASE_ROUTE_CALLS,
   ...MEDIA_ROUTE_CALLS,
 };
