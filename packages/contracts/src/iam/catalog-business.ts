@@ -91,7 +91,7 @@ export const BUSINESS_PERMISSION_GROUPS = [
       ['finance.invoice.read', 'read', 'Ver facturas'],
       ['finance.invoice.request', 'write', 'Solicitar facturas'],
       ['finance.invoice.approve', 'approve', 'Aprobar facturas'],
-      ['finance.invoice.register_fiscal', 'approve', 'Registrar facturas ante la DIAN'],
+      ['finance.invoice.register_fiscal', 'approve', 'Registrar documento fiscal emitido'],
       ['finance.invoice.void', 'approve', 'Anular facturas'],
       ['finance.payment.manage', 'write', 'Registrar pagos'],
       ['finance.collection.manage', 'write', 'Gestionar la cartera'],
