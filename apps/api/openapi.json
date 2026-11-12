@@ -21109,6 +21109,738 @@
         ]
       }
     },
+    "/v1/finance/invoices": {
+      "get": {
+        "operationId": "InvoicesController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Facturas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceListResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Facturas y solicitudes",
+        "tags": [
+          "Finanzas"
+        ]
+      },
+      "post": {
+        "operationId": "InvoicesController_request",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Llave única de la operación (un UUID); repetirla no repite la operación",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestInvoice"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Solicitud",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceCreatedResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Hito no facturable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Solicitar factura desde un hito aceptado",
+        "tags": [
+          "Finanzas"
+        ]
+      }
+    },
+    "/v1/finance/invoices/billable-milestones": {
+      "get": {
+        "operationId": "InvoicesController_billableMilestones",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Hitos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillableMilestonesResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Hitos listos para solicitar factura",
+        "tags": [
+          "Finanzas"
+        ]
+      }
+    },
+    "/v1/finance/invoices/{id}": {
+      "get": {
+        "operationId": "InvoicesController_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Factura",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceDetailResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Detalle de una factura",
+        "tags": [
+          "Finanzas"
+        ]
+      }
+    },
+    "/v1/finance/invoices/{id}/approval": {
+      "post": {
+        "operationId": "InvoicesController_approve",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión de la factura",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Llave única de la operación (un UUID); repetirla no repite la operación",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Aprobada"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Aprobar una solicitud de factura",
+        "tags": [
+          "Finanzas"
+        ]
+      }
+    },
+    "/v1/finance/invoices/{id}/fiscal-document": {
+      "post": {
+        "operationId": "InvoicesController_registerFiscal",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión de la factura",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Llave única de la operación (un UUID); repetirla no repite la operación",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterFiscalInvoice"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Documento registrado"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Registrar los valores y el soporte de la factura fiscal emitida",
+        "tags": [
+          "Finanzas"
+        ]
+      }
+    },
+    "/v1/finance/invoices/{id}/void": {
+      "post": {
+        "operationId": "InvoicesController_void",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión de la factura",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoidInvoice"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Solicitud anulada"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Anular una solicitud antes de emitirla",
+        "tags": [
+          "Finanzas"
+        ]
+      }
+    },
+    "/v1/finance/invoices/{id}/credit-notes": {
+      "post": {
+        "operationId": "InvoicesController_createCreditNote",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Llave única de la operación (un UUID); repetirla no repite la operación",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCreditNote"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Nota crédito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceCreatedResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Registrar una nota crédito emitida",
+        "tags": [
+          "Finanzas"
+        ]
+      }
+    },
+    "/v1/finance/invoices/{id}/payments": {
+      "post": {
+        "operationId": "InvoicesController_createPayment",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Llave única de la operación (un UUID); repetirla no repite la operación",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePayment"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Recaudo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceCreatedResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Registrar un recaudo aplicado a la factura",
+        "tags": [
+          "Finanzas"
+        ]
+      }
+    },
     "/v1/crm/leads": {
       "get": {
         "operationId": "LeadsController_list",
@@ -40723,6 +41455,321 @@
           }
         },
         "summary": "Contratos de su empresa",
+        "tags": [
+          "Portal del cliente"
+        ]
+      }
+    },
+    "/v1/portal/invoices": {
+      "get": {
+        "description": "Facturas fiscales emitidas.",
+        "operationId": "PortalWorkController_invoices",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Facturas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalInvoiceListResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe o es de otra empresa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Faltan por publicar los términos de uso del portal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Facturas de su empresa",
+        "tags": [
+          "Portal del cliente"
+        ]
+      }
+    },
+    "/v1/portal/invoices/{id}/link": {
+      "post": {
+        "description": "Enlace temporal; queda auditado.",
+        "operationId": "PortalWorkController_invoiceLink",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Enlace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalDownloadLinkResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe o es de otra empresa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el estado no permite el paso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Faltan por publicar los términos de uso del portal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Descargar una factura emitida",
+        "tags": [
+          "Portal del cliente"
+        ]
+      }
+    },
+    "/v1/portal/invoices/{id}/credit-notes/{noteId}/link": {
+      "post": {
+        "description": "Enlace temporal; queda auditado.",
+        "operationId": "PortalWorkController_creditNoteLink",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "noteId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Enlace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalDownloadLinkResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe o es de otra empresa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, o el estado no permite el paso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Faltan por publicar los términos de uso del portal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Descargar una nota crédito emitida",
         "tags": [
           "Portal del cliente"
         ]
@@ -60972,6 +62019,809 @@
         ],
         "additionalProperties": false
       },
+      "InvoiceListResponse_Output": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "party": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name"
+                  ],
+                  "additionalProperties": false
+                },
+                "milestone_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "requested_amount": {
+                  "type": "string",
+                  "pattern": "^(?=.*[1-9])\\d{1,16}(\\.\\d{1,2})?$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "requested",
+                    "approved",
+                    "issued",
+                    "partially_paid",
+                    "paid",
+                    "voided"
+                  ]
+                },
+                "issue_date": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "due_date": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "subtotal": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^\\d{1,16}(\\.\\d{1,2})?$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "tax_total": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^\\d{1,16}(\\.\\d{1,2})?$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "withholding_total": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^\\d{1,16}(\\.\\d{1,2})?$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "total": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^(?=.*[1-9])\\d{1,16}(\\.\\d{1,2})?$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "fiscal_number": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "fiscal_uuid": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "fiscal_file_id": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "paid_total": {
+                  "type": "string",
+                  "pattern": "^\\d{1,16}(\\.\\d{1,2})?$"
+                },
+                "balance": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^\\d{1,16}(\\.\\d{1,2})?$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "version": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "id",
+                "code",
+                "party",
+                "milestone_id",
+                "requested_amount",
+                "status",
+                "issue_date",
+                "due_date",
+                "subtotal",
+                "tax_total",
+                "withholding_total",
+                "total",
+                "fiscal_number",
+                "fiscal_uuid",
+                "fiscal_file_id",
+                "paid_total",
+                "balance",
+                "version"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "BillableMilestonesResponse_Output": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "project_code": {
+                  "type": "string"
+                },
+                "project_name": {
+                  "type": "string"
+                },
+                "party": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name"
+                  ],
+                  "additionalProperties": false
+                },
+                "contract_id": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "name": {
+                  "type": "string"
+                },
+                "amount": {
+                  "type": "string",
+                  "pattern": "^(?=.*[1-9])\\d{1,16}(\\.\\d{1,2})?$"
+                }
+              },
+              "required": [
+                "id",
+                "project_code",
+                "project_name",
+                "party",
+                "contract_id",
+                "name",
+                "amount"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "InvoiceDetailResponse_Output": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "code": {
+                "type": "string"
+              },
+              "party": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name"
+                ],
+                "additionalProperties": false
+              },
+              "milestone_id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "requested_amount": {
+                "type": "string",
+                "pattern": "^(?=.*[1-9])\\d{1,16}(\\.\\d{1,2})?$"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "requested",
+                  "approved",
+                  "issued",
+                  "partially_paid",
+                  "paid",
+                  "voided"
+                ]
+              },
+              "issue_date": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "date",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "due_date": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "date",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "subtotal": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^\\d{1,16}(\\.\\d{1,2})?$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "tax_total": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^\\d{1,16}(\\.\\d{1,2})?$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "withholding_total": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^\\d{1,16}(\\.\\d{1,2})?$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "total": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^(?=.*[1-9])\\d{1,16}(\\.\\d{1,2})?$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "fiscal_number": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "fiscal_uuid": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "fiscal_file_id": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "paid_total": {
+                "type": "string",
+                "pattern": "^\\d{1,16}(\\.\\d{1,2})?$"
+              },
+              "balance": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^\\d{1,16}(\\.\\d{1,2})?$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "version": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "contract_id": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "void_reason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "position": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "quantity": {
+                      "type": "string"
+                    },
+                    "unit_price": {
+                      "type": "string",
+                      "pattern": "^\\d{1,16}(\\.\\d{1,2})?$"
+                    },
+                    "tax_rate": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "line_total": {
+                      "type": "string",
+                      "pattern": "^\\d{1,16}(\\.\\d{1,2})?$"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "position",
+                    "description",
+                    "quantity",
+                    "unit_price",
+                    "tax_rate",
+                    "line_total"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "credit_notes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "amount": {
+                      "type": "string",
+                      "pattern": "^(?=.*[1-9])\\d{1,16}(\\.\\d{1,2})?$"
+                    },
+                    "issue_date": {
+                      "type": "string",
+                      "format": "date",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                    },
+                    "fiscal_number": {
+                      "type": "string"
+                    },
+                    "fiscal_uuid": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "fiscal_file_id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "reason",
+                    "amount",
+                    "issue_date",
+                    "fiscal_number",
+                    "fiscal_uuid",
+                    "fiscal_file_id"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "id",
+              "code",
+              "party",
+              "milestone_id",
+              "requested_amount",
+              "status",
+              "issue_date",
+              "due_date",
+              "subtotal",
+              "tax_total",
+              "withholding_total",
+              "total",
+              "fiscal_number",
+              "fiscal_uuid",
+              "fiscal_file_id",
+              "paid_total",
+              "balance",
+              "version",
+              "contract_id",
+              "void_reason",
+              "items",
+              "credit_notes"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "RequestInvoice": {
+        "type": "object",
+        "properties": {
+          "milestone_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "milestone_id"
+        ],
+        "additionalProperties": false
+      },
+      "InvoiceCreatedResponse_Output": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "RegisterFiscalInvoice": {
+        "type": "object",
+        "properties": {
+          "issue_date": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          },
+          "due_date": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          },
+          "subtotal": {
+            "type": "string",
+            "pattern": "^\\d{1,16}(\\.\\d{1,2})?$"
+          },
+          "tax_rate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{1,3}(\\.\\d{1,2})?$",
+                "description": "Tarifa en porcentaje"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tax_total": {
+            "type": "string",
+            "pattern": "^\\d{1,16}(\\.\\d{1,2})?$"
+          },
+          "withholding_total": {
+            "type": "string",
+            "pattern": "^\\d{1,16}(\\.\\d{1,2})?$"
+          },
+          "total": {
+            "type": "string",
+            "pattern": "^(?=.*[1-9])\\d{1,16}(\\.\\d{1,2})?$"
+          },
+          "fiscal_number": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "fiscal_uuid": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "fiscal_file_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "issue_date",
+          "due_date",
+          "subtotal",
+          "tax_rate",
+          "tax_total",
+          "withholding_total",
+          "total",
+          "fiscal_number",
+          "fiscal_uuid",
+          "fiscal_file_id"
+        ],
+        "additionalProperties": false
+      },
+      "VoidInvoice": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "CreateCreditNote": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 2000
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^(?=.*[1-9])\\d{1,16}(\\.\\d{1,2})?$"
+          },
+          "issue_date": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          },
+          "fiscal_number": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "fiscal_uuid": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "fiscal_file_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "reason",
+          "amount",
+          "issue_date",
+          "fiscal_number",
+          "fiscal_uuid",
+          "fiscal_file_id"
+        ],
+        "additionalProperties": false
+      },
+      "CreatePayment": {
+        "type": "object",
+        "properties": {
+          "paid_on": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^(?=.*[1-9])\\d{1,16}(\\.\\d{1,2})?$"
+          },
+          "method": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 160
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "support_file_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "paid_on",
+          "amount",
+          "method",
+          "reference",
+          "support_file_id"
+        ],
+        "additionalProperties": false
+      },
       "LeadListResponse_Output": {
         "type": "object",
         "properties": {
@@ -76308,6 +78158,120 @@
                 "ends_on",
                 "signed_on",
                 "has_signed_copy"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "PortalInvoiceListResponse_Output": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "requested",
+                    "approved",
+                    "issued",
+                    "partially_paid",
+                    "paid",
+                    "voided"
+                  ]
+                },
+                "issue_date": {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                },
+                "due_date": {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                },
+                "total": {
+                  "type": "string"
+                },
+                "fiscal_number": {
+                  "type": "string"
+                },
+                "fiscal_uuid": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "fiscal_file_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "credit_notes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "issue_date": {
+                        "type": "string",
+                        "format": "date",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                      },
+                      "amount": {
+                        "type": "string"
+                      },
+                      "fiscal_number": {
+                        "type": "string"
+                      },
+                      "fiscal_uuid": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "issue_date",
+                      "amount",
+                      "fiscal_number",
+                      "fiscal_uuid"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "code",
+                "status",
+                "issue_date",
+                "due_date",
+                "total",
+                "fiscal_number",
+                "fiscal_uuid",
+                "fiscal_file_id",
+                "credit_notes"
               ],
               "additionalProperties": false
             }
