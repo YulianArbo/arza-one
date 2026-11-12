@@ -4,6 +4,11 @@
 // lee el código y el nombre de proyectos y entregables y se entera de la aceptación aquí. Se
 // publica también como «@arza/api/project» para el worker, que envía las actas a firma.
 export { ProjectModule } from './interface/project.module.js';
+export {
+  billableMilestone,
+  billableMilestones,
+  type BillableMilestone,
+} from './application/billable-milestone.js';
 export { seedProjects } from './application/project-seed.js';
 export {
   followAcceptances,
