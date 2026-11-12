@@ -35,7 +35,7 @@ Un bloque a la vez, en orden. Actualice la columna Estado al cerrar cada uno.
 | B29 | F5 | PQRSF, encuestas y base de conocimiento | B28 | — | En revisión |
 | B30 | F5 | Portal del cliente | B27 · B29 | Sí | En revisión |
 | B31 | F6 | Facturación, cartera y recaudo | B27 | — | En revisión |
-| B32 | F6 | Presupuesto, gastos, caja menor y exportación contable | B31 | — | Pendiente |
+| B32 | F6 | Presupuesto, gastos, caja menor y exportación contable | B31 | — | En revisión |
 | B33 | F6 | Compras, proveedores y viajes | B13 · B15 | — | Pendiente |
 | B34 | F6 | Activos | B33 · B25 | — | Pendiente |
 | B35 | F7 | Talento humano: colaboradores, selección y vinculación | B25 · B17 | Sí | Pendiente |
