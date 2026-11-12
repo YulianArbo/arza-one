@@ -103,6 +103,14 @@ model Tenant {
   finInvoiceItems         FinInvoiceItem[]
   finCreditNotes          FinCreditNote[]
   finPayments             FinPayment[]
+  finBudgets              FinBudget[]
+  finBudgetLines          FinBudgetLine[]
+  finExpenses             FinExpense[]
+  finPettyCash            FinPettyCash[]
+  finBankReconciliations  FinBankReconciliation[]
+  finCostCertifications   FinCostCertification[]
+  finPeriods              FinPeriod[]
+  finExportBatches        FinExportBatch[]
   ctrClauses              CtrClause[]
   ctrTemplates            CtrTemplate[]
   ctrTemplateClauses      CtrTemplateClause[]
@@ -2261,11 +2269,11 @@ model FinInvoice {
   @@unique([tenantId, id])
   @@unique([tenantId, code])
   @@unique([tenantId, requestKey])
+  @@unique([tenantId, fiscalNumber])
+  @@unique([tenantId, fiscalUuid])
   /// Una sola factura vigente por hito: índice único parcial en el SQL de la migración (las
   /// anuladas liberan el hito).
   @@index([tenantId, milestoneId])
-  @@unique([tenantId, fiscalNumber])
-  @@unique([tenantId, fiscalUuid])
   @@index([tenantId, partyId, status])
   @@map("fin_invoices")
 }
@@ -2348,6 +2356,217 @@ model FinPayment {
   @@unique([tenantId, requestKey])
   @@index([tenantId, invoiceId, paidOn])
   @@map("fin_payments")
+}
+
+// Finanzas (M10, B32): presupuesto, gastos, caja menor, conciliación, certificación de costos,
+// cierre de periodo y exportación contable. Un periodo cerrado no admite cambios (disparador
+// fin_reject_closed_period en la migración).
+
+/// Presupuesto anual por centro de costo: borrador → aprobado. Uno por año.
+model FinBudget {
+  id         String          @id @default(uuid(7)) @db.Uuid
+  tenantId   String          @map("tenant_id") @db.Uuid
+  year       Int
+  status     String          @default("draft")
+  approvedBy String?         @map("approved_by") @db.Uuid
+  approvedAt DateTime?       @map("approved_at") @db.Timestamptz(6)
+  createdAt  DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?         @map("created_by") @db.Uuid
+  updatedAt  DateTime        @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?         @map("updated_by") @db.Uuid
+  version    Int             @default(1)
+  deletedAt  DateTime?       @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  lines      FinBudgetLine[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, year])
+  @@map("fin_budgets")
+}
+
+/// Lo planeado por centro de costo, rubro y mes. Lo ejecutado se calcula, no se guarda.
+model FinBudgetLine {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  tenantId     String    @map("tenant_id") @db.Uuid
+  budgetId     String    @map("budget_id") @db.Uuid
+  costCenterId String    @map("cost_center_id") @db.Uuid
+  category     String
+  month        Int       @db.SmallInt
+  planned      Decimal   @db.Decimal(18, 2)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy    String?   @map("created_by") @db.Uuid
+  updatedAt    DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy    String?   @map("updated_by") @db.Uuid
+  version      Int       @default(1)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  budget       FinBudget @relation(fields: [tenantId, budgetId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  /// Una línea vigente por centro, rubro y mes: índice único parcial en el SQL de la migración.
+  @@index([tenantId, budgetId])
+  @@map("fin_budget_lines")
+}
+
+/// Gasto con soporte: pendiente → aprobado o rechazado por otra persona.
+model FinExpense {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  tenantId      String    @map("tenant_id") @db.Uuid
+  code          String
+  costCenterId  String    @map("cost_center_id") @db.Uuid
+  supplierId    String?   @map("supplier_id") @db.Uuid
+  expenseDate   DateTime  @map("expense_date") @db.Date
+  amount        Decimal   @db.Decimal(18, 2)
+  category      String
+  description   String
+  supportFileId String    @map("support_file_id") @db.Uuid
+  status        String    @default("pending")
+  decidedBy     String?   @map("decided_by") @db.Uuid
+  decidedAt     DateTime? @map("decided_at") @db.Timestamptz(6)
+  decisionNote  String?   @map("decision_note")
+  requestKey    String    @map("request_key")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?   @map("created_by") @db.Uuid
+  updatedAt     DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?   @map("updated_by") @db.Uuid
+  version       Int       @default(1)
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, expenseDate, status])
+  @@index([tenantId, createdBy])
+  @@map("fin_expenses")
+}
+
+/// Libro de la caja menor (una por empresa): apertura, vales y reembolsos con el saldo resultante.
+model FinPettyCash {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  tenantId      String    @map("tenant_id") @db.Uuid
+  code          String
+  movementDate  DateTime  @map("movement_date") @db.Date
+  type          String
+  amount        Decimal   @db.Decimal(18, 2)
+  concept       String
+  costCenterId  String?   @map("cost_center_id") @db.Uuid
+  category      String?
+  supportFileId String?   @map("support_file_id") @db.Uuid
+  balance       Decimal   @db.Decimal(18, 2)
+  requestKey    String    @map("request_key")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?   @map("created_by") @db.Uuid
+  updatedAt     DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?   @map("updated_by") @db.Uuid
+  version       Int       @default(1)
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, movementDate])
+  @@map("fin_petty_cash")
+}
+
+/// Conciliación de una cuenta bancaria en un mes; la cuenta va por su nombre corto.
+model FinBankReconciliation {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  tenantId     String    @map("tenant_id") @db.Uuid
+  account      String
+  period       String
+  bookBalance  Decimal   @map("book_balance") @db.Decimal(18, 2)
+  bankBalance  Decimal   @map("bank_balance") @db.Decimal(18, 2)
+  differences  Json      @default("[]")
+  status       String    @default("draft")
+  reconciledBy String?   @map("reconciled_by") @db.Uuid
+  reconciledAt DateTime? @map("reconciled_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy    String?   @map("created_by") @db.Uuid
+  updatedAt    DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy    String?   @map("updated_by") @db.Uuid
+  version      Int       @default(1)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, account, period])
+  @@map("fin_bank_reconciliations")
+}
+
+/// Certificación de costos de desarrollo de un proyecto en un mes: horas aprobadas y valor.
+model FinCostCertification {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  code       String
+  projectId  String    @map("project_id") @db.Uuid
+  period     String
+  hours      Decimal   @db.Decimal(10, 2)
+  amount     Decimal   @db.Decimal(18, 2)
+  phase      String
+  requestKey String    @map("request_key")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?   @map("created_by") @db.Uuid
+  updatedAt  DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?   @map("updated_by") @db.Uuid
+  version    Int       @default(1)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, projectId, period])
+  @@unique([tenantId, requestKey])
+  @@map("fin_cost_certifications")
+}
+
+/// Mes contable cerrado. Solo existen filas de meses cerrados y no se reabren (decisión 3 del B32).
+model FinPeriod {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  tenantId  String    @map("tenant_id") @db.Uuid
+  period    String
+  status    String    @default("closed")
+  closedBy  String    @map("closed_by") @db.Uuid
+  closedAt  DateTime  @map("closed_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy String?   @map("created_by") @db.Uuid
+  updatedAt DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy String?   @map("updated_by") @db.Uuid
+  version   Int       @default(1)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, period])
+  @@map("fin_periods")
+}
+
+/// Lote exportado al software contable: preliminar (mes abierto) o definitivo (al cerrar).
+model FinExportBatch {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  period     String
+  kind       String
+  rowCount   Int       @map("row_count")
+  totals     Json
+  checksum   String
+  fileName   String    @map("file_name")
+  fileId     String?   @map("file_id") @db.Uuid
+  exportedBy String    @map("exported_by") @db.Uuid
+  exportedAt DateTime  @map("exported_at") @db.Timestamptz(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?   @map("created_by") @db.Uuid
+  updatedAt  DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?   @map("updated_by") @db.Uuid
+  version    Int       @default(1)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  /// Un solo lote definitivo por mes: índice único parcial en el SQL de la migración.
+  @@index([tenantId, period])
+  @@map("fin_export_batches")
 }
 
 // Contratos (M06, B24) ---------------------------------------------------------------------------
