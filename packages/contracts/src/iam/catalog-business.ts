@@ -121,6 +121,8 @@ export const BUSINESS_PERMISSION_GROUPS = [
       ['purchase.supplier.evaluate', 'write', 'Evaluar proveedores'],
       ['purchase.travel.request', 'write', 'Solicitar viajes', OWN],
       ['purchase.travel.approve', 'approve', 'Aprobar viajes'],
+      ['purchase.read', 'read', 'Ver compras, proveedores y viajes'],
+      ['purchase.request.approve_high', 'restricted', 'Aprobar compras del tramo alto'],
       ['asset.read', 'read', 'Ver activos', OWN],
       ['asset.manage', 'write', 'Administrar activos'],
       ['asset.assign', 'write', 'Asignar activos'],

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { purchaseTiersSchema, type PurchaseTiers } from '../purchase/tiers.js';
 import { recordNameSchema } from './org.js';
 
 // Parámetros con vigencia, festivos y días hábiles (M00, B12). Un parámetro nunca se sobrescribe:
@@ -61,6 +62,11 @@ export const PARAMETER_DEFINITIONS = {
     description:
       'Días hábiles para responder cada tipo de PQRSF (PR-SAC-002) y las consultas y reclamos sobre datos personales (Ley 1581).',
   },
+  'purchase.approval_tiers': {
+    label: 'Topes de aprobación de compras',
+    description:
+      'Topes por monto de una compra: cuántas cotizaciones exige cada tramo y desde qué valor la aprueba la Dirección (ficha 17.12).',
+  },
 } as const;
 
 export type ParameterKey = keyof typeof PARAMETER_DEFINITIONS;
@@ -103,9 +109,20 @@ export const PARAMETER_VALUE_SCHEMAS = {
   'work.schedule': workScheduleSchema,
   'crm.discount_cap': discountCapSchema,
   'service.pqrsf_terms': pqrsfTermsSchema,
+  'purchase.approval_tiers': purchaseTiersSchema,
 } as const satisfies Record<ParameterKey, z.ZodType>;
 
-const parameterValueSchema = z.union([workScheduleSchema, discountCapSchema, pqrsfTermsSchema]);
+const parameterValueSchema = z.union([
+  workScheduleSchema,
+  discountCapSchema,
+  pqrsfTermsSchema,
+  purchaseTiersSchema,
+]);
+
+/** El valor son los topes de aprobación de compras (B33). */
+export function isPurchaseTiers(value: ParameterValue): value is PurchaseTiers {
+  return 'low_limit' in value;
+}
 
 /** El valor son los plazos de respuesta de PQRSF (B29). */
 export function isPqrsfTerms(value: ParameterValue): value is PqrsfTerms {
