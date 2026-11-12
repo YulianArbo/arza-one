@@ -7,6 +7,7 @@ export default defineConfig({
     include: ['src/**/*.test.ts', 'test/**/*.test.ts'],
     // Las pruebas con base de datos real tienen su propia configuración (vitest.int.config.ts).
     exclude: ['test/int/**'],
+    maxWorkers: 4,
     testTimeout: 20_000,
     coverage: {
       provider: 'v8',

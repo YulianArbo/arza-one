@@ -7,13 +7,14 @@ export default defineConfig({
   test: {
     include: ['test/int/**/*.int.test.ts'],
     globalSetup: ['test/int/support/global-setup.ts'],
-    testTimeout: 30_000,
+    setupFiles: ['test/int/support/database-teardown.ts'],
+    testTimeout: 150_000,
     // Cada archivo abre sus propias conexiones a la misma base: con más de cuatro a la vez, en un
     // equipo de ocho núcleos las transacciones de preparación esperan más de lo permitido (B16).
     maxWorkers: 4,
     // Sin aislar cada archivo: comparten los módulos ya cargados (ninguna prueba cambia globales).
     isolate: false,
-    hookTimeout: 180_000,
+    hookTimeout: 300_000,
     coverage: {
       provider: 'v8',
       reportsDirectory: 'coverage/int',

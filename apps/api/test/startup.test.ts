@@ -10,10 +10,10 @@ import { testEnv } from './support/test-env.js';
 // Se prueba el programa compilado real (turbo compila la API antes de sus pruebas).
 const MAIN = fileURLToPath(new URL('../dist/main.js', import.meta.url));
 const PORT = '4917';
-// Esperar a la API hasta poco antes del límite de la prueba (20 s, vitest.config.ts): en Windows,
-// con todas las pruebas en paralelo, arrancar puede tardar más de 10 s (B05).
+// En Windows, con todas las pruebas en paralelo, arrancar puede tardar más de 10 s (B05). Se espera
+// hasta poco antes del límite propio de esta prueba (60 s), sin aflojar ninguna comprobación.
 const RETRY_DELAY_MS = 250;
-const STARTUP_ATTEMPTS = 72;
+const STARTUP_ATTEMPTS = 200;
 
 function processEnv(overrides: Record<string, string | undefined>): NodeJS.ProcessEnv {
   return { ...testEnv(overrides), PATH: process.env['PATH'] };
@@ -53,5 +53,5 @@ describe('arranque de la API', () => {
       child.kill();
       await once(child, 'exit');
     }
-  });
+  }, 60_000);
 });

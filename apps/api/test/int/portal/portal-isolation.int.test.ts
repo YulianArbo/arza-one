@@ -31,6 +31,8 @@ interface Ids {
   readonly envelopeId: string;
   readonly ticketId: string;
   readonly sharedId: string;
+  readonly invoiceId: string;
+  readonly noteId: string;
 }
 
 /** Direcciones que reciben un identificador: con los de A, para B «no existen». */
@@ -59,6 +61,16 @@ const BY_ID: readonly Probe[] = [
     method: 'post',
     route: '/v1/portal/documents/:kind/:id/link',
     path: (ids) => `/v1/portal/documents/shared/${ids.sharedId}/link`,
+  },
+  {
+    method: 'post',
+    route: '/v1/portal/invoices/:id/link',
+    path: (ids) => `/v1/portal/invoices/${ids.invoiceId}/link`,
+  },
+  {
+    method: 'post',
+    route: '/v1/portal/invoices/:id/credit-notes/:noteId/link',
+    path: (ids) => `/v1/portal/invoices/${ids.invoiceId}/credit-notes/${ids.noteId}/link`,
   },
   {
     method: 'get',
@@ -103,6 +115,7 @@ const LISTS = [
   '/v1/portal/projects',
   '/v1/portal/signatures',
   '/v1/portal/contracts',
+  '/v1/portal/invoices',
   '/v1/portal/documents',
   '/v1/portal/tickets',
   '/v1/portal/pqrsf',
@@ -137,6 +150,7 @@ let ids: Ids;
 beforeAll(async () => {
   const world = await scenario.clientWorld();
   await scenario.deliveredDeliverable(world);
+  const invoice = await scenario.emittedInvoice(world);
   const contracts = await scenario.read<{ data: { id: string }[] }>(
     world.admin,
     '/v1/portal/contracts',
@@ -167,6 +181,8 @@ beforeAll(async () => {
     envelopeId: signatures.pending[0]?.id ?? '',
     ticketId,
     sharedId,
+    invoiceId: invoice.invoiceId,
+    noteId: invoice.noteId,
   };
 }, 600_000);
 
@@ -195,6 +211,8 @@ describe('aislamiento entre clientes', () => {
         ids.envelopeId,
         ids.ticketId,
         ids.sharedId,
+        ids.invoiceId,
+        ids.noteId,
       ]) {
         expect(text, `${path} trae ${id}`).not.toContain(id);
       }

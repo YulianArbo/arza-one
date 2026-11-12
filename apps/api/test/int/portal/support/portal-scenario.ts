@@ -1,5 +1,6 @@
 import {
   createdResponseSchema,
+  invoiceCreatedResponseSchema,
   portalTermsSchema,
   type PortalRole,
   type PortalTerms,
@@ -128,6 +129,92 @@ export class PortalScenario extends DeliveryScenario {
     );
     await this.deliveredToClient(world, id);
     return id;
+  }
+
+  /**
+   * Una factura emitida con su nota crédito para el cliente del mundo (B31), para comprobar que las
+   * direcciones del portal limitan sus soportes a la empresa dueña. Datos ficticios.
+   */
+  async emittedInvoice(world: DeliveryProject): Promise<{ invoiceId: string; noteId: string }> {
+    const finance = await this.person('finanzas-portal', ['ADMIN_FINANCIERO']);
+    await this.markMilestoneBillable(world.milestoneId);
+    const invoiceId = await this.requestClientInvoice(finance, world.milestoneId);
+    await this.approveClientInvoice(finance, invoiceId);
+    await this.registerClientFiscal(finance, invoiceId);
+    const noteId = await this.registerClientCreditNote(finance, invoiceId);
+    return { invoiceId, noteId };
+  }
+
+  private async markMilestoneBillable(milestoneId: string): Promise<void> {
+    await this.inTenant((tx) =>
+      tx.prjMilestone.update({
+        where: { id: milestoneId },
+        data: {
+          status: 'billable',
+          doneAt: this.clock.now(),
+          billableAt: this.clock.now(),
+          billableAmount: '1000.00',
+        },
+      }),
+    );
+  }
+
+  private async requestClientInvoice(finance: Person, milestoneId: string): Promise<string> {
+    const issued = await this.post('/v1/finance/invoices', finance.session, {
+      milestone_id: milestoneId,
+    }).set('Idempotency-Key', crypto.randomUUID());
+    expect(issued.status, issued.text).toBe(201);
+    return invoiceCreatedResponseSchema.parse(issued.body).id;
+  }
+
+  private async approveClientInvoice(finance: Person, invoiceId: string): Promise<void> {
+    const approved = await this.post(
+      `/v1/finance/invoices/${invoiceId}/approval`,
+      finance.session,
+      {},
+    )
+      .set('If-Match', '"1"')
+      .set('Idempotency-Key', crypto.randomUUID());
+    expect(approved.status, approved.text).toBe(204);
+  }
+
+  private async registerClientFiscal(finance: Person, invoiceId: string): Promise<void> {
+    const fiscal = await this.post(
+      `/v1/finance/invoices/${invoiceId}/fiscal-document`,
+      finance.session,
+      {
+        issue_date: this.day(0),
+        due_date: this.day(30),
+        subtotal: '1000.00',
+        tax_rate: '19.00',
+        tax_total: '190.00',
+        withholding_total: '0.00',
+        total: '1190.00',
+        fiscal_number: `FE-ISO-${crypto.randomUUID().slice(0, 8)}`,
+        fiscal_uuid: null,
+        fiscal_file_id: await this.signedCopy(finance),
+      },
+    )
+      .set('If-Match', '"2"')
+      .set('Idempotency-Key', crypto.randomUUID());
+    expect(fiscal.status, fiscal.text).toBe(204);
+  }
+
+  private async registerClientCreditNote(finance: Person, invoiceId: string): Promise<string> {
+    const note = await this.post(
+      `/v1/finance/invoices/${invoiceId}/credit-notes`,
+      finance.session,
+      {
+        reason: 'Ajuste de prueba de aislamiento',
+        amount: '200.00',
+        issue_date: this.day(0),
+        fiscal_number: `NC-ISO-${crypto.randomUUID().slice(0, 8)}`,
+        fiscal_uuid: null,
+        fiscal_file_id: await this.signedCopy(finance),
+      },
+    ).set('Idempotency-Key', crypto.randomUUID());
+    expect(note.status, note.text).toBe(201);
+    return invoiceCreatedResponseSchema.parse(note.body).id;
   }
 
   /** Lectura del portal que debe responder 200, con su cuerpo. */
