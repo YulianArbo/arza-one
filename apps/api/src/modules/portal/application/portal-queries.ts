@@ -15,11 +15,13 @@ import type {
   PortalTicketDetail,
   PortalTicketList,
 } from '@arza/contracts';
+import type { PortalInvoiceList } from '@arza/contracts';
 
 import { hasPermission, type AppAbility } from '../../../platform/access/ability.js';
 import type { Principal } from '../../../platform/access/principal.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
+import { clientCreditNoteFile, clientInvoiceFile, clientInvoices } from '../../fin/index.js';
 import {
   clientAmendmentFile,
   clientContractFile,
@@ -137,6 +139,40 @@ export class PortalQueries {
     return this.access.run(viewer, async (tx, context) => ({
       data: await clientContracts(tx, context.partyId),
     }));
+  }
+
+  /** Facturas fiscales emitidas para la empresa del cliente autenticado. */
+  async invoices(viewer: Viewer): Promise<PortalInvoiceList> {
+    return this.access.run(viewer, async (tx, context) => ({
+      data: await clientInvoices(tx, context.partyId),
+    }));
+  }
+
+  /** Enlace temporal de una factura emitida; el archivo solo se resuelve dentro de su empresa. */
+  async invoiceLink(
+    viewer: Viewer,
+    invoiceId: string,
+    meta: RequestMeta,
+  ): Promise<DownloadLinkResponse> {
+    return this.access.run(viewer, async (tx, context) => {
+      const fileId = await clientInvoiceFile(tx, context.partyId, invoiceId);
+      if (fileId === null) throw portalNotFound('La factura');
+      return this.links.issue(tx, viewer.principal, fileId, meta);
+    });
+  }
+
+  /** Enlace temporal de la nota crédito emitida para la factura de la empresa del portal. */
+  async creditNoteLink(
+    viewer: Viewer,
+    invoiceId: string,
+    noteId: string,
+    meta: RequestMeta,
+  ): Promise<DownloadLinkResponse> {
+    return this.access.run(viewer, async (tx, context) => {
+      const fileId = await clientCreditNoteFile(tx, context.partyId, invoiceId, noteId);
+      if (fileId === null) throw portalNotFound('La nota crédito');
+      return this.links.issue(tx, viewer.principal, fileId, meta);
+    });
   }
 
   /** Enlace temporal de la copia firmada de un contrato; queda registrado quién lo descargó. */

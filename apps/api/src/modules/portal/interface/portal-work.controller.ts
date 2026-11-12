@@ -5,6 +5,7 @@ import {
   portalContractListSchema,
   portalDocumentListSchema,
   portalHomeSchema,
+  portalInvoiceListSchema,
   portalProjectDetailSchema,
   portalProjectListSchema,
   portalSignatureListSchema,
@@ -29,6 +30,7 @@ class PortalProjectDetailResponse extends createZodDto(portalProjectDetailSchema
 class PortalSignatureListResponse extends createZodDto(portalSignatureListSchema) {}
 class PortalSigningLinkResponse extends createZodDto(portalSigningLinkSchema) {}
 class PortalContractListResponse extends createZodDto(portalContractListSchema) {}
+class PortalInvoiceListResponse extends createZodDto(portalInvoiceListSchema) {}
 class PortalDocumentListResponse extends createZodDto(portalDocumentListSchema) {}
 class PortalDownloadLinkResponse extends createZodDto(downloadLinkResponseSchema) {}
 
@@ -145,6 +147,60 @@ export class PortalWorkController {
     @CurrentAbility() ability: AppAbility,
   ): Promise<PortalContractListResponse> {
     return this.queries.contracts({ principal, ability });
+  }
+
+  @RequirePermission('portal.invoice.read')
+  @Get('invoices')
+  @ApiOperation({ summary: 'Facturas de su empresa', description: 'Facturas fiscales emitidas.' })
+  @ZodResponse({ status: HttpStatus.OK, type: PortalInvoiceListResponse, description: 'Facturas' })
+  async invoices(
+    @CurrentPrincipal() principal: Principal,
+    @CurrentAbility() ability: AppAbility,
+  ): Promise<PortalInvoiceListResponse> {
+    return this.queries.invoices({ principal, ability });
+  }
+
+  @RequirePermission('portal.invoice.read')
+  @Post('invoices/:id/link')
+  @ApiOperation({
+    summary: 'Descargar una factura emitida',
+    description: 'Enlace temporal; queda auditado.',
+  })
+  @ZodResponse({
+    status: HttpStatus.CREATED,
+    type: PortalDownloadLinkResponse,
+    description: 'Enlace',
+  })
+  @ApiPortalWriteErrors()
+  async invoiceLink(
+    @CurrentPrincipal() principal: Principal,
+    @CurrentAbility() ability: AppAbility,
+    @Param('id', UUID) id: string,
+    @Meta() meta: RequestMeta,
+  ): Promise<PortalDownloadLinkResponse> {
+    return this.queries.invoiceLink({ principal, ability }, id, meta);
+  }
+
+  @RequirePermission('portal.invoice.read')
+  @Post('invoices/:id/credit-notes/:noteId/link')
+  @ApiOperation({
+    summary: 'Descargar una nota crédito emitida',
+    description: 'Enlace temporal; queda auditado.',
+  })
+  @ZodResponse({
+    status: HttpStatus.CREATED,
+    type: PortalDownloadLinkResponse,
+    description: 'Enlace',
+  })
+  @ApiPortalWriteErrors()
+  async creditNoteLink(
+    @CurrentPrincipal() principal: Principal,
+    @CurrentAbility() ability: AppAbility,
+    @Param('id', UUID) id: string,
+    @Param('noteId', UUID) noteId: string,
+    @Meta() meta: RequestMeta,
+  ): Promise<PortalDownloadLinkResponse> {
+    return this.queries.creditNoteLink({ principal, ability }, id, noteId, meta);
   }
 
   @RequirePermission('portal.contract.read')
