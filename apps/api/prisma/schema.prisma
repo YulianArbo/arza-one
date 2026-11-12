@@ -99,6 +99,10 @@ model Tenant {
   crmQuotes               CrmQuote[]
   crmQuoteItems           CrmQuoteItem[]
   finTaxParameters        FinTaxParameter[]
+  finInvoices             FinInvoice[]
+  finInvoiceItems         FinInvoiceItem[]
+  finCreditNotes          FinCreditNote[]
+  finPayments             FinPayment[]
   ctrClauses              CtrClause[]
   ctrTemplates            CtrTemplate[]
   ctrTemplateClauses      CtrTemplateClause[]
@@ -2213,6 +2217,137 @@ model FinTaxParameter {
   @@unique([tenantId, id])
   @@unique([tenantId, key, validFrom])
   @@map("fin_tax_parameters")
+}
+
+/// Factura operativa (B31): se solicita desde un hito facturable y luego se registran los datos
+/// fiscales tal como los emitió el software habilitado. ARZA ONE no calcula ni transmite impuestos.
+model FinInvoice {
+  id               String           @id @default(uuid(7)) @db.Uuid
+  tenantId         String           @map("tenant_id") @db.Uuid
+  code             String
+  partyId          String           @map("party_id") @db.Uuid
+  contractId       String?          @map("contract_id") @db.Uuid
+  milestoneId      String           @map("milestone_id") @db.Uuid
+  requestedAmount  Decimal          @map("requested_amount") @db.Decimal(18, 2)
+  status           String           @default("requested")
+  issueDate        DateTime?        @map("issue_date") @db.Date
+  dueDate          DateTime?        @map("due_date") @db.Date
+  subtotal         Decimal?         @db.Decimal(18, 2)
+  taxTotal         Decimal?         @map("tax_total") @db.Decimal(18, 2)
+  withholdingTotal Decimal?         @map("withholding_total") @db.Decimal(18, 2)
+  total            Decimal?         @db.Decimal(18, 2)
+  fiscalNumber     String?          @map("fiscal_number")
+  fiscalUuid       String?          @map("fiscal_uuid")
+  fiscalFileId     String?          @map("fiscal_file_id") @db.Uuid
+  requestKey       String           @map("request_key")
+  approvalKey      String?          @map("approval_key")
+  fiscalKey        String?          @map("fiscal_key")
+  approvedBy       String?          @map("approved_by") @db.Uuid
+  approvedAt       DateTime?        @map("approved_at") @db.Timestamptz(6)
+  voidedBy         String?          @map("voided_by") @db.Uuid
+  voidedAt         DateTime?        @map("voided_at") @db.Timestamptz(6)
+  voidReason       String?          @map("void_reason")
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy        String?          @map("created_by") @db.Uuid
+  updatedAt        DateTime         @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy        String?          @map("updated_by") @db.Uuid
+  version          Int              @default(1)
+  deletedAt        DateTime?        @map("deleted_at") @db.Timestamptz(6)
+  tenant           Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  items            FinInvoiceItem[]
+  creditNotes      FinCreditNote[]
+  payments         FinPayment[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, requestKey])
+  /// Una sola factura vigente por hito: índice único parcial en el SQL de la migración (las
+  /// anuladas liberan el hito).
+  @@index([tenantId, milestoneId])
+  @@unique([tenantId, fiscalNumber])
+  @@unique([tenantId, fiscalUuid])
+  @@index([tenantId, partyId, status])
+  @@map("fin_invoices")
+}
+
+/// Línea de factura; el valor solicitado proviene del hito. Los campos fiscales se registran desde
+/// el documento externo y no se recalculan en la plataforma.
+model FinInvoiceItem {
+  id          String     @id @default(uuid(7)) @db.Uuid
+  tenantId    String     @map("tenant_id") @db.Uuid
+  invoiceId   String     @map("invoice_id") @db.Uuid
+  position    Int
+  description String
+  quantity    Decimal    @default(1) @db.Decimal(12, 2)
+  unitPrice   Decimal    @map("unit_price") @db.Decimal(18, 2)
+  taxRate     Decimal?   @map("tax_rate") @db.Decimal(5, 2)
+  lineTotal   Decimal    @map("line_total") @db.Decimal(18, 2)
+  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?    @map("created_by") @db.Uuid
+  updatedAt   DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?    @map("updated_by") @db.Uuid
+  version     Int        @default(1)
+  deletedAt   DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant      Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  invoice     FinInvoice @relation(fields: [tenantId, invoiceId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, invoiceId, position])
+  @@map("fin_invoice_items")
+}
+
+/// Nota crédito emitida en el software fiscal externo. B31 excluye las notas débito.
+model FinCreditNote {
+  id           String     @id @default(uuid(7)) @db.Uuid
+  tenantId     String     @map("tenant_id") @db.Uuid
+  invoiceId    String     @map("invoice_id") @db.Uuid
+  reason       String
+  amount       Decimal    @db.Decimal(18, 2)
+  issueDate    DateTime   @map("issue_date") @db.Date
+  fiscalNumber String     @map("fiscal_number")
+  fiscalUuid   String?    @map("fiscal_uuid")
+  fiscalFileId String     @map("fiscal_file_id") @db.Uuid
+  requestKey   String     @map("request_key")
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy    String?    @map("created_by") @db.Uuid
+  updatedAt    DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy    String?    @map("updated_by") @db.Uuid
+  version      Int        @default(1)
+  deletedAt    DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant       Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  invoice      FinInvoice @relation(fields: [tenantId, invoiceId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, fiscalNumber])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, invoiceId])
+  @@map("fin_credit_notes")
+}
+
+/// Recaudo aplicado a una factura concreta (B31); los soportes se conservan como referencias.
+model FinPayment {
+  id            String     @id @default(uuid(7)) @db.Uuid
+  tenantId      String     @map("tenant_id") @db.Uuid
+  invoiceId     String     @map("invoice_id") @db.Uuid
+  paidOn        DateTime   @map("paid_on") @db.Date
+  amount        Decimal    @db.Decimal(18, 2)
+  method        String
+  reference     String?
+  supportFileId String?    @map("support_file_id") @db.Uuid
+  requestKey    String     @map("request_key")
+  createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?    @map("created_by") @db.Uuid
+  updatedAt     DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?    @map("updated_by") @db.Uuid
+  version       Int        @default(1)
+  deletedAt     DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  invoice       FinInvoice @relation(fields: [tenantId, invoiceId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, invoiceId, paidOn])
+  @@map("fin_payments")
 }
 
 // Contratos (M06, B24) ---------------------------------------------------------------------------
