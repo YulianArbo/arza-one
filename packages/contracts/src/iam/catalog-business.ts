@@ -104,6 +104,9 @@ export const BUSINESS_PERMISSION_GROUPS = [
       ['finance.reconciliation.manage', 'write', 'Hacer conciliaciones bancarias'],
       ['finance.tax_parameter.manage', 'manage', 'Administrar parámetros tributarios'],
       ['finance.export', 'manage', 'Exportar información contable'],
+      ['finance.ledger.read', 'read', 'Ver gastos, caja menor y conciliaciones'],
+      ['finance.cost_certification.manage', 'manage', 'Certificar costos de desarrollo'],
+      ['finance.period.close', 'manage', 'Cerrar periodos contables'],
     ],
   },
   {

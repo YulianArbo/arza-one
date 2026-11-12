@@ -69,7 +69,13 @@ const EXTRAS: Readonly<Partial<Record<InternalRoleCode, readonly PermissionCode[
     'party.bank_account.approve',
   ],
   // «Lectura financiera, exportaciones contables, parámetros tributarios».
-  CONTADOR: ['party.bank_account.read', 'finance.export', 'finance.tax_parameter.manage'],
+  // El cierre de periodo lo hace también el Contador (decisión 5 del B32).
+  CONTADOR: [
+    'party.bank_account.read',
+    'finance.export',
+    'finance.tax_parameter.manage',
+    'finance.period.close',
+  ],
   TALENTO_HUMANO: ['hr.file.read', 'hr.salary.read'],
   // «Incluidos los conceptos de aptitud; nunca diagnósticos».
   SST: ['sst.medical.read', 'sst.medical.manage'],
@@ -85,7 +91,9 @@ const EXTRAS: Readonly<Partial<Record<InternalRoleCode, readonly PermissionCode[
  * no la aprueba (decisión del dueño, B23). El acta de entrega la envía quien lidera (B27).
  */
 const WITHHELD: Readonly<Partial<Record<InternalRoleCode, readonly PermissionCode[]>>> = {
-  COMERCIAL: ['crm.quote.approve'],
+  // Gastos, caja menor y conciliaciones los leen Finanzas, el Contador, la Dirección y el auditor;
+  // Comercial solo lee facturas y presupuestos (decisión 5 del B32).
+  COMERCIAL: ['crm.quote.approve', 'finance.ledger.read'],
   // El acta de entrega tiene valor ante el cliente: la envía el líder del proyecto o un Líder
   // técnico, no cualquier miembro del equipo (decisión 2 del B27).
   EQUIPO_PROYECTO: ['project.deliverable.submit'],
