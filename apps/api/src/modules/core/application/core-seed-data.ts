@@ -147,7 +147,7 @@ export const CATALOGS: readonly SeedCatalog[] = [
       'Rubros con que se planea el presupuesto y se clasifican gastos y vales de caja menor (B32).',
     items: [
       ['SOFTWARE', 'Software y licencias'],
-      ['PROFESSIONAL_SERVICES', 'Servicios profesionales'],
+      ['PRO_SERVICES', 'Servicios profesionales'],
       ['TRANSPORT', 'Transporte'],
       ['OFFICE', 'Papelería y oficina'],
       ['UTILITIES', 'Servicios públicos y conectividad'],

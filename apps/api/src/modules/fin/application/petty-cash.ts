@@ -98,7 +98,7 @@ export class PettyCashUseCase {
       const movement = await insertMovement(tx, actor, key, input, next.balance, at);
       await recordFinEvent(tx, actor, at, {
         action: 'finance.petty_cash.register',
-        event: 'fin.petty_cash.registered',
+        event: 'fin.pettycash.registered',
         entityType: 'fin_petty_cash',
         entityId: movement.id,
         payload: { code: movement.code, type: input.type },

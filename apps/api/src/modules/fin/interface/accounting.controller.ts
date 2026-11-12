@@ -69,6 +69,8 @@ const INVALID = {
 };
 
 function sendFile(response: Response, file: AccountingFile): string {
+  // El tipo se fija aquí y no en la ruta: un error debe seguir respondiendo JSON.
+  response.type('text/csv; charset=utf-8');
   response.attachment(file.fileName);
   response.setHeader('X-Export-Batch-Id', file.batchId);
   return file.content;
@@ -247,7 +249,6 @@ export class AccountingController {
   @RequirePermission('finance.export')
   @Post('exports/accounting')
   @HttpCode(HttpStatus.OK)
-  @Header('Content-Type', 'text/csv; charset=utf-8')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
     summary: 'Exportar un mes al archivo contable (CSV)',
@@ -267,7 +268,6 @@ export class AccountingController {
 
   @RequirePermission('finance.export')
   @Get('exports/:id/file')
-  @Header('Content-Type', 'text/csv; charset=utf-8')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({ summary: 'Volver a descargar el archivo de un lote definitivo' })
   @ApiProduces('text/csv')

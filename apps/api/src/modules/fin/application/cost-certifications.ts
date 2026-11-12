@@ -87,7 +87,7 @@ export class CostCertificationsUseCase {
       });
       await recordFinEvent(tx, actor, at, {
         action: 'finance.cost_certification.create',
-        event: 'fin.cost_certification.created',
+        event: 'fin.costcertification.created',
         entityType: 'fin_cost_certification',
         entityId: row.id,
         payload: { code: row.code, project_id: input.project_id, period: input.period },

@@ -14,7 +14,7 @@ const yearSchema = z.number().int().min(2000).max(2100);
 export const financeCategorySchema = z
   .string()
   .trim()
-  .regex(/^[A-Z][A-Z0-9_]{1,39}$/u, 'Elija un rubro del catálogo.');
+  .regex(/^[A-Z0-9][A-Z0-9_-]{0,19}$/u, 'Elija un rubro del catálogo.');
 
 export const costCenterRefSchema = z.object({ id: idSchema, code: z.string(), name: z.string() });
 export const categoryRefSchema = z.object({ code: z.string(), label: z.string() });
