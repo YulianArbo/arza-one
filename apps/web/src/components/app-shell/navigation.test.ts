@@ -56,7 +56,14 @@ describe('menú por permisos (permiso denegado, 16.3)', () => {
   });
 
   it('con todos los permisos del menú se ven todos los módulos', () => {
-    expect(visibleSlugs([...navigationPermissions()])).toHaveLength(18); // B13 agrega Terceros; B14, Archivos; B17, Privacidad.
+    expect(visibleSlugs([...navigationPermissions()])).toHaveLength(19); // B13 agrega Terceros; B14, Archivos; B17, Privacidad; B33, Compras.
+  });
+
+  it('«Compras» aparece a quien lee el módulo o pide lo suyo (B33)', () => {
+    expect(visibleSlugs(['purchase.read'])).toContain('compras');
+    expect(visibleSlugs(['purchase.request.create'])).toContain('compras');
+    expect(visibleSlugs(['purchase.travel.request'])).toContain('compras');
+    expect(visibleSlugs(['finance.ledger.read'])).not.toContain('compras');
   });
 });
 
