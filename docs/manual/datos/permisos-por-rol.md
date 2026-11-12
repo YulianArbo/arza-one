@@ -47,7 +47,7 @@ Director General. Lectura transversal, aprobaciones de alto nivel, firma de cont
 - **Contratos y firma (M06):** Ver contratos · Crear contratos en borrador · Editar contratos en borrador · Aprobar contratos · Terminar contratos · Renovar contratos · Administrar el banco de cláusulas · Preparar sobres de firma · Enviar sobres a firma · Anular sobres de firma · Ver las evidencias de firma
 - **Proyectos (M07):** Ver todos los proyectos · Ver los proyectos donde es miembro
 - **Servicio al cliente (M08):** Ver tiquetes · Ver PQRSF · Leer la base de conocimiento
-- **Finanzas (M10):** Ver facturas · Aprobar facturas · Registrar facturas ante la DIAN · Anular facturas · Ver presupuestos · Aprobar presupuestos · Aprobar gastos
+- **Finanzas (M10):** Ver facturas · Aprobar facturas · Registrar documento fiscal emitido · Anular facturas · Ver presupuestos · Aprobar presupuestos · Aprobar gastos
 - **Compras y activos (M11):** Aprobar solicitudes de compra · Aprobar viajes · Ver activos
 - **Talento humano (M12):** Ver colaboradores · Aprobar permisos y vacaciones · Autorizar horas extras · Cerrar el periodo de novedades de nómina
 - **Seguridad y salud en el trabajo (M13):** Ver las actas del comité
@@ -168,7 +168,7 @@ Gerente administrativo, asistente. Facturación, cartera, compras, activos, pres
 - **Contratos y firma (M06):** Ver contratos · Ver las evidencias de firma
 - **Proyectos (M07):** Ver todos los proyectos · Ver los proyectos donde es miembro
 - **Servicio al cliente (M08):** Leer la base de conocimiento
-- **Finanzas (M10):** Ver facturas · Solicitar facturas · Aprobar facturas · Registrar facturas ante la DIAN · Anular facturas · Registrar pagos · Gestionar la cartera · Ver presupuestos · Elaborar presupuestos · Aprobar presupuestos · Registrar gastos · Aprobar gastos · Gestionar la caja menor · Hacer conciliaciones bancarias · Administrar parámetros tributarios · Exportar información contable
+- **Finanzas (M10):** Ver facturas · Solicitar facturas · Aprobar facturas · Registrar documento fiscal emitido · Anular facturas · Registrar pagos · Gestionar la cartera · Ver presupuestos · Elaborar presupuestos · Aprobar presupuestos · Registrar gastos · Aprobar gastos · Gestionar la caja menor · Hacer conciliaciones bancarias · Administrar parámetros tributarios · Exportar información contable
 - **Compras y activos (M11):** Solicitar compras · Aprobar solicitudes de compra · Emitir órdenes de compra · Recibir órdenes de compra · Evaluar proveedores · Solicitar viajes · Aprobar viajes · Ver activos · Administrar activos · Asignar activos · Dar de baja activos
 - **Calidad (M14):** Reportar no conformidades (solo lo propio) · Gestionar acciones de mejora (solo lo propio) · Registrar mediciones de indicadores (solo lo propio)
 
