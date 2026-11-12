@@ -5,7 +5,7 @@ import { createZodDto } from 'nestjs-zod';
 
 // Piezas comunes de los controladores de Compras (B33).
 
-export class PurErrorResponse extends createZodDto(errorResponseSchema) {}
+class PurErrorResponse extends createZodDto(errorResponseSchema) {}
 export class PurCreatedResponse extends createZodDto(purchaseCreatedResponseSchema) {}
 
 export const UUID = new ParseUUIDPipe({ version: '7' });

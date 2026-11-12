@@ -11,7 +11,7 @@ import { RequirePermission, usePermissions } from '../session/permissions';
 // Portada de Compras (M11). El B33 deja solicitudes, cuadro comparativo, órdenes, recepciones,
 // evaluación de proveedores y viajes. Los activos llegan en el B34 («Disponible pronto», B22A).
 
-export const PURCHASE_HOME_PERMISSIONS = [
+const PURCHASE_HOME_PERMISSIONS = [
   'purchase.read',
   'purchase.request.create',
   'purchase.travel.request',

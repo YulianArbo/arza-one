@@ -24,7 +24,7 @@ interface ReceiptRow {
 }
 
 /** Todas las recepciones de las órdenes, de la más reciente a la más antigua. */
-export function receiptRows(orders: readonly PurchaseOrder[]): ReceiptRow[] {
+function receiptRows(orders: readonly PurchaseOrder[]): ReceiptRow[] {
   const rows = orders.flatMap((order) =>
     order.receipts.map((receipt) => ({
       id: receipt.id,

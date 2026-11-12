@@ -11,7 +11,7 @@ const FILE_ID = '01999a00-0000-7000-8000-0000000fc801';
 
 const CENTER = { id: CENTER_ID, code: 'CC-ADM', name: 'Administración' };
 
-export const TIERS = {
+const TIERS = {
   low_limit: '1000000.00',
   mid_limit: '10000000.00',
   quotes_low: 1,

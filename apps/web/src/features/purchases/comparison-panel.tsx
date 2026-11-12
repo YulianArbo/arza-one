@@ -25,7 +25,7 @@ import { QuoteForm } from './quote-form';
 // conocimiento del tercero vigente.
 
 /** Solicitudes que están cotizando: aprobadas, cotizadas o devueltas a aprobación por su valor. */
-export function isQuoting(request: PurchaseRequest): boolean {
+function isQuoting(request: PurchaseRequest): boolean {
   if (request.status === 'approved' || request.status === 'quoted') return true;
   return request.status === 'in_approval' && request.quotes.length > 0;
 }
