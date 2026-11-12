@@ -24,7 +24,11 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const ACCOUNTANT = permissionsOf(['finance.tax_parameter.manage', 'finance.invoice.read']);
+const ACCOUNTANT = permissionsOf([
+  'finance.tax_parameter.manage',
+  'finance.invoice.read',
+  'finance.ledger.read',
+]);
 
 const VERSION = {
   id: '01999a00-0000-7000-8000-0000000e0001',
@@ -61,7 +65,10 @@ describe('finanzas', () => {
     expect(link).toHaveAttribute('href', '/app/finanzas/parametros-tributarios');
     const invoices = screen.getByRole('link', { name: /Facturas y recaudos/u });
     expect(invoices).toHaveAttribute('href', '/app/finanzas/facturas');
-    expect(screen.getByText('Cartera avanzada pendiente de definición')).toBeVisible();
+    const closing = screen.getByRole('link', { name: /Cierre y exportación contable/u });
+    expect(closing).toHaveAttribute('href', '/app/finanzas/cierre');
+    expect(screen.queryByRole('link', { name: /Presupuesto/u })).toBeNull();
+    expect(screen.getByText('Cartera por edades: disponible pronto')).toBeVisible();
   });
 });
 
