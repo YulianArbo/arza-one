@@ -8,6 +8,7 @@ import { isAttachableFile } from '../../doc/index.js';
 import { fiscalFileInvalid, invoiceStatusInvalid } from './invoice-messages.js';
 import type { InvoiceActor } from './invoice-actor.js';
 import { recordInvoiceEvent } from './invoice-events.js';
+import { assertPeriodOpen } from './ledger-support.js';
 
 export async function registerFiscalInvoice(
   tx: TenantTransaction,
@@ -20,6 +21,7 @@ export async function registerFiscalInvoice(
 ): Promise<void> {
   if (validateFiscalRequest(invoice, key, input)) return;
   await validateFiscalFile(tx, actor, input.fiscal_file_id);
+  await assertPeriodOpen(tx, input.issue_date);
   await persistFiscalInvoice(tx, invoice.id, version, key, input);
   await updateFiscalItem(tx, invoice.id, input);
   await recordInvoiceEvent(tx, actor, at, {

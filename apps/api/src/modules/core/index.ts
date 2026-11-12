@@ -27,6 +27,7 @@ export {
 } from './application/company-identity.js';
 export { superiorPositionId } from './application/positions.js';
 export { catalogLabels, isActiveCatalogCode } from './application/catalogs.js';
+export { activeCostCenters, costCenterRefs } from './application/cost-centers.js';
 export { addDays, bogotaToday, fromCalendarDate, toCalendarDate } from './domain/calendar-date.js';
 export {
   currentAndScheduled,

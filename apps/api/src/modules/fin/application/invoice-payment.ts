@@ -15,6 +15,7 @@ import {
   paymentInvalid,
 } from './invoice-messages.js';
 import type { InvoiceActor } from './invoice-actor.js';
+import { assertPeriodOpen } from './ledger-support.js';
 
 const Money = Decimal.clone({ precision: 40, rounding: Decimal.ROUND_HALF_UP });
 
@@ -33,6 +34,7 @@ export async function createPayment(
       : reuseKey();
   const invoice = await loadPaymentTarget(tx, id);
   await validatePaymentFile(tx, actor, input.support_file_id);
+  await assertPeriodOpen(tx, input.paid_on);
   const totals = await settlementTotals(tx, id);
   validatePaymentAmount(invoice, totals.paid, totals.credited, input.amount);
   const payment = await tx.finPayment.create({

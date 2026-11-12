@@ -15,6 +15,7 @@ import {
   invoiceStatusInvalid,
 } from './invoice-messages.js';
 import type { InvoiceActor } from './invoice-actor.js';
+import { assertPeriodOpen } from './ledger-support.js';
 
 const Money = Decimal.clone({ precision: 40, rounding: Decimal.ROUND_HALF_UP });
 
@@ -33,6 +34,7 @@ export async function createCreditNote(
       : reuseKey();
   const invoice = await loadCreditTarget(tx, id);
   await validateCreditFile(tx, actor, input.fiscal_file_id);
+  await assertPeriodOpen(tx, input.issue_date);
   const settled = await settledAmount(tx, id);
   validateCreditAmount(invoice, settled, input.amount);
   const note = await tx.finCreditNote.create({
