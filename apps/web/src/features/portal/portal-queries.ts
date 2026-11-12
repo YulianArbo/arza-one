@@ -7,6 +7,7 @@ import {
   portalContractListSchema,
   portalDocumentListSchema,
   portalHomeSchema,
+  portalInvoiceListSchema,
   portalMyDataSchema,
   portalPqrsfListSchema,
   portalProjectDetailSchema,
@@ -21,6 +22,7 @@ import {
   type PortalContractList,
   type PortalDocumentList,
   type PortalHome,
+  type PortalInvoiceList,
   type PortalMyData,
   type PortalPqrsfList,
   type PortalProjectDetail,
@@ -79,6 +81,10 @@ export function usePortalContracts(): UseQueryResult<PortalContractList> {
 
 export function usePortalDocuments(): UseQueryResult<PortalDocumentList> {
   return usePortalQuery('/v1/portal/documents', portalDocumentListSchema);
+}
+
+export function usePortalInvoices(): UseQueryResult<PortalInvoiceList> {
+  return usePortalQuery('/v1/portal/invoices', portalInvoiceListSchema);
 }
 
 export function usePortalTickets(): UseQueryResult<PortalTicketList> {
