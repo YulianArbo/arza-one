@@ -111,6 +111,13 @@ model Tenant {
   finCostCertifications   FinCostCertification[]
   finPeriods              FinPeriod[]
   finExportBatches        FinExportBatch[]
+  purRequests             PurRequest[]
+  purQuotes               PurQuote[]
+  purOrders               PurOrder[]
+  purReceipts             PurReceipt[]
+  purSupplierEvaluations  PurSupplierEvaluation[]
+  purTravelRequests       PurTravelRequest[]
+  purTravelExpenses       PurTravelExpense[]
   ctrClauses              CtrClause[]
   ctrTemplates            CtrTemplate[]
   ctrTemplateClauses      CtrTemplateClause[]
@@ -3744,4 +3751,201 @@ model PrjSharedFile {
   @@unique([tenantId, id])
   @@index([tenantId, projectId])
   @@map("prj_shared_files")
+}
+
+/// Solicitud de compra: borrador → en aprobación → aprobada → cotizada → ordenada → recibida → cerrada.
+model PurRequest {
+  id              String     @id @default(uuid(7)) @db.Uuid
+  tenantId        String     @map("tenant_id") @db.Uuid
+  code            String
+  requesterId     String     @map("requester_id") @db.Uuid
+  costCenterId    String     @map("cost_center_id") @db.Uuid
+  description     String
+  estimatedAmount Decimal    @map("estimated_amount") @db.Decimal(18, 2)
+  approvedAmount  Decimal?   @map("approved_amount") @db.Decimal(18, 2)
+  status          String     @default("draft")
+  submittedAt     DateTime?  @map("submitted_at") @db.Timestamptz(6)
+  decidedBy       String?    @map("decided_by") @db.Uuid
+  decidedAt       DateTime?  @map("decided_at") @db.Timestamptz(6)
+  decisionNote    String?    @map("decision_note")
+  requestKey      String     @map("request_key")
+  createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?    @map("created_by") @db.Uuid
+  updatedAt       DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy       String?    @map("updated_by") @db.Uuid
+  version         Int        @default(1)
+  deletedAt       DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant          Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  quotes          PurQuote[]
+  orders          PurOrder[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, status])
+  @@index([tenantId, requesterId])
+  @@map("pur_requests")
+}
+
+/// Cotización de un proveedor para una solicitud; una sola queda elegida en el cuadro comparativo.
+model PurQuote {
+  id           String     @id @default(uuid(7)) @db.Uuid
+  tenantId     String     @map("tenant_id") @db.Uuid
+  requestId    String     @map("request_id") @db.Uuid
+  supplierId   String     @map("supplier_id") @db.Uuid
+  amount       Decimal    @db.Decimal(18, 2)
+  deliveryDays Int        @map("delivery_days")
+  fileId       String     @map("file_id") @db.Uuid
+  selected     Boolean    @default(false)
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy    String?    @map("created_by") @db.Uuid
+  updatedAt    DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy    String?    @map("updated_by") @db.Uuid
+  version      Int        @default(1)
+  deletedAt    DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant       Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  request      PurRequest @relation(fields: [tenantId, requestId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, requestId])
+  @@map("pur_quotes")
+}
+
+/// Orden de compra emitida al proveedor de la cotización elegida.
+model PurOrder {
+  id         String       @id @default(uuid(7)) @db.Uuid
+  tenantId   String       @map("tenant_id") @db.Uuid
+  code       String
+  requestId  String       @map("request_id") @db.Uuid
+  supplierId String       @map("supplier_id") @db.Uuid
+  total      Decimal      @db.Decimal(18, 2)
+  status     String       @default("issued")
+  documentId String?      @map("document_id") @db.Uuid
+  issuedBy   String       @map("issued_by") @db.Uuid
+  issuedAt   DateTime     @map("issued_at") @db.Timestamptz(6)
+  closedAt   DateTime?    @map("closed_at") @db.Timestamptz(6)
+  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?      @map("created_by") @db.Uuid
+  updatedAt  DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?      @map("updated_by") @db.Uuid
+  version    Int          @default(1)
+  deletedAt  DateTime?    @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant       @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  request    PurRequest   @relation(fields: [tenantId, requestId], references: [tenantId, id], onDelete: Restrict)
+  receipts   PurReceipt[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@index([tenantId, status])
+  @@map("pur_orders")
+}
+
+/// Recepción de una orden: conforme o con la novedad explicada.
+model PurReceipt {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  orderId    String    @map("order_id") @db.Uuid
+  receivedOn DateTime  @map("received_on") @db.Date
+  receivedBy String    @map("received_by") @db.Uuid
+  conforming Boolean
+  note       String?
+  requestKey String    @map("request_key")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?   @map("created_by") @db.Uuid
+  updatedAt  DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?   @map("updated_by") @db.Uuid
+  version    Int       @default(1)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  order      PurOrder  @relation(fields: [tenantId, orderId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, orderId])
+  @@map("pur_receipts")
+}
+
+/// Selección o reevaluación de un proveedor en un periodo: criterios, puntaje y resultado.
+model PurSupplierEvaluation {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  tenantId    String    @map("tenant_id") @db.Uuid
+  supplierId  String    @map("supplier_id") @db.Uuid
+  kind        String
+  period      String
+  criteria    Json
+  score       Decimal   @db.Decimal(3, 2)
+  result      String
+  note        String?
+  evaluatedBy String    @map("evaluated_by") @db.Uuid
+  evaluatedAt DateTime  @map("evaluated_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?   @map("created_by") @db.Uuid
+  updatedAt   DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?   @map("updated_by") @db.Uuid
+  version     Int       @default(1)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, supplierId])
+  @@map("pur_supplier_evaluations")
+}
+
+/// Solicitud de viaje: borrador → en aprobación → aprobada o rechazada → legalizada.
+model PurTravelRequest {
+  id            String             @id @default(uuid(7)) @db.Uuid
+  tenantId      String             @map("tenant_id") @db.Uuid
+  code          String
+  travelerId    String             @map("traveler_id") @db.Uuid
+  destination   String
+  purpose       String
+  startsOn      DateTime           @map("starts_on") @db.Date
+  endsOn        DateTime           @map("ends_on") @db.Date
+  advanceAmount Decimal            @map("advance_amount") @db.Decimal(18, 2)
+  status        String             @default("draft")
+  submittedAt   DateTime?          @map("submitted_at") @db.Timestamptz(6)
+  decidedBy     String?            @map("decided_by") @db.Uuid
+  decidedAt     DateTime?          @map("decided_at") @db.Timestamptz(6)
+  decisionNote  String?            @map("decision_note")
+  legalizedAt   DateTime?          @map("legalized_at") @db.Timestamptz(6)
+  requestKey    String             @map("request_key")
+  createdAt     DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?            @map("created_by") @db.Uuid
+  updatedAt     DateTime           @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?            @map("updated_by") @db.Uuid
+  version       Int                @default(1)
+  deletedAt     DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  expenses      PurTravelExpense[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, status])
+  @@index([tenantId, travelerId])
+  @@map("pur_travel_requests")
+}
+
+/// Gasto de la legalización de un viaje, con su soporte.
+model PurTravelExpense {
+  id              String           @id @default(uuid(7)) @db.Uuid
+  tenantId        String           @map("tenant_id") @db.Uuid
+  travelRequestId String           @map("travel_request_id") @db.Uuid
+  concept         String
+  amount          Decimal          @db.Decimal(18, 2)
+  supportFileId   String           @map("support_file_id") @db.Uuid
+  requestKey      String           @map("request_key")
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?          @map("created_by") @db.Uuid
+  updatedAt       DateTime         @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy       String?          @map("updated_by") @db.Uuid
+  version         Int              @default(1)
+  deletedAt       DateTime?        @map("deleted_at") @db.Timestamptz(6)
+  tenant          Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  travelRequest   PurTravelRequest @relation(fields: [tenantId, travelRequestId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, travelRequestId])
+  @@map("pur_travel_expenses")
 }
