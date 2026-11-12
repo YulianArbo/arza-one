@@ -26,9 +26,21 @@ export class DatabaseService implements OnModuleDestroy {
    */
   constructor(
     connectionString: string,
-    private readonly options: { readonly requireAudit: boolean } = { requireAudit: true },
+    private readonly options: {
+      readonly requireAudit: boolean;
+      /** Tope de conexiones del cliente. */
+      readonly poolSize?: number;
+      /** Espera máxima por una conexión libre; por defecto, la misma de /health. */
+      readonly connectTimeoutMs?: number;
+      /** Límites de las transacciones interactivas; por defecto, los de Prisma. */
+      readonly transaction?: { readonly maxWait?: number; readonly timeout?: number };
+    } = { requireAudit: true },
   ) {
-    const adapter = new PrismaPg({ connectionString, connectionTimeoutMillis: PROBE_TIMEOUT_MS });
+    const adapter = new PrismaPg({
+      connectionString,
+      connectionTimeoutMillis: options.connectTimeoutMs ?? PROBE_TIMEOUT_MS,
+      ...(options.poolSize === undefined ? {} : { max: options.poolSize }),
+    });
     this.client = new PrismaClient({ adapter });
   }
 
@@ -48,7 +60,7 @@ export class DatabaseService implements OnModuleDestroy {
       const result = await work(transaction);
       if (unaudited === undefined && this.options.requireAudit) await assertAudited(transaction);
       return result;
-    });
+    }, this.options.transaction);
   }
 
   /**
@@ -57,7 +69,7 @@ export class DatabaseService implements OnModuleDestroy {
    * un correo, una sesión o un enlace antes de abrir la transacción de esa empresa.
    */
   async withoutTenant<T>(work: (transaction: TenantTransaction) => Promise<T>): Promise<T> {
-    return this.client.$transaction(work);
+    return this.client.$transaction(work, this.options.transaction);
   }
 
   /** Comprueba que la base de datos responde. La usa /health. */

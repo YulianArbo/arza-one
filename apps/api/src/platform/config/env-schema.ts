@@ -15,6 +15,12 @@ export const envSchema = z.object({
   API_PORT: positiveInteger.max(65_535).default(4000),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
+  /** Espera máxima por una conexión libre a PostgreSQL, en milisegundos. */
+  DATABASE_CONNECT_TIMEOUT_MS: positiveInteger.default(2000),
+  /** Espera máxima por el inicio de una transacción interactiva, en milisegundos. */
+  DATABASE_TRANSACTION_MAX_WAIT_MS: positiveInteger.optional(),
+  /** Duración máxima de una transacción interactiva, en milisegundos. */
+  DATABASE_TRANSACTION_TIMEOUT_MS: positiveInteger.optional(),
   VALKEY_URL: z.url({ protocol: /^rediss?$/ }),
   S3_ENDPOINT: url,
   S3_REGION: required,
