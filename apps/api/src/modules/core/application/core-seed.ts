@@ -13,6 +13,7 @@ import {
   HOLIDAY_YEARS,
   POSITIONS,
   PROCESSES,
+  PURCHASE_APPROVAL_TIERS,
   WORK_SCHEDULE,
   WORK_SCHEDULE_VALID_FROM,
   type SeedCatalog,
@@ -118,6 +119,10 @@ const STEPS: readonly (readonly [action: string, step: SeedStep])[] = [
   [
     'core.parameter.seed',
     parameterOf('service.pqrsf_terms', PQRSF_DEFAULT_TERMS, WORK_SCHEDULE_VALID_FROM),
+  ],
+  [
+    'core.parameter.seed',
+    parameterOf('purchase.approval_tiers', PURCHASE_APPROVAL_TIERS, WORK_SCHEDULE_VALID_FROM),
   ],
   ...CATALOGS.map((catalog) => ['core.catalog.seed', catalogOf(catalog)] as const),
   ['core.org_unit.seed', processes],

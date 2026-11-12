@@ -5,10 +5,12 @@ import {
   discountCapSchema,
   isParameterKey,
   pqrsfTermsSchema,
+  purchaseTiersSchema,
   workScheduleSchema,
   type CreateParameterVersionRequest,
   type DiscountCap,
   type PqrsfTerms,
+  type PurchaseTiers,
   type ParameterHistoryResponse,
   type ParameterKey,
   type ParameterSummary,
@@ -214,4 +216,14 @@ export async function pqrsfTermsOn(
   const versions = await versionsOf(tx, 'service.pqrsf_terms');
   const { current } = currentAndScheduled(versions, date);
   return current === null ? null : pqrsfTermsSchema.parse(current.row.value);
+}
+
+/** Topes de aprobación de compras vigentes ese día (B33), o null si la empresa no los tiene. */
+export async function purchaseTiersOn(
+  tx: TenantTransaction,
+  date: string,
+): Promise<PurchaseTiers | null> {
+  const versions = await versionsOf(tx, 'purchase.approval_tiers');
+  const { current } = currentAndScheduled(versions, date);
+  return current === null ? null : purchaseTiersSchema.parse(current.row.value);
 }
