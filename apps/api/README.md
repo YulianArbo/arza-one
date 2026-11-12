@@ -813,6 +813,21 @@ nuevas en [`prj.md`](../../docs/manual/datos/prj.md) e [`iam.md`](../../docs/man
 | Soporte                    | Tiquetes `channel = 'portal'` a nombre de la persona; solo mensajes públicos; su respuesta reanuda el reloj si esperaba al cliente. PQRSF `channel = 'portal'` con el acuse al correo. Artículos `audience = 'client'` publicados |
 | Usuarios y datos           | `portal.user.manage`: invitar (invitación de siempre), cambiar el rol, activar o desactivar y asignar proyectos, nunca a sí mismo ni a otra empresa. `me` y `me/export` (copia sin secretos, auditada)                            |
 
+## Compras, proveedores y viajes (B33, módulo `src/modules/purchase`)
+
+Solicitud de compra con aprobación por montos, cotizaciones y cuadro comparativo, orden, recepción
+y cierre; evaluación de proveedores; viajes con su legalización (ficha 17.12). Tablas y rutas en
+[`pur.md`](../../docs/manual/datos/pur.md).
+
+| Regla                    | Cómo se cumple                                                                                                                                                                                                        |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Aprobación por montos    | Parámetro con vigencia `purchase.approval_tiers` (Núcleo). `purchaseTierOf` ubica el valor en su tramo; el tramo alto exige `purchase.request.approve_high` (solo Dirección), si no 403 `PUR_APPROVAL_LEVEL_REQUIRED` |
+| Cotizaciones mínimas     | Al elegir la ganadora (`quoteSelectionOutcome`): sin las que exige el tramo, 409 `PUR_QUOTES_MISSING`. Si la elegida sube de tramo, la solicitud vuelve a aprobación                                                  |
+| Segregación de funciones | Quien solicita no aprueba ni recibe; el viajero no aprueba su viaje: 409 `PUR_SEGREGATION_REQUIRED`, y restricciones `*_segregation_check` en la base                                                                 |
+| Conocimiento del tercero | La orden solo se emite si el proveedor tiene su último conocimiento aprobado y vigente (`purchaseSupplierRefs` de Terceros); si no, 409 `PUR_SUPPLIER_NOT_VERIFIED`                                                   |
+| Solo lo propio           | Las rutas `…/mine` listan lo de la persona; editar, enviar y legalizar exigen ser el autor (lo ajeno responde 404)                                                                                                    |
+| Viajes                   | Gastos con soporte desde el día de salida; legalizar exige al menos uno. El saldo se informa, sin movimientos en Finanzas                                                                                             |
+
 ## Flujos y tareas (B15, módulo `src/modules/wf`)
 
 Motor de flujos definido por datos (ficha 17.5, numeral 13.2, ADR-011). Las tablas están en
