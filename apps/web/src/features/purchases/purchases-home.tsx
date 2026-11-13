@@ -1,7 +1,6 @@
 'use client';
 
-import { Card, CardDescription, CardHeader, CardTitle, EmptyState } from '@arza/ui';
-import { Construction } from 'lucide-react';
+import { Card, CardDescription, CardHeader, CardTitle } from '@arza/ui';
 import Link from 'next/link';
 import type { JSX } from 'react';
 
@@ -9,12 +8,13 @@ import { PageHeader } from '../../components/app-shell/page-header';
 import { RequirePermission, usePermissions } from '../session/permissions';
 
 // Portada de Compras (M11). El B33 deja solicitudes, cuadro comparativo, órdenes, recepciones,
-// evaluación de proveedores y viajes. Los activos llegan en el B34 («Disponible pronto», B22A).
+// evaluación de proveedores y viajes; el B34, el inventario de activos y sus mantenimientos.
 
 const PURCHASE_HOME_PERMISSIONS = [
   'purchase.read',
   'purchase.request.create',
   'purchase.travel.request',
+  'asset.read',
 ] as const;
 
 const LINKS = [
@@ -54,6 +54,18 @@ const LINKS = [
     description: 'Solicitudes de viaje, su aprobación y la legalización de gastos.',
     anyOf: ['purchase.read', 'purchase.travel.request'],
   },
+  {
+    href: '/app/compras/activos',
+    title: 'Activos',
+    description: 'Inventario, asignación en comodato, devoluciones, bajas y libro de activos.',
+    anyOf: ['asset.read'],
+  },
+  {
+    href: '/app/compras/activos/mantenimientos',
+    title: 'Mantenimientos de activos',
+    description: 'Mantenimientos programados y hechos, con su costo.',
+    anyOf: ['asset.read'],
+  },
 ] as const;
 
 export function PurchasesHome(): JSX.Element {
@@ -70,11 +82,6 @@ export function PurchasesHome(): JSX.Element {
             description={link.description}
           />
         ))}
-        <EmptyState
-          icon={<Construction />}
-          title="Activos: disponible pronto"
-          description="El inventario de activos, las asignaciones y los mantenimientos llegan en una próxima entrega."
-        />
       </div>
     </RequirePermission>
   );

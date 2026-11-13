@@ -208,12 +208,15 @@ describe('viajes y legalizaciones (B33)', () => {
 });
 
 describe('portada de Compras (B33)', () => {
-  it('muestra lo que cada permiso deja ver y los activos como disponibles pronto', async () => {
-    serve(['purchase.request.create']);
+  it('muestra lo que cada permiso deja ver, incluidos los activos (B34)', async () => {
+    serve(['purchase.request.create', 'asset.read']);
     show(<PurchasesHome />);
     expect(await screen.findByRole('link', { name: /Solicitudes de compra/u })).toBeVisible();
     expect(screen.queryByRole('link', { name: /Órdenes de compra/u })).toBeNull();
     expect(screen.queryByRole('link', { name: /Viajes y legalizaciones/u })).toBeNull();
-    expect(screen.getByText('Activos: disponible pronto')).toBeVisible();
+    expect(screen.queryByText('Activos: disponible pronto')).toBeNull();
+    const assets = screen.getByRole('link', { name: /^Activos/u });
+    expect(assets).toHaveAttribute('href', '/app/compras/activos');
+    expect(screen.getByRole('link', { name: /Mantenimientos de activos/u })).toBeVisible();
   });
 });
