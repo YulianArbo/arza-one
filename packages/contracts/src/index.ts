@@ -11,6 +11,7 @@ export * from './privacy/index.js';
 export * from './crm/index.js';
 export * from './finance/index.js';
 export * from './purchase/index.js';
+export * from './asset/index.js';
 export * from './contract/index.js';
 export * from './project/index.js';
 export * from './service/index.js';
