@@ -23,7 +23,7 @@ import {
 import {
   assertSignable,
   envelopeDocument,
-  isAcceptance,
+  isStandalone,
   moveDocument,
 } from './signature-sources.js';
 
@@ -37,7 +37,7 @@ export async function noticePayload(
   tx: TenantTransaction,
   envelope: SigEnvelope,
 ): Promise<Prisma.InputJsonObject> {
-  if (isAcceptance(envelope)) return { source_id: envelope.sourceId, party_id: envelope.partyId };
+  if (isStandalone(envelope)) return { source_id: envelope.sourceId, party_id: envelope.partyId };
   const document = await envelopeDocument(tx, envelope);
   return { ...contractEventPayload(document.contract), contract_code: document.contract.code };
 }
@@ -183,7 +183,7 @@ export async function closeEnvelope(
   if (closing.status !== 'rejected') {
     await appendSignatureEvent(tx, envelope.id, actor.at, eventFrom(actor, type, null));
   }
-  if (from === 'sent' && !isAcceptance(envelope)) {
+  if (from === 'sent' && !isStandalone(envelope)) {
     await moveDocument(tx, await envelopeDocument(tx, envelope), 'approved');
   }
   if (envelope.workflowInstanceId !== null) {

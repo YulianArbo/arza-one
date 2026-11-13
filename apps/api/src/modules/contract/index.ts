@@ -28,6 +28,12 @@ export {
   type SignatureOutcome,
 } from './application/acceptance-signatures.js';
 export {
+  cancelLoanSignature,
+  loanSignatureOutcome,
+  sendLoanSignature,
+  type LoanSignatureRequest,
+} from './application/loan-signatures.js';
+export {
   processSignatureWork,
   type SignatureWorkDependencies,
   type SignatureWorkResult,

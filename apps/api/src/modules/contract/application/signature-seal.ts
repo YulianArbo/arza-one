@@ -11,7 +11,7 @@ import {
   recordSignatureChange,
   type EnvelopeWithSigners,
 } from './signature-records.js';
-import { envelopeDocument, isAcceptance } from './signature-sources.js';
+import { envelopeDocument, isStandalone } from './signature-sources.js';
 
 // El documento firmado por todos rige (B25, numeral 13.3 «envelope.completed»): el contrato queda
 // vigente con el PDF firmado como su copia firmada, o el otrosí rige y cambia el contrato. Cada
@@ -91,8 +91,8 @@ export async function putDocumentInForce(
   sealed: Sealed,
 ): Promise<void> {
   const signedOn = bogotaToday(envelope.completedAt ?? actor.at);
-  if (isAcceptance(envelope)) {
-    // El acta de un proyecto: Proyectos lee el resultado y deja aceptado el entregable (B27).
+  if (isStandalone(envelope)) {
+    // El acta de un proyecto o el comodato de un activo: su módulo lee el resultado (B27, B34).
   } else if (envelope.amendmentId === null) {
     await contractInForce(tx, actor, envelope, sealed, signedOn);
   } else {
