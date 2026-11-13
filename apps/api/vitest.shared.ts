@@ -90,6 +90,9 @@ export const DATABASE_BOUND_FILES = [
   // Compras, proveedores y viajes (B33): todo menos las reglas del dominio, que se prueban solas.
   'src/modules/purchase/application/**/*.ts',
   'src/modules/purchase/interface/**/*.ts',
+  // Activos (B34): todo menos las reglas del dominio, que se prueban solas.
+  'src/modules/asset/application/**/*.ts',
+  'src/modules/asset/interface/**/*.ts',
   // Contratos (B24): todo menos las reglas del dominio, que se prueban solas.
   'src/modules/contract/application/**/*.ts',
   'src/modules/contract/interface/**/*.ts',

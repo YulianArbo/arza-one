@@ -47,6 +47,10 @@
     "./service": {
       "types": "./dist/modules/service/index.d.ts",
       "default": "./dist/modules/service/index.js"
+    },
+    "./asset": {
+      "types": "./dist/modules/asset/index.d.ts",
+      "default": "./dist/modules/asset/index.js"
     }
   },
   "scripts": {
