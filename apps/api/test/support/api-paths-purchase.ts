@@ -1,5 +1,18 @@
-// Rutas de Compras, proveedores y viajes (M11, B33) que publica la API. Se suman a API_PATHS.
+// Rutas de Compras, proveedores y viajes (M11, B33) y de Activos (B34) que publica la API. Se
+// suman a API_PATHS.
 export const PURCHASE_PATHS = [
+  '/v1/asset-assignees',
+  '/v1/asset-assignments/{id}/cancellation',
+  '/v1/asset-assignments/{id}/return',
+  '/v1/asset-maintenance',
+  '/v1/asset-maintenance/{id}',
+  '/v1/asset-maintenance/{id}/completion',
+  '/v1/assets',
+  '/v1/assets/book/export',
+  '/v1/assets/{id}',
+  '/v1/assets/{id}/assignments',
+  '/v1/assets/{id}/maintenance',
+  '/v1/assets/{id}/retirement',
   '/v1/purchase-orders',
   '/v1/purchase-orders/{id}/closure',
   '/v1/purchase-orders/{id}/receipts',
