@@ -118,6 +118,9 @@ model Tenant {
   purSupplierEvaluations  PurSupplierEvaluation[]
   purTravelRequests       PurTravelRequest[]
   purTravelExpenses       PurTravelExpense[]
+  astAssets               AstAsset[]
+  astAssignments          AstAssignment[]
+  astMaintenance          AstMaintenance[]
   ctrClauses              CtrClause[]
   ctrTemplates            CtrTemplate[]
   ctrTemplateClauses      CtrTemplateClause[]
@@ -3948,4 +3951,109 @@ model PurTravelExpense {
   @@unique([tenantId, requestKey])
   @@index([tenantId, travelRequestId])
   @@map("pur_travel_expenses")
+}
+
+/// Activos fijos y licencias (B34, ficha 17.12, RE-ADM-003).
+model AstAsset {
+  id               String           @id @default(uuid(7)) @db.Uuid
+  tenantId         String           @map("tenant_id") @db.Uuid
+  code             String
+  name             String
+  category         String
+  serial           String?
+  purchaseDate     DateTime         @map("purchase_date") @db.Date
+  cost             Decimal          @db.Decimal(18, 2)
+  usefulLifeMonths Int              @map("useful_life_months")
+  /// available, reserved (comodato pendiente de firma), assigned o retired.
+  status           String           @default("available")
+  location         String?
+  retiredOn        DateTime?        @map("retired_on") @db.Date
+  retireReason     String?          @map("retire_reason")
+  retireNote       String?          @map("retire_note")
+  retiredBy        String?          @map("retired_by") @db.Uuid
+  requestKey       String           @map("request_key")
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy        String?          @map("created_by") @db.Uuid
+  updatedAt        DateTime         @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy        String?          @map("updated_by") @db.Uuid
+  version          Int              @default(1)
+  deletedAt        DateTime?        @map("deleted_at") @db.Timestamptz(6)
+  tenant           Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  assignments      AstAssignment[]
+  maintenance      AstMaintenance[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, status])
+  @@map("ast_assets")
+}
+
+/// Asignación de un activo en comodato (CT-ADM-001): vigente solo con su contrato firmado.
+model AstAssignment {
+  id                 String    @id @default(uuid(7)) @db.Uuid
+  tenantId           String    @map("tenant_id") @db.Uuid
+  assetId            String    @map("asset_id") @db.Uuid
+  /// El colaborador (cuenta interna) que recibe; el B35 lo unirá con su hoja de vida.
+  userId             String    @map("user_id") @db.Uuid
+  /// Su persona en Terceros: con ella firma el comodato.
+  signerPartyId      String    @map("signer_party_id") @db.Uuid
+  status             String    @default("preparing")
+  assignedOn         DateTime  @map("assigned_on") @db.Date
+  signBy             DateTime  @map("sign_by") @db.Date
+  message            String?
+  formRecordId       String?   @map("form_record_id") @db.Uuid
+  recordCode         String?   @map("record_code")
+  envelopeId         String?   @map("envelope_id") @db.Uuid
+  envelopeCode       String?   @map("envelope_code")
+  /// El comodato firmado (archivo); obligatorio para estar vigente.
+  contractDocumentId String?   @map("contract_document_id") @db.Uuid
+  assignedBy         String    @map("assigned_by") @db.Uuid
+  activatedAt        DateTime? @map("activated_at") @db.Timestamptz(6)
+  returnedOn         DateTime? @map("returned_on") @db.Date
+  returnNote         String?   @map("return_note")
+  returnedBy         String?   @map("returned_by") @db.Uuid
+  closedReason       String?   @map("closed_reason")
+  requestKey         String    @map("request_key")
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy          String?   @map("created_by") @db.Uuid
+  updatedAt          DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy          String?   @map("updated_by") @db.Uuid
+  version            Int       @default(1)
+  deletedAt          DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant             Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  asset              AstAsset  @relation(fields: [tenantId, assetId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, assetId])
+  @@index([tenantId, userId])
+  @@index([tenantId, status])
+  @@map("ast_assignments")
+}
+
+/// Mantenimientos de un activo: programados y, al hacerlos, con su fecha y su costo.
+model AstMaintenance {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  tenantId    String    @map("tenant_id") @db.Uuid
+  assetId     String    @map("asset_id") @db.Uuid
+  kind        String
+  scheduledOn DateTime  @map("scheduled_on") @db.Date
+  doneOn      DateTime? @map("done_on") @db.Date
+  cost        Decimal?  @db.Decimal(18, 2)
+  note        String?
+  requestKey  String    @map("request_key")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?   @map("created_by") @db.Uuid
+  updatedAt   DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?   @map("updated_by") @db.Uuid
+  version     Int       @default(1)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  asset       AstAsset  @relation(fields: [tenantId, assetId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, assetId])
+  @@map("ast_maintenance")
 }
