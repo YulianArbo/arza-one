@@ -83,6 +83,13 @@ async function issueInvoice(actors: Actors): Promise<{ invoiceId: string; detail
   const created = await keyed(actors.finance, path, { milestone_id: actors.delivery.milestoneId });
   expect(created.status, created.text).toBe(201);
   const invoiceId = invoiceCreatedResponseSchema.parse(created.body).id;
+  const portal = await scenario.readyPerson('CLIENTE_ADMIN', actors.delivery.client.partyId);
+  expect(
+    portalInvoiceListSchema.parse((await scenario.get('/v1/portal/invoices', portal.session)).body)
+      .data,
+  ).toEqual([]);
+  const unissued = await scenario.post(`/v1/portal/invoices/${invoiceId}/link`, portal.session, {});
+  expect(errorCode(unissued)).toBe('PORTAL_NOT_FOUND');
   const detailPath = `${path}/${invoiceId}`;
   expect((await scenario.get(detailPath, actors.financeOther.session)).status).toBe(404);
   await approveInvoice(actors.finance, detailPath);
@@ -236,4 +243,10 @@ async function assertPortalIsolation(
   );
   expect(hidden.status).toBe(404);
   expect(errorCode(hidden)).toBe('PORTAL_NOT_FOUND');
+  const invoiceLink = await scenario.post(
+    `/v1/portal/invoices/${invoiceId}/link`,
+    unrelatedPortal.session,
+    {},
+  );
+  expect(invoiceLink.status).toBe(404);
 }

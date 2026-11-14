@@ -148,12 +148,23 @@ async function rejectsStepsOutOfOrder(): Promise<void> {
   expectRejected(await versioned(`${path}/fiscal-document`, fiscalBody(), 1), 409, statusInvalid);
   expect((await versioned(`${path}/approval`, {}, 9)).status).toBe(409);
   expect((await versioned(`${path}/approval`, {}, 1)).status).toBe(204);
+  expect((await versioned(`${path}/approval`, {}, 2)).status).toBe(409);
+  expect(
+    (
+      await versioned(
+        `${path}/fiscal-document`,
+        fiscalBody({ fiscal_file_id: crypto.randomUUID() }),
+        2,
+      )
+    ).status,
+  ).toBe(422);
   expectRejected(
     await versioned(`${path}/fiscal-document`, fiscalBody({ due_date: scenario.day(-1) }), 2),
     409,
     statusInvalid,
   );
   expect((await versioned(`${path}/fiscal-document`, fiscalBody(), 2)).status).toBe(204);
+  expect((await versioned(`${path}/fiscal-document`, fiscalBody(), 3)).status).toBe(409);
   expectRejected(
     await versioned(`${path}/void`, { reason: 'Intento de anular una factura emitida' }, 3),
     409,
@@ -164,6 +175,19 @@ async function rejectsStepsOutOfOrder(): Promise<void> {
 
 async function keepsSettlementWithinBalance(): Promise<void> {
   const path = `${INVOICES}/${world().invoiceId}`;
+  const missing = crypto.randomUUID();
+  expect(
+    (await keyed(`${path}/payments`, { ...paymentBody('500.00'), support_file_id: missing }))
+      .status,
+  ).toBe(422);
+  expect(
+    (
+      await keyed(`${path}/credit-notes`, {
+        ...creditBody('190.00', 'NC-B31-2003'),
+        fiscal_file_id: missing,
+      })
+    ).status,
+  ).toBe(422);
   expectRejected(
     await keyed(`${path}/payments`, paymentBody('1190.01')),
     422,
