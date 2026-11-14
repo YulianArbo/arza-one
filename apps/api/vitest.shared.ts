@@ -90,7 +90,7 @@ export const DATABASE_BOUND_FILES = [
   // Proyectos (B26): todo menos las reglas y los flujos del dominio, que se prueban solos.
   'src/modules/project/application/**/*.ts',
   'src/modules/project/interface/**/*.ts',
-  // Mesa de ayuda (B28): los casos de uso y controladores se ejecutan en integración.
+  // Servicio al cliente: mesa de ayuda (B28), PQRSF, encuestas y base de conocimiento (B29).
   'src/modules/service/application/**/*.ts',
   'src/modules/service/interface/**/*.ts',
 ];

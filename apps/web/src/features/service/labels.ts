@@ -1,8 +1,16 @@
 import { TICKET_LEVELS as LEVELS } from '@arza/contracts';
-import type { ClockState, CompensationStatus, TicketPriority, TicketStatus } from '@arza/contracts';
+import type {
+  ClockState,
+  CompensationStatus,
+  KbStatus,
+  PqrsfDueState,
+  PqrsfStatus,
+  TicketPriority,
+  TicketStatus,
+} from '@arza/contracts';
 
-// Textos y rutas de la mesa de ayuda (B28). Las etiquetas vienen de los contratos; aquí solo los
-// tonos y las rutas.
+// Textos y rutas de Servicio al cliente (B28 y B29). Las etiquetas vienen de los contratos; aquí
+// solo los tonos y las rutas.
 
 export {
   CLOCK_STATES,
@@ -14,6 +22,17 @@ export {
   TICKET_PRIORITIES,
   TICKET_STATUSES,
   TICKET_VIEWS,
+  KB_AUDIENCES,
+  KB_CATEGORIES,
+  KB_STATUSES,
+  PQRSF_APPROVALS,
+  PQRSF_CHANNELS,
+  PQRSF_DUE_STATES,
+  PQRSF_STATUSES,
+  PQRSF_TYPES,
+  PQRSF_VIEWS,
+  PRIVACY_KINDS,
+  TICKET_SURVEY_STATES,
 } from '@arza/contracts';
 
 type Tone = 'neutral' | 'success' | 'warning' | 'destructive' | 'info';
@@ -26,7 +45,37 @@ export const SERVICE_PATHS = {
   ticket: (id: string) => `${BASE}/tiquetes/${id}`,
   warranties: `${BASE}/garantias`,
   policies: `${BASE}/acuerdos`,
+  tickets: `${BASE}/tiquetes`,
+  pqrsfInbox: `${BASE}/pqrsf`,
+  pqrsfCreate: `${BASE}/pqrsf/nueva`,
+  pqrsf: (id: string) => `${BASE}/pqrsf/${id}`,
+  surveys: `${BASE}/encuestas`,
+  knowledge: `${BASE}/conocimiento`,
+  articleCreate: `${BASE}/conocimiento/nuevo`,
+  article: (id: string) => `${BASE}/conocimiento/${id}`,
+  articleEdit: (id: string) => `${BASE}/conocimiento/${id}/editar`,
 } as const;
+
+export const PQRSF_STATUS_TONES: Readonly<Record<PqrsfStatus, Tone>> = {
+  filed: 'info',
+  classified: 'info',
+  in_progress: 'neutral',
+  responded: 'success',
+  closed: 'neutral',
+};
+
+export const PQRSF_DUE_TONES: Readonly<Record<PqrsfDueState, Tone>> = {
+  on_time: 'success',
+  at_risk: 'warning',
+  overdue: 'destructive',
+  stopped: 'neutral',
+};
+
+export const KB_STATUS_TONES: Readonly<Record<KbStatus, Tone>> = {
+  draft: 'warning',
+  published: 'success',
+  archived: 'neutral',
+};
 
 export const TICKET_STATUS_TONES: Readonly<Record<TicketStatus, Tone>> = {
   new: 'info',

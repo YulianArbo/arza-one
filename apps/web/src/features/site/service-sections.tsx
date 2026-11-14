@@ -108,6 +108,8 @@ export function DeskSection(): JSX.Element {
         icon={MessagesSquare}
         title="Peticiones, quejas, reclamos, sugerencias y felicitaciones"
         text="Radique su solicitud o consulte su estado con el número de radicado."
+        href="/pqrsf"
+        action="Radicar o consultar una PQRSF"
       />
     </section>
   );

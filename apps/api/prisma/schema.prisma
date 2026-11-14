@@ -128,6 +128,10 @@ model Tenant {
   svcTicketMessages       SvcTicketMessage[]
   svcWarranties           SvcWarranty[]
   svcCompensations        SvcCompensation[]
+  svcPqrsf                SvcPqrsf[]
+  svcSurveys              SvcSurvey[]
+  svcSurveyResponses      SvcSurveyResponse[]
+  svcKbArticles           SvcKbArticle[]
 
   @@map("core_tenants")
 }
@@ -3057,6 +3061,7 @@ model SvcTicket {
   partyId            String?            @map("party_id") @db.Uuid
   requesterId        String?            @map("requester_id") @db.Uuid
   requesterName      String?            @map("requester_name")
+  requesterEmail     String?            @map("requester_email")
   projectId          String?            @map("project_id") @db.Uuid
   deliverableId      String?            @map("deliverable_id") @db.Uuid
   warrantyId         String?            @map("warranty_id") @db.Uuid
@@ -3171,4 +3176,139 @@ model SvcCompensation {
   @@index([tenantId, ticketId])
   @@index([tenantId, status])
   @@map("svc_compensations")
+}
+
+model SvcPqrsf {
+  id                String    @id @default(uuid(7)) @db.Uuid
+  tenantId          String    @map("tenant_id") @db.Uuid
+  code              String
+  type              String
+  privacyKind       String?   @map("privacy_kind")
+  channel           String
+  status            String    @default("filed")
+  approval          String    @default("none")
+  partyId           String?   @map("party_id") @db.Uuid
+  requesterName     String    @map("requester_name")
+  requesterEmail    String?   @map("requester_email")
+  requesterPhone    String?   @map("requester_phone")
+  subject           String
+  description       String
+  receivedAt        DateTime  @map("received_at") @db.Timestamptz(6)
+  termDays          Int       @map("term_days") @db.SmallInt
+  dueOn             DateTime  @map("due_on") @db.Date
+  warnOn            DateTime  @map("warn_on") @db.Date
+  assigneeId        String?   @map("assignee_id") @db.Uuid
+  classifiedAt      DateTime? @map("classified_at") @db.Timestamptz(6)
+  responseDraft     String?   @map("response_draft")
+  wellFounded       Boolean?  @map("well_founded")
+  draftedBy         String?   @map("drafted_by") @db.Uuid
+  submittedAt       DateTime? @map("submitted_at") @db.Timestamptz(6)
+  returnReason      String?   @map("return_reason")
+  response          String?
+  approvedBy        String?   @map("approved_by") @db.Uuid
+  respondedAt       DateTime? @map("responded_at") @db.Timestamptz(6)
+  transferredAt     DateTime? @map("transferred_at") @db.Timestamptz(6)
+  nonconformityAt   DateTime? @map("nonconformity_at") @db.Timestamptz(6)
+  privacyNoticeId   String?   @map("privacy_notice_id") @db.Uuid
+  privacyAcceptedAt DateTime? @map("privacy_accepted_at") @db.Timestamptz(6)
+  mailPending       String?   @map("mail_pending")
+  ackSentAt         DateTime? @map("ack_sent_at") @db.Timestamptz(6)
+  responseSentAt    DateTime? @map("response_sent_at") @db.Timestamptz(6)
+  warnedAt          DateTime? @map("warned_at") @db.Timestamptz(6)
+  breachedAt        DateTime? @map("breached_at") @db.Timestamptz(6)
+  closedAt          DateTime? @map("closed_at") @db.Timestamptz(6)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy         String?   @map("created_by") @db.Uuid
+  updatedAt         DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy         String?   @map("updated_by") @db.Uuid
+  version           Int       @default(1)
+  deletedAt         DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant            Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@index([tenantId, status])
+  @@index([tenantId, assigneeId])
+  @@index([tenantId, dueOn])
+  @@map("svc_pqrsf")
+}
+
+model SvcSurvey {
+  id                   String              @id @default(uuid(7)) @db.Uuid
+  tenantId             String              @map("tenant_id") @db.Uuid
+  key                  String
+  name                 String
+  trigger              String
+  recommendQuestion    String              @map("recommend_question")
+  satisfactionQuestion String              @map("satisfaction_question")
+  commentQuestion      String              @map("comment_question")
+  isActive             Boolean             @default(true) @map("is_active")
+  createdAt            DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy            String?             @map("created_by") @db.Uuid
+  updatedAt            DateTime            @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy            String?             @map("updated_by") @db.Uuid
+  version              Int                 @default(1)
+  deletedAt            DateTime?           @map("deleted_at") @db.Timestamptz(6)
+  tenant               Tenant              @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  responses            SvcSurveyResponse[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, key])
+  @@map("svc_surveys")
+}
+
+model SvcSurveyResponse {
+  id             String    @id @default(uuid(7)) @db.Uuid
+  tenantId       String    @map("tenant_id") @db.Uuid
+  surveyId       String    @map("survey_id") @db.Uuid
+  partyId        String?   @map("party_id") @db.Uuid
+  entityType     String    @map("entity_type")
+  entityId       String    @map("entity_id") @db.Uuid
+  recipientEmail String?   @map("recipient_email")
+  tokenHash      String?   @unique @map("token_hash")
+  expiresAt      DateTime? @map("expires_at") @db.Timestamptz(6)
+  mailPending    Boolean   @default(false) @map("mail_pending")
+  sentAt         DateTime? @map("sent_at") @db.Timestamptz(6)
+  supersededAt   DateTime? @map("superseded_at") @db.Timestamptz(6)
+  score          Int?      @db.SmallInt
+  satisfaction   Int?      @db.SmallInt
+  comment        String?
+  answeredAt     DateTime? @map("answered_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy      String?   @map("created_by") @db.Uuid
+  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy      String?   @map("updated_by") @db.Uuid
+  version        Int       @default(1)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  survey         SvcSurvey @relation(fields: [tenantId, surveyId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, entityType, entityId])
+  @@index([tenantId, answeredAt])
+  @@index([tenantId, createdAt])
+  @@map("svc_survey_responses")
+}
+
+model SvcKbArticle {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  tenantId    String    @map("tenant_id") @db.Uuid
+  title       String
+  summary     String
+  body        String
+  category    String
+  audience    String
+  status      String    @default("draft")
+  publishedAt DateTime? @map("published_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?   @map("created_by") @db.Uuid
+  updatedAt   DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?   @map("updated_by") @db.Uuid
+  version     Int       @default(1)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, status, audience])
+  @@map("svc_kb_articles")
 }

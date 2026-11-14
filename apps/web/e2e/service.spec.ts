@@ -39,6 +39,8 @@ const DETAIL = {
   description: 'Desde esta mañana el reporte queda en blanco.',
   channel: 'phone',
   requester_name: 'Ana Gómez',
+  requester_email: null,
+  survey: null,
   project: PROJECT,
   deliverable: DELIVERABLE,
   warranty: { id: '01999a00-0000-7000-8000-0000000f8301', ends_on: '2027-02-04' },

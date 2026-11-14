@@ -3,6 +3,7 @@ import {
   SLA_RULES,
   TICKET_STATUSES,
   ticketStatusSchema,
+  type PersonRef,
   type TicketAction,
 } from '@arza/contracts';
 
@@ -12,7 +13,13 @@ import { versionConflict } from '../../../platform/http/if-match.js';
 import { bogotaToday, businessDeadline } from '../../core/index.js';
 import { activeUsersWithRoles } from '../../iam/index.js';
 import { resumedClock } from './sla-clock.js';
-import { recordServiceChange, statusInvalid, type ServiceActor } from './service-support.js';
+import {
+  peopleNames,
+  personRef,
+  recordServiceChange,
+  statusInvalid,
+  type ServiceActor,
+} from './service-support.js';
 import type { TicketWithLinks } from './ticket-records.js';
 import { ticketAudit, ticketPayload } from './tickets.js';
 
@@ -26,6 +33,17 @@ const ASSIGNABLE_ROLES = ['SERVICIO', 'LIDER_TECNICO'] as const;
 
 export async function assignablePeople(tx: TenantTransaction, now: Date): Promise<string[]> {
   return activeUsersWithRoles(tx, ASSIGNABLE_ROLES, now);
+}
+
+/** Las mismas personas con su nombre, en orden alfabético: las opciones de «asignar a». */
+export async function assigneeOptions(tx: TenantTransaction, now: Date): Promise<PersonRef[]> {
+  const ids = await assignablePeople(tx, now);
+  const names = await peopleNames(tx, ids);
+  const people = ids.flatMap((personId) => {
+    const ref = personRef(names, personId);
+    return ref === null ? [] : [ref];
+  });
+  return people.sort((a, b) => a.name.localeCompare(b.name, 'es'));
 }
 
 export interface Step {

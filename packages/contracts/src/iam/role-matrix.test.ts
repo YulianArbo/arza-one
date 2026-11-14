@@ -147,3 +147,23 @@ describe('permisos de Proyectos del B27', () => {
     );
   });
 });
+
+describe('permisos de Servicio del B29', () => {
+  it('todo rol interno lee la base de conocimiento; solo Servicio la administra (decisión 10)', () => {
+    for (const role of INTERNAL_ROLE_CODES) {
+      expect(codesOf(role, false)).toContain('service.kb.read');
+    }
+    expect(codesOf('CLIENTE_ADMIN')).not.toContain('service.kb.read');
+    expect(codesOf('SERVICIO')).toEqual(
+      expect.arrayContaining([
+        'service.kb.manage',
+        'service.survey.manage',
+        'service.pqrsf.approve',
+      ]),
+    );
+    expect(codesOf('LIDER_TECNICO')).not.toContain('service.kb.manage');
+    expect(codesOf('COLABORADOR')).not.toContain('service.pqrsf.read');
+    expect(codesOf('OFICIAL_DATOS', false)).toContain('service.pqrsf.read');
+    expect(codesOf('OFICIAL_DATOS')).not.toContain('service.pqrsf.respond');
+  });
+});

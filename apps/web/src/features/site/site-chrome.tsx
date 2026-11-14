@@ -121,7 +121,8 @@ const FOOTER_COLUMNS = [
     title: 'Atención',
     links: [
       { href: '/#cotizar', label: 'Solicitar cotización' },
-      { href: '/#pqrsf', label: 'Radicar una PQRSF' },
+      { href: '/pqrsf', label: 'Radicar una PQRSF' },
+      { href: '/pqrsf/consulta', label: 'Consultar una PQRSF' },
       { href: '/#contacto', label: 'Contacto' },
     ],
   },

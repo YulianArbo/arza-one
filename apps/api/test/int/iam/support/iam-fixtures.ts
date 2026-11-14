@@ -64,13 +64,17 @@ function iamValkeyUrl(): string {
   return `${inject('valkeyUrl')}/1`;
 }
 
-export async function createIamTestApp(clock: Clock): Promise<NestExpressApplication> {
+export async function createIamTestApp(
+  clock: Clock,
+  env: Record<string, string> = {},
+): Promise<NestExpressApplication> {
   return createTestApp({
     clock,
     env: {
       DATABASE_URL: integrationDatabase().appUrl,
       VALKEY_URL: iamValkeyUrl(),
       ...storageEnv(),
+      ...env,
     },
   });
 }

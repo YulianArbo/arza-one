@@ -77,6 +77,7 @@ export const BUSINESS_PERMISSION_GROUPS = [
       ['service.pqrsf.respond', 'write', 'Responder PQRSF'],
       ['service.pqrsf.approve', 'approve', 'Aprobar respuestas de PQRSF'],
       ['service.survey.manage', 'manage', 'Administrar encuestas de satisfacción'],
+      ['service.kb.read', 'read', 'Leer la base de conocimiento'],
       ['service.kb.manage', 'manage', 'Administrar la base de conocimiento'],
       ['service.compensation.approve', 'approve', 'Aprobar compensaciones al cliente'],
       ['service.sla.manage', 'manage', 'Configurar los acuerdos de tiempo y las garantías'],

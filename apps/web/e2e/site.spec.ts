@@ -17,12 +17,15 @@ for (const theme of ['light', 'dark'] as const) {
 test('lo pendiente dice «Disponible pronto» y no hay formularios simulados', async ({ page }) => {
   await mockSession(page, 'none');
   await page.goto('/');
-  for (const id of ['proyectos', 'noticias', 'cotizar', 'pqrsf']) {
+  for (const id of ['proyectos', 'noticias', 'cotizar']) {
     await expect(page.locator(`#${id}`).getByText('Disponible pronto')).toBeVisible();
   }
   // Desde el B25 la verificación de documentos funciona: lleva a su página.
   const verify = page.locator('#verificar').getByRole('link', { name: 'Verificar un documento' });
   await expect(verify).toHaveAttribute('href', '/verificar');
+  // Desde el B29 la radicación de PQRSF funciona: lleva a su página.
+  const pqrsf = page.locator('#pqrsf').getByRole('link', { name: 'Radicar o consultar una PQRSF' });
+  await expect(pqrsf).toHaveAttribute('href', '/pqrsf');
   await expect(page.locator('main form')).toHaveCount(0);
   await expect(page.locator('main input')).toHaveCount(0);
 });

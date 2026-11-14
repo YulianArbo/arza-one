@@ -33,6 +33,7 @@ interface Values {
   readonly priority: string;
   readonly channel: string;
   readonly requesterName: string;
+  readonly requesterEmail: string;
   readonly partyId: string;
 }
 
@@ -43,6 +44,7 @@ const EMPTY: Values = {
   priority: 'medium',
   channel: 'internal',
   requesterName: '',
+  requesterEmail: '',
   partyId: '',
 };
 
@@ -85,6 +87,10 @@ function problemsOf(values: Values): Record<string, string> {
   const found: Record<string, string> = {};
   if (values.subject.trim().length < 3) found['subject'] = 'Escriba un asunto corto.';
   if (values.description.trim().length < 3) found['description'] = 'Describa la solicitud.';
+  const email = values.requesterEmail.trim();
+  if (email !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(email)) {
+    found['requester_email'] = 'Revise el correo.';
+  }
   return found;
 }
 
@@ -96,6 +102,7 @@ function bodyOf(values: Values): object {
     priority: ticketPrioritySchema.parse(values.priority),
     channel: values.channel,
     requester_name: optional(values.requesterName),
+    requester_email: optional(values.requesterEmail),
     party_id: values.partyId === '' ? null : values.partyId,
   };
 }
@@ -149,6 +156,16 @@ function ClientFields(props: PartProps): JSX.Element {
         value={props.values.requesterName}
         onChange={(event) => {
           props.set({ requesterName: event.target.value });
+        }}
+      />
+      <FormField
+        id="tiquete-correo"
+        label="Correo de quien reporta (opcional)"
+        type="email"
+        hint="Al resolver el tiquete, allí le llega la encuesta de satisfacción."
+        value={props.values.requesterEmail}
+        onChange={(event) => {
+          props.set({ requesterEmail: event.target.value });
         }}
       />
       <SelectField

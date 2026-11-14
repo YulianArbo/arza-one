@@ -112,18 +112,30 @@ async function workTenant(
   return { warned, breached, closed };
 }
 
-/** Revisa los tiquetes de todas las empresas con trabajo. */
-export async function followTicketClocks(deps: SlaWorkDependencies): Promise<SlaWorkResult> {
+/** Revisa los tiquetes de las empresas dadas. */
+export async function followTicketClocksIn(
+  deps: SlaWorkDependencies,
+  tenantIds: readonly string[],
+): Promise<SlaWorkResult> {
   const now = deps.clock.now();
-  const tenants = await deps.database.withoutTenant(
-    (tx) => tx.$queryRaw<{ id: string }[]>`SELECT svc_tenants_with_sla_work(${now}) AS id`,
-  );
   const total = { warned: 0, breached: 0, closed: 0 };
-  for (const { id } of tenants) {
+  for (const id of tenantIds) {
     const result = await workTenant(deps, id, now);
     total.warned += result.warned;
     total.breached += result.breached;
     total.closed += result.closed;
   }
   return total;
+}
+
+/** Revisa los tiquetes de todas las empresas con trabajo. */
+export async function followTicketClocks(deps: SlaWorkDependencies): Promise<SlaWorkResult> {
+  const now = deps.clock.now();
+  const tenants = await deps.database.withoutTenant(
+    (tx) => tx.$queryRaw<{ id: string }[]>`SELECT svc_tenants_with_sla_work(${now}) AS id`,
+  );
+  return followTicketClocksIn(
+    deps,
+    tenants.map((row) => row.id),
+  );
 }

@@ -44,7 +44,9 @@ describe('consultar roles y permisos', () => {
     const catalog = permissionCatalogResponseSchema.parse(
       (await scenario.get('/v1/permissions', director.session)).body,
     );
-    expect(catalog.groups.flatMap((group) => group.permissions)).toHaveLength(203);
+    // 204: el anexo G más «Configurar los acuerdos de tiempo» (B28) y «Leer la base de
+    // conocimiento» (B29).
+    expect(catalog.groups.flatMap((group) => group.permissions)).toHaveLength(204);
   });
 
   it('un rol del sistema no se edita', async () => {

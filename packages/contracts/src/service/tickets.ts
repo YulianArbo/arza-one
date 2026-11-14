@@ -8,6 +8,7 @@ import {
   personRefSchema,
   versionSchema,
 } from '../crm/common.js';
+import { emailSchema } from '../iam/auth.js';
 import {
   slaCalendarSchema,
   ticketCategorySchema,
@@ -16,6 +17,7 @@ import {
   ticketPrioritySchema,
   ticketStatusSchema,
 } from './common.js';
+import { ticketSurveySchema } from './surveys.js';
 
 // Tiquetes de la mesa de ayuda (B28, ficha 17.9, FT-SAC-001): registro, bandeja, ficha, conversación
 // y las acciones del recorrido.
@@ -32,6 +34,10 @@ const ticketFieldsSchema = z.strictObject({
   priority: ticketPrioritySchema,
   party_id: z.uuid().nullable().default(null).describe('Cliente, de Terceros; vacío si es interno'),
   requester_name: optionalText(160).describe('Nombre de quien reporta en el cliente'),
+  requester_email: emailSchema
+    .nullable()
+    .default(null)
+    .describe('Correo de quien reporta: allí llega la encuesta al resolverlo (B29)'),
   project_id: z.uuid().nullable().default(null).describe('Proyecto relacionado'),
   deliverable_id: z
     .uuid()
@@ -99,6 +105,8 @@ export const ticketDetailSchema = ticketSummarySchema.extend({
   description: z.string(),
   channel: ticketChannelSchema,
   requester_name: z.string().nullable(),
+  requester_email: z.string().nullable(),
+  survey: ticketSurveySchema.nullable().describe('La encuesta de satisfacción, si ya se resolvió'),
   project: codeRefSchema.nullable(),
   deliverable: z.object({ id: z.uuid(), name: z.string() }).nullable(),
   warranty: z.object({ id: z.uuid(), ends_on: calendarDateSchema }).nullable(),
