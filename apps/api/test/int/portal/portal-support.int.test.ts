@@ -55,6 +55,13 @@ it('solo permite vincular un proyecto visible al radicar soporte', async () => {
   expect(denied.status).toBe(404);
   const allowed = await scenario.portalPost(world.admin, '/v1/portal/tickets', body);
   expect(allowed.status, allowed.text).toBe(201);
+  const list = portalTicketListSchema.parse(await scenario.read(world.admin, '/v1/portal/tickets'));
+  expect(list.data).toContainEqual(
+    expect.objectContaining({
+      subject: body.subject,
+      project: (await scenario.project(world.leader, world.projectId)).name,
+    }),
+  );
 });
 
 async function ticketOf(person: Person, id: string) {
@@ -146,6 +153,16 @@ it('admite mensajes de un tiquete abierto y rechaza mensajes después del cierre
   await agentStep(agent, id, 'resolve', { resolution: 'Se corrigió el reporte.' });
   await agentStep(agent, id, 'close');
   expect((await scenario.portalPost(world.user, path, body)).status).toBe(409);
+  const closed = await ticketOf(world.user, id);
+  expect(closed.can_reply).toBe(false);
+  const message = closed.messages.find((row) => row.body === body.body);
+  expect(typeof message?.author).toBe('string');
+  expect(closed.messages).toContainEqual(
+    expect.objectContaining({
+      body: body.body,
+      from_client: true,
+    }),
+  );
 });
 
 describe('PQRSF y artículos', () => {
