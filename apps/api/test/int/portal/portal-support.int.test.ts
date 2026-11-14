@@ -147,6 +147,13 @@ describe('PQRSF y artículos', () => {
     );
     expect(listed.data.map((row) => row.id)).toContain(ids.client);
     expect(listed.data.map((row) => row.id)).not.toContain(ids.internal);
+    const matching = portalArticleListSchema.parse(
+      await scenario.read(world.user, '/v1/portal/articles?q=Facturas'),
+    );
+    expect(matching.data.map((row) => row.id)).toEqual([ids.client]);
+    expect(
+      (await scenario.get(`/v1/portal/articles/${ids.client}`, world.user.session)).status,
+    ).toBe(200);
     expect(
       (await scenario.get(`/v1/portal/articles/${ids.internal}`, world.user.session)).status,
     ).toBe(404);

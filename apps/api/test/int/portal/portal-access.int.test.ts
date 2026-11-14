@@ -83,6 +83,10 @@ describe('términos sin publicar', () => {
       tenantId: scenario.otherTenant.id,
     });
     expect((await scenario.terms(person)).status).toBe('unavailable');
+    const acceptance = await scenario.portalPost(person, '/v1/portal/terms/acceptance', {
+      notice_ids: [crypto.randomUUID()],
+    });
+    expect(acceptance.status).toBe(503);
     const response = await scenario.get('/v1/portal/home', person.session);
     expect(response.status).toBe(503);
     expect(response.body).toMatchObject({ error: { code: 'PORTAL_TERMS_UNAVAILABLE' } });
