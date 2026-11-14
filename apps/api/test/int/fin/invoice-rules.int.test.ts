@@ -247,7 +247,17 @@ async function acceptsOnlyOneConcurrentPayment(): Promise<void> {
     keyed(path, paymentBody('500.00')),
     keyed(path, paymentBody('500.00')),
   ]);
-  expect(responses.map((response) => response.status).sort()).toEqual([201, 409]);
+  const accepted = responses.filter((response) => response.status === 201);
+  const refused = responses.filter((response) => response.status !== 201);
+  expect(accepted).toHaveLength(1);
+  expect(refused).toHaveLength(1);
+  const [failure] = refused;
+  if (failure === undefined) throw new Error('Falta la respuesta del recaudo rechazado');
+  if (failure.status === 422) {
+    expectRejected(failure, 422, 'FIN_PAYMENT_INVALID');
+  } else {
+    expect(failure.status, failure.text).toBe(409);
+  }
   expect(await detail(world().invoiceId)).toMatchObject({
     status: 'paid',
     paid_total: '1000.00',
