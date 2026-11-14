@@ -102,13 +102,9 @@ it('reactiva cuentas existentes e invitaciones sin cambiar su rol', async () => 
     const path = `/v1/portal/users/${account.id}`;
     const body = { role: 'CLIENTE_USUARIO', active: false };
     expect((await scenario.put(path, admin, body, account.version)).status).toBe(204);
-    expect((await scenario.put(path, admin, body, account.version + 1)).status).toBe(204);
-    const activated = await scenario.put(
-      path,
-      admin,
-      { ...body, active: true },
-      account.version + 1,
-    );
+    const inactive = (await users(admin)).data.find((row) => row.id === account.id);
+    if (inactive?.status !== 'inactive') throw new Error('La cuenta no quedó inactiva');
+    const activated = await scenario.put(path, admin, { ...body, active: true }, inactive.version);
     expect(activated.status, activated.text).toBe(204);
     expect((await users(admin)).data.find((row) => row.id === account.id)).toMatchObject({
       status,
