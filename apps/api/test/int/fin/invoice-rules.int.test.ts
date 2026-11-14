@@ -5,6 +5,7 @@ import {
   type InvoiceDetail,
 } from '@arza/contracts';
 import type { Response } from 'supertest';
+import { v7 as uuidv7 } from 'uuid';
 import { describe, expect, it } from 'vitest';
 
 import type { Person } from '../iam/support/access-scenario.js';
@@ -124,8 +125,12 @@ async function prepare(): Promise<void> {
 async function voidedRequestFreesMilestone(): Promise<void> {
   const body = { milestone_id: world().milestoneId };
   world().voidedId = createdId(await keyed(INVOICES, body));
+  const key = crypto.randomUUID();
   expectRejected(await keyed(INVOICES, body), 422, 'FIN_MILESTONE_NOT_BILLABLE');
   expect(await availableMilestoneIds()).not.toContain(world().milestoneId);
+  const path = `${INVOICES}/${world().voidedId}/void`;
+  const reason = { reason: 'Solicitud creada por error en la prueba' };
+  expect((await versioned(path, reason, 9)).status).toBe(409);
   const voided = await versioned(
     `${INVOICES}/${world().voidedId}/void`,
     { reason: 'Solicitud creada por error en la prueba' },
@@ -133,7 +138,9 @@ async function voidedRequestFreesMilestone(): Promise<void> {
   );
   expect(voided.status, voided.text).toBe(204);
   expect(await availableMilestoneIds()).toContain(world().milestoneId);
-  world().invoiceId = createdId(await keyed(INVOICES, body));
+  world().invoiceId = createdId(await keyed(INVOICES, body, key));
+  expect(createdId(await keyed(INVOICES, body, key))).toBe(world().invoiceId);
+  expect((await keyed(INVOICES, { milestone_id: crypto.randomUUID() }, key)).status).toBe(409);
   expect(world().invoiceId).not.toBe(world().voidedId);
   expect(await auditActions(scenario.db, scenario.tenant.id, world().voidedId)).toEqual([
     'finance.invoice.request:success',
@@ -145,15 +152,32 @@ async function rejectsStepsOutOfOrder(): Promise<void> {
   const path = `${INVOICES}/${world().invoiceId}`;
   const statusInvalid = 'FIN_INVOICE_STATUS_INVALID';
   expectRejected(await keyed(`${path}/payments`, paymentBody('100.00')), 409, statusInvalid);
+  expectRejected(
+    await keyed(`${path}/credit-notes`, creditBody('100.00', 'NC-NO-EMITIDA')),
+    409,
+    statusInvalid,
+  );
   expectRejected(await versioned(`${path}/fiscal-document`, fiscalBody(), 1), 409, statusInvalid);
   expect((await versioned(`${path}/approval`, {}, 9)).status).toBe(409);
-  expect((await versioned(`${path}/approval`, {}, 1)).status).toBe(204);
+  await succeedsOnReplay(`${path}/approval`, {}, 1);
+  expect((await versioned(`${path}/approval`, {}, 2)).status).toBe(409);
+  expect(
+    (
+      await versioned(
+        `${path}/fiscal-document`,
+        fiscalBody({ fiscal_file_id: crypto.randomUUID() }),
+        2,
+      )
+    ).status,
+  ).toBe(422);
   expectRejected(
     await versioned(`${path}/fiscal-document`, fiscalBody({ due_date: scenario.day(-1) }), 2),
     409,
     statusInvalid,
   );
-  expect((await versioned(`${path}/fiscal-document`, fiscalBody(), 2)).status).toBe(204);
+  expect((await versioned(`${path}/fiscal-document`, fiscalBody(), 9)).status).toBe(409);
+  await succeedsOnReplay(`${path}/fiscal-document`, fiscalBody(), 2);
+  expect((await versioned(`${path}/fiscal-document`, fiscalBody(), 3)).status).toBe(409);
   expectRejected(
     await versioned(`${path}/void`, { reason: 'Intento de anular una factura emitida' }, 3),
     409,
@@ -162,8 +186,33 @@ async function rejectsStepsOutOfOrder(): Promise<void> {
   expect(await detail(world().invoiceId)).toMatchObject({ status: 'issued', balance: '1190.00' });
 }
 
+async function succeedsOnReplay(path: string, body: object, version: number): Promise<void> {
+  const key = crypto.randomUUID();
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const response = await keyed(path, body, key).set('If-Match', `"${String(version)}"`);
+    expect(response.status, response.text).toBe(204);
+  }
+}
+
+async function rejectsMissingSettlementFiles(path: string): Promise<void> {
+  const missing = crypto.randomUUID();
+  expect(
+    (await keyed(`${path}/payments`, { ...paymentBody('500.00'), support_file_id: missing }))
+      .status,
+  ).toBe(422);
+  expect(
+    (
+      await keyed(`${path}/credit-notes`, {
+        ...creditBody('190.00', 'NC-B31-2003'),
+        fiscal_file_id: missing,
+      })
+    ).status,
+  ).toBe(422);
+}
+
 async function keepsSettlementWithinBalance(): Promise<void> {
   const path = `${INVOICES}/${world().invoiceId}`;
+  await rejectsMissingSettlementFiles(path);
   expectRejected(
     await keyed(`${path}/payments`, paymentBody('1190.01')),
     422,
@@ -178,7 +227,13 @@ async function keepsSettlementWithinBalance(): Promise<void> {
     422,
     'FIN_CREDIT_NOTE_INVALID',
   );
-  createdId(await keyed(`${path}/credit-notes`, creditBody('190.00', 'NC-B31-2002')));
+  const creditKey = crypto.randomUUID();
+  const credit = creditBody('190.00', 'NC-B31-2002');
+  const creditId = createdId(await keyed(`${path}/credit-notes`, credit, creditKey));
+  expect(createdId(await keyed(`${path}/credit-notes`, credit, creditKey))).toBe(creditId);
+  expect(
+    (await keyed(`${path}/credit-notes`, creditBody('190.00', 'NC-B31-2004'), creditKey)).status,
+  ).toBe(409);
   expect(await detail(world().invoiceId)).toMatchObject({
     status: 'partially_paid',
     paid_total: '500.00',
@@ -216,5 +271,14 @@ describe('reglas de facturación', () => {
 
   it('acepta solo uno de dos recaudos simultáneos por el mismo saldo', async () => {
     await acceptsOnlyOneConcurrentPayment();
+  });
+
+  it('rechaza operaciones sobre una factura inexistente', async () => {
+    const path = `${INVOICES}/${uuidv7()}`;
+    expect((await keyed(`${path}/payments`, paymentBody('1.00'))).status).toBe(404);
+    expect((await keyed(`${path}/credit-notes`, creditBody('1.00', 'NC-INEXISTENTE'))).status).toBe(
+      404,
+    );
+    expect((await versioned(`${path}/approval`, {}, 1)).status).toBe(404);
   });
 });

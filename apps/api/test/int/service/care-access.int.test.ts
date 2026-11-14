@@ -1,3 +1,4 @@
+import { pqrsfListResponseSchema, surveyListResponseSchema } from '@arza/contracts';
 import { describe, expect, it } from 'vitest';
 
 import { CareScenario } from './support/care-scenario.js';
@@ -8,6 +9,41 @@ import { CareScenario } from './support/care-scenario.js';
 // ficticios.
 
 const scenario = new CareScenario('pqrsf y encuestas: acceso');
+
+it('pagina las peticiones de una búsqueda sin repetir registros', async () => {
+  const agent = await scenario.agent();
+  const subject = 'Solicitud de copia del expediente';
+  const first = await scenario.filePublic({ subject, type: 'petition' });
+  const second = await scenario.filePublic({ subject, type: 'petition' });
+  await scenario.filePublic({ subject, type: 'complaint' });
+  const path = `/v1/pqrsf?type=petition&q=${encodeURIComponent(subject)}&limit=1`;
+  const page = pqrsfListResponseSchema.parse((await scenario.get(path, agent.session)).body);
+  const cursor = page.next_cursor;
+  if (cursor === null) throw new Error('Falta el cursor de la segunda página');
+  const next = pqrsfListResponseSchema.parse(
+    (await scenario.get(`${path}&cursor=${cursor}`, agent.session)).body,
+  );
+  expect(next.next_cursor).toBeNull();
+  expect([...page.data, ...next.data].map((row) => row.code).sort()).toEqual(
+    [first.code, second.code].sort(),
+  );
+});
+
+it('Servicio no puede editar la encuesta de otra empresa', async () => {
+  const agent = await scenario.agent();
+  const stranger = await scenario.agent(scenario.otherTenant.id);
+  const list = await scenario.get('/v1/surveys', agent.session);
+  const [survey] = surveyListResponseSchema.parse(list.body).data;
+  if (survey === undefined) throw new Error('No aparece la encuesta');
+  const { name, recommend_question, satisfaction_question, comment_question } = survey;
+  const response = await scenario.put(
+    `/v1/surveys/${survey.id}`,
+    stranger,
+    { name, recommend_question, satisfaction_question, comment_question, is_active: false },
+    survey.version,
+  );
+  expect(response.status, response.text).toBe(404);
+});
 
 describe('permiso denegado: PQRSF', () => {
   it('Comercial lee pero no clasifica; el colaborador y el Contador no entran', async () => {
@@ -33,6 +69,14 @@ describe('permiso denegado: PQRSF', () => {
     const tech = await scenario.person('lider-tecnico', ['LIDER_TECNICO']);
     const drafter = await scenario.agent();
     const id = await scenario.submitted(drafter);
+    const version = (await scenario.pqrsfOf(drafter, id)).version;
+    const respond = `/v1/pqrsf/${id}/actions/respond`;
+    expect((await scenario.action(respond, drafter, version)).status).toBe(409);
+    const draft = await scenario.pqrsfStep(drafter, id, 'draft', {
+      response: 'Una respuesta no puede editarse mientras espera aprobación.',
+      well_founded: false,
+    });
+    expect(draft.status).toBe(409);
     expect((await scenario.pqrsfOf(tech, id)).can.approve).toBe(false);
     expect((await scenario.pqrsfStep(tech, id, 'approve')).status).toBe(403);
     expect((await scenario.pqrsfStep(tech, id, 'return', { reason: 'No.' })).status).toBe(403);

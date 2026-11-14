@@ -123,8 +123,10 @@ La cuarta crea las tablas nuevas; la quinta carga los plazos de PQRSF, la encues
 permisos nuevos. Su archivo `.env` ya tiene la línea `PUBLIC_SITE_TAX_ID=900000000-0` (el NIT de
 prueba de ARZA TECH): así el formulario público sabe a qué empresa llegan las PQRSF.
 
-> Si `pnpm db:migrate` dice que una migración «fue modificada», escriba `pnpm infra:reset` y repita
-> los pasos (borra los datos de prueba locales, no los reales).
+> Si `pnpm infra:up` termina con «Falló pnpm db:seed:demo» y más arriba dice «violates check
+> constraint» (o si `pnpm db:migrate` dice que una migración «fue modificada»), su base de datos
+> local quedó con un borrador anterior de una migración que cambié mientras construía. Escriba
+> `pnpm infra:reset` y repita los pasos: borra solo los datos de prueba locales, no los reales.
 
 ### 2. Radicar una PQRSF como cualquier persona
 

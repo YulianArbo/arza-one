@@ -37,41 +37,80 @@ describe('invitar', () => {
   });
 });
 
-describe('cambiar y desactivar', () => {
-  it('cambia el rol y desactiva a otro, nunca a sí mismo, con su auditoría', async () => {
-    const world = await scenario.clientWorld();
-    const path = `/v1/portal/users/${world.user.id}`;
-    const version =
-      (await users(world.admin)).data.find((row) => row.id === world.user.id)?.version ?? 0;
-    const promote = await scenario.put(
-      path,
-      world.admin,
-      { role: 'CLIENTE_ADMIN', active: true },
-      version,
-    );
-    expect(promote.status, promote.text).toBe(204);
-    const promoted = (await users(world.admin)).data.find((row) => row.id === world.user.id);
-    expect(promoted?.role).toBe('CLIENTE_ADMIN');
-    const off = await scenario.put(
-      path,
-      world.admin,
-      { role: 'CLIENTE_ADMIN', active: false },
-      promoted?.version ?? 0,
-    );
-    expect(off.status, off.text).toBe(204);
-    expect((await scenario.get('/v1/portal/home', world.user.session)).status).toBe(401);
-    const self = `/v1/portal/users/${world.admin.id}`;
-    const me = (await users(world.admin)).data.find((row) => row.is_me);
-    const own = await scenario.put(
-      self,
-      world.admin,
-      { role: 'CLIENTE_USUARIO', active: true },
-      me?.version ?? 0,
-    );
-    expect(own.status).toBe(422);
-    const actions = await scenario.auditActionsOf(world.user.id);
-    expect(actions).toEqual(expect.arrayContaining(['iam.role.assign', 'iam.portal_user.status']));
+it('cambia el rol y desactiva a otro, nunca a sí mismo, con su auditoría', async () => {
+  const world = await scenario.clientWorld();
+  const path = `/v1/portal/users/${world.user.id}`;
+  const version =
+    (await users(world.admin)).data.find((row) => row.id === world.user.id)?.version ?? 0;
+  const promote = await scenario.put(
+    path,
+    world.admin,
+    { role: 'CLIENTE_ADMIN', active: true },
+    version,
+  );
+  expect(promote.status, promote.text).toBe(204);
+  const promoted = (await users(world.admin)).data.find((row) => row.id === world.user.id);
+  expect(promoted?.role).toBe('CLIENTE_ADMIN');
+  const off = await scenario.put(
+    path,
+    world.admin,
+    { role: 'CLIENTE_ADMIN', active: false },
+    promoted?.version ?? 0,
+  );
+  expect(off.status, off.text).toBe(204);
+  expect((await scenario.get('/v1/portal/home', world.user.session)).status).toBe(401);
+  const self = `/v1/portal/users/${world.admin.id}`;
+  const me = (await users(world.admin)).data.find((row) => row.is_me);
+  const own = await scenario.put(
+    self,
+    world.admin,
+    { role: 'CLIENTE_USUARIO', active: true },
+    me?.version ?? 0,
+  );
+  expect(own.status).toBe(422);
+  const actions = await scenario.auditActionsOf(world.user.id);
+  expect(actions).toEqual(expect.arrayContaining(['iam.role.assign', 'iam.portal_user.status']));
+});
+it('rechaza cambios de rol con una versión obsoleta', async () => {
+  const world = await scenario.clientWorld();
+  const row = (await users(world.admin)).data.find((user) => user.id === world.user.id);
+  if (row === undefined) throw new Error('No aparece el usuario del portal');
+  const outdated = await scenario.put(
+    `/v1/portal/users/${row.id}`,
+    world.admin,
+    { role: 'CLIENTE_ADMIN', active: true },
+    row.version + 1,
+  );
+  expect(outdated.status).toBe(409);
+});
+
+it('reactiva cuentas existentes e invitaciones sin cambiar su rol', async () => {
+  const { admin, user } = await scenario.clientWorld();
+  const email = `reactivar-${crypto.randomUUID()}@cliente.test`;
+  const invited = await scenario.portalPost(admin, '/v1/portal/users', {
+    email,
+    display_name: 'Persona invitada',
+    role: 'CLIENTE_USUARIO',
   });
+  expect(invited.status, invited.text).toBe(201);
+  for (const [address, status] of [
+    [user.email, 'active'],
+    [email, 'invited'],
+  ]) {
+    const account = (await users(admin)).data.find((row) => row.email === address);
+    if (account === undefined) throw new Error('No aparece la cuenta');
+    const path = `/v1/portal/users/${account.id}`;
+    const body = { role: 'CLIENTE_USUARIO', active: false };
+    expect((await scenario.put(path, admin, body, account.version)).status).toBe(204);
+    const inactive = (await users(admin)).data.find((row) => row.id === account.id);
+    if (inactive?.status !== 'inactive') throw new Error('La cuenta no quedó inactiva');
+    const activated = await scenario.put(path, admin, { ...body, active: true }, inactive.version);
+    expect(activated.status, activated.text).toBe(204);
+    expect((await users(admin)).data.find((row) => row.id === account.id)).toMatchObject({
+      status,
+      role: 'CLIENTE_USUARIO',
+    });
+  }
 });
 
 describe('mis datos', () => {
