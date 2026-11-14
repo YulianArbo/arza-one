@@ -110,17 +110,24 @@ describe('incidentes', () => {
     const list = await scenario.get(`/v1/projects/${id}/incidents`, leader.session);
     const [row] = (list.body as { data: { code: string; version: number }[] }).data;
     expect(row?.code).toMatch(/^INC-\d{4}-\d{4}$/u);
-    const resolved = await scenario.action(
-      `/v1/projects/${id}/incidents/${incident}/actions/resolve`,
-      leader,
-      row?.version ?? 0,
-      {
-        resolved_at: scenario.clock.now().toISOString(),
-        root_cause: 'Permiso público por omisión.',
-        actions: 'Enlaces firmados y revisión de permisos.',
-      },
-    );
+    const path = `/v1/projects/${id}/incidents/${incident}/actions/resolve`;
+    const version = row?.version ?? 0;
+    const resolution = {
+      resolved_at: scenario.clock.now().toISOString(),
+      root_cause: 'Permiso público por omisión.',
+      actions: 'Enlaces firmados y revisión de permisos.',
+    };
+    const premature = await scenario.action(path, leader, version, {
+      ...resolution,
+      resolved_at: new Date(scenario.clock.now().getTime() - 60_000).toISOString(),
+    });
+    expect(premature.status).toBe(422);
+    const stale = await scenario.action(path, leader, version + 1, resolution);
+    expect(stale.status).toBe(409);
+    const resolved = await scenario.action(path, leader, version, resolution);
     expect(resolved.status, resolved.text).toBe(204);
+    const repeated = await scenario.action(path, leader, version + 1, resolution);
+    expect(errorCode(repeated)).toBe('PROJECT_STATUS_INVALID');
   });
 });
 

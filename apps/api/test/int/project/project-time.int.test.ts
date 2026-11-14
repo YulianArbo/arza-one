@@ -20,6 +20,29 @@ async function teamProject(): Promise<{ leader: Person; developer: Person; id: s
   return { leader, developer, id };
 }
 
+it('valida el ítem y la versión al corregir horas', async () => {
+  const { leader, developer, id } = await teamProject();
+  const otherProject = await scenario.runningProject(leader);
+  const otherItem = await scenario.item(leader, otherProject);
+  expect(errorCode(await scenario.logTime(developer, id, { item_id: otherItem }))).toBe(
+    'PROJECT_TIME_INVALID',
+  );
+  expect((await scenario.logTime(developer, id)).status).toBe(201);
+  const [entry] = (await scenario.times(developer, id)).data;
+  if (entry === undefined) throw new Error('No aparece la hora registrada');
+  const path = `/v1/projects/${id}/time-entries/${entry.id}`;
+  const body = {
+    work_date: scenario.day(0),
+    hours: 2,
+    item_id: null,
+    billable: true,
+    note: null,
+  };
+  expect((await scenario.put(path, leader, body, entry.version)).status).toBe(403);
+  expect((await scenario.put(path, developer, body, entry.version + 1)).status).toBe(409);
+  expect((await scenario.times(developer, id)).total_hours).toBe(4);
+});
+
 describe('registrar horas', () => {
   it('rechaza el octavo día de atraso, el futuro, lo que no es cuarto de hora y más de 24 h', async () => {
     const { developer, id } = await teamProject();
@@ -64,6 +87,13 @@ describe('quién registra y quién ve', () => {
     const seen = (await scenario.times(member, id)).data.map((row) => row.person.id);
     expect(seen).toEqual([member.id]);
     expect((await scenario.times(leader, id)).data).toHaveLength(2);
+    const filtered = await scenario.times(
+      leader,
+      id,
+      `?from=${scenario.day(0)}&to=${scenario.day(0)}&status=registered`,
+    );
+    expect(filtered.data).toHaveLength(2);
+    expect((await scenario.times(leader, id, `?to=${scenario.day(-1)}`)).data).toEqual([]);
 
     const options = await scenario.get('/v1/time-entries/options', member.session);
     expect(options.status, options.text).toBe(200);
@@ -105,8 +135,14 @@ describe('aprobar horas', () => {
     expect(errorCode(self)).toBe('PROJECT_TIME_INVALID');
     const denied = await scenario.post(approvePath, developer.session, { ids: [first.id] });
     expect(denied.status).toBe(403);
+    const missing = await scenario.post(approvePath, leader.session, {
+      ids: [first.id, '00000000-0000-4000-8000-000000000001'],
+    });
+    expect(missing.status).toBe(404);
     const approved = await scenario.post(approvePath, leader.session, { ids: [first.id] });
     expect(approved.status, approved.text).toBe(201);
+    const repeated = await scenario.post(approvePath, leader.session, { ids: [first.id] });
+    expect(errorCode(repeated)).toBe('PROJECT_STATUS_INVALID');
     const locked = await scenario.put(
       `/v1/projects/${id}/time-entries/${first.id}`,
       developer,
@@ -134,6 +170,13 @@ describe('devolver horas', () => {
       { reason: 'Indique en qué ítem trabajó.' },
     );
     expect(returned.status, returned.text).toBe(204);
+    const repeated = await scenario.action(
+      `/v1/projects/${id}/time-entries/${second.id}/actions/return`,
+      leader,
+      second.version + 1,
+      { reason: 'Indique en qué ítem trabajó.' },
+    );
+    expect(errorCode(repeated)).toBe('PROJECT_STATUS_INVALID');
     await scenario.dispatchNotices();
     expect((await scenario.noticesFor(developer.id)).join(' ')).toContain('devolvieron');
     const indicators = await scenario.indicators(leader, id);
