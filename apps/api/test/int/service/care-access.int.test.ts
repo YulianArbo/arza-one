@@ -1,3 +1,4 @@
+import { surveyListResponseSchema } from '@arza/contracts';
 import { describe, expect, it } from 'vitest';
 
 import { CareScenario } from './support/care-scenario.js';
@@ -8,6 +9,22 @@ import { CareScenario } from './support/care-scenario.js';
 // ficticios.
 
 const scenario = new CareScenario('pqrsf y encuestas: acceso');
+
+it('Servicio no puede editar la encuesta de otra empresa', async () => {
+  const agent = await scenario.agent();
+  const stranger = await scenario.agent(scenario.otherTenant.id);
+  const list = await scenario.get('/v1/surveys', agent.session);
+  const [survey] = surveyListResponseSchema.parse(list.body).data;
+  if (survey === undefined) throw new Error('No aparece la encuesta');
+  const { name, recommend_question, satisfaction_question, comment_question } = survey;
+  const response = await scenario.put(
+    `/v1/surveys/${survey.id}`,
+    stranger,
+    { name, recommend_question, satisfaction_question, comment_question, is_active: false },
+    survey.version,
+  );
+  expect(response.status, response.text).toBe(404);
+});
 
 describe('permiso denegado: PQRSF', () => {
   it('Comercial lee pero no clasifica; el colaborador y el Contador no entran', async () => {
