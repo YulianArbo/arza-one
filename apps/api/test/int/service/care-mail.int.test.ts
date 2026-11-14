@@ -137,8 +137,11 @@ describe('encuesta al resolver (decisiones 8 y 9)', () => {
     expect(view.status, view.text).toBe(200);
     expect(view.body).toMatchObject({ state: 'open' });
     const answer = { token, score: 10, satisfaction: 5, comment: 'Muy buena atención.' };
-    expect((await scenario.public('surveys/answer', answer)).status).toBe(204);
-    expect((await scenario.public('surveys/answer', answer)).status).toBe(409);
+    const responses = await Promise.all([
+      scenario.public('surveys/answer', answer),
+      scenario.public('surveys/answer', answer),
+    ]);
+    expect(responses.map((response) => response.status).sort()).toEqual([204, 409]);
     expect((await scenario.public('surveys/view', { token })).body).toMatchObject({
       state: 'answered',
     });
