@@ -37,41 +37,51 @@ describe('invitar', () => {
   });
 });
 
-describe('cambiar y desactivar', () => {
-  it('cambia el rol y desactiva a otro, nunca a sí mismo, con su auditoría', async () => {
-    const world = await scenario.clientWorld();
-    const path = `/v1/portal/users/${world.user.id}`;
-    const version =
-      (await users(world.admin)).data.find((row) => row.id === world.user.id)?.version ?? 0;
-    const promote = await scenario.put(
-      path,
-      world.admin,
-      { role: 'CLIENTE_ADMIN', active: true },
-      version,
-    );
-    expect(promote.status, promote.text).toBe(204);
-    const promoted = (await users(world.admin)).data.find((row) => row.id === world.user.id);
-    expect(promoted?.role).toBe('CLIENTE_ADMIN');
-    const off = await scenario.put(
-      path,
-      world.admin,
-      { role: 'CLIENTE_ADMIN', active: false },
-      promoted?.version ?? 0,
-    );
-    expect(off.status, off.text).toBe(204);
-    expect((await scenario.get('/v1/portal/home', world.user.session)).status).toBe(401);
-    const self = `/v1/portal/users/${world.admin.id}`;
-    const me = (await users(world.admin)).data.find((row) => row.is_me);
-    const own = await scenario.put(
-      self,
-      world.admin,
-      { role: 'CLIENTE_USUARIO', active: true },
-      me?.version ?? 0,
-    );
-    expect(own.status).toBe(422);
-    const actions = await scenario.auditActionsOf(world.user.id);
-    expect(actions).toEqual(expect.arrayContaining(['iam.role.assign', 'iam.portal_user.status']));
-  });
+it('cambia el rol y desactiva a otro, nunca a sí mismo, con su auditoría', async () => {
+  const world = await scenario.clientWorld();
+  const path = `/v1/portal/users/${world.user.id}`;
+  const version =
+    (await users(world.admin)).data.find((row) => row.id === world.user.id)?.version ?? 0;
+  const promote = await scenario.put(
+    path,
+    world.admin,
+    { role: 'CLIENTE_ADMIN', active: true },
+    version,
+  );
+  expect(promote.status, promote.text).toBe(204);
+  const promoted = (await users(world.admin)).data.find((row) => row.id === world.user.id);
+  expect(promoted?.role).toBe('CLIENTE_ADMIN');
+  const off = await scenario.put(
+    path,
+    world.admin,
+    { role: 'CLIENTE_ADMIN', active: false },
+    promoted?.version ?? 0,
+  );
+  expect(off.status, off.text).toBe(204);
+  expect((await scenario.get('/v1/portal/home', world.user.session)).status).toBe(401);
+  const self = `/v1/portal/users/${world.admin.id}`;
+  const me = (await users(world.admin)).data.find((row) => row.is_me);
+  const own = await scenario.put(
+    self,
+    world.admin,
+    { role: 'CLIENTE_USUARIO', active: true },
+    me?.version ?? 0,
+  );
+  expect(own.status).toBe(422);
+  const actions = await scenario.auditActionsOf(world.user.id);
+  expect(actions).toEqual(expect.arrayContaining(['iam.role.assign', 'iam.portal_user.status']));
+});
+it('rechaza cambios de rol con una versión obsoleta', async () => {
+  const world = await scenario.clientWorld();
+  const row = (await users(world.admin)).data.find((user) => user.id === world.user.id);
+  if (row === undefined) throw new Error('No aparece el usuario del portal');
+  const outdated = await scenario.put(
+    `/v1/portal/users/${row.id}`,
+    world.admin,
+    { role: 'CLIENTE_ADMIN', active: true },
+    row.version + 1,
+  );
+  expect(outdated.status).toBe(409);
 });
 
 describe('mis datos', () => {
