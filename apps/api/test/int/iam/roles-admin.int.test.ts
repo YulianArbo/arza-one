@@ -44,7 +44,7 @@ describe('consultar roles y permisos', () => {
     const catalog = permissionCatalogResponseSchema.parse(
       (await scenario.get('/v1/permissions', director.session)).body,
     );
-    expect(catalog.groups.flatMap((group) => group.permissions)).toHaveLength(202);
+    expect(catalog.groups.flatMap((group) => group.permissions)).toHaveLength(203);
   });
 
   it('un rol del sistema no se edita', async () => {

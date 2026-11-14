@@ -9,12 +9,14 @@ export {
   activeProcesses,
   orgUnitsById,
   positionsById,
+  processOwnerPositionId,
   type OrgUnitRecord,
   type PositionSummary,
 } from './application/org-directory.js';
 export {
   businessDeadline,
   businessHoursDeadline,
+  businessMinutesElapsed,
   nextBusinessMoment,
 } from './application/calendar.js';
 export { discountCapOn, workScheduleOn } from './application/parameters.js';

@@ -9,6 +9,7 @@ import type {
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import { contractsForProjects } from '../../contract/index.js';
 import { billableAmount } from '../domain/control-rules.js';
+import { notifyDeliverableAccepted } from './project-directory.js';
 import { recordProjectChange, type ProjectActor } from './project-support.js';
 
 // Cómo termina un acta de entrega (B27, ficha 17.8): aceptada y firmada por el cliente, aceptada
@@ -103,7 +104,25 @@ export async function endAcceptance(
       deliverable_id: deliverable.id,
     },
   });
-  if (accepted && deliverable.milestoneId !== null) {
+  if (accepted) await afterAccepted(tx, actor, target);
+}
+
+/** Aceptado: inicia la garantía en la mesa de ayuda (B28) y el hito puede quedar por facturar. */
+async function afterAccepted(
+  tx: TenantTransaction,
+  actor: ProjectActor,
+  { deliverable, project }: AcceptanceTarget,
+): Promise<void> {
+  await notifyDeliverableAccepted(tx, actor, {
+    project: { id: project.id, code: project.code, name: project.name, partyId: project.partyId },
+    deliverable: {
+      id: deliverable.id,
+      projectId: project.id,
+      name: deliverable.name,
+      acceptedAt: actor.at,
+    },
+  });
+  if (deliverable.milestoneId !== null) {
     await markMilestoneBillable(tx, actor, project, deliverable.milestoneId);
   }
 }

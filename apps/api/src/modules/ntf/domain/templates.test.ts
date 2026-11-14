@@ -34,8 +34,10 @@ describe('plantillas de los avisos', () => {
     }
   });
 
-  it('solo la alerta de seguridad es urgente al empezar', () => {
+  // Solo estas dos llegan fuera de la jornada (derecho a la desconexión); la del B28 por decisión del
+  // dueño del producto del 06/11/2026, para los tiquetes críticos que corren las 24 horas.
+  it('solo la alerta de seguridad y la de la mesa de ayuda son urgentes al empezar', () => {
     const urgent = Object.entries(DEFAULT_TEMPLATES).filter(([, template]) => template.urgent);
-    expect(urgent.map(([kind]) => kind)).toEqual(['security_alert']);
+    expect(urgent.map(([kind]) => kind)).toEqual(['security_alert', 'svc_ticket_alert']);
   });
 });

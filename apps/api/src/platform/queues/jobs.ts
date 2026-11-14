@@ -132,6 +132,7 @@ const sigFollowUpJobSchema = z.object({});
  * del cliente y la que el cliente respondió deja aceptado o devuelto su entregable. Del sistema.
  */
 const prjAcceptanceWorkJobSchema = z.object({});
+const svcSlaWorkJobSchema = z.object({});
 
 export type TenantJob = z.infer<typeof tenantJobSchema>;
 export type ExampleEmailJob = z.infer<typeof exampleEmailJobSchema>;
@@ -237,6 +238,11 @@ export const JOBS = {
     name: 'prj.acceptance-work',
     schema: prjAcceptanceWorkJobSchema,
   },
+  svcSlaWork: {
+    queue: QUEUES.platform,
+    name: 'svc.sla-work',
+    schema: svcSlaWorkJobSchema,
+  },
 } as const;
 
 /** Trabajos programados: el worker los registra al arrancar (expresión cron, hora de Bogotá). */
@@ -280,6 +286,9 @@ export const SCHEDULED_JOBS = [
     job: JOBS.prjAcceptanceWork,
     pattern: '*/20 * * * * *',
   },
+  // Cada 5 minutos: la alerta del 80 % y la del plazo vencido llegan a lo sumo cinco minutos tarde,
+  // y los tiquetes resueltos que nadie reabrió se cierran (B28).
+  { id: 'svc.sla-work.every-5-minutes', job: JOBS.svcSlaWork, pattern: '*/5 * * * *' },
 ] as const;
 
 export type JobDefinition = (typeof JOBS)[keyof typeof JOBS];

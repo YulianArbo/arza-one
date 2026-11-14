@@ -71,7 +71,6 @@ const MODULES: readonly NavigationItem[] = [
     label: 'Servicio',
     icon: Headset,
     permissions: ['service.ticket.read', 'service.pqrsf.read'],
-    block: 'B28',
   },
   {
     slug: 'documentos',

@@ -123,6 +123,11 @@ model Tenant {
   prjReleases             PrjRelease[]
   prjCodeReviews          PrjCodeReview[]
   prjIncidents            PrjIncident[]
+  slaPolicies             SlaPolicy[]
+  svcTickets              SvcTicket[]
+  svcTicketMessages       SvcTicketMessage[]
+  svcWarranties           SvcWarranty[]
+  svcCompensations        SvcCompensation[]
 
   @@map("core_tenants")
 }
@@ -3012,4 +3017,158 @@ model PrjIncident {
   @@unique([tenantId, code])
   @@index([tenantId, projectId])
   @@map("prj_incidents")
+}
+
+// M08 Servicio al cliente (B28): mesa de ayuda. El cliente, el proyecto, el entregable y las
+// personas se guardan por identificador, sin llaves hacia tablas de otros módulos (numeral 8.3).
+
+model SlaPolicy {
+  id                 String      @id @default(uuid(7)) @db.Uuid
+  tenantId           String      @map("tenant_id") @db.Uuid
+  priority           String
+  firstResponseHours Decimal     @map("first_response_hours") @db.Decimal(6, 2)
+  resolutionHours    Decimal     @map("resolution_hours") @db.Decimal(6, 2)
+  calendar           String      @default("business")
+  createdAt          DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy          String?     @map("created_by") @db.Uuid
+  updatedAt          DateTime    @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy          String?     @map("updated_by") @db.Uuid
+  version            Int         @default(1)
+  deletedAt          DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  tenant             Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  tickets            SvcTicket[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, priority])
+  @@map("wf_sla_policies")
+}
+
+model SvcTicket {
+  id                 String             @id @default(uuid(7)) @db.Uuid
+  tenantId           String             @map("tenant_id") @db.Uuid
+  code               String
+  subject            String
+  description        String
+  category           String
+  priority           String
+  level              Int                @default(1) @db.SmallInt
+  channel            String             @default("internal")
+  status             String             @default("new")
+  partyId            String?            @map("party_id") @db.Uuid
+  requesterId        String?            @map("requester_id") @db.Uuid
+  requesterName      String?            @map("requester_name")
+  projectId          String?            @map("project_id") @db.Uuid
+  deliverableId      String?            @map("deliverable_id") @db.Uuid
+  warrantyId         String?            @map("warranty_id") @db.Uuid
+  assigneeId         String?            @map("assignee_id") @db.Uuid
+  slaPolicyId        String             @map("sla_policy_id") @db.Uuid
+  slaConsumedMinutes Int                @default(0) @map("sla_consumed_minutes")
+  slaResumedAt       DateTime?          @map("sla_resumed_at") @db.Timestamptz(6)
+  responseDueAt      DateTime?          @map("response_due_at") @db.Timestamptz(6)
+  resolutionDueAt    DateTime?          @map("resolution_due_at") @db.Timestamptz(6)
+  warnAt             DateTime?          @map("warn_at") @db.Timestamptz(6)
+  firstResponseAt    DateTime?          @map("first_response_at") @db.Timestamptz(6)
+  pausedAt           DateTime?          @map("paused_at") @db.Timestamptz(6)
+  warnedAt           DateTime?          @map("warned_at") @db.Timestamptz(6)
+  breachedAt         DateTime?          @map("breached_at") @db.Timestamptz(6)
+  resolvedAt         DateTime?          @map("resolved_at") @db.Timestamptz(6)
+  resolution         String?
+  autoCloseAt        DateTime?          @map("auto_close_at") @db.Timestamptz(6)
+  closedAt           DateTime?          @map("closed_at") @db.Timestamptz(6)
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy          String?            @map("created_by") @db.Uuid
+  updatedAt          DateTime           @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy          String?            @map("updated_by") @db.Uuid
+  version            Int                @default(1)
+  deletedAt          DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  tenant             Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  slaPolicy          SlaPolicy          @relation(fields: [tenantId, slaPolicyId], references: [tenantId, id], onDelete: Restrict)
+  warranty           SvcWarranty?       @relation(fields: [tenantId, warrantyId], references: [tenantId, id], onDelete: Restrict)
+  messages           SvcTicketMessage[]
+  compensations      SvcCompensation[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@index([tenantId, status])
+  @@index([tenantId, assigneeId])
+  @@index([tenantId, requesterId])
+  @@index([tenantId, warnAt])
+  @@index([tenantId, resolutionDueAt])
+  @@map("svc_tickets")
+}
+
+model SvcTicketMessage {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  ticketId   String    @map("ticket_id") @db.Uuid
+  authorId   String?   @map("author_id") @db.Uuid
+  body       String
+  isInternal Boolean   @default(false) @map("is_internal")
+  fromClient Boolean   @default(false) @map("from_client")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?   @map("created_by") @db.Uuid
+  updatedAt  DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?   @map("updated_by") @db.Uuid
+  version    Int       @default(1)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  ticket     SvcTicket @relation(fields: [tenantId, ticketId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, ticketId, createdAt])
+  @@map("svc_ticket_messages")
+}
+
+model SvcWarranty {
+  id            String      @id @default(uuid(7)) @db.Uuid
+  tenantId      String      @map("tenant_id") @db.Uuid
+  projectId     String      @map("project_id") @db.Uuid
+  deliverableId String      @map("deliverable_id") @db.Uuid
+  partyId       String?     @map("party_id") @db.Uuid
+  startsOn      DateTime    @map("starts_on") @db.Date
+  endsOn        DateTime    @map("ends_on") @db.Date
+  scope         String
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?     @map("created_by") @db.Uuid
+  updatedAt     DateTime    @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?     @map("updated_by") @db.Uuid
+  version       Int         @default(1)
+  deletedAt     DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  tickets       SvcTicket[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, deliverableId])
+  @@index([tenantId, endsOn])
+  @@map("svc_warranties")
+}
+
+model SvcCompensation {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  tenantId     String    @map("tenant_id") @db.Uuid
+  ticketId     String    @map("ticket_id") @db.Uuid
+  type         String
+  amount       Decimal?  @db.Decimal(18, 2)
+  hours        Decimal?  @db.Decimal(6, 2)
+  days         Int?      @db.SmallInt
+  reason       String
+  status       String    @default("proposed")
+  proposedBy   String    @map("proposed_by") @db.Uuid
+  approvedBy   String?   @map("approved_by") @db.Uuid
+  decidedAt    DateTime? @map("decided_at") @db.Timestamptz(6)
+  decisionNote String?   @map("decision_note")
+  appliedOn    DateTime? @map("applied_on") @db.Date
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy    String?   @map("created_by") @db.Uuid
+  updatedAt    DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy    String?   @map("updated_by") @db.Uuid
+  version      Int       @default(1)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  ticket       SvcTicket @relation(fields: [tenantId, ticketId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, ticketId])
+  @@index([tenantId, status])
+  @@map("svc_compensations")
 }

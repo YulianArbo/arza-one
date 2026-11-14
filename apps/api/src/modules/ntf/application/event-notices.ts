@@ -9,6 +9,7 @@ import { excerpt } from '../domain/delivery-rules.js';
 import { CONTRACT_HANDLERS } from './contract-notices.js';
 import type { Handler, Notice } from './notice-types.js';
 import { PROJECT_HANDLERS } from './project-notices.js';
+import { SERVICE_HANDLERS } from './service-notices.js';
 
 export type { Notice } from './notice-types.js';
 
@@ -211,6 +212,7 @@ const HANDLERS: Readonly<Record<string, Handler>> = {
   ...Object.fromEntries(Object.keys(QUOTE_UPDATES).map((type) => [type, onQuoteUpdate])),
   ...CONTRACT_HANDLERS,
   ...PROJECT_HANDLERS,
+  ...SERVICE_HANDLERS,
 };
 
 /** Los avisos que produce el evento; ninguno si nadie se ocupa de él. */

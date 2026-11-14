@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { addBusinessHours, minutesOfDay, type WorkHoursCalendar } from './business-hours.js';
+import {
+  addBusinessHours,
+  businessMinutesBetween,
+  minutesOfDay,
+  type WorkHoursCalendar,
+} from './business-hours.js';
 import { colombianHolidays } from './colombian-holidays.js';
 
 // Plazos en horas hábiles (B15). Las horas esperadas se calcularon a mano en la hora de Colombia
@@ -78,5 +83,39 @@ describe('horas hábiles fuera de la jornada', () => {
     expect(() => addBusinessHours(bogota('2026-10-14T08:00:00'), 1, empty)).toThrow(
       'El horario laboral no tiene horas hábiles.',
     );
+  });
+});
+
+describe('minutos hábiles entre dos instantes (B28)', () => {
+  it('cuenta solo la jornada: de 11:00 a 14:00 son dos horas, sin el almuerzo', () => {
+    expect(
+      businessMinutesBetween(
+        bogota('2026-10-14T11:00:00'),
+        bogota('2026-10-14T14:00:00'),
+        CALENDAR,
+      ),
+    ).toBe(120);
+  });
+
+  it('del viernes 16:00 al martes 9:00, con el lunes festivo, es una hora', () => {
+    expect(
+      businessMinutesBetween(
+        bogota('2026-10-09T16:00:00'),
+        bogota('2026-10-13T08:00:00'),
+        CALENDAR,
+      ),
+    ).toBe(60);
+  });
+
+  it('al revés, o en el mismo instante, no cuenta nada', () => {
+    const at = bogota('2026-10-14T10:00:00');
+    expect(businessMinutesBetween(at, at, CALENDAR)).toBe(0);
+    expect(businessMinutesBetween(at, bogota('2026-10-14T09:00:00'), CALENDAR)).toBe(0);
+  });
+
+  it('es el inverso de sumar horas hábiles', () => {
+    const from = bogota('2026-10-16T15:30:00');
+    const to = addBusinessHours(from, 7.5, CALENDAR);
+    expect(businessMinutesBetween(from, to, CALENDAR)).toBe(450);
   });
 });
