@@ -18,6 +18,11 @@ it('repetir una asignación no duplica el acceso y retirarla vuelve a ocultar el
   expect((await scenario.putBody(assignment, admin, body)).status).toBe(204);
   const projects = await scenario.read<{ data: { id: string }[] }>(user, '/v1/portal/projects');
   expect(projects.data.map((row) => row.id)).toEqual([projectId]);
+  const accounts = await scenario.read<{ data: { id: string; project_ids: string[] }[] }>(
+    admin,
+    '/v1/portal/users',
+  );
+  expect(accounts.data.find((row) => row.id === user.id)?.project_ids).toEqual([projectId]);
   expect((await scenario.putBody(assignment, admin, { project_ids: [] })).status).toBe(204);
   expect((await scenario.get(project, user.session)).status).toBe(404);
 });

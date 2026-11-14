@@ -46,6 +46,12 @@ it('exporta únicamente los tiquetes y las PQRSF de la cuenta', async () => {
     tickets: [expect.objectContaining({ subject: TICKET.subject })],
     pqrsf: [expect.objectContaining({ subject })],
   });
+  const adminExport = await scenario.portalPost(admin, '/v1/portal/me/export');
+  expect(adminExport.status, adminExport.text).toBe(201);
+  expect(adminExport.body).toMatchObject({
+    tickets: [expect.objectContaining({ subject: 'Otro tiquete privado' })],
+    pqrsf: [],
+  });
 });
 
 it('solo permite vincular un proyecto visible al radicar soporte', async () => {
