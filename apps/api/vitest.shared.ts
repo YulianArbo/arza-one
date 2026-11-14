@@ -51,6 +51,12 @@ export const DATABASE_BOUND_FILES = [
   'src/modules/iam/infrastructure/people-directory.ts',
   // Persona del firmante (B25).
   'src/modules/iam/application/person-link.ts',
+  // Empresa, foto y cargos de la persona (B22A) y cuentas y términos del portal (B30).
+  'src/modules/iam/application/my-company.ts',
+  'src/modules/iam/application/profile-photo.ts',
+  'src/modules/iam/application/user-position.ts',
+  'src/modules/iam/application/portal-accounts.ts',
+  'src/modules/iam/application/portal-terms.ts',
   // Auditoría y trazabilidad (B11): todo menos el formato CSV, que se prueba solo.
   'src/modules/audit/application/**/*.ts',
   'src/modules/audit/infrastructure/**/*.ts',

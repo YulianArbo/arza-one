@@ -8,8 +8,8 @@ import type { JSX } from 'react';
 import { PageHeader } from '../../components/app-shell/page-header';
 import { RequirePermission, usePermissions } from '../session/permissions';
 
-// Portada de Finanzas. En B23 solo están los parámetros tributarios, que usan las cotizaciones;
-// facturación, cartera y presupuesto llegan en B31 y B32 («Disponible pronto», B22A).
+// Portada de Finanzas. B23 dejó los parámetros tributarios y B31 la facturación y los recaudos;
+// la cartera avanzada y el presupuesto llegan en B32 («Disponible pronto», B22A).
 
 export function FinanceHome(): JSX.Element {
   const { can } = usePermissions();
@@ -20,26 +20,45 @@ export function FinanceHome(): JSX.Element {
       <div className="flex flex-col gap-4">
         <PageHeader title="Finanzas" />
         {can('finance.tax_parameter.manage') ? (
-          <Link
+          <FinanceLink
             href="/app/finanzas/parametros-tributarios"
-            className="rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-          >
-            <Card className="h-full hover-invert">
-              <CardHeader>
-                <CardTitle className="text-base">Parámetros tributarios</CardTitle>
-                <CardDescription>
-                  Tarifas de impuestos vigentes, con su fundamento legal y su historial.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </Link>
+            title="Parámetros tributarios"
+            description="Tarifas de impuestos vigentes, con su fundamento legal y su historial."
+          />
+        ) : null}
+        {can('finance.invoice.read') ? (
+          <FinanceLink
+            href="/app/finanzas/facturas"
+            title="Facturas y recaudos"
+            description="Solicitudes, documentos fiscales emitidos, notas crédito y pagos recibidos."
+          />
         ) : null}
         <EmptyState
           icon={<Construction />}
-          title="Disponible pronto"
-          description="Facturación, cartera y presupuesto se construyen en los bloques B31 y B32."
+          title="Cartera avanzada pendiente de definición"
+          description="La cartera por edades, el deterioro y la programación de cobros requieren reglas aprobadas."
         />
       </div>
     </RequirePermission>
+  );
+}
+
+function FinanceLink(props: {
+  readonly href: string;
+  readonly title: string;
+  readonly description: string;
+}): JSX.Element {
+  return (
+    <Link
+      href={props.href}
+      className="rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+    >
+      <Card className="h-full hover-invert">
+        <CardHeader>
+          <CardTitle className="text-base">{props.title}</CardTitle>
+          <CardDescription>{props.description}</CardDescription>
+        </CardHeader>
+      </Card>
+    </Link>
   );
 }

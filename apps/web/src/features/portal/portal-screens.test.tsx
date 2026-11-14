@@ -18,6 +18,7 @@ import {
 import { PortalDocumentsPage } from './portal-documents';
 import { PortalGate } from './portal-gate';
 import { PortalHomePage } from './portal-home';
+import { PortalInvoicesPage } from './portal-invoices';
 import { PortalProjectPage, PortalProjectsPage } from './portal-projects';
 import { PortalApprovalsPage, PortalSignaturesPage } from './portal-signatures';
 
@@ -201,5 +202,42 @@ describe('documentos', () => {
     servePortal(CLIENT_USER, { 'GET /v1/portal/documents': () => json({ data: [] }) });
     show(<PortalDocumentsPage />);
     expect(await screen.findByText('Aún no hay documentos')).toBeVisible();
+  });
+});
+
+describe('facturas y notas crédito', () => {
+  it('muestra documentos fiscales emitidos y ofrece descargar facturas y notas crédito', async () => {
+    servePortal(CLIENT_ADMIN, {
+      'GET /v1/portal/invoices': () =>
+        json({
+          data: [
+            {
+              id: '01999a00-0000-7000-8000-0000000fa701',
+              code: 'FAC-2026-0001',
+              status: 'partially_paid',
+              issue_date: '2026-11-08',
+              due_date: '2026-12-08',
+              total: '1190.00',
+              fiscal_number: 'FE-001',
+              fiscal_uuid: null,
+              fiscal_file_id: '01999a00-0000-7000-8000-0000000fa702',
+              credit_notes: [
+                {
+                  id: '01999a00-0000-7000-8000-0000000fa703',
+                  issue_date: '2026-11-09',
+                  amount: '200.00',
+                  fiscal_number: 'NC-001',
+                  fiscal_uuid: null,
+                },
+              ],
+            },
+          ],
+        }),
+    });
+    show(<PortalInvoicesPage />);
+    expect(await screen.findByText('Factura FE-001')).toBeVisible();
+    expect(screen.getByText(/Nota crédito NC-001/u)).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Descargar factura FE-001' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Descargar nota crédito NC-001' })).toBeVisible();
   });
 });

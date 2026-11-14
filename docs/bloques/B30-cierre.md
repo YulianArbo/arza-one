@@ -4,6 +4,13 @@
 - Rama: `feat/b30-portal-del-cliente` (sale de la rama del B29, que aún no está unida a `main`)
 - Estado: en revisión. **Es un bloque crítico: requiere revisión externa** antes de unirlo.
 
+> **Nota de estado — 10/11/2026.** El estado oficial en `docs/bloques/README.md` se corrigió a
+> «En revisión». Este cierre sigue condicionado: el criterio «el cliente descarga la factura y el
+> soporte fiscal» depende del B31, que está en construcción, y la cadena completa de `pnpm check`
+> todavía no se ha ejecutado en una sola corrida. Las guardas de aislamiento y auditoría que el B31
+> dejó desalineadas se actualizaron en los archivos de prueba, incluidas las rutas de facturas del
+> portal y las seis rutas de escritura de Finanzas del B31; no se modificó el código del B31.
+
 ## Qué se construyó
 
 El **portal del cliente** (ficha 17.10) ya funciona. Cada persona de un cliente entra con su

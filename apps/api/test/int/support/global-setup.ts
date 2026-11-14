@@ -45,6 +45,9 @@ async function startPostgres(): Promise<{
   const appPassword = throwawayPassword();
   const migrationPassword = throwawayPassword();
   const container = await new PostgreSqlContainer(POSTGRES_IMAGE)
+    // Cada archivo de prueba abre su propio cliente y no siempre lo cierra al terminar; sin este
+    // tope la suite completa agota las conexiones y falla por espera al iniciar transacciones.
+    .withCommand(['postgres', '-c', 'max_connections=300'])
     .withEnvironment({ APP_DB_PASSWORD: appPassword, MIGRATION_DB_PASSWORD: migrationPassword })
     .withCopyFilesToContainer([
       { source: INIT_SCRIPT, target: '/docker-entrypoint-initdb.d/01-roles-and-database.sh' },

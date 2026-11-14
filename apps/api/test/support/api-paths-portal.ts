@@ -1,4 +1,4 @@
-// Rutas del portal del cliente (B30) y de lo que el equipo comparte con él, que publica la API;
+// Rutas del portal del cliente (B30 y B31) y de lo que el equipo comparte con él, que publica la API;
 // se suman a API_PATHS.
 export const PORTAL_PATHS = [
   '/v1/portal/articles',
@@ -8,6 +8,9 @@ export const PORTAL_PATHS = [
   '/v1/portal/documents',
   '/v1/portal/documents/{kind}/{id}/link',
   '/v1/portal/home',
+  '/v1/portal/invoices',
+  '/v1/portal/invoices/{id}/link',
+  '/v1/portal/invoices/{id}/credit-notes/{noteId}/link',
   '/v1/portal/me',
   '/v1/portal/me/export',
   '/v1/portal/pqrsf',

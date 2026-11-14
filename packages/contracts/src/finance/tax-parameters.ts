@@ -9,6 +9,12 @@ import { z } from 'zod';
 export const FINANCE_ERROR_CODES = {
   taxParameterUnknown: 'FIN_TAX_PARAMETER_UNKNOWN',
   taxValidFromInvalid: 'FIN_TAX_VALID_FROM_INVALID',
+  invoiceNotFound: 'FIN_INVOICE_NOT_FOUND',
+  milestoneNotBillable: 'FIN_MILESTONE_NOT_BILLABLE',
+  invoiceStatusInvalid: 'FIN_INVOICE_STATUS_INVALID',
+  fiscalFileInvalid: 'FIN_FISCAL_FILE_INVALID',
+  creditNoteInvalid: 'FIN_CREDIT_NOTE_INVALID',
+  paymentInvalid: 'FIN_PAYMENT_INVALID',
 } as const;
 
 /** Clave de un parámetro tributario, como IVA_GENERAL. */

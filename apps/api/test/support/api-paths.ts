@@ -1,3 +1,4 @@
+import { FINANCE_PATHS } from './api-paths-finance.js';
 import { PORTAL_PATHS } from './api-paths-portal.js';
 import { SERVICE_PATHS } from './api-paths-service.js';
 
@@ -112,9 +113,6 @@ const PLATFORM_PATHS = [
   '/v1/files/uploads/{token}',
   '/v1/files/{id}',
   '/v1/files/{id}/download-link',
-  '/v1/finance/tax-parameters',
-  '/v1/finance/tax-parameters/versions',
-  '/v1/finance/tax-parameters/{key}/history',
   '/v1/folders',
   '/v1/folders/{id}',
   '/v1/form-records',
@@ -301,5 +299,6 @@ const PLATFORM_PATHS = [
   '/version',
 ];
 
-/** Rutas publicadas, en orden alfabético. */
-export const API_PATHS = [...PLATFORM_PATHS, ...SERVICE_PATHS, ...PORTAL_PATHS].sort();
+const ALL_PATHS = PLATFORM_PATHS.concat(FINANCE_PATHS, SERVICE_PATHS, PORTAL_PATHS);
+
+export const API_PATHS = ALL_PATHS.sort();

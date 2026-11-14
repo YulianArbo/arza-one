@@ -1,20 +1,16 @@
-import { EmptyState } from '@arza/ui';
 import type { Metadata } from 'next';
 import type { JSX } from 'react';
 
-import { PageHeader } from '../../../../components/app-shell/page-header';
+import { PortalInvoicesPage } from '../../../../features/portal/portal-invoices';
+import { RequirePermission } from '../../../../features/session/permissions';
 
 export const metadata: Metadata = { title: 'Facturas' };
 
-/** Facturas del cliente: llegan con la facturación (B31, decisión 1 del B30). No simula datos. */
+/** Consulta de las facturas fiscales emitidas de la empresa del cliente autenticado (B31). */
 export default function Page(): JSX.Element {
   return (
-    <>
-      <PageHeader title="Facturas" description="Facturas electrónicas emitidas a su empresa." />
-      <EmptyState
-        title="Disponible pronto"
-        description="Aquí podrá ver y descargar sus facturas y su soporte fiscal cuando la facturación esté en funcionamiento."
-      />
-    </>
+    <RequirePermission anyOf={['portal.invoice.read']}>
+      <PortalInvoicesPage />
+    </RequirePermission>
   );
 }

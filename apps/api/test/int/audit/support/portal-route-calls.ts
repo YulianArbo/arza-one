@@ -1,4 +1,5 @@
 import {
+  invoiceCreatedResponseSchema,
   portalContractListSchema,
   portalMyDataSchema,
   portalSignatureListSchema,
@@ -14,7 +15,7 @@ import type { AccessScenario, Person } from '../../iam/support/access-scenario.j
 import { uniqueEmail } from '../../iam/support/iam-fixtures.js';
 import { consentFor, personBody } from '../../party/support/party-scenario.js';
 import { apiDatabase } from '../../support/integration-database.js';
-import { created, put, signedCopy, versioned, type PendingRequest } from './contract-steps.js';
+import { created, day, put, signedCopy, versioned, type PendingRequest } from './contract-steps.js';
 import {
   clientCrew,
   portalAccount,
@@ -101,6 +102,106 @@ async function companyUser(
   return { ...crew, user, version };
 }
 
+/** Un hito facturable del proyecto del cliente y la persona de Finanzas que emite la factura. */
+async function billableClientMilestone(
+  s: AccessScenario,
+  crew: ClientCrew,
+): Promise<{ finance: Person; milestoneId: string }> {
+  const milestoneId = await created(
+    s.post(`${crew.base}/milestones`, crew.leader.session, {
+      name: 'Facturación del portal',
+      due_on: day(s, 30),
+      billing_pct: 25,
+    }),
+  );
+  await s.inTenant((tx) =>
+    tx.prjMilestone.update({
+      where: { id: milestoneId },
+      data: {
+        status: 'billable',
+        doneAt: s.clock.now(),
+        billableAt: s.clock.now(),
+        billableAmount: '1000.00',
+      },
+    }),
+  );
+  return {
+    finance: await s.person('finanzas-portal-recorrido', ['ADMIN_FINANCIERO']),
+    milestoneId,
+  };
+}
+
+async function requestClientInvoice(
+  s: AccessScenario,
+  finance: Person,
+  milestoneId: string,
+): Promise<string> {
+  const issued = await s
+    .post('/v1/finance/invoices', finance.session, { milestone_id: milestoneId })
+    .set('Idempotency-Key', crypto.randomUUID());
+  expect(issued.status, issued.text).toBe(201);
+  return invoiceCreatedResponseSchema.parse(issued.body).id;
+}
+
+async function registerClientFiscal(
+  s: AccessScenario,
+  finance: Person,
+  invoiceId: string,
+): Promise<void> {
+  const fiscal = await s
+    .post(`/v1/finance/invoices/${invoiceId}/fiscal-document`, finance.session, {
+      issue_date: day(s, 0),
+      due_date: day(s, 30),
+      subtotal: '1000.00',
+      tax_rate: '19.00',
+      tax_total: '190.00',
+      withholding_total: '0.00',
+      total: '1190.00',
+      fiscal_number: `FE-REC-${crypto.randomUUID().slice(0, 8)}`,
+      fiscal_uuid: null,
+      fiscal_file_id: await signedCopy(s, finance),
+    })
+    .set('If-Match', '"2"')
+    .set('Idempotency-Key', crypto.randomUUID());
+  expect(fiscal.status, fiscal.text).toBe(204);
+}
+
+async function registerClientCreditNote(
+  s: AccessScenario,
+  finance: Person,
+  invoiceId: string,
+): Promise<string> {
+  const note = await s
+    .post(`/v1/finance/invoices/${invoiceId}/credit-notes`, finance.session, {
+      reason: 'Ajuste del recorrido de auditoría',
+      amount: '200.00',
+      issue_date: day(s, 0),
+      fiscal_number: `NC-REC-${crypto.randomUUID().slice(0, 8)}`,
+      fiscal_uuid: null,
+      fiscal_file_id: await signedCopy(s, finance),
+    })
+    .set('Idempotency-Key', crypto.randomUUID());
+  expect(note.status, note.text).toBe(201);
+  return invoiceCreatedResponseSchema.parse(note.body).id;
+}
+
+/** Factura emitida con su nota crédito para el administrador del cliente (B31). */
+async function invoiceForPortal(
+  s: AccessScenario,
+): Promise<{ admin: Person; invoiceId: string; noteId: string }> {
+  const crew = await clientCrew(s);
+  const { finance, milestoneId } = await billableClientMilestone(s, crew);
+  const invoiceId = await requestClientInvoice(s, finance, milestoneId);
+  const approved = await s
+    .post(`/v1/finance/invoices/${invoiceId}/approval`, finance.session, {})
+    .set('If-Match', '"1"')
+    .set('Idempotency-Key', crypto.randomUUID());
+  expect(approved.status, approved.text).toBe(204);
+  await registerClientFiscal(s, finance, invoiceId);
+  const noteId = await registerClientCreditNote(s, finance, invoiceId);
+  return { admin: crew.admin, invoiceId, noteId };
+}
+
 export const PORTAL_ROUTE_CALLS: Record<string, RouteCall> = {
   'PUT /v1/projects/{id}/portal': async (s) => {
     const crew = await running(s);
@@ -142,6 +243,20 @@ export const PORTAL_ROUTE_CALLS: Record<string, RouteCall> = {
     const crew = await clientCrew(s);
     const id = await sharedFile(s, crew);
     return { test: s.post(`/v1/portal/documents/shared/${id}/link`, crew.admin.session, {}) };
+  },
+  'POST /v1/portal/invoices/{id}/link': async (s) => {
+    const { admin, invoiceId } = await invoiceForPortal(s);
+    return { test: s.post(`/v1/portal/invoices/${invoiceId}/link`, admin.session, {}) };
+  },
+  'POST /v1/portal/invoices/{id}/credit-notes/{noteId}/link': async (s) => {
+    const { admin, invoiceId, noteId } = await invoiceForPortal(s);
+    return {
+      test: s.post(
+        `/v1/portal/invoices/${invoiceId}/credit-notes/${noteId}/link`,
+        admin.session,
+        {},
+      ),
+    };
   },
   'POST /v1/portal/tickets': async (s) => {
     const crew = await clientCrew(s);
