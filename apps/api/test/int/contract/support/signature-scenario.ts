@@ -157,9 +157,29 @@ export class SignatureScenario extends ContractScenario {
     return prepared;
   }
 
+  protected workerDatabase(): Pick<ReturnType<typeof apiDatabase>, 'withTenant' | 'withoutTenant'> {
+    const database = apiDatabase();
+    return {
+      withTenant: database.withTenant.bind(database),
+      withoutTenant: async <T>(work: Parameters<typeof database.withoutTenant<T>>[0]) => {
+        const result = await database.withoutTenant(work);
+        // Worker discovery returns tenant IDs. Keep each suite's clock and mailer in its tenant.
+        if (Array.isArray(result)) {
+          const rows: unknown[] = result;
+          const ownTenant = rows.find(
+            (row) =>
+              typeof row === 'object' && row !== null && 'id' in row && row.id === this.tenant.id,
+          );
+          rows.splice(0, rows.length, ...(ownTenant === undefined ? [] : [ownTenant]));
+        }
+        return result;
+      },
+    };
+  }
+
   private deps() {
     return {
-      database: apiDatabase(),
+      database: this.workerDatabase(),
       clock: this.clock,
       storage: storage(),
       convertHtml: async () => Promise.resolve(samplePdf('Firmas')),

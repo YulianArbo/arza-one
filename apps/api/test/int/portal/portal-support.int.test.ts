@@ -26,6 +26,44 @@ const TICKET = {
   project_id: null,
 };
 
+it('exporta únicamente los tiquetes y las PQRSF de la cuenta', async () => {
+  const { user, admin } = await scenario.clientWorld();
+  await scenario.create('/v1/portal/tickets', user, TICKET);
+  await scenario.create('/v1/portal/tickets', admin, {
+    ...TICKET,
+    subject: 'Otro tiquete privado',
+  });
+  const subject = 'Demora en la entrega';
+  const filed = await scenario.portalPost(user, '/v1/portal/pqrsf', {
+    type: 'complaint',
+    subject,
+    description: 'La entrega del módulo se demoró dos semanas.',
+  });
+  expect(filed.status, filed.text).toBe(201);
+  const exported = await scenario.portalPost(user, '/v1/portal/me/export');
+  expect(exported.status, exported.text).toBe(201);
+  expect(exported.body).toMatchObject({
+    tickets: [expect.objectContaining({ subject: TICKET.subject })],
+    pqrsf: [expect.objectContaining({ subject })],
+  });
+});
+
+it('solo permite vincular un proyecto visible al radicar soporte', async () => {
+  const world = await scenario.clientWorld();
+  const body = { ...TICKET, project_id: world.projectId };
+  const denied = await scenario.portalPost(world.user, '/v1/portal/tickets', body);
+  expect(denied.status).toBe(404);
+  const allowed = await scenario.portalPost(world.admin, '/v1/portal/tickets', body);
+  expect(allowed.status, allowed.text).toBe(201);
+  const list = portalTicketListSchema.parse(await scenario.read(world.admin, '/v1/portal/tickets'));
+  expect(list.data).toContainEqual(
+    expect.objectContaining({
+      subject: body.subject,
+      project: (await scenario.project(world.leader, world.projectId)).name,
+    }),
+  );
+});
+
 async function ticketOf(person: Person, id: string) {
   return portalTicketDetailSchema.parse(await scenario.read(person, `/v1/portal/tickets/${id}`));
 }
@@ -103,6 +141,30 @@ describe('conversación y reloj', () => {
   });
 });
 
+it('admite mensajes de un tiquete abierto y rechaza mensajes después del cierre', async () => {
+  const world = await scenario.clientWorld();
+  const id = await scenario.create('/v1/portal/tickets', world.user, TICKET);
+  const agent = await scenario.person('servicio', ['SERVICIO']);
+  const path = `/v1/portal/tickets/${id}/messages`;
+  const body = { body: 'Adjunto información para revisar el incidente.' };
+  expect((await scenario.portalPost(world.user, path, body)).status).toBe(201);
+  await agentStep(agent, id, 'assign', { assignee_id: agent.id });
+  await agentStep(agent, id, 'start');
+  await agentStep(agent, id, 'resolve', { resolution: 'Se corrigió el reporte.' });
+  await agentStep(agent, id, 'close');
+  expect((await scenario.portalPost(world.user, path, body)).status).toBe(409);
+  const closed = await ticketOf(world.user, id);
+  expect(closed.can_reply).toBe(false);
+  const message = closed.messages.find((row) => row.body === body.body);
+  expect(typeof message?.author).toBe('string');
+  expect(closed.messages).toContainEqual(
+    expect.objectContaining({
+      body: body.body,
+      from_client: true,
+    }),
+  );
+});
+
 describe('PQRSF y artículos', () => {
   it('radica una PQRSF con su cuenta y lee solo los artículos para clientes', async () => {
     const world = await scenario.clientWorld();
@@ -124,6 +186,13 @@ describe('PQRSF y artículos', () => {
     );
     expect(listed.data.map((row) => row.id)).toContain(ids.client);
     expect(listed.data.map((row) => row.id)).not.toContain(ids.internal);
+    const matching = portalArticleListSchema.parse(
+      await scenario.read(world.user, '/v1/portal/articles?q=Facturas'),
+    );
+    expect(matching.data.map((row) => row.id)).toEqual([ids.client]);
+    expect(
+      (await scenario.get(`/v1/portal/articles/${ids.client}`, world.user.session)).status,
+    ).toBe(200);
     expect(
       (await scenario.get(`/v1/portal/articles/${ids.internal}`, world.user.session)).status,
     ).toBe(404);

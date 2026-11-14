@@ -28,6 +28,7 @@ main(() => {
     garage: garageCli,
     files: STACK_FILES,
     pnpm: pnpmCommand(),
+    node: process.execPath,
     env: readEnvFile(),
     print,
   };
