@@ -91,6 +91,15 @@ async function issueInvoice(actors: Actors): Promise<{ invoiceId: string; detail
   const unissued = await scenario.post(`/v1/portal/invoices/${invoiceId}/link`, portal.session, {});
   expect(errorCode(unissued)).toBe('PORTAL_NOT_FOUND');
   const detailPath = `${path}/${invoiceId}`;
+  const draft = await scenario.get(detailPath, actors.finance.session);
+  expect(draft.status, draft.text).toBe(200);
+  expect(invoiceDetailEnvelopeSchema.parse(draft.body).data).toMatchObject({
+    status: 'requested',
+    total: null,
+    balance: null,
+    issue_date: null,
+    due_date: null,
+  });
   expect((await scenario.get(detailPath, actors.financeOther.session)).status).toBe(404);
   await approveInvoice(actors.finance, detailPath);
   await postFiscalInvoice(actors.finance, detailPath, actors.fiscalFileId);
