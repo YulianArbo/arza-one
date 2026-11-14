@@ -182,7 +182,7 @@ async function exportMatchesRecords(): Promise<void> {
   const batches = exportBatchListResponseSchema.parse(
     (await s.get(`${FIN}/exports`, finance.session)).body,
   );
-  expect(batches.data[0]).toMatchObject({
+  expect(batches.data.find((batch) => batch.id === world().batchId)).toMatchObject({
     kind: 'definitive',
     row_count: 4,
     totals: { expense: '120000.50', petty_cash: '470000.50', invoice: '0.00' },
