@@ -198,6 +198,8 @@ it('solo permite descargar el otrosí del cliente después de registrar su firma
     new_value: '15000000.00',
   });
   const path = `/v1/portal/documents/amendment/${id}/link`;
+  const missing = '/v1/portal/documents/amendment/00000000-0000-4000-8000-000000000001/link';
+  expect((await scenario.portalPost(world.admin, missing)).status).toBe(404);
   expect((await scenario.portalPost(world.admin, path)).status).toBe(409);
   await signAmendment(world, contractId, id);
   const documents = portalDocumentListSchema.parse(

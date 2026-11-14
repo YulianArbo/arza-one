@@ -64,6 +64,9 @@ describe('términos del primer ingreso', () => {
     expect(blocked.status).toBe(403);
     expect(blocked.body).toMatchObject({ error: { code: 'PORTAL_TERMS_PENDING' } });
     expect((await scenario.terms(fresh)).status).toBe('pending');
+    const account = await scenario.get('/v1/portal/me', fresh.session);
+    expect(account.status).toBe(200);
+    expect(account.body).toMatchObject({ terms_accepted_at: null });
     const outdated = await scenario.portalPost(fresh, '/v1/portal/terms/acceptance', {
       notice_ids: [crypto.randomUUID()],
     });
