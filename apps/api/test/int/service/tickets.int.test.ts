@@ -22,7 +22,7 @@ it('pagina por cursor los tiquetes que coinciden con el texto y la prioridad', a
   });
   const second = await scenario.ticket(agent, { subject: 'Impresora de bodega', priority: 'high' });
   await scenario.ticket(agent, { subject: 'Impresora de ventas', priority: 'low' });
-  await scenario.ticket(agent, { subject: 'Pantalla de recepción', priority: 'high' });
+  await scenario.ticket(agent, { subject: 'Pantalla de recepción', priority: 'medium' });
   const path = '/v1/tickets?q=impresora&priority=high&limit=1';
   const page = ticketListResponseSchema.parse((await scenario.get(path, agent.session)).body);
   expect(page.data).toHaveLength(1);
@@ -98,14 +98,14 @@ describe('tiquete crítico (PT-TEC-003)', () => {
     const agent = await scenario.agent();
     const tech = await scenario.person('lider-tecnico', ['LIDER_TECNICO']);
     const director = await scenario.person('direccion', ['DIRECCION']);
-    await scenario.ticket(agent, { priority: 'critical' });
+    const id = await scenario.ticket(agent, { priority: 'critical' });
     await scenario.dispatchNotices();
     for (const person of [tech, director]) {
-      expect((await scenario.noticesFor(person.id, 'svc_ticket_alert')).join(' ')).toContain(
+      expect((await scenario.noticesFor(person.id, 'svc_ticket_alert', id)).join(' ')).toContain(
         'PT-TEC-003',
       );
     }
-    expect(await scenario.noticesFor(agent.id, 'svc_ticket_alert')).toHaveLength(0);
+    expect(await scenario.noticesFor(agent.id, 'svc_ticket_alert', id)).toHaveLength(0);
   });
 });
 
