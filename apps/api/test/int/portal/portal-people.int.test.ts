@@ -84,6 +84,39 @@ it('rechaza cambios de rol con una versión obsoleta', async () => {
   expect(outdated.status).toBe(409);
 });
 
+it('reactiva cuentas existentes e invitaciones sin cambiar su rol', async () => {
+  const { admin, user } = await scenario.clientWorld();
+  const email = `reactivar-${crypto.randomUUID()}@cliente.test`;
+  const invited = await scenario.portalPost(admin, '/v1/portal/users', {
+    email,
+    display_name: 'Persona invitada',
+    role: 'CLIENTE_USUARIO',
+  });
+  expect(invited.status, invited.text).toBe(201);
+  for (const [address, status] of [
+    [user.email, 'active'],
+    [email, 'invited'],
+  ]) {
+    const account = (await users(admin)).data.find((row) => row.email === address);
+    if (account === undefined) throw new Error('No aparece la cuenta');
+    const path = `/v1/portal/users/${account.id}`;
+    const body = { role: 'CLIENTE_USUARIO', active: false };
+    expect((await scenario.put(path, admin, body, account.version)).status).toBe(204);
+    expect((await scenario.put(path, admin, body, account.version + 1)).status).toBe(204);
+    const activated = await scenario.put(
+      path,
+      admin,
+      { ...body, active: true },
+      account.version + 1,
+    );
+    expect(activated.status, activated.text).toBe(204);
+    expect((await users(admin)).data.find((row) => row.id === account.id)).toMatchObject({
+      status,
+      role: 'CLIENTE_USUARIO',
+    });
+  }
+});
+
 describe('mis datos', () => {
   it('consulta, corrige y descarga sus datos; la descarga queda registrada', async () => {
     const world = await scenario.clientWorld();

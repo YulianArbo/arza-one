@@ -26,6 +26,28 @@ const TICKET = {
   project_id: null,
 };
 
+it('exporta únicamente los tiquetes y las PQRSF de la cuenta', async () => {
+  const { user, admin } = await scenario.clientWorld();
+  await scenario.create('/v1/portal/tickets', user, TICKET);
+  await scenario.create('/v1/portal/tickets', admin, {
+    ...TICKET,
+    subject: 'Otro tiquete privado',
+  });
+  const subject = 'Demora en la entrega';
+  const filed = await scenario.portalPost(user, '/v1/portal/pqrsf', {
+    type: 'complaint',
+    subject,
+    description: 'La entrega del módulo se demoró dos semanas.',
+  });
+  expect(filed.status, filed.text).toBe(201);
+  const exported = await scenario.portalPost(user, '/v1/portal/me/export');
+  expect(exported.status, exported.text).toBe(201);
+  expect(exported.body).toMatchObject({
+    tickets: [expect.objectContaining({ subject: TICKET.subject })],
+    pqrsf: [expect.objectContaining({ subject })],
+  });
+});
+
 it('solo permite vincular un proyecto visible al radicar soporte', async () => {
   const world = await scenario.clientWorld();
   const body = { ...TICKET, project_id: world.projectId };
