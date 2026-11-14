@@ -49,6 +49,8 @@ it('rechaza la edición obsoleta y la publicación duplicada', async () => {
   const id = await article(agent);
   const path = `/v1/kb-articles/${id}`;
   const draft = await detail(agent, id);
+  const missing = '/v1/kb-articles/00000000-0000-4000-8000-000000000001';
+  expect((await scenario.put(missing, agent, ARTICLE, draft.version)).status).toBe(404);
   expect((await scenario.put(path, agent, ARTICLE, draft.version + 1)).status).toBe(409);
   expect((await scenario.action(`${path}/actions/publish`, agent, draft.version + 1)).status).toBe(
     409,
