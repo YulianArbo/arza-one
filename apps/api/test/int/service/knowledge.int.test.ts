@@ -44,6 +44,25 @@ async function stepOk(person: Person, id: string, action: string): Promise<void>
   expect(response.status, response.text).toBe(204);
 }
 
+it('rechaza la edición obsoleta y la publicación duplicada', async () => {
+  const agent = await scenario.agent();
+  const id = await article(agent);
+  const path = `/v1/kb-articles/${id}`;
+  const draft = await detail(agent, id);
+  expect((await scenario.put(path, agent, ARTICLE, draft.version + 1)).status).toBe(409);
+  expect((await scenario.action(`${path}/actions/publish`, agent, draft.version + 1)).status).toBe(
+    409,
+  );
+  await stepOk(agent, id, 'publish');
+  const published = await detail(agent, id);
+  expect((await scenario.action(`${path}/actions/publish`, agent, published.version)).status).toBe(
+    409,
+  );
+  await stepOk(agent, id, 'archive');
+  await stepOk(agent, id, 'publish');
+  expect((await detail(agent, id)).status).toBe('published');
+});
+
 describe('ciclo del artículo', () => {
   it('nace en borrador, se publica, se edita y se archiva, con su auditoría', async () => {
     const agent = await scenario.agent();

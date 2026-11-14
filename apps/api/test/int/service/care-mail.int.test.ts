@@ -103,6 +103,9 @@ describe('encuesta al resolver (decisiones 8 y 9)', () => {
     const answer = { token, score: 10, satisfaction: 5, comment: 'Muy buena atención.' };
     expect((await scenario.public('surveys/answer', answer)).status).toBe(204);
     expect((await scenario.public('surveys/answer', answer)).status).toBe(409);
+    expect((await scenario.public('surveys/view', { token })).body).toMatchObject({
+      state: 'answered',
+    });
     expect((await scenario.ticketOf(agent, id)).survey).toMatchObject({
       state: 'answered',
       score: 10,
@@ -138,6 +141,12 @@ describe('encuesta al resolver (decisiones 8 y 9)', () => {
     expect((await scenario.ticketOf(agent, id)).survey).toMatchObject({ state: 'no_recipient' });
     const fake = await scenario.public('surveys/view', { token: 'x'.repeat(43) });
     expect(fake.status).toBe(404);
+    const fakeAnswer = await scenario.public('surveys/answer', {
+      token: 'x'.repeat(43),
+      score: 5,
+      satisfaction: 3,
+    });
+    expect(fakeAnswer.status).toBe(404);
     const email = uniqueEmail('vence');
     await resolvedTicket(agent, { requester_email: email });
     const token = await surveyMailFor(email);
@@ -172,6 +181,13 @@ describe('encuesta al resolver (decisiones 8 y 9)', () => {
       version,
     );
     expect(off.status, off.text).toBe(204);
+    const stale = await scenario.put(
+      `/v1/surveys/${id}`,
+      agent,
+      { ...texts, is_active: true },
+      version,
+    );
+    expect(stale.status).toBe(409);
     const ticket = await resolvedTicket(agent, { requester_email: uniqueEmail('apagada') });
     expect((await scenario.ticketOf(agent, ticket)).survey).toBeNull();
     const on = await scenario.put(
