@@ -276,3 +276,18 @@ describe('acuerdos de tiempo', () => {
     });
   });
 });
+
+it('persiste el acuerdo de tiempo y rechaza versiones obsoletas', async () => {
+  const agent = await scenario.agent();
+  const list = async () =>
+    slaPolicyListResponseSchema.parse((await scenario.get('/v1/sla-policies', agent.session)).body);
+  const low = (await list()).data.find((policy) => policy.priority === 'low');
+  if (low === undefined) throw new Error('No aparece el acuerdo de prioridad baja');
+  const path = `/v1/sla-policies/${low.id}`;
+  const body = { first_response_hours: 3, resolution_hours: 8, calendar: 'business' };
+  const missing = '/v1/sla-policies/00000000-0000-4000-8000-000000000001';
+  expect((await scenario.put(missing, agent, body, low.version)).status).toBe(404);
+  expect((await scenario.put(path, agent, body, low.version)).status).toBe(204);
+  expect((await scenario.put(path, agent, body, low.version)).status).toBe(409);
+  expect((await list()).data.find((policy) => policy.id === low.id)).toMatchObject(body);
+});
