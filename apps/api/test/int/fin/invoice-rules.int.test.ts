@@ -270,4 +270,13 @@ describe('reglas de facturación', () => {
   it('acepta solo uno de dos recaudos simultáneos por el mismo saldo', async () => {
     await acceptsOnlyOneConcurrentPayment();
   });
+
+  it('rechaza operaciones sobre una factura inexistente', async () => {
+    const path = `${INVOICES}/${crypto.randomUUID()}`;
+    expect((await keyed(`${path}/payments`, paymentBody('1.00'))).status).toBe(404);
+    expect((await keyed(`${path}/credit-notes`, creditBody('1.00', 'NC-INEXISTENTE'))).status).toBe(
+      404,
+    );
+    expect((await versioned(`${path}/approval`, {}, 1)).status).toBe(404);
+  });
 });
