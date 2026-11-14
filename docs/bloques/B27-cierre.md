@@ -140,9 +140,10 @@ poder enviar actas) y publica el formato FT-TEC-002. Si alguna falla con «Can't
 server», espere un minuto y repítala. Luego `pnpm dev` (levanta también el trabajo de fondo que
 envía las actas).
 
-> Si `pnpm db:migrate` dice que una migración «fue modificada», es porque en este equipo apliqué una
-> versión anterior mientras construía. Escriba `pnpm infra:reset` y repita los pasos (borra los
-> datos de prueba locales, no los reales).
+> Si `pnpm infra:up` termina con «Falló pnpm db:seed:demo» y más arriba dice «violates check
+> constraint» (o si `pnpm db:migrate` dice que una migración «fue modificada»), su base de datos
+> local quedó con un borrador anterior de una migración que cambié mientras construía. Escriba
+> `pnpm infra:reset` y repita los pasos: borra solo los datos de prueba locales, no los reales.
 
 ### 2. Preparar al cliente para firmar
 

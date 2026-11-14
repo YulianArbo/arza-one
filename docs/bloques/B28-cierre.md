@@ -148,8 +148,10 @@ pnpm dev
 La cuarta crea las tablas nuevas; la quinta carga los acuerdos de tiempo de fábrica y el permiso
 nuevo. Si alguna falla con «Can't reach database server», espere un minuto y repítala.
 
-> Si `pnpm db:migrate` dice que una migración «fue modificada», escriba `pnpm infra:reset` y repita
-> los pasos (borra los datos de prueba locales, no los reales).
+> Si `pnpm infra:up` termina con «Falló pnpm db:seed:demo» y más arriba dice «violates check
+> constraint» (o si `pnpm db:migrate` dice que una migración «fue modificada»), su base de datos
+> local quedó con un borrador anterior de una migración que cambié mientras construía. Escriba
+> `pnpm infra:reset` y repita los pasos: borra solo los datos de prueba locales, no los reales.
 
 ### 2. Registrar un tiquete y ver el reloj
 
