@@ -69,14 +69,6 @@ export function criteriaRequired(): AppError {
   );
 }
 
-export function evidenceRequired(): AppError {
-  return new AppError(
-    HttpStatus.UNPROCESSABLE_ENTITY,
-    PROJECT_ERROR_CODES.evidenceRequired,
-    'Para terminar el ítem, escriba el enlace a la revisión de código y qué pruebas se hicieron.',
-  );
-}
-
 export function moveInvalid(detail: string): AppError {
   return new AppError(HttpStatus.UNPROCESSABLE_ENTITY, PROJECT_ERROR_CODES.moveInvalid, detail);
 }
@@ -95,4 +87,54 @@ export function authorizationRequired(): AppError {
     PROJECT_ERROR_CODES.authorizationRequired,
     'El proyecto no tiene un contrato vigente: pida a la Dirección la autorización para iniciarlo.',
   );
+}
+
+// B27 ------------------------------------------------------------------------------------------
+
+export function timeInvalid(detail: string): AppError {
+  return new AppError(HttpStatus.UNPROCESSABLE_ENTITY, PROJECT_ERROR_CODES.timeInvalid, detail);
+}
+
+export function reviewRequired(): AppError {
+  return new AppError(
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    PROJECT_ERROR_CODES.evidenceRequired,
+    'Para terminar el ítem, registre una revisión de código aprobada (FT-TEC-002) y escriba qué pruebas se hicieron.',
+  );
+}
+
+export function reviewInvalid(detail: string): AppError {
+  return new AppError(HttpStatus.UNPROCESSABLE_ENTITY, PROJECT_ERROR_CODES.reviewInvalid, detail);
+}
+
+export function signerInvalid(detail: string): AppError {
+  return new AppError(HttpStatus.UNPROCESSABLE_ENTITY, PROJECT_ERROR_CODES.signerInvalid, detail);
+}
+
+export function formUnavailable(code: string): AppError {
+  return new AppError(
+    HttpStatus.CONFLICT,
+    PROJECT_ERROR_CODES.formUnavailable,
+    `El formato ${code} no está publicado en la empresa. Pida a Calidad que lo publique en Documentos › Formatos.`,
+  );
+}
+
+export function fileInvalid(): AppError {
+  return new AppError(
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    PROJECT_ERROR_CODES.fileInvalid,
+    'Suba el informe de pruebas en PDF y espere a que pase la revisión antivirus.',
+  );
+}
+
+export function closingBlocked(problems: readonly string[]): AppError {
+  return new AppError(
+    HttpStatus.CONFLICT,
+    PROJECT_ERROR_CODES.closingBlocked,
+    `Aún no se puede cerrar el proyecto: ${problems.join('; ')}.`,
+  );
+}
+
+export function projectClosed(): AppError {
+  return statusInvalid('El proyecto está cerrado: solo se puede consultar.');
 }

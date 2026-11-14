@@ -20,17 +20,24 @@ import {
   signerStatusOf,
   type EnvelopeWithSigners,
 } from './signature-records.js';
-import { assertSignable, envelopeDocument, moveDocument } from './signature-sources.js';
+import {
+  assertSignable,
+  envelopeDocument,
+  isAcceptance,
+  moveDocument,
+} from './signature-sources.js';
 
 // El avance de un proceso de firma (B25, numeral 19.2): se envía, firma cada uno en su turno, y al
 // final firma la empresa. Termina firmado por todos, o cerrado sin firmar (rechazado, vencido o
-// anulado), y entonces el contrato o el otrosí vuelve a «aprobado» para enviarlo de nuevo.
+// anulado), y entonces el contrato o el otrosí vuelve a «aprobado» para enviarlo de nuevo. El acta
+// de entrega de un proyecto (B27) sigue el mismo camino; Proyectos lee cómo terminó.
 
 /** Datos del evento para avisar al autor y al responsable del contrato. */
 export async function noticePayload(
   tx: TenantTransaction,
   envelope: SigEnvelope,
 ): Promise<Prisma.InputJsonObject> {
+  if (isAcceptance(envelope)) return { source_id: envelope.sourceId, party_id: envelope.partyId };
   const document = await envelopeDocument(tx, envelope);
   return { ...contractEventPayload(document.contract), contract_code: document.contract.code };
 }
@@ -176,7 +183,9 @@ export async function closeEnvelope(
   if (closing.status !== 'rejected') {
     await appendSignatureEvent(tx, envelope.id, actor.at, eventFrom(actor, type, null));
   }
-  if (from === 'sent') await moveDocument(tx, await envelopeDocument(tx, envelope), 'approved');
+  if (from === 'sent' && !isAcceptance(envelope)) {
+    await moveDocument(tx, await envelopeDocument(tx, envelope), 'approved');
+  }
   if (envelope.workflowInstanceId !== null) {
     await closeWorkflowAsOwner(tx, actor, {
       instanceId: envelope.workflowInstanceId,

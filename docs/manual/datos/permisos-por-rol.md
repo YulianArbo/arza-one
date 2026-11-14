@@ -18,7 +18,7 @@ permisos de una persona son la suma de sus roles vigentes.
 | Calidad | `CALIDAD` | Interno | 63 | 1 |
 | Comercial | `COMERCIAL` | Interno | 51 | 9 |
 | Líder técnico | `LIDER_TECNICO` | Interno | 46 | 8 |
-| Equipo de proyecto | `EQUIPO_PROYECTO` | Interno | 21 | 18 |
+| Equipo de proyecto | `EQUIPO_PROYECTO` | Interno | 20 | 17 |
 | Servicio al cliente | `SERVICIO` | Interno | 43 | 9 |
 | Administrativo y financiero | `ADMIN_FINANCIERO` | Interno | 57 | 5 |
 | Contador | `CONTADOR` | Interno | 15 | 2 |
@@ -125,13 +125,13 @@ Gerente de Desarrollo, líder técnico. Todos los proyectos, liberaciones, incid
 
 ## Equipo de proyecto (`EQUIPO_PROYECTO`)
 
-Desarrolladores, QA, diseñadores. Solo los proyectos donde es miembro. 21 permisos.
+Desarrolladores, QA, diseñadores. Solo los proyectos donde es miembro. 20 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Terceros (M02):** Ver terceros (solo lo propio)
 - **Gestión documental (M03):** Ver documentos (solo lo propio) · Solicitar cambios documentales (solo lo propio) · Diligenciar formatos (solo lo propio)
 - **Flujos y tareas (M04):** Atender sus tareas (solo lo propio)
-- **Proyectos (M07):** Ver los proyectos donde es miembro (solo lo propio) · Gestionar tareas e ítems del proyecto (solo lo propio) · Registrar horas (solo lo propio) · Enviar entregables al cliente (solo lo propio)
+- **Proyectos (M07):** Ver los proyectos donde es miembro (solo lo propio) · Gestionar tareas e ítems del proyecto (solo lo propio) · Registrar horas (solo lo propio)
 - **Servicio al cliente (M08):** Ver tiquetes (solo lo propio) · Crear tiquetes (solo lo propio)
 - **Compras y activos (M11):** Solicitar compras (solo lo propio) · Solicitar viajes (solo lo propio) · Ver activos (solo lo propio)
 - **Calidad (M14):** Reportar no conformidades (solo lo propio) · Gestionar acciones de mejora (solo lo propio) · Registrar mediciones de indicadores (solo lo propio)

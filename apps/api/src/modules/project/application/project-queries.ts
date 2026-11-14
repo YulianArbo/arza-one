@@ -9,7 +9,7 @@ import type {
 } from '@arza/contracts';
 
 import type { PrjProject, Prisma } from '../../../generated/prisma/client.js';
-import { hasPermission, type AppAbility } from '../../../platform/access/ability.js';
+import type { AppAbility } from '../../../platform/access/ability.js';
 import type { Principal } from '../../../platform/access/principal.js';
 import { CLOCK, type Clock } from '../../../platform/clock/clock.js';
 import { DatabaseService } from '../../../platform/database/database.service.js';
@@ -18,7 +18,7 @@ import { contractsForProjects, contractsInForce } from '../../contract/index.js'
 import { activeUsersWithRoles } from '../../iam/index.js';
 import { commercialParties, matchingPartyIds } from '../../party/index.js';
 import { progressOf } from '../domain/project-rules.js';
-import { canManageItems, findVisibleProject, visibleProjects } from './project-records.js';
+import { findVisibleProject, projectAbilities, visibleProjects } from './project-records.js';
 import { peopleNames } from './project-support.js';
 import { TEAM_ROLES } from './team.js';
 import { detailView, summaryView, type ProjectContext } from './project-views.js';
@@ -177,11 +177,7 @@ export class ProjectQueries {
       ]);
       return detailView(project, context, {
         ...parts,
-        can: {
-          update: hasPermission(ability, 'project.update'),
-          manage_members: hasPermission(ability, 'project.member.manage'),
-          manage_items: canManageItems(ability, memberIds),
-        },
+        can: projectAbilities(ability, principal.userId, memberIds),
       });
     });
   }

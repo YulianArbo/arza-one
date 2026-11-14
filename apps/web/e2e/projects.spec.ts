@@ -2,9 +2,9 @@ import { mockApi, type ApiRoutes } from './support/api-mock';
 import { E2E_API_URL } from './support/environment';
 import { accessibilityViolations, expect, test, useTheme } from './support/fixtures';
 
-// Proyectos (B26): lista, asistente, ficha y tablero de trabajo con arrastrar y soltar y con el
-// teclado («Mover a»), sin violaciones de accesibilidad WCAG 2.2 AA en modo claro y oscuro. Datos
-// ficticios.
+// Proyectos (B26 y B27): lista, asistente, ficha, tablero de trabajo con arrastrar y soltar y con el
+// teclado («Mover a»), horas, entregables, indicadores y «Mis horas», sin violaciones de
+// accesibilidad WCAG 2.2 AA en modo claro y oscuro. Datos ficticios.
 
 const PROJECT = '01999a00-0000-7000-8000-0000000e0001';
 const SPRINT = '01999a00-0000-7000-8000-0000000e0101';
@@ -67,7 +67,83 @@ const DETAIL = {
   milestones: [],
   sprints: [SPRINT_VIEW],
   links: [],
-  can: { update: true, manage_members: true, manage_items: true },
+  control: {
+    hour_cost: '45000.00',
+    respond_days: 10,
+    tacit_acceptance: false,
+    tacit_clause: null,
+    closing_note: null,
+    closed_at: null,
+  },
+  can: {
+    update: true,
+    manage_members: true,
+    manage_items: true,
+    log_time: true,
+    approve_time: true,
+    deliver: true,
+    manage_releases: true,
+    manage_incidents: true,
+    close: true,
+    see_money: true,
+  },
+};
+
+const ENTRY = {
+  id: '01999a00-0000-7000-8000-0000000e0701',
+  project: { id: PROJECT, code: 'PRY-2026-0001', name: 'Portal de clientes' },
+  item: null,
+  person: LEADER,
+  work_date: '2026-11-04',
+  hours: 3.5,
+  billable: true,
+  note: null,
+  status: 'registered',
+  decision_note: null,
+  decided_by: null,
+  version: 1,
+};
+
+const TIME = { data: [ENTRY], total_hours: 3.5 };
+
+const DELIVERABLE = {
+  id: '01999a00-0000-7000-8000-0000000e0601',
+  name: 'Portal de autogestión',
+  description: null,
+  version_label: '1.0.0',
+  milestone: null,
+  evidence_url: null,
+  status: 'delivered',
+  acceptance: {
+    id: '01999a00-0000-7000-8000-0000000e0602',
+    status: 'in_signature',
+    record_code: 'FT-TEC-001-2026-0001',
+    envelope_code: 'FE-2026-0001',
+    signer_name: 'Laura Gómez',
+    delivered_by: LEADER,
+    delivered_at: '2026-11-05T15:00:00.000Z',
+    respond_by: '2026-11-15',
+    answered_at: null,
+    client_note: null,
+    signed_pdf: false,
+  },
+  version: 2,
+};
+
+const INDICATORS = {
+  progress: { planned: 2, done: 1, percent: 50 },
+  hours: { budget: 480, logged: 10, approved: 6, billable: 4, pending: 4, used_pct: 1 },
+  schedule: { elapsed_pct: 10, deviation_pts: 40 },
+  money: { income: '12000000.00', cost: '270000.00', margin: '11730000.00', margin_pct: 97 },
+  deliverables: { total: 1, accepted: 0, waiting: 1 },
+  risks_high: 0,
+  incidents_open: 0,
+};
+
+const TIME_OPTIONS = {
+  projects: [{ id: PROJECT, code: 'PRY-2026-0001', name: 'Portal de clientes', items: [] }],
+  earliest_date: '2026-10-29',
+  today: '2026-11-05',
 };
 
 function item(overrides: object): object {
@@ -87,6 +163,7 @@ function item(overrides: object): object {
     sprint_id: SPRINT,
     review_url: null,
     test_note: null,
+    last_review: null,
     done_at: null,
     version: 2,
     ...overrides,
@@ -103,6 +180,7 @@ const ITEMS = [
     status: 'done',
     review_url: 'https://git.example.com/portal/pull/1',
     test_note: 'Pruebas manuales.',
+    last_review: 'approved',
     done_at: '2026-11-04T15:00:00.000Z',
   }),
 ];
@@ -117,6 +195,11 @@ const API: ApiRoutes = {
   },
   [`/v1/projects/${PROJECT}/items/${ITEM}/actions/move`]: { status: 204, body: null },
   '/v1/parties': { body: { data: [], next_cursor: null } },
+  [`/v1/projects/${PROJECT}/time-entries`]: { body: TIME },
+  [`/v1/projects/${PROJECT}/deliverables`]: { body: { data: [DELIVERABLE] } },
+  [`/v1/projects/${PROJECT}/indicators`]: { body: INDICATORS },
+  '/v1/time-entries/mine': { body: TIME },
+  '/v1/time-entries/options': { body: TIME_OPTIONS },
 };
 
 const PAGES = [
@@ -128,6 +211,25 @@ const PAGES = [
     name: 'el tablero',
     tab: 'Tablero',
   },
+  {
+    path: `/app/proyectos/${PROJECT}`,
+    ready: 'Horas registradas: 3,5 h',
+    name: 'las horas',
+    tab: 'Horas',
+  },
+  {
+    path: `/app/proyectos/${PROJECT}`,
+    ready: 'En firma del cliente',
+    name: 'los entregables',
+    tab: 'Entregables',
+  },
+  {
+    path: `/app/proyectos/${PROJECT}`,
+    ready: '40 puntos adelantado',
+    name: 'los indicadores',
+    tab: 'Indicadores',
+  },
+  { path: '/app/proyectos/horas', ready: 'Sus horas: 3,5 h', name: 'mis horas', tab: null },
   {
     path: '/app/proyectos/nuevo',
     ready: '1. Origen del proyecto',

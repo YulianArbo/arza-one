@@ -12,6 +12,7 @@ import {
   TESTER,
   detailRoute,
   serveProjects,
+  CAN_NOTHING,
 } from '../../test-support/project-fixtures';
 import { ProjectDetailPanel } from './project-detail';
 import { EditProject } from './project-edit';
@@ -107,7 +108,7 @@ describe('enlaces', () => {
     serveProjects(PROJECT_READER, {
       ...detailRoute({
         links: [],
-        can: { update: false, manage_members: false, manage_items: false },
+        can: CAN_NOTHING,
       }),
     });
     await openTab('Enlaces');

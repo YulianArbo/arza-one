@@ -80,10 +80,13 @@ const EXTRAS: Readonly<Partial<Record<InternalRoleCode, readonly PermissionCode[
 /**
  * Permisos que la letra de la matriz daría, pero que el manual reserva a otro rol. Una cotización
  * con descuento sobre el tope exige aprobación de la Dirección (ficha 17.6); Comercial la elabora y
- * no la aprueba (decisión del dueño, B23).
+ * no la aprueba (decisión del dueño, B23). El acta de entrega la envía quien lidera (B27).
  */
 const WITHHELD: Readonly<Partial<Record<InternalRoleCode, readonly PermissionCode[]>>> = {
   COMERCIAL: ['crm.quote.approve'],
+  // El acta de entrega tiene valor ante el cliente: la envía el líder del proyecto o un Líder
+  // técnico, no cualquier miembro del equipo (decisión 2 del B27).
+  EQUIPO_PROYECTO: ['project.deliverable.submit'],
 };
 
 /** Solo por permiso nominal además del rol (numeral 15.4, clasificación): ningún rol lo trae. */

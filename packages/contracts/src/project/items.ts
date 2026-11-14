@@ -7,12 +7,14 @@ import {
   itemPrioritySchema,
   itemStatusSchema,
   itemTypeSchema,
+  reviewResultSchema,
 } from './common.js';
 import { sprintSchema } from './planning.js';
 
 // La lista de pendientes y el tablero (B26, ficha 17.8): épicas, historias, tareas y defectos con
 // su código del proyecto (PRY-2026-0001-12, «#12»). Un ítem no entra a una iteración sin criterios
-// de aceptación y no pasa a terminado sin el enlace a la revisión de código y la nota de pruebas.
+// de aceptación y no pasa a terminado sin una revisión de código FT-TEC-002 aprobada (B27) y la
+// nota de pruebas.
 
 const estimateSchema = z
   .number()
@@ -49,7 +51,7 @@ export const moveItemRequestSchema = z.strictObject({
   review_url: reviewUrlSchema
     .nullable()
     .default(null)
-    .describe('Enlace a la revisión de código; obligatorio para terminar'),
+    .describe('Enlace a la revisión de código (B26); desde el B27 cuenta la revisión FT-TEC-002'),
   test_note: optionalText(2000).describe('Pruebas hechas; obligatoria para terminar'),
 });
 
@@ -73,6 +75,9 @@ export const itemSchema = z.object({
   sprint_id: z.uuid().nullable(),
   review_url: z.string().nullable(),
   test_note: z.string().nullable(),
+  last_review: reviewResultSchema
+    .nullable()
+    .describe('Resultado de la última revisión de código FT-TEC-002'),
   done_at: dateTimeSchema.nullable(),
   version: versionSchema,
 });

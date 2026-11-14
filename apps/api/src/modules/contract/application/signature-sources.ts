@@ -60,11 +60,23 @@ export async function sourceDocument(
   return documentOf(await findContract(tx, amendment.contractId), amendment);
 }
 
+/**
+ * Origen de un proceso que no es un contrato ni un otrosí: el acta de entrega de un proyecto (B27).
+ * Proyectos la prepara y sigue su resultado; Contratos no lee las tablas prj_.
+ */
+export const ACCEPTANCE_SOURCE = 'acceptance';
+
+/** El proceso firma un acta de entrega de un proyecto, no un contrato ni un otrosí. */
+export function isAcceptance(envelope: { readonly source: string }): boolean {
+  return envelope.source === ACCEPTANCE_SOURCE;
+}
+
 /** El documento de un proceso: el contrato y, si lo es, el otrosí. */
 export async function envelopeDocument(
   tx: TenantTransaction,
-  envelope: { readonly contractId: string; readonly amendmentId: string | null },
+  envelope: { readonly contractId: string | null; readonly amendmentId: string | null },
 ): Promise<SignableDocument> {
+  if (envelope.contractId === null) throw contractNotFound('El contrato');
   return envelope.amendmentId === null
     ? sourceDocument(tx, 'contract', envelope.contractId)
     : sourceDocument(tx, 'amendment', envelope.amendmentId);

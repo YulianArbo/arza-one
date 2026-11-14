@@ -1,5 +1,22 @@
 import {
+  ACCEPTANCE_STATUSES,
   AUTHORIZATION_STATUSES,
+  CHECK_ANSWERS,
+  DELIVERABLE_STATUSES,
+  DELIVERY_ENVIRONMENTS,
+  INCIDENT_KINDS,
+  INCIDENT_SEVERITIES,
+  INCIDENT_STATUSES,
+  PROJECT_RISK_LEVELS,
+  REVIEW_RESULTS,
+  RISK_STATUSES,
+  TIME_ENTRY_STATUSES,
+  type AcceptanceStatus,
+  type DeliverableStatus,
+  type IncidentSeverity,
+  type ProjectRiskLevel,
+  type ReviewResult,
+  type TimeEntryStatus,
   ITEM_PRIORITIES,
   ITEM_STATUSES,
   ITEM_TYPES,
@@ -17,8 +34,8 @@ import {
   type SprintStatus,
 } from '@arza/contracts';
 
-// Textos y rutas de Proyectos (B26). Las etiquetas vienen de los contratos; aquí solo los tonos y
-// las rutas.
+// Textos y rutas de Proyectos (B26 y B27). Las etiquetas vienen de los contratos; aquí solo los
+// tonos y las rutas.
 
 type Tone = 'neutral' | 'success' | 'warning' | 'destructive' | 'info';
 
@@ -30,10 +47,22 @@ export const PROJECT_PATHS = {
   fromContract: (contractId: string) => `${BASE}/nuevo?contrato=${contractId}`,
   project: (id: string) => `${BASE}/${id}`,
   edit: (id: string) => `${BASE}/${id}/editar`,
+  myHours: `${BASE}/horas`,
 } as const;
 
 export {
+  ACCEPTANCE_STATUSES,
   AUTHORIZATION_STATUSES,
+  CHECK_ANSWERS,
+  DELIVERABLE_STATUSES,
+  DELIVERY_ENVIRONMENTS,
+  INCIDENT_KINDS,
+  INCIDENT_SEVERITIES,
+  INCIDENT_STATUSES,
+  PROJECT_RISK_LEVELS,
+  REVIEW_RESULTS,
+  RISK_STATUSES,
+  TIME_ENTRY_STATUSES,
   ITEM_PRIORITIES,
   ITEM_STATUSES,
   ITEM_TYPES,
@@ -51,6 +80,49 @@ export const PROJECT_STATUS_TONES: Readonly<Record<ProjectStatus, Tone>> = {
   in_progress: 'success',
   at_risk: 'warning',
   paused: 'neutral',
+  closing: 'info',
+  closed: 'neutral',
+};
+
+export const TIME_TONES: Readonly<Record<TimeEntryStatus, Tone>> = {
+  registered: 'info',
+  approved: 'success',
+  returned: 'warning',
+};
+
+export const DELIVERABLE_TONES: Readonly<Record<DeliverableStatus, Tone>> = {
+  preparing: 'neutral',
+  delivered: 'info',
+  accepted: 'success',
+  returned: 'warning',
+};
+
+export const ACCEPTANCE_TONES: Readonly<Record<AcceptanceStatus, Tone>> = {
+  preparing: 'neutral',
+  in_signature: 'info',
+  accepted: 'success',
+  tacit: 'success',
+  returned: 'warning',
+  unanswered: 'warning',
+  cancelled: 'destructive',
+};
+
+export const RISK_LEVEL_TONES: Readonly<Record<ProjectRiskLevel, Tone>> = {
+  low: 'neutral',
+  medium: 'warning',
+  high: 'destructive',
+};
+
+export const SEVERITY_TONES: Readonly<Record<IncidentSeverity, Tone>> = {
+  critical: 'destructive',
+  high: 'destructive',
+  medium: 'warning',
+  low: 'neutral',
+};
+
+export const REVIEW_TONES: Readonly<Record<ReviewResult, Tone>> = {
+  approved: 'success',
+  changes_requested: 'warning',
 };
 
 export const SPRINT_TONES: Readonly<Record<SprintStatus, Tone>> = {

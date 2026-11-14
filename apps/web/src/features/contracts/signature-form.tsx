@@ -20,7 +20,8 @@ const FIELDS: readonly SummaryField[] = [
   { field: 'signed_on', id: 'firma-fecha', label: 'Fecha de la última firma' },
 ];
 
-function usePdfOptions(): { readonly value: string; readonly label: string }[] {
+/** Los PDF disponibles que la persona subió en Archivos (también para el informe de pruebas, B27). */
+export function usePdfOptions(): { readonly value: string; readonly label: string }[] {
   const files = useFiles();
   const pdfs = (files.data?.data ?? []).filter(
     (file) => file.status === 'available' && file.mime_type === 'application/pdf',
@@ -39,7 +40,7 @@ function signatureProblems(fileId: string, signedOn: string): Record<string, str
   return problems;
 }
 
-function MissingFileHint(): JSX.Element {
+export function MissingFileHint(): JSX.Element {
   return (
     <p className="text-sm">
       ¿No está el archivo?{' '}

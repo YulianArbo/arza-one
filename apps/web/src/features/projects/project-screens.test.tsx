@@ -12,6 +12,7 @@ import {
   PROJECT_READER,
   detailRoute,
   serveProjects,
+  CAN_NOTHING,
 } from '../../test-support/project-fixtures';
 import { ProjectDetailPanel } from './project-detail';
 import { ProjectList } from './project-list';
@@ -123,14 +124,14 @@ describe('asistente del proyecto', () => {
 });
 
 describe('ficha del proyecto', () => {
-  it('muestra el resumen y deja para después horas y entregables', async () => {
+  it('muestra el resumen, las horas y los enlaces', async () => {
     serveProjects(PROJECT_LEADER);
     renderDetail();
     expect(await screen.findByRole('heading', { name: 'PRY-2026-0001' })).toBeVisible();
     expect(screen.getByText('En ejecución')).toBeVisible();
     expect(screen.getByRole('link', { name: 'CTR-2026-0001' })).toBeVisible();
-    await userEvent.click(screen.getByRole('tab', { name: 'Horas y entregables' }));
-    expect(screen.getByText('Disponible pronto')).toBeVisible();
+    await userEvent.click(screen.getByRole('tab', { name: 'Horas' }));
+    expect(await screen.findByText('Horas registradas: 5,5 h')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('tab', { name: 'Enlaces' }));
     expect(screen.getByRole('link', { name: /Repositorio del portal/u })).toHaveAttribute(
       'href',
@@ -192,7 +193,7 @@ describe('ficha del proyecto', () => {
 describe('ficha del proyecto', () => {
   it('un miembro del equipo no ve las acciones del proyecto ni el equipo para editar', async () => {
     serveProjects(PROJECT_MEMBER, {
-      ...detailRoute({ can: { update: false, manage_members: false, manage_items: true } }),
+      ...detailRoute({ can: { ...CAN_NOTHING, manage_items: true } }),
     });
     renderDetail();
     expect(await screen.findByRole('heading', { name: 'PRY-2026-0001' })).toBeVisible();

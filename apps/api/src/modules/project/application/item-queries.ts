@@ -23,7 +23,15 @@ const ORDER: Prisma.PrjItemOrderByWithRelationInput[] = [{ number: 'asc' }];
 async function itemsWhere(tx: TenantTransaction, where: Prisma.PrjItemWhereInput) {
   const items = await tx.prjItem.findMany({
     where: { ...where, deletedAt: null },
-    include: { parent: { select: { id: true, number: true, title: true } } },
+    include: {
+      parent: { select: { id: true, number: true, title: true } },
+      codeReviews: {
+        where: { deletedAt: null },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        take: 1,
+        select: { result: true },
+      },
+    },
     orderBy: ORDER,
   });
   const names = await peopleNames(

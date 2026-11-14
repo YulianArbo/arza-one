@@ -1,7 +1,7 @@
 'use client';
 
-import { DialogFooter, FormField, SelectField, TextareaField } from '@arza/ui';
-import type { JSX, ReactNode, SubmitEvent } from 'react';
+import { Checkbox, DialogFooter, FormField, SelectField, TextareaField } from '@arza/ui';
+import { useState, type JSX, type ReactNode, type SubmitEvent } from 'react';
 
 import { FormSummary, type SummaryField } from '../../components/form-summary';
 import { FormError } from '../access/form-alert';
@@ -53,7 +53,7 @@ interface InputProps {
 
 export function TextInput(
   props: InputProps & {
-    readonly type?: 'text' | 'date' | 'url';
+    readonly type?: 'text' | 'date' | 'url' | 'datetime-local';
     readonly inputMode?: 'decimal' | 'numeric';
   },
 ): JSX.Element {
@@ -112,7 +112,7 @@ export interface FieldSpec<K extends string> {
   readonly field: string;
   readonly id: string;
   readonly label: string;
-  readonly type?: 'text' | 'date' | 'url';
+  readonly type?: 'text' | 'date' | 'url' | 'datetime-local';
   readonly inputMode?: 'decimal' | 'numeric';
   readonly hint?: string;
   readonly multiline?: boolean;
@@ -164,4 +164,100 @@ export function summaryOf<K extends string>(
 export function decimal(text: string): number {
   const normalized = text.trim().replace(',', '.');
   return normalized === '' ? Number.NaN : Number(normalized);
+}
+
+/** Una lista desplegable descrita como datos, como FieldSpec (B27). */
+export interface ChoiceSpec<K extends string> {
+  readonly key: K;
+  readonly field: string;
+  readonly id: string;
+  readonly label: string;
+  readonly hint?: string;
+  readonly options: readonly { readonly value: string; readonly label: string }[];
+}
+
+export function ChoiceFields<K extends string>(props: {
+  readonly specs: readonly ChoiceSpec<K>[];
+  readonly values: Readonly<Record<K, string>>;
+  readonly problems: Problems;
+  readonly onChange: (key: K, value: string) => void;
+}): JSX.Element {
+  return (
+    <>
+      {props.specs.map((spec) => (
+        <Choice
+          key={spec.id}
+          id={spec.id}
+          label={spec.label}
+          options={spec.options}
+          value={props.values[spec.key]}
+          error={props.problems[spec.field]}
+          {...(spec.hint === undefined ? {} : { hint: spec.hint })}
+          onValue={(value) => {
+            props.onChange(spec.key, value);
+          }}
+        />
+      ))}
+    </>
+  );
+}
+
+/** Una casilla con su etiqueta. */
+export function CheckField(props: {
+  readonly id: string;
+  readonly label: string;
+  readonly checked: boolean;
+  readonly onChange: (checked: boolean) => void;
+}): JSX.Element {
+  return (
+    <div className="flex items-center gap-2 text-sm">
+      <Checkbox
+        id={props.id}
+        checked={props.checked}
+        onChange={(event) => {
+          props.onChange(event.target.checked);
+        }}
+      />
+      <label htmlFor={props.id}>{props.label}</label>
+    </div>
+  );
+}
+
+/** Estado de un formulario de diálogo: valores, problemas y envío si no hay problemas. */
+export function useDialogForm<V extends object>(
+  initial: V,
+  check: (values: V) => Record<string, string>,
+  send: (values: V) => void,
+): {
+  readonly values: V;
+  readonly set: (patch: Partial<V>) => void;
+  readonly problems: Problems;
+  readonly submit: () => void;
+} {
+  const [values, setValues] = useState<V>(initial);
+  const [problems, setProblems] = useState<Problems>({});
+  return {
+    values,
+    problems,
+    set: (patch) => {
+      setValues({ ...values, ...patch });
+    },
+    submit: () => {
+      const found = check(values);
+      setProblems(found);
+      if (Object.keys(found).length === 0) send(values);
+    },
+  };
+}
+
+/** Texto opcional: null si tiene menos letras de las pedidas. */
+export function optional(text: string, min = 3): string | null {
+  return text.trim().length >= min ? text.trim() : null;
+}
+
+/** Las opciones de una lista desde las etiquetas de los contratos. */
+export function optionsOf<T extends string>(
+  labels: Readonly<Record<T, string>>,
+): { readonly value: string; readonly label: string }[] {
+  return (Object.keys(labels) as T[]).map((value) => ({ value, label: labels[value] }));
 }

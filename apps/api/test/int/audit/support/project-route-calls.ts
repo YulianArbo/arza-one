@@ -21,9 +21,9 @@ import {
 // equipo, los hitos, los enlaces, las iteraciones y los ítems del tablero. Cada una prepara un
 // proyecto nuevo por la API: en planeación sin contrato o en ejecución desde un contrato vigente.
 
-type RouteCall = (scenario: AccessScenario) => Promise<PendingRequest>;
+export type RouteCall = (scenario: AccessScenario) => Promise<PendingRequest>;
 
-interface Crew {
+export interface Crew {
   readonly leader: Person;
   readonly id: string;
   readonly base: string;
@@ -64,12 +64,12 @@ async function planned(s: AccessScenario): Promise<Crew> {
   return { leader, id, base: `/v1/projects/${id}` };
 }
 
-async function detail(s: AccessScenario, crew: Crew): Promise<ProjectDetail> {
+export async function detail(s: AccessScenario, crew: Crew): Promise<ProjectDetail> {
   return projectDetailSchema.parse((await s.get(crew.base, crew.leader.session)).body);
 }
 
 /** Paso con la versión vigente: la versión se pide antes de preparar la petición. */
-function step(
+export function step(
   s: AccessScenario,
   crew: Crew,
   path: string,
@@ -80,7 +80,7 @@ function step(
 }
 
 /** Proyecto en ejecución, desde un contrato vigente. */
-async function running(s: AccessScenario): Promise<Crew> {
+export async function running(s: AccessScenario): Promise<Crew> {
   const { id: contractId } = await active(s);
   const leader = await leaderOf(s);
   const id = await created(
@@ -92,7 +92,7 @@ async function running(s: AccessScenario): Promise<Crew> {
   return crew;
 }
 
-function remove(s: AccessScenario, path: string, person: Person): request.Test {
+export function remove(s: AccessScenario, path: string, person: Person): request.Test {
   return request(s.app.getHttpServer())
     .delete(path)
     .set('Origin', WEB_ORIGIN)
@@ -108,7 +108,9 @@ const ITEM_DATA = {
 
 const ITEM = { type: 'story', ...ITEM_DATA };
 
-async function withItem(s: AccessScenario): Promise<Crew & { item: string; version: number }> {
+export async function withItem(
+  s: AccessScenario,
+): Promise<Crew & { item: string; version: number }> {
   const crew = await running(s);
   const item = await created(s.post(`${crew.base}/items`, crew.leader.session, ITEM));
   const items = itemListResponseSchema.parse(

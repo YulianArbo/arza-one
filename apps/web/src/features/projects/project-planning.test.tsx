@@ -12,6 +12,7 @@ import {
   PROJECT_READER,
   detailRoute,
   serveProjects,
+  CAN_NOTHING,
 } from '../../test-support/project-fixtures';
 import { ProjectDetailPanel } from './project-detail';
 import { ProjectList } from './project-list';
@@ -105,7 +106,7 @@ describe('iteraciones', () => {
     serveProjects(PROJECT_READER, {
       ...detailRoute({
         sprints: [],
-        can: { update: false, manage_members: false, manage_items: false },
+        can: CAN_NOTHING,
       }),
     });
     await openTab('Iteraciones');
@@ -139,7 +140,7 @@ describe('hitos', () => {
     serveProjects(PROJECT_READER, {
       ...detailRoute({
         milestones: [],
-        can: { update: false, manage_members: false, manage_items: false },
+        can: CAN_NOTHING,
       }),
     });
     await openTab('Hitos');
@@ -198,7 +199,7 @@ describe('lista y asistente', () => {
 describe('quien solo lee', () => {
   it('ve pendientes, equipo y enlaces sin botones para cambiarlos', async () => {
     serveProjects(PROJECT_READER, {
-      ...detailRoute({ can: { update: false, manage_members: false, manage_items: false } }),
+      ...detailRoute({ can: CAN_NOTHING }),
     });
     await openTab('Pendientes');
     expect(await screen.findByText('#3 Descargar facturas')).toBeVisible();
@@ -251,6 +252,7 @@ describe('tarjetas y planeación', () => {
               sprint_id: null,
               review_url: null,
               test_note: null,
+              last_review: null,
               done_at: null,
               version: 1,
             },
