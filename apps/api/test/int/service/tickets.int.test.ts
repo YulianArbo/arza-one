@@ -14,6 +14,27 @@ import { ServiceScenario } from './support/service-scenario.js';
 
 const scenario = new ServiceScenario('mesa de ayuda: tiquetes');
 
+it('valida la versión y el estado al editar un tiquete sin cambiar su prioridad', async () => {
+  const agent = await scenario.agent();
+  const id = await scenario.working(agent);
+  const original = await scenario.ticketOf(agent, id);
+  const path = `/v1/tickets/${id}`;
+  const body = {
+    ...scenario.ticketBody(),
+    priority: original.priority,
+    subject: 'Detalle corregido',
+  };
+  expect((await scenario.put(path, agent, body, original.version + 1)).status).toBe(409);
+  expect((await scenario.put(path, agent, body, original.version)).status).toBe(204);
+  expect((await scenario.ticketOf(agent, id)).resolution_due_at).toBe(original.resolution_due_at);
+  await scenario.stepOk(agent, id, 'resolve', { resolution: 'Se corrigió la falla.' });
+  const resolved = await scenario.ticketOf(agent, id);
+  expect((await scenario.put(path, agent, body, resolved.version)).status).toBe(409);
+  await scenario.stepOk(agent, id, 'close');
+  const closed = await scenario.ticketOf(agent, id);
+  expect((await scenario.put(path, agent, body, closed.version)).status).toBe(409);
+});
+
 it('pagina por cursor los tiquetes que coinciden con el texto y la prioridad', async () => {
   const agent = await scenario.agent();
   const first = await scenario.ticket(agent, {
