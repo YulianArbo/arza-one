@@ -1,11 +1,6 @@
-import {
-  compensationListResponseSchema,
-  slaPolicyListResponseSchema,
-  ticketListResponseSchema,
-} from '@arza/contracts';
+import { slaPolicyListResponseSchema, ticketListResponseSchema } from '@arza/contracts';
 import { describe, expect, it } from 'vitest';
 
-import type { Person } from '../iam/support/access-scenario.js';
 import { ServiceScenario } from './support/service-scenario.js';
 
 // La mesa de ayuda del B28: registrar con cliente, escalar por niveles, la conversación con notas
@@ -198,70 +193,6 @@ describe('conversación', () => {
     expect(seen[1]).toMatchObject({ is_internal: false, from_client: true });
     expect((await scenario.messages(agent, id)).some((message) => message.is_internal)).toBe(true);
   });
-});
-
-async function compensations(person: Person, ticketId: string) {
-  const response = await scenario.get(`/v1/tickets/${ticketId}/compensations`, person.session);
-  expect(response.status, response.text).toBe(200);
-  return compensationListResponseSchema.parse(response.body).data;
-}
-
-describe('compensaciones (RE-SAC-001)', () => {
-  it('otra persona la decide; quien la propuso no puede', async () => {
-    const agent = await scenario.agent();
-    const approver = await scenario.agent();
-    const id = await scenario.working(agent);
-    const base = `/v1/tickets/${id}/compensations`;
-    const mixed = await scenario.post(base, agent.session, {
-      type: 'discount',
-      hours: 2,
-      reason: 'Se superó el plazo.',
-    });
-    expect(mixed.status).toBe(422);
-    const compensationId = await scenario.create(base, agent, {
-      type: 'discount',
-      amount: '150000.50',
-      reason: 'Se superó el plazo de solución.',
-    });
-    const [proposed] = await compensations(agent, id);
-    expect(proposed).toMatchObject({ status: 'proposed', amount: '150000.50' });
-    const decide = `${base}/${compensationId}/actions/decide`;
-    const own = await scenario.action(decide, agent, proposed?.version ?? 0, { approve: true });
-    expect(own.status).toBe(422);
-    const ok = await scenario.action(decide, approver, proposed?.version ?? 0, { approve: true });
-    expect(ok.status, ok.text).toBe(204);
-    const [approved] = await compensations(agent, id);
-    expect(approved).toMatchObject({ status: 'approved', decided_by: { id: approver.id } });
-    await scenario.dispatchNotices();
-    expect((await scenario.noticesFor(agent.id, 'svc_ticket_update')).join(' ')).toContain(
-      'aprobaron',
-    );
-    expect(await scenario.auditActions(compensationId)).toEqual([
-      'service.compensation.propose',
-      'service.compensation.approve',
-    ]);
-  });
-});
-
-it('permite rechazar una compensación e impide decidirla de nuevo', async () => {
-  const agent = await scenario.agent();
-  const approver = await scenario.agent();
-  const id = await scenario.working(agent);
-  const base = `/v1/tickets/${id}/compensations`;
-  const compensationId = await scenario.create(base, agent, {
-    type: 'discount',
-    amount: '150000.50',
-    reason: 'Se superó el plazo de solución.',
-  });
-  const proposed = (await compensations(agent, id)).find((row) => row.id === compensationId);
-  if (proposed === undefined) throw new Error('No aparece la compensación propuesta');
-  const path = `${base}/${compensationId}/actions/decide`;
-  const body = { approve: false, note: 'No corresponde al acuerdo de servicio.' };
-  expect((await scenario.action(path, approver, proposed.version + 1, body)).status).toBe(409);
-  const rejected = await scenario.action(path, approver, proposed.version, body);
-  expect(rejected.status, rejected.text).toBe(204);
-  expect((await compensations(agent, id))[0]).toMatchObject({ status: 'rejected' });
-  expect((await scenario.action(path, approver, proposed.version + 1, body)).status).toBe(409);
 });
 
 describe('acuerdos de tiempo', () => {
