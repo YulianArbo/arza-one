@@ -26,6 +26,15 @@ const TICKET = {
   project_id: null,
 };
 
+it('solo permite vincular un proyecto visible al radicar soporte', async () => {
+  const world = await scenario.clientWorld();
+  const body = { ...TICKET, project_id: world.projectId };
+  const denied = await scenario.portalPost(world.user, '/v1/portal/tickets', body);
+  expect(denied.status).toBe(404);
+  const allowed = await scenario.portalPost(world.admin, '/v1/portal/tickets', body);
+  expect(allowed.status, allowed.text).toBe(201);
+});
+
 async function ticketOf(person: Person, id: string) {
   return portalTicketDetailSchema.parse(await scenario.read(person, `/v1/portal/tickets/${id}`));
 }
