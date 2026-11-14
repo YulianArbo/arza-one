@@ -153,3 +153,21 @@ describe('dejar de compartir', () => {
     expect(denied.status).toBe(403);
   });
 });
+
+it('lista los archivos compartidos y rechaza compartir un archivo inexistente', async () => {
+  const world = await scenario.clientWorld();
+  const path = `/v1/projects/${world.projectId}/shared-files`;
+  const invalid = await scenario.portalPost(world.leader, path, {
+    file_id: '00000000-0000-4000-8000-000000000001',
+    title: 'Archivo inexistente',
+  });
+  expect(invalid.status).toBe(422);
+  const fileId = await scenario.signedCopy(world.leader);
+  const id = await scenario.create(path, world.leader, {
+    file_id: fileId,
+    title: 'Manual técnico',
+  });
+  const list = await scenario.get(path, world.leader.session);
+  expect(list.status, list.text).toBe(200);
+  expect(JSON.stringify(list.body)).toContain(id);
+});

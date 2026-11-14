@@ -112,6 +112,20 @@ describe('conversación y reloj', () => {
   });
 });
 
+it('admite mensajes de un tiquete abierto y rechaza mensajes después del cierre', async () => {
+  const world = await scenario.clientWorld();
+  const id = await scenario.create('/v1/portal/tickets', world.user, TICKET);
+  const agent = await scenario.person('servicio', ['SERVICIO']);
+  const path = `/v1/portal/tickets/${id}/messages`;
+  const body = { body: 'Adjunto información para revisar el incidente.' };
+  expect((await scenario.portalPost(world.user, path, body)).status).toBe(201);
+  await agentStep(agent, id, 'assign', { assignee_id: agent.id });
+  await agentStep(agent, id, 'start');
+  await agentStep(agent, id, 'resolve', { resolution: 'Se corrigió el reporte.' });
+  await agentStep(agent, id, 'close');
+  expect((await scenario.portalPost(world.user, path, body)).status).toBe(409);
+});
+
 describe('PQRSF y artículos', () => {
   it('radica una PQRSF con su cuenta y lee solo los artículos para clientes', async () => {
     const world = await scenario.clientWorld();
