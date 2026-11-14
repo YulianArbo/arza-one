@@ -71,6 +71,10 @@ it('registra un solo vale al reintentar y rechaza fechas y soportes inválidos',
   const today = day(scenario, 0);
   const opening = movementBody('opening', '300.00', today);
   await createdId(keyed(scenario, finance, path, opening));
+  const openingLedger = await scenario.get(`${FIN}/petty-cash`, finance.session);
+  expect(pettyCashResponseSchema.parse(openingLedger.body).data).toMatchObject({
+    balance: '300.00',
+  });
   expect((await keyed(scenario, finance, path, opening)).status).toBe(422);
   const future = movementBody('voucher', '50.00', day(scenario, 1), costCenterId);
   expect((await keyed(scenario, finance, path, future)).status).toBe(422);
@@ -84,6 +88,7 @@ it('registra un solo vale al reintentar y rechaza fechas y soportes inválidos',
   const id = await createdId(post(voucher));
   expect(await createdId(post(voucher))).toBe(id);
   expect((await post({ ...voucher, amount: '60.00' })).status).toBe(409);
+  expect((await post(opening)).status).toBe(409);
   const ledger = await scenario.get(`${FIN}/petty-cash`, finance.session);
   const { data } = pettyCashResponseSchema.parse(ledger.body);
   expect(data.balance).toBe('250.00');
