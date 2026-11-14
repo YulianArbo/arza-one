@@ -59,6 +59,10 @@ it('rechaza la edición obsoleta y la publicación duplicada', async () => {
     409,
   );
   await stepOk(agent, id, 'archive');
+  const archived = await detail(agent, id);
+  expect((await scenario.action(`${path}/actions/archive`, agent, archived.version)).status).toBe(
+    409,
+  );
   await stepOk(agent, id, 'publish');
   expect((await detail(agent, id)).status).toBe('published');
 });
