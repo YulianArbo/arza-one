@@ -9,6 +9,28 @@ import { PortalScenario } from './support/portal-scenario.js';
 
 const scenario = new PortalScenario('portal: acceso');
 
+it('repetir una asignación no duplica el acceso y retirarla vuelve a ocultar el proyecto', async () => {
+  const { admin, user, projectId } = await scenario.clientWorld();
+  const assignment = `/v1/portal/users/${user.id}/projects`;
+  const project = `/v1/portal/projects/${projectId}`;
+  const body = { project_ids: [projectId] };
+  expect((await scenario.putBody(assignment, admin, body)).status).toBe(204);
+  expect((await scenario.putBody(assignment, admin, body)).status).toBe(204);
+  const projects = await scenario.read<{ data: { id: string }[] }>(user, '/v1/portal/projects');
+  expect(projects.data.map((row) => row.id)).toEqual([projectId]);
+  expect((await scenario.putBody(assignment, admin, { project_ids: [] })).status).toBe(204);
+  expect((await scenario.get(project, user.session)).status).toBe(404);
+});
+
+it('rechaza asignar un proyecto de otro cliente a un usuario propio', async () => {
+  const { admin, user } = await scenario.clientWorld();
+  const other = await scenario.clientWorld();
+  const result = await scenario.putBody(`/v1/portal/users/${user.id}/projects`, admin, {
+    project_ids: [other.projectId],
+  });
+  expect(result.status, result.text).toBe(404);
+});
+
 describe('permiso denegado: interno y portal', () => {
   it('una persona interna no entra al portal ni el cliente a la aplicación interna', async () => {
     const world = await scenario.clientWorld();
