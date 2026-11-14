@@ -5,6 +5,7 @@ import {
   type InvoiceDetail,
 } from '@arza/contracts';
 import type { Response } from 'supertest';
+import { v7 as uuidv7 } from 'uuid';
 import { describe, expect, it } from 'vitest';
 
 import type { Person } from '../iam/support/access-scenario.js';
@@ -272,7 +273,7 @@ describe('reglas de facturación', () => {
   });
 
   it('rechaza operaciones sobre una factura inexistente', async () => {
-    const path = `${INVOICES}/${crypto.randomUUID()}`;
+    const path = `${INVOICES}/${uuidv7()}`;
     expect((await keyed(`${path}/payments`, paymentBody('1.00'))).status).toBe(404);
     expect((await keyed(`${path}/credit-notes`, creditBody('1.00', 'NC-INEXISTENTE'))).status).toBe(
       404,
