@@ -1,5 +1,6 @@
 import {
   budgetDetailEnvelopeSchema,
+  budgetListResponseSchema,
   budgetExecutionEnvelopeSchema,
   certifiableHoursResponseSchema,
   expenseListResponseSchema,
@@ -92,6 +93,10 @@ async function budgetFlow(): Promise<void> {
   expectError(await putVersioned(s, `${path}/lines`, finance, lines, 3), 409, 'FIN_STATUS_INVALID');
   const detail = budgetDetailEnvelopeSchema.parse((await s.get(path, finance.session)).body).data;
   expect(detail).toMatchObject({ status: 'approved', planned_total: '1500000.00', line_count: 2 });
+  const list = await s.get(`${FIN}/budgets`, approver.session);
+  expect(budgetListResponseSchema.parse(list.body).data).toContainEqual(
+    expect.objectContaining({ id: world().budgetId, status: 'approved' }),
+  );
 }
 
 async function expenseFlow(): Promise<void> {

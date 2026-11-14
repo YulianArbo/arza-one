@@ -4,6 +4,7 @@ import { expect, it } from 'vitest';
 
 import { day } from '../audit/support/contract-steps.js';
 import { AccessScenario } from '../iam/support/access-scenario.js';
+import { organizationBody } from '../party/support/party-scenario.js';
 import {
   FIN,
   createdId,
@@ -15,6 +16,25 @@ import {
 } from './support/ledger-steps.js';
 
 const scenario = new AccessScenario('finanzas controles del libro');
+
+it('muestra el proveedor vigente en el gasto y en las opciones de registro', async () => {
+  const { costCenterId } = await ledgerBasics(scenario);
+  const finance = await scenario.person('finanzas-proveedor', ['ADMIN_FINANCIERO']);
+  const sales = await scenario.person('comercial-proveedor', ['COMERCIAL']);
+  const supplier = await createdId(
+    scenario.post('/v1/parties', sales.session, organizationBody({ roles: ['supplier'] })),
+  );
+  const body = await expenseBody(scenario, finance, costCenterId, day(scenario, 0));
+  const id = await createdId(
+    keyed(scenario, finance, `${FIN}/expenses`, { ...body, supplier_id: supplier }),
+  );
+  const entries = await scenario.get(`${FIN}/expenses`, finance.session);
+  const entry = expenseListResponseSchema.parse(entries.body).data.find((row) => row.id === id);
+  expect(entry).toMatchObject({ supplier: { id: supplier }, mine: true });
+  const options = await scenario.get(`${FIN}/options`, finance.session);
+  expect(options.status, options.text).toBe(200);
+  expect(JSON.stringify(options.body)).toContain(supplier);
+});
 
 it('conserva un solo gasto ante reintentos y valida el proveedor y la versión', async () => {
   const { costCenterId } = await ledgerBasics(scenario);
@@ -33,7 +53,9 @@ it('conserva un solo gasto ante reintentos y valida el proveedor y la versión',
   const options = await scenario.get(`${FIN}/options`, finance.session);
   expect(options.status, options.text).toBe(200);
   const entries = await scenario.get(path, finance.session);
-  expect(expenseListResponseSchema.parse(entries.body).data.map((row) => row.id)).toEqual([id]);
+  expect(
+    expenseListResponseSchema.parse(entries.body).data.filter((row) => row.id === id),
+  ).toHaveLength(1);
   const approve = `${path}/${id}/approval`;
   expect((await versioned(scenario.post(approve, approver.session), 9)).status).toBe(409);
   expect(
