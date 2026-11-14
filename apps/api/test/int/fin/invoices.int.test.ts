@@ -77,6 +77,9 @@ async function prepareActors(): Promise<Actors> {
 async function issueInvoice(actors: Actors): Promise<{ invoiceId: string; detailPath: string }> {
   const path = '/v1/finance/invoices';
   expect((await scenario.get(path, actors.forbidden.session)).status).toBe(403);
+  const empty = await scenario.get(path, actors.financeOther.session);
+  expect(empty.status, empty.text).toBe(200);
+  expect(empty.body).toMatchObject({ data: [] });
   expect(
     (await keyed(actors.forbidden, path, { milestone_id: actors.delivery.milestoneId })).status,
   ).toBe(403);
@@ -258,4 +261,6 @@ async function assertPortalIsolation(
     {},
   );
   expect(invoiceLink.status).toBe(404);
+  const reader = await scenario.readyPerson('CLIENTE_USUARIO', otherPartyId);
+  expect((await scenario.get('/v1/portal/invoices', reader.session)).status).toBe(403);
 }
