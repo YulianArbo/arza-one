@@ -72,14 +72,22 @@ async function budgetFlow(): Promise<void> {
   world().budgetId = await createdId(s.post(`${FIN}/budgets`, finance.session, { year }));
   expectError(await s.post(`${FIN}/budgets`, finance.session, { year }), 422, 'FIN_RECORD_INVALID');
   const path = `${FIN}/budgets/${world().budgetId}`;
+  expectError(
+    await versioned(s.post(`${path}/approval`, approver.session), 1),
+    422,
+    'FIN_RECORD_INVALID',
+  );
   const lines = { lines: [line(1, '1000000.00'), line(2, '500000.00')] };
+  expect((await putVersioned(s, `${path}/lines`, finance, lines, 9)).status).toBe(409);
   expect((await putVersioned(s, `${path}/lines`, finance, lines, 1)).status).toBe(204);
   expectError(
     await versioned(s.post(`${path}/approval`, finance.session), 2),
     409,
     'FIN_SEGREGATION_REQUIRED',
   );
+  expect((await versioned(s.post(`${path}/approval`, approver.session), 9)).status).toBe(409);
   expect((await versioned(s.post(`${path}/approval`, approver.session), 2)).status).toBe(204);
+  expect((await versioned(s.post(`${path}/approval`, approver.session), 3)).status).toBe(409);
   expectError(await putVersioned(s, `${path}/lines`, finance, lines, 3), 409, 'FIN_STATUS_INVALID');
   const detail = budgetDetailEnvelopeSchema.parse((await s.get(path, finance.session)).body).data;
   expect(detail).toMatchObject({ status: 'approved', planned_total: '1500000.00', line_count: 2 });
@@ -173,6 +181,7 @@ async function reconciliationFlow(): Promise<void> {
     differences: [],
   };
   const id = await createdId(s.post(`${FIN}/bank-reconciliations`, finance.session, body));
+  expect((await s.post(`${FIN}/bank-reconciliations`, finance.session, body)).status).toBe(422);
   const path = `${FIN}/bank-reconciliations/${id}`;
   expectError(
     await versioned(s.post(`${path}/close`, finance.session), 1),
@@ -183,8 +192,11 @@ async function reconciliationFlow(): Promise<void> {
     ...body,
     differences: [{ description: 'Comisión bancaria', amount: '-15000.00' }],
   };
+  expect((await putVersioned(s, path, finance, fixed, 9)).status).toBe(409);
   expect((await putVersioned(s, path, finance, fixed, 1)).status).toBe(204);
+  expect((await versioned(s.post(`${path}/close`, finance.session), 9)).status).toBe(409);
   expect((await versioned(s.post(`${path}/close`, finance.session), 2)).status).toBe(204);
+  expect((await versioned(s.post(`${path}/close`, finance.session), 3)).status).toBe(409);
   const list = reconciliationListResponseSchema.parse(
     (await s.get(`${FIN}/bank-reconciliations`, finance.session)).body,
   );
