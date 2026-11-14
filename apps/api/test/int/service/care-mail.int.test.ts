@@ -27,6 +27,19 @@ async function surveyMailFor(email: string): Promise<string> {
   return surveyToken(mail);
 }
 
+it('envía la encuesta al correo de la persona que radicó el tiquete', async () => {
+  const requester = await scenario.person('solicitante-interno', ['COLABORADOR']);
+  const agent = await scenario.agent();
+  const id = await scenario.ticket(requester, { category: 'platform', priority: 'low' });
+  await scenario.stepOk(agent, id, 'assign', { assignee_id: agent.id });
+  await scenario.stepOk(agent, id, 'start');
+  await scenario.stepOk(agent, id, 'resolve', { resolution: 'Se corrigió el acceso.' });
+  const token = await surveyMailFor(requester.email);
+  const view = await scenario.public('surveys/view', { token });
+  expect(view.status, view.text).toBe(200);
+  expect(view.body).toMatchObject({ ticket_code: (await scenario.ticketOf(agent, id)).code });
+});
+
 it('incluye el cliente en el informe del periodo y deniega el acceso al solicitante', async () => {
   const agent = await scenario.agent();
   const colleague = await scenario.person('solicitante', ['COLABORADOR']);
@@ -171,7 +184,7 @@ describe('encuesta al resolver (decisiones 8 y 9)', () => {
     });
     expect(fakeAnswer.status).toBe(404);
     const email = uniqueEmail('vence');
-    await resolvedTicket(agent, { requester_email: email });
+    const expiring = await resolvedTicket(agent, { requester_email: email });
     const token = await surveyMailFor(email);
     scenario.advance(31 * DAY);
     expect((await scenario.public('surveys/view', { token })).body).toMatchObject({
@@ -179,6 +192,8 @@ describe('encuesta al resolver (decisiones 8 y 9)', () => {
     });
     const late = await scenario.public('surveys/answer', { token, score: 5, satisfaction: 3 });
     expect(late.status).toBe(409);
+    const renewed = await scenario.refresh(agent);
+    expect((await scenario.ticketOf(renewed, expiring)).survey).toMatchObject({ state: 'expired' });
   });
 });
 
