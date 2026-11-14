@@ -36,3 +36,14 @@ export {
   followUpSignatures,
   type SignatureFollowUpResult,
 } from './application/signature-follow-up.js';
+export {
+  clientAmendmentFile,
+  clientContractFile,
+  clientContracts,
+  clientSignatures,
+  clientSignedDocuments,
+  issueClientSigningLink,
+  type ClientSignedDocument,
+  type SigningRights,
+} from './application/client-agreements.js';
+export { contractActorOf, type ContractActor } from './application/contract-support.js';

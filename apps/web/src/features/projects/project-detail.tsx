@@ -13,6 +13,7 @@ import { FactsCard, factLink, type Fact } from '../crm/crm-facts';
 import { formatPesos } from '../crm/labels';
 import { partyPath } from '../parties/labels';
 import { SectionTabs, type SectionTab } from '../parties/section-tabs';
+import { PortalSharePanel } from './portal-share-panel';
 import { BacklogPanel } from './backlog';
 import { BoardPanel } from './board';
 import { DeliverablesPanel } from './deliverables-panel';
@@ -130,6 +131,11 @@ function tabsOf(project: ProjectDetail): SectionTab[] {
       id: 'indicadores',
       label: 'Indicadores',
       content: () => <IndicatorsPanel project={project} />,
+    },
+    {
+      id: 'portal',
+      label: 'Portal del cliente',
+      content: () => <PortalSharePanel project={project} />,
     },
   ];
 }

@@ -145,3 +145,18 @@ export async function publishedAuthorizationNotices(tx: TenantTransaction): Prom
   });
   return rows.map(noticeView);
 }
+
+/**
+ * Los textos publicados de las claves dadas, como los términos de uso del portal y la política de
+ * privacidad que el cliente acepta en su primer ingreso (B30, decisión 8).
+ */
+export async function publishedNotices(
+  tx: TenantTransaction,
+  keys: readonly string[],
+): Promise<Notice[]> {
+  const rows = await tx.privacyNotice.findMany({
+    where: { status: 'published', deletedAt: null, key: { in: [...keys] } },
+    orderBy: { key: 'asc' },
+  });
+  return rows.map(noticeView);
+}

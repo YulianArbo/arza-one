@@ -6,6 +6,7 @@ export {
   consentsOfParty,
   grantConsent,
   publishedAuthorizationNotices,
+  publishedNotices,
 } from './application/consent-grant.js';
 export { actorOf } from './application/privacy-support.js';
 export {

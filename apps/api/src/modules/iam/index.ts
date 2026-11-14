@@ -42,3 +42,23 @@ export {
   type StoredImage,
 } from './application/profile-ports.js';
 export { assertUsableImage, imageNotAllowed, imageNotFound } from './application/image-messages.js';
+export {
+  changePortalRole,
+  companyAccounts,
+  emailOutsideCompany,
+  portalAccountOf,
+  portalRoleOfUser,
+  renamePortalAccount,
+  setPortalAccountActive,
+  type CompanyAccount,
+  type PortalAccount,
+  type PortalAdminActor,
+} from './application/portal-accounts.js';
+export {
+  acceptedTermsOf,
+  recentSessionsOf,
+  recordTermsAcceptance,
+  type AcceptedTerms,
+  type TermsVersion,
+} from './application/portal-terms.js';
+export { InvitationUseCase } from './application/invitation.js';

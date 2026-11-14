@@ -9,6 +9,7 @@ import type {
 } from '@arza/contracts';
 import { pqrsfStatusSchema, pqrsfTypeSchema } from '@arza/contracts';
 
+import type { SvcPqrsf } from '../../../generated/prisma/client.js';
 import type { Principal } from '../../../platform/access/principal.js';
 import { CLOCK, type Clock } from '../../../platform/clock/clock.js';
 import { CONFIG } from '../../../platform/config/config.module.js';
@@ -40,8 +41,8 @@ const PQRSF_CODES = { name: 'PQRSF', prefix: 'PQRSF', padding: 4 } as const;
 /** El aviso de autorización que acepta quien radica: el de contactos (decisión 12). */
 const CONSENT_NOTICE_KEY = 'authorization_contact';
 
-interface Intake {
-  readonly channel: 'web' | 'email' | 'phone' | 'in_person';
+export interface PqrsfIntake {
+  readonly channel: 'web' | 'email' | 'phone' | 'in_person' | 'portal';
   readonly type: PqrsfType;
   readonly name: string;
   readonly email: string | null;
@@ -58,7 +59,11 @@ async function consentNoticeId(tx: TenantTransaction): Promise<string | null> {
 }
 
 /** Crea la PQRSF con su radicado, su plazo y el acuse pendiente si hay correo. */
-async function file(tx: TenantTransaction, actor: ServiceActor, intake: Intake) {
+export async function filePqrsf(
+  tx: TenantTransaction,
+  actor: ServiceActor,
+  intake: PqrsfIntake,
+): Promise<SvcPqrsf> {
   const deadline = await pqrsfDeadline(tx, actor.at, intake.type, null);
   const fromWeb = intake.channel === 'web';
   const pqrsf = await tx.svcPqrsf.create({
@@ -112,7 +117,7 @@ export class PqrsfIntakeUseCase {
     const tenantId = await this.siteTenant();
     const actor: ServiceActor = { tenantId, userId: null, meta, at: this.clock.now() };
     return this.database.withTenant({ tenantId, userId: null }, async (tx) => {
-      const pqrsf = await file(tx, actor, {
+      const pqrsf = await filePqrsf(tx, actor, {
         channel: 'web',
         type: input.type,
         name: input.name,
@@ -176,7 +181,7 @@ export class PqrsfIntakeUseCase {
     const actor = serviceActorOf(principal, meta, this.clock.now());
     return this.database.withTenant(principal, async (tx) => {
       const partyId = input.party_id === null ? null : await usableParty(tx, input.party_id);
-      const pqrsf = await file(tx, actor, {
+      const pqrsf = await filePqrsf(tx, actor, {
         channel: input.channel,
         type: input.type,
         name: input.requester_name,

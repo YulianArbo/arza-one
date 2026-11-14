@@ -20,3 +20,16 @@ export {
   type ProjectRef,
 } from './application/project-directory.js';
 export type { ProjectActor } from './application/project-support.js';
+export {
+  clientAccessByUser,
+  clientAwaitingActs,
+  clientProject,
+  clientProjectDocuments,
+  clientProjectIds,
+  clientProjects,
+  clientUpcomingMilestones,
+  companyProjects,
+  type ClientProjectDocument,
+  type ClientProjectScope,
+} from './application/client-projects.js';
+export { setClientAccess } from './application/client-sharing.js';

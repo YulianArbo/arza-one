@@ -93,6 +93,11 @@ export const DATABASE_BOUND_FILES = [
   // Servicio al cliente: mesa de ayuda (B28), PQRSF, encuestas y base de conocimiento (B29).
   'src/modules/service/application/**/*.ts',
   'src/modules/service/interface/**/*.ts',
+  // Portal (B30): consultas y escrituras con base de datos, medidas en integración.
+  'src/modules/iam/application/portal-accounts.ts',
+  'src/modules/iam/application/portal-terms.ts',
+  'src/modules/portal/application/**/*.ts',
+  'src/modules/portal/interface/**/*.ts',
 ];
 
 /** Procesos que solo arrancan algo; se prueban a mano o como proceso real. */

@@ -132,6 +132,9 @@ model Tenant {
   svcSurveys              SvcSurvey[]
   svcSurveyResponses      SvcSurveyResponse[]
   svcKbArticles           SvcKbArticle[]
+  iamTermsAcceptances     TermsAcceptance[]
+  prjClientAccess         PrjClientAccess[]
+  prjSharedFiles          PrjSharedFile[]
 
   @@map("core_tenants")
 }
@@ -2637,6 +2640,8 @@ model PrjProject {
   /// El contrato prevé la aceptación tácita, y en qué cláusula (ficha 17.8).
   tacitAcceptance        Boolean           @default(false) @map("tacit_acceptance")
   tacitClause            String?           @map("tacit_clause")
+  /// Se ve en el portal del cliente desde que inicia (B30, decisión 2).
+  portalVisible          Boolean           @default(true) @map("portal_visible")
   closingStartedAt       DateTime?         @map("closing_started_at") @db.Timestamptz(6)
   closedAt               DateTime?         @map("closed_at") @db.Timestamptz(6)
   /// Lecciones aprendidas, al cerrar.
@@ -2660,11 +2665,14 @@ model PrjProject {
   releases               PrjRelease[]
   codeReviews            PrjCodeReview[]
   incidents              PrjIncident[]
+  clientAccess           PrjClientAccess[]
+  sharedFiles            PrjSharedFile[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, code])
   @@index([tenantId, status])
   @@index([tenantId, contractId])
+  @@index([tenantId, partyId])
   @@map("prj_projects")
 }
 
@@ -3311,4 +3319,75 @@ model SvcKbArticle {
   @@unique([tenantId, id])
   @@index([tenantId, status, audience])
   @@map("svc_kb_articles")
+}
+
+/// Aceptación de los términos de uso del portal y de la política de privacidad (B30, ficha 17.10):
+/// una fila por versión aceptada, con su evidencia. No se edita ni se borra.
+model TermsAcceptance {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  tenantId      String    @map("tenant_id") @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  noticeId      String    @map("notice_id") @db.Uuid
+  noticeKey     String    @map("notice_key")
+  versionNumber Int       @map("version_number")
+  acceptedAt    DateTime  @map("accepted_at") @db.Timestamptz(6)
+  ipAddress     String?   @map("ip_address")
+  userAgent     String?   @map("user_agent")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?   @map("created_by") @db.Uuid
+  updatedAt     DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?   @map("updated_by") @db.Uuid
+  version       Int       @default(1)
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, userId, noticeId])
+  @@index([tenantId, userId])
+  @@map("iam_terms_acceptances")
+}
+
+/// Qué proyectos ve cada usuario del cliente que no es su administrador (B30, decisión 3). Lo
+/// asigna el administrador del cliente; quitar la asignación quita el acceso (deleted_at).
+model PrjClientAccess {
+  id        String     @id @default(uuid(7)) @db.Uuid
+  tenantId  String     @map("tenant_id") @db.Uuid
+  projectId String     @map("project_id") @db.Uuid
+  userId    String     @map("user_id") @db.Uuid
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy String?    @map("created_by") @db.Uuid
+  updatedAt DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy String?    @map("updated_by") @db.Uuid
+  version   Int        @default(1)
+  deletedAt DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  project   PrjProject @relation(fields: [tenantId, projectId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, projectId])
+  @@index([tenantId, userId])
+  @@map("prj_client_access")
+}
+
+/// Archivos que el equipo comparte a propósito con el cliente en el portal (B30, decisión 5).
+/// Dejar de compartir marca deleted_at; el archivo sigue en el expediente.
+model PrjSharedFile {
+  id        String     @id @default(uuid(7)) @db.Uuid
+  tenantId  String     @map("tenant_id") @db.Uuid
+  projectId String     @map("project_id") @db.Uuid
+  fileId    String     @map("file_id") @db.Uuid
+  title     String
+  sharedBy  String     @map("shared_by") @db.Uuid
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy String?    @map("created_by") @db.Uuid
+  updatedAt DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy String?    @map("updated_by") @db.Uuid
+  version   Int        @default(1)
+  deletedAt DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  project   PrjProject @relation(fields: [tenantId, projectId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, projectId])
+  @@map("prj_shared_files")
 }

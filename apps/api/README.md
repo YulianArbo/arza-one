@@ -795,6 +795,24 @@ conocimiento (ficha 17.9). Tablas y reglas en [`svc.md`](../../docs/manual/datos
 | NPS                       | `GET /v1/survey-responses` (quien lee todos los tiquetes): `npsOf()` (contratos) y promedio de satisfacción del periodo. `PUT /v1/surveys/{id}` (`service.survey.manage`) cambia textos y encendido                                                                                        |
 | Base de conocimiento      | `kb-articles` con `service.kb.read` (todo rol interno) y `service.kb.manage`; quien no administra solo ve lo publicado (un borrador responde 404). Tabla `KB_ACTIONS`                                                                                                                      |
 
+## Portal del cliente (B30, módulo `src/modules/portal`)
+
+El cliente ve y hace en `/v1/portal/*` lo que le corresponde (ficha 17.10). El módulo no tiene
+tablas: compone lo que exponen los índices de Proyectos, Contratos, Servicio, Identidad, Privacidad
+y Terceros, siempre filtrado por la empresa cliente de la persona (`iam_users.party_id`). Tablas
+nuevas en [`prj.md`](../../docs/manual/datos/prj.md) e [`iam.md`](../../docs/manual/datos/iam.md).
+
+| Regla                      | Cómo se cumple                                                                                                                                                                                                                    |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Puerta del portal          | `PortalAccess.run()`: cuenta `portal` con empresa (si no, 403 `PORTAL_NO_COMPANY`) y términos vigentes aceptados (403 `PORTAL_TERMS_PENDING`; sin términos publicados, 503 `PORTAL_TERMS_UNAVAILABLE`)                            |
+| Permisos                   | Cada ruta declara un permiso `portal.*`; el administrador del cliente los tiene todos y el usuario solo proyectos, tiquetes y datos propios. Ninguna persona interna tiene permisos `portal.*`                                    |
+| Aislamiento entre clientes | Toda consulta filtra por `party_id`; lo de otra empresa responde 404. `portal-isolation.int.test.ts` recorre todas las rutas del portal y falla si se agrega una sin cubrir                                                       |
+| Proyectos                  | Solo los iniciados con `portal_visible`; el usuario, además, los de `prj_client_access`. Avance = tareas terminadas sobre planeadas. Sin horas, dinero, riesgos ni notas del equipo                                               |
+| Firmas                     | `POST /v1/portal/signatures/{id}/link`: solo a quien le toca firmar con el correo de su cuenta y con el permiso de esa clase de documento; enlace nuevo de un solo uso (el del correo deja de servir); `signature.link.issue`     |
+| Contratos y documentos     | Contratos desde `in_signature`; descargas con enlace temporal (`doc.file.download_link`). Documentos: contratos y otrosíes firmados, actas firmadas y `prj_shared_files`                                                          |
+| Soporte                    | Tiquetes `channel = 'portal'` a nombre de la persona; solo mensajes públicos; su respuesta reanuda el reloj si esperaba al cliente. PQRSF `channel = 'portal'` con el acuse al correo. Artículos `audience = 'client'` publicados |
+| Usuarios y datos           | `portal.user.manage`: invitar (invitación de siempre), cambiar el rol, activar o desactivar y asignar proyectos, nunca a sí mismo ni a otra empresa. `me` y `me/export` (copia sin secretos, auditada)                            |
+
 ## Flujos y tareas (B15, módulo `src/modules/wf`)
 
 Motor de flujos definido por datos (ficha 17.5, numeral 13.2, ADR-011). Las tablas están en

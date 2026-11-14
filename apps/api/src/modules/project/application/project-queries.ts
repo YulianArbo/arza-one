@@ -41,7 +41,7 @@ async function searchOf(
 }
 
 /** Avance de cada proyecto: ítems de trabajo terminados sobre planeados. */
-async function progressByProject(
+export async function progressByProject(
   tx: TenantTransaction,
   projectIds: readonly string[],
 ): Promise<Map<string, ProjectProgress>> {

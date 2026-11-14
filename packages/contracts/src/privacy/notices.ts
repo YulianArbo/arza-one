@@ -32,6 +32,7 @@ export const PRIVACY_ERROR_CODES = {
 export const NOTICE_KINDS = {
   privacy_policy: { label: 'Política de tratamiento de datos personales', authorization: false },
   privacy_notice: { label: 'Aviso de privacidad', authorization: false },
+  portal_terms: { label: 'Términos de uso del portal', authorization: false },
   authorization_customer: { label: 'Autorización de clientes', authorization: true },
   authorization_supplier: { label: 'Autorización de proveedores', authorization: true },
   authorization_employee: { label: 'Autorización de colaboradores', authorization: true },
@@ -46,6 +47,7 @@ export type NoticeKey = keyof typeof NOTICE_KINDS;
 export const EDITABLE_NOTICE_KEYS = [
   'privacy_policy',
   'privacy_notice',
+  'portal_terms',
   'authorization_customer',
   'authorization_supplier',
   'authorization_employee',

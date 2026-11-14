@@ -5,3 +5,4 @@ export * from './items.js';
 export * from './time.js';
 export * from './deliverables.js';
 export * from './control.js';
+export * from './sharing.js';
