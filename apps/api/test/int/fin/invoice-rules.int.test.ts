@@ -175,6 +175,7 @@ async function rejectsStepsOutOfOrder(): Promise<void> {
     409,
     statusInvalid,
   );
+  expect((await versioned(`${path}/fiscal-document`, fiscalBody(), 9)).status).toBe(409);
   await succeedsOnReplay(`${path}/fiscal-document`, fiscalBody(), 2);
   expect((await versioned(`${path}/fiscal-document`, fiscalBody(), 3)).status).toBe(409);
   expectRejected(
