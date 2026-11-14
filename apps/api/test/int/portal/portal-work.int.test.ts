@@ -37,6 +37,8 @@ describe('inicio y avance', () => {
     const world = await scenario.clientWorld();
     const deliverableId = await scenario.deliveredDeliverable(world);
     const home = portalHomeSchema.parse(await scenario.read(world.admin, '/v1/portal/home'));
+    const userHome = portalHomeSchema.parse(await scenario.read(world.user, '/v1/portal/home'));
+    expect(userHome).toMatchObject({ projects: 0, pending: { approvals: 0, signatures: 0 } });
     expect(home).toMatchObject({ projects: 1, pending: { approvals: 1, signatures: 1 } });
     expect(home.next_milestones.map((row) => row.name)).toEqual(['Entrega del portal']);
     const raw = await scenario.read<Record<string, unknown>>(
