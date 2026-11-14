@@ -130,7 +130,7 @@ export class DeliveryScenario extends ProjectScenario {
 
   /** Una pasada del worker de actas: envía las listas y cierra las respondidas. */
   async acceptanceWork(): Promise<AcceptanceWorkResult> {
-    return followAcceptances({ database: apiDatabase(), clock: this.clock });
+    return followAcceptances({ database: this.workerDatabase(), clock: this.clock });
   }
 
   /** Entregado, con el PDF del acta generado, enviado a firma y el enlace en el correo. */

@@ -130,11 +130,20 @@ export class ServiceScenario extends CrmScenario {
   }
 
   /** Avisos de un tipo para una persona. */
-  async noticesFor(userId: string, kind: string): Promise<string[]> {
+  async noticesFor(userId: string, kind: string, ticketId?: string): Promise<string[]> {
     const rows = await tenantScope(
       this.db,
       this.tenant.id,
-    )((tx) => tx.notification.findMany({ where: { userId, kind }, orderBy: { createdAt: 'asc' } }));
+    )((tx) =>
+      tx.notification.findMany({
+        where: {
+          userId,
+          kind,
+          ...(ticketId === undefined ? {} : { link: `/app/servicio/tiquetes/${ticketId}` }),
+        },
+        orderBy: { createdAt: 'asc' },
+      }),
+    );
     return rows.map((row) => row.body);
   }
 
