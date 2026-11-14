@@ -154,6 +154,9 @@ describe('aprobar horas', () => {
     expect(missing.status).toBe(404);
     const approved = await scenario.post(approvePath, leader.session, { ids: [first.id] });
     expect(approved.status, approved.text).toBe(201);
+    const deletePath = `/v1/projects/${id}/time-entries/${first.id}`;
+    const removal = await scenario.delete(deletePath, developer.session, first.version + 1);
+    expect(errorCode(removal)).toBe('PROJECT_STATUS_INVALID');
     const repeated = await scenario.post(approvePath, leader.session, { ids: [first.id] });
     expect(errorCode(repeated)).toBe('PROJECT_STATUS_INVALID');
     const locked = await scenario.put(
@@ -194,5 +197,19 @@ describe('devolver horas', () => {
     expect((await scenario.noticesFor(developer.id)).join(' ')).toContain('devolvieron');
     const indicators = await scenario.indicators(leader, id);
     expect(indicators.hours).toMatchObject({ logged: 10, approved: 4, billable: 4, pending: 4 });
+    const corrected = await scenario.put(
+      `/v1/projects/${id}/time-entries/${second.id}`,
+      developer,
+      { work_date: scenario.day(0), hours: 2, item_id: null, billable: false, note: null },
+      second.version + 1,
+    );
+    expect(corrected.status, corrected.text).toBe(204);
+    expect((await scenario.post(approvePath, leader.session, { ids: [second.id] })).status).toBe(
+      201,
+    );
+    expect((await scenario.indicators(leader, id)).hours).toMatchObject({
+      approved: 6,
+      billable: 4,
+    });
   });
 });

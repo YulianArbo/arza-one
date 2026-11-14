@@ -92,45 +92,44 @@ describe('riesgos y liberaciones', () => {
   });
 });
 
-describe('incidentes', () => {
-  it('el incidente con datos personales avisa al Oficial de datos; se resuelve con su causa', async () => {
-    const leader = await scenario.leader();
-    const officer = await scenario.person('oficial', ['OFICIAL_DATOS']);
-    const id = await scenario.runningProject(leader);
-    const incident = await scenario.create(`/v1/projects/${id}/incidents`, leader, {
-      title: 'Acceso indebido a reportes',
-      kind: 'security',
-      severity: 'critical',
-      description: 'Un enlace de reporte quedó público por error.',
-      detected_at: scenario.clock.now().toISOString(),
-      personal_data: true,
-    });
-    await scenario.dispatchNotices();
-    expect((await scenario.noticesFor(officer.id)).join(' ')).toContain('SIC');
-    const list = await scenario.get(`/v1/projects/${id}/incidents`, leader.session);
-    const [row] = (list.body as { data: { code: string; version: number }[] }).data;
-    expect(row?.code).toMatch(/^INC-\d{4}-\d{4}$/u);
-    const path = `/v1/projects/${id}/incidents/${incident}/actions/resolve`;
-    const version = row?.version ?? 0;
-    const resolution = {
-      resolved_at: scenario.clock.now().toISOString(),
-      root_cause: 'Permiso público por omisión.',
-      actions: 'Enlaces firmados y revisión de permisos.',
-    };
-    const premature = await scenario.action(path, leader, version, {
-      ...resolution,
-      resolved_at: new Date(scenario.clock.now().getTime() - 60_000).toISOString(),
-    });
-    expect(premature.status).toBe(422);
-    const stale = await scenario.action(path, leader, version + 1, resolution);
-    expect(stale.status).toBe(409);
-    const resolved = await scenario.action(path, leader, version, resolution);
-    expect(resolved.status, resolved.text).toBe(204);
-    const repeated = await scenario.action(path, leader, version + 1, resolution);
-    expect(errorCode(repeated)).toBe('PROJECT_STATUS_INVALID');
+it('el incidente con datos personales avisa al Oficial de datos; se resuelve con su causa', async () => {
+  const leader = await scenario.leader();
+  const officer = await scenario.person('oficial', ['OFICIAL_DATOS']);
+  const id = await scenario.runningProject(leader);
+  const incident = await scenario.create(`/v1/projects/${id}/incidents`, leader, {
+    title: 'Acceso indebido a reportes',
+    kind: 'security',
+    severity: 'critical',
+    description: 'Un enlace de reporte quedó público por error.',
+    detected_at: scenario.clock.now().toISOString(),
+    personal_data: true,
   });
+  await scenario.dispatchNotices();
+  expect((await scenario.noticesFor(officer.id)).join(' ')).toContain('SIC');
+  const list = await scenario.get(`/v1/projects/${id}/incidents`, leader.session);
+  const [row] = (list.body as { data: { code: string; version: number }[] }).data;
+  expect(row?.code).toMatch(/^INC-\d{4}-\d{4}$/u);
+  const path = `/v1/projects/${id}/incidents/${incident}/actions/resolve`;
+  const version = row?.version ?? 0;
+  const resolution = {
+    resolved_at: scenario.clock.now().toISOString(),
+    root_cause: 'Permiso público por omisión.',
+    actions: 'Enlaces firmados y revisión de permisos.',
+  };
+  for (const offset of [-60_000, 60_000]) {
+    const outsideWindow = await scenario.action(path, leader, version, {
+      ...resolution,
+      resolved_at: new Date(scenario.clock.now().getTime() + offset).toISOString(),
+    });
+    expect(outsideWindow.status).toBe(422);
+  }
+  const stale = await scenario.action(path, leader, version + 1, resolution);
+  expect(stale.status).toBe(409);
+  const resolved = await scenario.action(path, leader, version, resolution);
+  expect(resolved.status, resolved.text).toBe(204);
+  const repeated = await scenario.action(path, leader, version + 1, resolution);
+  expect(errorCode(repeated)).toBe('PROJECT_STATUS_INVALID');
 });
-
 it('avisa al líder al subir un riesgo y lo excluye del indicador al cerrarlo', async () => {
   const leader = await scenario.leader();
   const outsider = await scenario.developer();
