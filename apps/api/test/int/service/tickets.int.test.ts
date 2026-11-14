@@ -243,6 +243,27 @@ describe('compensaciones (RE-SAC-001)', () => {
   });
 });
 
+it('permite rechazar una compensación e impide decidirla de nuevo', async () => {
+  const agent = await scenario.agent();
+  const approver = await scenario.agent();
+  const id = await scenario.working(agent);
+  const base = `/v1/tickets/${id}/compensations`;
+  const compensationId = await scenario.create(base, agent, {
+    type: 'discount',
+    amount: '150000.50',
+    reason: 'Se superó el plazo de solución.',
+  });
+  const proposed = (await compensations(agent, id)).find((row) => row.id === compensationId);
+  if (proposed === undefined) throw new Error('No aparece la compensación propuesta');
+  const path = `${base}/${compensationId}/actions/decide`;
+  const body = { approve: false, note: 'No corresponde al acuerdo de servicio.' };
+  expect((await scenario.action(path, approver, proposed.version + 1, body)).status).toBe(409);
+  const rejected = await scenario.action(path, approver, proposed.version, body);
+  expect(rejected.status, rejected.text).toBe(204);
+  expect((await compensations(agent, id))[0]).toMatchObject({ status: 'rejected' });
+  expect((await scenario.action(path, approver, proposed.version + 1, body)).status).toBe(409);
+});
+
 describe('acuerdos de tiempo', () => {
   it('Servicio los cambia y la nueva prioridad recalcula el tiquete', async () => {
     const agent = await scenario.agent();
