@@ -112,6 +112,11 @@ describe('documentos compartidos', () => {
       await scenario.read(world.admin, '/v1/portal/documents'),
     );
     expect(documents.data.map((row) => row.kind).sort()).toEqual(['contract', 'shared']);
+    const contract = documents.data.find((row) => row.kind === 'contract');
+    if (contract === undefined) throw new Error('No aparece el contrato');
+    const contractPath = `/v1/portal/documents/contract/${contract.id}/link`;
+    expect((await scenario.portalPost(world.admin, contractPath)).status).toBe(201);
+    expect((await scenario.portalPost(world.user, contractPath)).status).toBe(404);
     const userDocs = portalDocumentListSchema.parse(
       await scenario.read(world.user, '/v1/portal/documents'),
     );
@@ -137,6 +142,7 @@ describe('dejar de compartir', () => {
     });
     const removed = await scenario.delete(`${path}/${sharedId}`, world.leader.session);
     expect(removed.status, removed.text).toBe(204);
+    expect((await scenario.delete(`${path}/${sharedId}`, world.leader.session)).status).toBe(404);
     const link = await scenario.portalPost(
       world.admin,
       `/v1/portal/documents/shared/${sharedId}/link`,
