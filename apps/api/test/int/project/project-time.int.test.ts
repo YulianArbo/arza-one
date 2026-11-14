@@ -107,6 +107,7 @@ describe('quién registra y quién ve', () => {
     );
     expect(filtered.data).toHaveLength(2);
     expect((await scenario.times(leader, id, `?to=${scenario.day(-1)}`)).data).toEqual([]);
+    expect((await scenario.times(leader, id, `?from=${scenario.day(0)}`)).data).toHaveLength(2);
 
     const options = await scenario.get('/v1/time-entries/options', member.session);
     expect(options.status, options.text).toBe(200);

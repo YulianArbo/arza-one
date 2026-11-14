@@ -165,6 +165,28 @@ it('avisa al líder al subir un riesgo y lo excluye del indicador al cerrarlo', 
   expect((await scenario.indicators(leader, id)).risks_high).toBe(0);
 });
 
+it('rechaza una liberación futura y un enlace de informe inexistente', async () => {
+  const leader = await scenario.leader();
+  const id = await scenario.runningProject(leader);
+  const path = `/v1/projects/${id}/releases`;
+  const missing = '00000000-0000-4000-8000-000000000001';
+  const body = {
+    version_label: '1.0.0',
+    environment: 'test',
+    released_on: scenario.day(1),
+    notes: 'Primera versión para pruebas del cliente.',
+    test_report_file_id: missing,
+  };
+  expect(errorCode(await scenario.post(path, leader.session, body))).toBe('PROJECT_DATES_INVALID');
+  expect(
+    errorCode(await scenario.post(path, leader.session, { ...body, released_on: scenario.day(0) })),
+  ).toBe('PROJECT_FILE_INVALID');
+  expect((await scenario.post(`${path}/${missing}/report-link`, leader.session, {})).status).toBe(
+    404,
+  );
+  expect((await scenario.indicators(leader, id)).money).toBeNull();
+});
+
 /** Dos historias y una épica; una historia terminada con su revisión aprobada. */
 async function oneDone(leader: Person, id: string): Promise<void> {
   const done = await scenario.item(leader, id);
