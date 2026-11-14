@@ -104,7 +104,7 @@ describe('ciclo del artículo', () => {
       audience: 'client',
     });
     await stepOk(agent, id, 'publish');
-    const found = await list(agent, '?q=código único&audience=client');
+    const found = await list(agent, '?q=código único&audience=client&category=billing');
     expect(found.data.map((row) => row.id)).toEqual([id]);
     expect(found.can_manage).toBe(true);
     const drafts = await list(agent, '?status=draft');

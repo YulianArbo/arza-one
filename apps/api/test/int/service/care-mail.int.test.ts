@@ -2,6 +2,7 @@ import { surveyListResponseSchema, surveyResultsSchema } from '@arza/contracts';
 import { describe, expect, it } from 'vitest';
 
 import { tenantsWithCareWork } from '../../../src/modules/service/index.js';
+import { bogotaToday } from '../../../src/modules/core/index.js';
 import type { Person } from '../iam/support/access-scenario.js';
 import { CareScenario, surveyToken, uniqueEmail } from './support/care-scenario.js';
 
@@ -25,6 +26,25 @@ async function surveyMailFor(email: string): Promise<string> {
   if (mail === undefined) throw new Error(`No llegó la encuesta a ${email}`);
   return surveyToken(mail);
 }
+
+it('incluye el cliente en el informe del periodo y deniega el acceso al solicitante', async () => {
+  const agent = await scenario.agent();
+  const colleague = await scenario.person('solicitante', ['COLABORADOR']);
+  const party = await scenario.clientParty();
+  const email = uniqueEmail('informe');
+  const id = await resolvedTicket(agent, { party_id: party, requester_email: email });
+  const token = await surveyMailFor(email);
+  const answer = await scenario.public('surveys/answer', { token, score: 4, satisfaction: 2 });
+  expect(answer.status, answer.text).toBe(204);
+  const day = bogotaToday(scenario.clock.now());
+  const path = `/v1/survey-responses?from=${day}&to=${day}`;
+  expect((await scenario.get(path, colleague.session)).status).toBe(403);
+  const results = surveyResultsSchema.parse((await scenario.get(path, agent.session)).body);
+  expect(results.data.find((row) => row.ticket.id === id)).toMatchObject({
+    party: { id: party },
+    score: 4,
+  });
+});
 
 describe('correos de la PQRSF', () => {
   it('el acuse lleva el radicado y la fecha límite; la respuesta aprobada sale después', async () => {
