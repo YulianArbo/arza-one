@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { CommandResult, RunCommand } from './local-stack.ts';
 import {
+  databaseAddress,
   infraDown,
   infraReset,
   infraStatus,
@@ -49,7 +50,7 @@ function recorder(responses: Record<string, CommandResult> = {}): Recorder {
   return {
     calls,
     printed,
-    deps: { run, garage, files: FILES, pnpm: ['node', 'pnpm.cjs'], env: ENV, print },
+    deps: { run, garage, files: FILES, pnpm: ['node', 'pnpm.cjs'], node: 'node', env: ENV, print },
   };
 }
 
@@ -63,6 +64,7 @@ describe('infraUp', () => {
         'postgres valkey garage gotenberg mailpit',
     );
     expect(calls[2]).toBe('docker compose --file local.yml --env-file .env up --detach clamav');
+    expect(calls.at(-3)).toMatch(/^node -e .*net\.connect\(5433, "localhost"\)/su);
     expect(calls.slice(-2)).toEqual(['node pnpm.cjs db:migrate', 'node pnpm.cjs db:seed:demo']);
     expect(printed.join('')).toContain('localhost:5433');
     expect(printed.join('')).toContain('http://localhost:8025');
@@ -77,14 +79,31 @@ describe('infraUp: fallas', () => {
     }).toThrow('Abra Docker Desktop');
     expect(calls).toHaveLength(1);
   });
+});
 
+describe('infraUp: fallas', () => {
   it('explica cómo cambiar un puerto ocupado si los servicios no arrancan', () => {
     const { deps } = recorder({ 'docker compose': failed() });
     expect(() => {
       infraUp(deps);
     }).toThrow('POSTGRES_PORT=5433');
   });
+});
 
+describe('infraUp: fallas', () => {
+  it('si la base de datos no abre su puerto, lo explica y no migra', () => {
+    const { calls, deps } = recorder({
+      'garage layout show': ok(READY_LAYOUT),
+      'node -e': failed(),
+    });
+    expect(() => {
+      infraUp(deps);
+    }).toThrow('La base de datos no responde en localhost:5433');
+    expect(calls).not.toContain('node pnpm.cjs db:migrate');
+  });
+});
+
+describe('infraUp: fallas', () => {
   it('se detiene en la migración que falla, sin cargar datos semilla', () => {
     const { calls, deps } = recorder({
       'garage layout show': ok(READY_LAYOUT),
@@ -95,13 +114,27 @@ describe('infraUp: fallas', () => {
     }).toThrow('Falló «pnpm db:migrate»');
     expect(calls).not.toContain('node pnpm.cjs db:seed:demo');
   });
+});
 
+describe('infraUp: fallas', () => {
   it('exige las variables del almacenamiento antes de encender nada', () => {
     const { calls, deps } = recorder();
     expect(() => {
       infraUp({ ...deps, env: { S3_BUCKET: 'arza-one-local' } });
     }).toThrow('Faltan S3_BUCKET, S3_ACCESS_KEY o S3_SECRET_KEY');
     expect(calls).toEqual([]);
+  });
+});
+
+describe('databaseAddress', () => {
+  it('toma la dirección de DATABASE_MIGRATION_URL y, sin ella, POSTGRES_PORT', () => {
+    const url = 'postgresql://migration_user:clave@127.0.0.1:5434/arza_one';
+    expect(databaseAddress({ DATABASE_MIGRATION_URL: url })).toEqual({
+      host: '127.0.0.1',
+      port: 5434,
+    });
+    expect(databaseAddress({ POSTGRES_PORT: '5433' })).toEqual({ host: 'localhost', port: 5433 });
+    expect(databaseAddress({})).toEqual({ host: 'localhost', port: 5432 });
   });
 });
 
@@ -115,7 +148,9 @@ describe('infraDown', () => {
     ]);
     expect(printed.join('')).toContain('Los datos se conservan');
   });
+});
 
+describe('infraDown', () => {
   it('avisa si no pudo detenerlos', () => {
     const { deps } = recorder({ 'docker compose': failed() });
     expect(() => {
