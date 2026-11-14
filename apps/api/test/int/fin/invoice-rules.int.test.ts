@@ -147,7 +147,7 @@ async function rejectsStepsOutOfOrder(): Promise<void> {
   expectRejected(await keyed(`${path}/payments`, paymentBody('100.00')), 409, statusInvalid);
   expectRejected(await versioned(`${path}/fiscal-document`, fiscalBody(), 1), 409, statusInvalid);
   expect((await versioned(`${path}/approval`, {}, 9)).status).toBe(409);
-  expect((await versioned(`${path}/approval`, {}, 1)).status).toBe(204);
+  await succeedsOnReplay(`${path}/approval`, {}, 1);
   expect((await versioned(`${path}/approval`, {}, 2)).status).toBe(409);
   expect(
     (
@@ -163,7 +163,7 @@ async function rejectsStepsOutOfOrder(): Promise<void> {
     409,
     statusInvalid,
   );
-  expect((await versioned(`${path}/fiscal-document`, fiscalBody(), 2)).status).toBe(204);
+  await succeedsOnReplay(`${path}/fiscal-document`, fiscalBody(), 2);
   expect((await versioned(`${path}/fiscal-document`, fiscalBody(), 3)).status).toBe(409);
   expectRejected(
     await versioned(`${path}/void`, { reason: 'Intento de anular una factura emitida' }, 3),
@@ -173,8 +173,15 @@ async function rejectsStepsOutOfOrder(): Promise<void> {
   expect(await detail(world().invoiceId)).toMatchObject({ status: 'issued', balance: '1190.00' });
 }
 
-async function keepsSettlementWithinBalance(): Promise<void> {
-  const path = `${INVOICES}/${world().invoiceId}`;
+async function succeedsOnReplay(path: string, body: object, version: number): Promise<void> {
+  const key = crypto.randomUUID();
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const response = await keyed(path, body, key).set('If-Match', `"${String(version)}"`);
+    expect(response.status, response.text).toBe(204);
+  }
+}
+
+async function rejectsMissingSettlementFiles(path: string): Promise<void> {
   const missing = crypto.randomUUID();
   expect(
     (await keyed(`${path}/payments`, { ...paymentBody('500.00'), support_file_id: missing }))
@@ -188,6 +195,11 @@ async function keepsSettlementWithinBalance(): Promise<void> {
       })
     ).status,
   ).toBe(422);
+}
+
+async function keepsSettlementWithinBalance(): Promise<void> {
+  const path = `${INVOICES}/${world().invoiceId}`;
+  await rejectsMissingSettlementFiles(path);
   expectRejected(
     await keyed(`${path}/payments`, paymentBody('1190.01')),
     422,
@@ -202,7 +214,13 @@ async function keepsSettlementWithinBalance(): Promise<void> {
     422,
     'FIN_CREDIT_NOTE_INVALID',
   );
-  createdId(await keyed(`${path}/credit-notes`, creditBody('190.00', 'NC-B31-2002')));
+  const creditKey = crypto.randomUUID();
+  const credit = creditBody('190.00', 'NC-B31-2002');
+  const creditId = createdId(await keyed(`${path}/credit-notes`, credit, creditKey));
+  expect(createdId(await keyed(`${path}/credit-notes`, credit, creditKey))).toBe(creditId);
+  expect(
+    (await keyed(`${path}/credit-notes`, creditBody('190.00', 'NC-B31-2004'), creditKey)).status,
+  ).toBe(409);
   expect(await detail(world().invoiceId)).toMatchObject({
     status: 'partially_paid',
     paid_total: '500.00',
