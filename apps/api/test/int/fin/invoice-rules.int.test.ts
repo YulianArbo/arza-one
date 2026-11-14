@@ -124,8 +124,12 @@ async function prepare(): Promise<void> {
 async function voidedRequestFreesMilestone(): Promise<void> {
   const body = { milestone_id: world().milestoneId };
   world().voidedId = createdId(await keyed(INVOICES, body));
+  const key = crypto.randomUUID();
   expectRejected(await keyed(INVOICES, body), 422, 'FIN_MILESTONE_NOT_BILLABLE');
   expect(await availableMilestoneIds()).not.toContain(world().milestoneId);
+  const path = `${INVOICES}/${world().voidedId}/void`;
+  const reason = { reason: 'Solicitud creada por error en la prueba' };
+  expect((await versioned(path, reason, 9)).status).toBe(409);
   const voided = await versioned(
     `${INVOICES}/${world().voidedId}/void`,
     { reason: 'Solicitud creada por error en la prueba' },
@@ -133,7 +137,9 @@ async function voidedRequestFreesMilestone(): Promise<void> {
   );
   expect(voided.status, voided.text).toBe(204);
   expect(await availableMilestoneIds()).toContain(world().milestoneId);
-  world().invoiceId = createdId(await keyed(INVOICES, body));
+  world().invoiceId = createdId(await keyed(INVOICES, body, key));
+  expect(createdId(await keyed(INVOICES, body, key))).toBe(world().invoiceId);
+  expect((await keyed(INVOICES, { milestone_id: crypto.randomUUID() }, key)).status).toBe(409);
   expect(world().invoiceId).not.toBe(world().voidedId);
   expect(await auditActions(scenario.db, scenario.tenant.id, world().voidedId)).toEqual([
     'finance.invoice.request:success',
@@ -145,6 +151,11 @@ async function rejectsStepsOutOfOrder(): Promise<void> {
   const path = `${INVOICES}/${world().invoiceId}`;
   const statusInvalid = 'FIN_INVOICE_STATUS_INVALID';
   expectRejected(await keyed(`${path}/payments`, paymentBody('100.00')), 409, statusInvalid);
+  expectRejected(
+    await keyed(`${path}/credit-notes`, creditBody('100.00', 'NC-NO-EMITIDA')),
+    409,
+    statusInvalid,
+  );
   expectRejected(await versioned(`${path}/fiscal-document`, fiscalBody(), 1), 409, statusInvalid);
   expect((await versioned(`${path}/approval`, {}, 9)).status).toBe(409);
   await succeedsOnReplay(`${path}/approval`, {}, 1);
