@@ -144,6 +144,12 @@ describe('devolución del acta', () => {
     expect(returned.status).toBe('returned');
     expect(returned.acceptance?.status).toBe('returned');
     expect(returned.acceptance?.client_note).toContain('manual de usuario');
+    const link = await scenario.post(
+      `/v1/projects/${projectId}/deliverables/${id}/acta-link`,
+      leader.session,
+      {},
+    );
+    expect(link.status, link.text).toBe(201);
 
     // Se corrige y se entrega de nuevo: otra acta.
     const fixed = await scenario.put(
@@ -157,6 +163,21 @@ describe('devolución del acta', () => {
     const again = await scenario.deliverableOf(leader, projectId, id);
     expect(again.acceptance?.status).toBe('in_signature');
   });
+});
+
+it('distingue un entregable sin acta de uno con PDF pendiente', async () => {
+  const delivery = await scenario.deliveryProject();
+  const { leader, projectId, client } = delivery;
+  const id = await newDeliverable(delivery);
+  const path = `/v1/projects/${projectId}/deliverables/${id}/acta-link`;
+  expect((await scenario.post(path, leader.session, {})).status).toBe(404);
+  const sent = await scenario.deliver(leader, {
+    projectId,
+    id,
+    signerId: client.signers[0]?.personId ?? '',
+  });
+  expect(sent.status, sent.text).toBe(201);
+  expect(errorCode(await scenario.post(path, leader.session, {}))).toBe('PROJECT_STATUS_INVALID');
 });
 
 /** Pasa el plazo: el worker de firma vence el proceso y el de actas lo lee. */

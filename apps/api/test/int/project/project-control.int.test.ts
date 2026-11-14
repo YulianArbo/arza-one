@@ -226,12 +226,16 @@ describe('cierre', () => {
     const delivery = await scenario.deliveryProject();
     const { leader, projectId } = delivery;
     const lessons = { lessons: 'Conviene acordar antes el plan de pruebas con el cliente.' };
+    const premature = await scenario.projectStep(leader, projectId, 'close', lessons);
+    expect(errorCode(premature)).toBe('PROJECT_STATUS_INVALID');
     const deliverable = await scenario.create(
       `/v1/projects/${projectId}/deliverables`,
       leader,
       scenario.deliverableBody(),
     );
     expect((await scenario.projectStep(leader, projectId, 'start-closing')).status).toBe(204);
+    const repeated = await scenario.projectStep(leader, projectId, 'start-closing');
+    expect(errorCode(repeated)).toBe('PROJECT_STATUS_INVALID');
     const blocked = await scenario.projectStep(leader, projectId, 'close', lessons);
     expect(errorCode(blocked)).toBe('PROJECT_CLOSING_BLOCKED');
     await scenario.deliveredToClient(delivery, deliverable);
