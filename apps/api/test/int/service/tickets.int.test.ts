@@ -1,4 +1,8 @@
-import { compensationListResponseSchema, slaPolicyListResponseSchema } from '@arza/contracts';
+import {
+  compensationListResponseSchema,
+  slaPolicyListResponseSchema,
+  ticketListResponseSchema,
+} from '@arza/contracts';
 import { describe, expect, it } from 'vitest';
 
 import type { Person } from '../iam/support/access-scenario.js';
@@ -9,6 +13,46 @@ import { ServiceScenario } from './support/service-scenario.js';
 // acuerdos de tiempo. Datos ficticios.
 
 const scenario = new ServiceScenario('mesa de ayuda: tiquetes');
+
+it('pagina por cursor los tiquetes que coinciden con el texto y la prioridad', async () => {
+  const agent = await scenario.agent();
+  const first = await scenario.ticket(agent, {
+    subject: 'Impresora de recepción',
+    priority: 'high',
+  });
+  const second = await scenario.ticket(agent, { subject: 'Impresora de bodega', priority: 'high' });
+  await scenario.ticket(agent, { subject: 'Impresora de ventas', priority: 'low' });
+  await scenario.ticket(agent, { subject: 'Pantalla de recepción', priority: 'high' });
+  const path = '/v1/tickets?q=impresora&priority=high&limit=1';
+  const page = ticketListResponseSchema.parse((await scenario.get(path, agent.session)).body);
+  expect(page.data).toHaveLength(1);
+  const cursor = page.next_cursor;
+  if (cursor === null) throw new Error('Falta el cursor de la segunda página');
+  expect(cursor).toBe(page.data[0]?.id);
+  const next = ticketListResponseSchema.parse(
+    (await scenario.get(`${path}&cursor=${cursor}`, agent.session)).body,
+  );
+  expect(next.data).toHaveLength(1);
+  expect(new Set([...page.data, ...next.data].map((ticket) => ticket.id))).toEqual(
+    new Set([first, second]),
+  );
+  expect(next.next_cursor).toBeNull();
+});
+
+it('rechaza una asignación repetida y conserva el estado al reasignar', async () => {
+  const agent = await scenario.agent();
+  const tech = await scenario.person('lider-tecnico', ['LIDER_TECNICO']);
+  const id = await scenario.ticket(agent);
+  await scenario.stepOk(agent, id, 'assign', { assignee_id: agent.id });
+  expect((await scenario.step(agent, id, 'assign', { assignee_id: agent.id })).status).toBe(409);
+  await scenario.stepOk(agent, id, 'start');
+  const before = await scenario.ticketOf(agent, id);
+  await scenario.stepOk(agent, id, 'assign', { assignee_id: tech.id });
+  expect(await scenario.ticketOf(agent, id)).toMatchObject({
+    status: before.status,
+    assignee: { id: tech.id },
+  });
+});
 
 describe('registro', () => {
   it('a nombre de un cliente, con código y vencimientos', async () => {
