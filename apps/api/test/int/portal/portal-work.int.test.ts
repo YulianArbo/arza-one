@@ -73,7 +73,11 @@ describe('firmar desde el portal', () => {
     expect(url).toContain('/firmar#token=');
     expect((await scenario.publicSign('code', { token: mailed })).status).toBe(404);
     await signWithToken(token, signerEmail);
-    expect((await signatures(world)).pending).toHaveLength(0);
+    const signed = await signatures(world);
+    expect(signed.pending).toHaveLength(0);
+    expect(signed.recent).toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: pending[0]?.id, my_turn: false })]),
+    );
     expect(await scenario.auditedActions(world.admin)).toContain('signature.link.issue');
   });
 });
@@ -129,6 +133,20 @@ describe('documentos compartidos', () => {
     expect(await scenario.auditedActions(world.admin)).toContain('doc.file.download_link');
     expect(await scenario.auditActionsOf(sharedId)).toEqual(['project.file.share']);
   });
+});
+
+it('entrega el enlace del contrato firmado desde la ficha de contratos', async () => {
+  const world = await scenario.clientWorld();
+  const contracts = await scenario.read<{ data: { id: string }[] }>(
+    world.admin,
+    '/v1/portal/contracts',
+  );
+  const contract = contracts.data[0];
+  if (contract === undefined) throw new Error('No aparece el contrato');
+  const path = `/v1/portal/contracts/${contract.id}/link`;
+  expect((await scenario.portalPost(world.user, path)).status).toBe(403);
+  const link = await scenario.portalPost(world.admin, path);
+  expect(link.status, link.text).toBe(201);
 });
 
 describe('dejar de compartir', () => {
