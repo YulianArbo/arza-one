@@ -17,6 +17,20 @@ import {
 
 const scenario = new AccessScenario('finanzas controles del libro');
 
+it('rechaza gastos con centro, rubro o soporte inexistentes', async () => {
+  const { costCenterId } = await ledgerBasics(scenario);
+  const finance = await scenario.person('finanzas-validaciones', ['ADMIN_FINANCIERO']);
+  const body = await expenseBody(scenario, finance, costCenterId, day(scenario, 0));
+  for (const overrides of [
+    { cost_center_id: uuidv7() },
+    { category: 'RUBRO_INEXISTENTE' },
+    { support_file_id: uuidv7() },
+  ]) {
+    const result = await keyed(scenario, finance, `${FIN}/expenses`, { ...body, ...overrides });
+    expect(result.status, result.text).toBe(422);
+  }
+});
+
 it('muestra el proveedor vigente en el gasto y en las opciones de registro', async () => {
   const { costCenterId } = await ledgerBasics(scenario);
   const finance = await scenario.person('finanzas-proveedor', ['ADMIN_FINANCIERO']);
