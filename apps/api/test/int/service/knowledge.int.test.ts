@@ -63,6 +63,21 @@ it('rechaza la edición obsoleta y la publicación duplicada', async () => {
   expect((await detail(agent, id)).status).toBe('published');
 });
 
+it('pagina artículos publicados con el cursor de la página anterior', async () => {
+  const agent = await scenario.agent();
+  const first = await article(agent, { title: 'Rotación de claves de prueba' });
+  const second = await article(agent, { title: 'Rotación de claves de respaldo' });
+  await stepOk(agent, first, 'publish');
+  await stepOk(agent, second, 'publish');
+  const query = '?q=Rotaci%C3%B3n%20de%20claves&status=published&limit=1';
+  const page = await list(agent, query);
+  const cursor = page.next_cursor;
+  if (cursor === null) throw new Error('Falta el cursor de la segunda página');
+  const next = await list(agent, `${query}&cursor=${cursor}`);
+  expect(next.next_cursor).toBeNull();
+  expect([...page.data, ...next.data].map((row) => row.id).sort()).toEqual([first, second].sort());
+});
+
 describe('ciclo del artículo', () => {
   it('nace en borrador, se publica, se edita y se archiva, con su auditoría', async () => {
     const agent = await scenario.agent();

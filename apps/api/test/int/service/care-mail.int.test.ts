@@ -2,7 +2,7 @@ import { surveyListResponseSchema, surveyResultsSchema } from '@arza/contracts';
 import { describe, expect, it } from 'vitest';
 
 import { tenantsWithCareWork } from '../../../src/modules/service/index.js';
-import { bogotaToday } from '../../../src/modules/core/index.js';
+import { addDays, bogotaToday } from '../../../src/modules/core/index.js';
 import type { Person } from '../iam/support/access-scenario.js';
 import { CareScenario, surveyToken, uniqueEmail } from './support/care-scenario.js';
 
@@ -44,6 +44,9 @@ it('incluye el cliente en el informe del periodo y deniega el acceso al solicita
     party: { id: party },
     score: 4,
   });
+  const earlier = addDays(day, -1);
+  const empty = await scenario.get(`/v1/survey-responses?to=${earlier}`, agent.session);
+  expect(surveyResultsSchema.parse(empty.body).summary.satisfaction_avg).toBeNull();
 });
 
 describe('correos de la PQRSF', () => {
