@@ -76,6 +76,19 @@ describe('registrar horas', () => {
   });
 });
 
+it('solo permite retirar horas propias con la versión vigente', async () => {
+  const { leader, developer, id } = await teamProject();
+  expect((await scenario.logTime(developer, id)).status).toBe(201);
+  const [entry] = (await scenario.times(developer, id)).data;
+  if (entry === undefined) throw new Error('No aparece la hora registrada');
+  const path = `/v1/projects/${id}/time-entries/${entry.id}`;
+  expect((await scenario.delete(path, leader.session, entry.version)).status).toBe(403);
+  expect((await scenario.delete(path, developer.session, entry.version + 1)).status).toBe(409);
+  expect((await scenario.delete(path, developer.session, entry.version)).status).toBe(204);
+  expect((await scenario.delete(path, developer.session, entry.version)).status).toBe(404);
+  expect((await scenario.times(developer, id)).data).toEqual([]);
+});
+
 describe('quién registra y quién ve', () => {
   it('quien no es del equipo no registra y el equipo ve solo sus horas', async () => {
     const { leader, developer: member, id } = await teamProject();

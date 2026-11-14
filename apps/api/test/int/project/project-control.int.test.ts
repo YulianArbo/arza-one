@@ -131,6 +131,41 @@ describe('incidentes', () => {
   });
 });
 
+it('avisa al líder al subir un riesgo y lo excluye del indicador al cerrarlo', async () => {
+  const leader = await scenario.leader();
+  const outsider = await scenario.developer();
+  const id = await scenario.runningProject(leader);
+  const path = `/v1/projects/${id}/risks`;
+  const risk = {
+    description: 'El proveedor puede retrasar su entrega.',
+    probability: 1,
+    impact: 2,
+    response: 'Acordar una fecha de respaldo.',
+    owner_id: leader.id,
+    status: 'open',
+  };
+  expect(
+    errorCode(await scenario.post(path, leader.session, { ...risk, owner_id: outsider.id })),
+  ).toBe('PROJECT_MEMBER_INVALID');
+  const riskId = await scenario.create(path, leader, risk);
+  const [row] = ((await scenario.get(path, leader.session)).body as { data: { version: number }[] })
+    .data;
+  if (row === undefined) throw new Error('No aparece el riesgo registrado');
+  const high = { ...risk, probability: 5, impact: 5 };
+  expect((await scenario.put(`${path}/${riskId}`, leader, high, row.version + 1)).status).toBe(409);
+  expect((await scenario.put(`${path}/${riskId}`, leader, high, row.version)).status).toBe(204);
+  expect((await scenario.indicators(leader, id)).risks_high).toBe(1);
+  expect(await scenario.outboxEvents(riskId)).toContain('project.risk.high');
+  const closed = await scenario.put(
+    `${path}/${riskId}`,
+    leader,
+    { ...high, status: 'closed' },
+    row.version + 1,
+  );
+  expect(closed.status, closed.text).toBe(204);
+  expect((await scenario.indicators(leader, id)).risks_high).toBe(0);
+});
+
 /** Dos historias y una épica; una historia terminada con su revisión aprobada. */
 async function oneDone(leader: Person, id: string): Promise<void> {
   const done = await scenario.item(leader, id);
