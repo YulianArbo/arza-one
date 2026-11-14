@@ -178,6 +178,10 @@ it('distingue un entregable sin acta de uno con PDF pendiente', async () => {
   });
   expect(sent.status, sent.text).toBe(201);
   expect(errorCode(await scenario.post(path, leader.session, {}))).toBe('PROJECT_STATUS_INVALID');
+  await scenario.acceptanceWork();
+  expect((await scenario.deliverableOf(leader, projectId, id)).acceptance?.status).toBe(
+    'preparing',
+  );
 });
 
 /** Pasa el plazo: el worker de firma vence el proceso y el de actas lo lee. */

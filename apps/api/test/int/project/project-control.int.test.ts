@@ -36,6 +36,20 @@ describe('revisión de código (FT-TEC-002): quién revisa', () => {
   });
 });
 
+it('rechaza revisiones de épicas e ítems inexistentes o sin responsable', async () => {
+  const { leader, id } = await teamProject();
+  const epic = await scenario.item(leader, id, { type: 'epic' });
+  const unassigned = await scenario.item(leader, id);
+  const path = `/v1/projects/${id}/code-reviews`;
+  for (const item of [epic, unassigned]) {
+    expect(errorCode(await scenario.post(path, leader.session, scenario.reviewBody(item)))).toBe(
+      'PROJECT_REVIEW_INVALID',
+    );
+  }
+  const missing = scenario.reviewBody('00000000-0000-4000-8000-000000000001');
+  expect((await scenario.post(path, leader.session, missing)).status).toBe(404);
+});
+
 describe('revisión de código (FT-TEC-002): resultado', () => {
   it('con un punto que no cumple no se aprueba; queda su registro FT-TEC-002', async () => {
     const { leader, developer, id } = await teamProject();
