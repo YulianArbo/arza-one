@@ -149,6 +149,64 @@ it('entrega el enlace del contrato firmado desde la ficha de contratos', async (
   expect(link.status, link.text).toBe(201);
 });
 
+async function firstContractId(world: ClientWorld): Promise<string> {
+  const contracts = await scenario.read<{ data: { id: string }[] }>(
+    world.admin,
+    '/v1/portal/contracts',
+  );
+  const contract = contracts.data[0];
+  if (contract === undefined) throw new Error('No aparece el contrato');
+  return contract.id;
+}
+
+async function signAmendment(world: ClientWorld, contractId: string, id: string): Promise<void> {
+  const actions = `/v1/contracts/${contractId}/amendments/${id}/actions`;
+  const before = await scenario.contractDetail(world.sales, contractId);
+  const pending = before.amendments.find((row) => row.id === id);
+  if (pending === undefined) throw new Error('No aparece el otrosí');
+  const approved = await scenario.action(
+    `${actions}/approve`,
+    await scenario.director(),
+    pending.version,
+    {},
+  );
+  expect(approved.status, approved.text).toBe(204);
+  await scenario.renderPdfs();
+  const after = await scenario.contractDetail(world.sales, contractId);
+  const ready = after.amendments.find((row) => row.id === id);
+  if (ready === undefined) throw new Error('No aparece el otrosí aprobado');
+  const signed = await scenario.action(
+    `${actions}/register-signature`,
+    world.sales,
+    ready.version,
+    {
+      file_id: await scenario.signedCopy(world.sales),
+      signed_on: scenario.day(0),
+    },
+  );
+  expect(signed.status, signed.text).toBe(204);
+}
+
+it('solo permite descargar el otrosí del cliente después de registrar su firma', async () => {
+  const world = await scenario.clientWorld();
+  const contractId = await firstContractId(world);
+  const id = await scenario.create(`/v1/contracts/${contractId}/amendments`, world.sales, {
+    summary: 'Se amplía el alcance con el módulo de pagos',
+    body: 'Las partes acuerdan incluir en el objeto el módulo de pagos en línea.',
+    effective_on: scenario.day(0),
+    new_ends_on: scenario.day(400),
+    new_value: '15000000.00',
+  });
+  const path = `/v1/portal/documents/amendment/${id}/link`;
+  expect((await scenario.portalPost(world.admin, path)).status).toBe(409);
+  await signAmendment(world, contractId, id);
+  const documents = portalDocumentListSchema.parse(
+    await scenario.read(world.admin, '/v1/portal/documents'),
+  );
+  expect(documents.data).toContainEqual(expect.objectContaining({ id, kind: 'amendment' }));
+  expect((await scenario.portalPost(world.admin, path)).status).toBe(201);
+});
+
 describe('dejar de compartir', () => {
   it('lo que el equipo deja de compartir ya no se ve ni se descarga', async () => {
     const world = await scenario.clientWorld();
