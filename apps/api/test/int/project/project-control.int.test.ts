@@ -36,6 +36,20 @@ describe('revisión de código (FT-TEC-002): quién revisa', () => {
   });
 });
 
+it('rechaza revisiones de épicas e ítems inexistentes o sin responsable', async () => {
+  const { leader, id } = await teamProject();
+  const epic = await scenario.item(leader, id, { type: 'epic' });
+  const unassigned = await scenario.item(leader, id);
+  const path = `/v1/projects/${id}/code-reviews`;
+  for (const item of [epic, unassigned]) {
+    expect(errorCode(await scenario.post(path, leader.session, scenario.reviewBody(item)))).toBe(
+      'PROJECT_REVIEW_INVALID',
+    );
+  }
+  const missing = scenario.reviewBody('00000000-0000-4000-8000-000000000001');
+  expect((await scenario.post(path, leader.session, missing)).status).toBe(404);
+});
+
 describe('revisión de código (FT-TEC-002): resultado', () => {
   it('con un punto que no cumple no se aprueba; queda su registro FT-TEC-002', async () => {
     const { leader, developer, id } = await teamProject();
@@ -92,36 +106,99 @@ describe('riesgos y liberaciones', () => {
   });
 });
 
-describe('incidentes', () => {
-  it('el incidente con datos personales avisa al Oficial de datos; se resuelve con su causa', async () => {
-    const leader = await scenario.leader();
-    const officer = await scenario.person('oficial', ['OFICIAL_DATOS']);
-    const id = await scenario.runningProject(leader);
-    const incident = await scenario.create(`/v1/projects/${id}/incidents`, leader, {
-      title: 'Acceso indebido a reportes',
-      kind: 'security',
-      severity: 'critical',
-      description: 'Un enlace de reporte quedó público por error.',
-      detected_at: scenario.clock.now().toISOString(),
-      personal_data: true,
-    });
-    await scenario.dispatchNotices();
-    expect((await scenario.noticesFor(officer.id)).join(' ')).toContain('SIC');
-    const list = await scenario.get(`/v1/projects/${id}/incidents`, leader.session);
-    const [row] = (list.body as { data: { code: string; version: number }[] }).data;
-    expect(row?.code).toMatch(/^INC-\d{4}-\d{4}$/u);
-    const resolved = await scenario.action(
-      `/v1/projects/${id}/incidents/${incident}/actions/resolve`,
-      leader,
-      row?.version ?? 0,
-      {
-        resolved_at: scenario.clock.now().toISOString(),
-        root_cause: 'Permiso público por omisión.',
-        actions: 'Enlaces firmados y revisión de permisos.',
-      },
-    );
-    expect(resolved.status, resolved.text).toBe(204);
+it('el incidente con datos personales avisa al Oficial de datos; se resuelve con su causa', async () => {
+  const leader = await scenario.leader();
+  const officer = await scenario.person('oficial', ['OFICIAL_DATOS']);
+  const id = await scenario.runningProject(leader);
+  const incident = await scenario.create(`/v1/projects/${id}/incidents`, leader, {
+    title: 'Acceso indebido a reportes',
+    kind: 'security',
+    severity: 'critical',
+    description: 'Un enlace de reporte quedó público por error.',
+    detected_at: scenario.clock.now().toISOString(),
+    personal_data: true,
   });
+  await scenario.dispatchNotices();
+  expect((await scenario.noticesFor(officer.id)).join(' ')).toContain('SIC');
+  const list = await scenario.get(`/v1/projects/${id}/incidents`, leader.session);
+  const [row] = (list.body as { data: { code: string; version: number }[] }).data;
+  expect(row?.code).toMatch(/^INC-\d{4}-\d{4}$/u);
+  const path = `/v1/projects/${id}/incidents/${incident}/actions/resolve`;
+  const version = row?.version ?? 0;
+  const resolution = {
+    resolved_at: scenario.clock.now().toISOString(),
+    root_cause: 'Permiso público por omisión.',
+    actions: 'Enlaces firmados y revisión de permisos.',
+  };
+  for (const offset of [-60_000, 60_000]) {
+    const outsideWindow = await scenario.action(path, leader, version, {
+      ...resolution,
+      resolved_at: new Date(scenario.clock.now().getTime() + offset).toISOString(),
+    });
+    expect(outsideWindow.status).toBe(422);
+  }
+  const stale = await scenario.action(path, leader, version + 1, resolution);
+  expect(stale.status).toBe(409);
+  const resolved = await scenario.action(path, leader, version, resolution);
+  expect(resolved.status, resolved.text).toBe(204);
+  const repeated = await scenario.action(path, leader, version + 1, resolution);
+  expect(errorCode(repeated)).toBe('PROJECT_STATUS_INVALID');
+});
+it('avisa al líder al subir un riesgo y lo excluye del indicador al cerrarlo', async () => {
+  const leader = await scenario.leader();
+  const outsider = await scenario.developer();
+  const id = await scenario.runningProject(leader);
+  const path = `/v1/projects/${id}/risks`;
+  const risk = {
+    description: 'El proveedor puede retrasar su entrega.',
+    probability: 1,
+    impact: 2,
+    response: 'Acordar una fecha de respaldo.',
+    owner_id: leader.id,
+    status: 'open',
+  };
+  expect(
+    errorCode(await scenario.post(path, leader.session, { ...risk, owner_id: outsider.id })),
+  ).toBe('PROJECT_MEMBER_INVALID');
+  const riskId = await scenario.create(path, leader, risk);
+  const [row] = ((await scenario.get(path, leader.session)).body as { data: { version: number }[] })
+    .data;
+  if (row === undefined) throw new Error('No aparece el riesgo registrado');
+  const high = { ...risk, probability: 5, impact: 5 };
+  expect((await scenario.put(`${path}/${riskId}`, leader, high, row.version + 1)).status).toBe(409);
+  expect((await scenario.put(`${path}/${riskId}`, leader, high, row.version)).status).toBe(204);
+  expect((await scenario.indicators(leader, id)).risks_high).toBe(1);
+  expect(await scenario.outboxEvents(riskId)).toContain('project.risk.high');
+  const closed = await scenario.put(
+    `${path}/${riskId}`,
+    leader,
+    { ...high, status: 'closed' },
+    row.version + 1,
+  );
+  expect(closed.status, closed.text).toBe(204);
+  expect((await scenario.indicators(leader, id)).risks_high).toBe(0);
+});
+
+it('rechaza una liberación futura y un enlace de informe inexistente', async () => {
+  const leader = await scenario.leader();
+  const id = await scenario.runningProject(leader);
+  const path = `/v1/projects/${id}/releases`;
+  const missing = '00000000-0000-4000-8000-000000000001';
+  const body = {
+    version_label: '1.0.0',
+    environment: 'test',
+    released_on: scenario.day(1),
+    notes: 'Primera versión para pruebas del cliente.',
+    test_report_file_id: missing,
+  };
+  expect(errorCode(await scenario.post(path, leader.session, body))).toBe('PROJECT_DATES_INVALID');
+  expect(
+    errorCode(await scenario.post(path, leader.session, { ...body, released_on: scenario.day(0) })),
+  ).toBe('PROJECT_FILE_INVALID');
+  expect((await scenario.post(`${path}/${missing}/report-link`, leader.session, {})).status).toBe(
+    404,
+  );
+  expect((await scenario.indicators(leader, id)).money).toBeNull();
 });
 
 /** Dos historias y una épica; una historia terminada con su revisión aprobada. */
@@ -163,12 +240,16 @@ describe('cierre', () => {
     const delivery = await scenario.deliveryProject();
     const { leader, projectId } = delivery;
     const lessons = { lessons: 'Conviene acordar antes el plan de pruebas con el cliente.' };
+    const premature = await scenario.projectStep(leader, projectId, 'close', lessons);
+    expect(errorCode(premature)).toBe('PROJECT_STATUS_INVALID');
     const deliverable = await scenario.create(
       `/v1/projects/${projectId}/deliverables`,
       leader,
       scenario.deliverableBody(),
     );
     expect((await scenario.projectStep(leader, projectId, 'start-closing')).status).toBe(204);
+    const repeated = await scenario.projectStep(leader, projectId, 'start-closing');
+    expect(errorCode(repeated)).toBe('PROJECT_STATUS_INVALID');
     const blocked = await scenario.projectStep(leader, projectId, 'close', lessons);
     expect(errorCode(blocked)).toBe('PROJECT_CLOSING_BLOCKED');
     await scenario.deliveredToClient(delivery, deliverable);
