@@ -1,4 +1,8 @@
-import { expenseListResponseSchema, pettyCashResponseSchema } from '@arza/contracts';
+import {
+  budgetDetailEnvelopeSchema,
+  expenseListResponseSchema,
+  pettyCashResponseSchema,
+} from '@arza/contracts';
 import { v7 as uuidv7 } from 'uuid';
 import { expect, it } from 'vitest';
 
@@ -12,6 +16,7 @@ import {
   keyed,
   ledgerBasics,
   movementBody,
+  putVersioned,
   versioned,
 } from './support/ledger-steps.js';
 
@@ -107,4 +112,43 @@ it('registra un solo vale al reintentar y rechaza fechas y soportes inválidos',
   const { data } = pettyCashResponseSchema.parse(ledger.body);
   expect(data.balance).toBe('250.00');
   expect(data.movements).toHaveLength(2);
+});
+
+it('conserva la línea de un presupuesto histórico con referencias retiradas', async () => {
+  const { costCenterId } = await ledgerBasics(scenario);
+  const finance = await scenario.person('finanzas-historico', ['ADMIN_FINANCIERO']);
+  const category = 'HISTORICO_PRUEBA';
+  const item = await scenario.inTenant(async (tx) => {
+    const catalog = await tx.catalog.findFirstOrThrow({ where: { key: 'fin_expense_categories' } });
+    return tx.catalogItem.create({
+      data: {
+        tenantId: scenario.tenant.id,
+        catalogId: catalog.id,
+        code: category,
+        label: 'Histórico',
+      },
+    });
+  });
+  const year = Number(day(scenario, 0).slice(0, 4));
+  const id = await createdId(scenario.post(`${FIN}/budgets`, finance.session, { year }));
+  const path = `${FIN}/budgets/${id}`;
+  const lines = [{ cost_center_id: costCenterId, category, month: 1, planned: '100.00' }];
+  const saved = await putVersioned(scenario, `${path}/lines`, finance, { lines }, 1);
+  expect(saved.status, saved.text).toBe(204);
+
+  await scenario.inTenant(async (tx) => {
+    const deletedAt = scenario.clock.now();
+    await tx.costCenter.update({ where: { id: costCenterId }, data: { deletedAt } });
+    await tx.catalogItem.update({ where: { id: item.id }, data: { deletedAt } });
+  });
+
+  const result = await scenario.get(path, finance.session);
+  expect(result.status, result.text).toBe(200);
+  expect(budgetDetailEnvelopeSchema.parse(result.body).data.lines).toMatchObject([
+    {
+      cost_center: { id: costCenterId, code: '—', name: 'Centro de costo' },
+      category: { code: category, label: category },
+      planned: '100.00',
+    },
+  ]);
 });
