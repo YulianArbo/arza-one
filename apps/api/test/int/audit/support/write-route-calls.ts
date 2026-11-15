@@ -28,6 +28,7 @@ import { DOC_REQUEST_ROUTE_CALLS } from './doc-request-route-calls.js';
 import { DOC_RETENTION_ROUTE_CALLS } from './doc-retention-route-calls.js';
 import { DOC_ROUTE_CALLS } from './doc-route-calls.js';
 import { FINANCE_ROUTE_CALLS } from './finance-route-calls.js';
+import { LEDGER_ROUTE_CALLS } from './ledger-route-calls.js';
 import { MEDIA_ROUTE_CALLS } from './media-route-calls.js';
 import { NTF_ROUTE_CALLS } from './ntf-route-calls.js';
 import { PARTY_ROUTE_CALLS } from './party-route-calls.js';
@@ -316,5 +317,6 @@ export const WRITE_ROUTE_CALLS: Readonly<Record<string, RouteCall>> = {
   ...CARE_ROUTE_CALLS,
   ...PORTAL_ROUTE_CALLS,
   ...FINANCE_ROUTE_CALLS,
+  ...LEDGER_ROUTE_CALLS,
   ...MEDIA_ROUTE_CALLS,
 };

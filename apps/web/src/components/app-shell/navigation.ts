@@ -90,7 +90,13 @@ const MODULES: readonly NavigationItem[] = [
     slug: 'finanzas',
     label: 'Finanzas',
     icon: Landmark,
-    permissions: ['finance.invoice.read', 'finance.budget.read', 'finance.tax_parameter.manage'],
+    permissions: [
+      'finance.invoice.read',
+      'finance.budget.read',
+      'finance.tax_parameter.manage',
+      'finance.ledger.read',
+      'finance.expense.manage',
+    ],
   },
   {
     slug: 'talento-y-sst',

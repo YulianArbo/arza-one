@@ -78,7 +78,7 @@ async function registerFiscal(
 }
 
 /** Una factura emitida: solicitada, aprobada y con su documento fiscal registrado. */
-async function issued(s: AccessScenario): Promise<{ finance: Person; invoiceId: string }> {
+export async function issued(s: AccessScenario): Promise<{ finance: Person; invoiceId: string }> {
   const { finance, milestoneId } = await billable(s);
   const invoiceId = await requested(s, finance, milestoneId);
   await approve(s, finance, invoiceId);

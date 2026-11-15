@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { moneySchema, positiveMoneySchema } from './money.js';
 import { taxRateSchema } from './tax-parameters.js';
 
 // Facturación y recaudos de M10 (B31). Los importes fiscales se capturan del documento emitido;
@@ -18,17 +19,6 @@ export const invoiceStatusSchema = z.enum(INVOICE_STATUS);
 
 const idSchema = z.uuid();
 const dateSchema = z.iso.date();
-const positiveMoneySchema = z
-  .string()
-  .trim()
-  .regex(
-    /^(?=.*[1-9])\d{1,16}(\.\d{1,2})?$/u,
-    'Escriba un valor mayor que cero, con hasta dos decimales.',
-  );
-const moneySchema = z
-  .string()
-  .trim()
-  .regex(/^\d{1,16}(\.\d{1,2})?$/u, 'Escriba el valor en pesos, con hasta dos decimales.');
 
 export const invoiceSummarySchema = z.object({
   id: idSchema,

@@ -140,6 +140,21 @@ export const CATALOGS: readonly SeedCatalog[] = [
       ['OTHER', 'Otro'],
     ],
   },
+  {
+    key: 'fin_expense_categories',
+    name: 'Rubros de gasto y presupuesto',
+    description:
+      'Rubros con que se planea el presupuesto y se clasifican gastos y vales de caja menor (B32).',
+    items: [
+      ['SOFTWARE', 'Software y licencias'],
+      ['PRO_SERVICES', 'Servicios profesionales'],
+      ['TRANSPORT', 'Transporte'],
+      ['OFFICE', 'Papelería y oficina'],
+      ['UTILITIES', 'Servicios públicos y conectividad'],
+      ['MEALS', 'Alimentación'],
+      ['OTHER', 'Otros gastos'],
+    ],
+  },
 ];
 
 /** Procesos del mapa de procesos, con el código que usan los módulos (capítulo 7.4). */

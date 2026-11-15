@@ -13,26 +13,26 @@ permisos de una persona son la suma de sus roles vigentes.
 
 | Rol | Código | Para | Permisos | Solo lo propio |
 | --- | --- | --- | --- | --- |
-| Dirección | `DIRECCION` | Interno | 70 | 1 |
+| Dirección | `DIRECCION` | Interno | 71 | 1 |
 | Administrador de plataforma | `ADMIN_PLATAFORMA` | Interno | 33 | 1 |
 | Calidad | `CALIDAD` | Interno | 64 | 1 |
 | Comercial | `COMERCIAL` | Interno | 52 | 9 |
 | Líder técnico | `LIDER_TECNICO` | Interno | 47 | 8 |
 | Equipo de proyecto | `EQUIPO_PROYECTO` | Interno | 21 | 17 |
 | Servicio al cliente | `SERVICIO` | Interno | 45 | 9 |
-| Administrativo y financiero | `ADMIN_FINANCIERO` | Interno | 58 | 5 |
-| Contador | `CONTADOR` | Interno | 16 | 2 |
+| Administrativo y financiero | `ADMIN_FINANCIERO` | Interno | 61 | 5 |
+| Contador | `CONTADOR` | Interno | 18 | 2 |
 | Talento humano | `TALENTO_HUMANO` | Interno | 40 | 9 |
 | Seguridad y salud en el trabajo | `SST` | Interno | 29 | 8 |
 | Oficial de protección de datos | `OFICIAL_DATOS` | Interno | 33 | 5 |
 | Colaborador | `COLABORADOR` | Interno | 24 | 20 |
-| Auditor | `AUDITOR` | Interno | 34 | 0 |
+| Auditor | `AUDITOR` | Interno | 35 | 0 |
 | Administrador del cliente | `CLIENTE_ADMIN` | Portal | 9 | 0 |
 | Usuario del cliente | `CLIENTE_USUARIO` | Portal | 4 | 4 |
 
 ## Dirección (`DIRECCION`)
 
-Director General. Lectura transversal, aprobaciones de alto nivel, firma de contratos, tableros. 70 permisos.
+Director General. Lectura transversal, aprobaciones de alto nivel, firma de contratos, tableros. 71 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Identidad y acceso (M01):** Ver los usuarios y sus roles · Ver los roles y sus permisos · Ver el informe de revisión de accesos
@@ -47,7 +47,7 @@ Director General. Lectura transversal, aprobaciones de alto nivel, firma de cont
 - **Contratos y firma (M06):** Ver contratos · Crear contratos en borrador · Editar contratos en borrador · Aprobar contratos · Terminar contratos · Renovar contratos · Administrar el banco de cláusulas · Preparar sobres de firma · Enviar sobres a firma · Anular sobres de firma · Ver las evidencias de firma
 - **Proyectos (M07):** Ver todos los proyectos · Ver los proyectos donde es miembro
 - **Servicio al cliente (M08):** Ver tiquetes · Ver PQRSF · Leer la base de conocimiento
-- **Finanzas (M10):** Ver facturas · Aprobar facturas · Registrar documento fiscal emitido · Anular facturas · Ver presupuestos · Aprobar presupuestos · Aprobar gastos
+- **Finanzas (M10):** Ver facturas · Aprobar facturas · Registrar documento fiscal emitido · Anular facturas · Ver presupuestos · Aprobar presupuestos · Aprobar gastos · Ver gastos, caja menor y conciliaciones
 - **Compras y activos (M11):** Aprobar solicitudes de compra · Aprobar viajes · Ver activos
 - **Talento humano (M12):** Ver colaboradores · Aprobar permisos y vacaciones · Autorizar horas extras · Cerrar el periodo de novedades de nómina
 - **Seguridad y salud en el trabajo (M13):** Ver las actas del comité
@@ -157,7 +157,7 @@ Líder y técnicos de servicio al cliente. Tiquetes, PQRSF, encuestas, base de c
 
 ## Administrativo y financiero (`ADMIN_FINANCIERO`)
 
-Gerente administrativo, asistente. Facturación, cartera, compras, activos, presupuesto, caja menor. 58 permisos.
+Gerente administrativo, asistente. Facturación, cartera, compras, activos, presupuesto, caja menor. 61 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Terceros (M02):** Ver terceros · Crear terceros · Editar terceros · Fusionar terceros duplicados · Registrar el conocimiento del tercero · Ver las cuentas bancarias de terceros · Registrar cuentas bancarias de terceros · Aprobar cuentas bancarias de terceros
@@ -168,13 +168,13 @@ Gerente administrativo, asistente. Facturación, cartera, compras, activos, pres
 - **Contratos y firma (M06):** Ver contratos · Ver las evidencias de firma
 - **Proyectos (M07):** Ver todos los proyectos · Ver los proyectos donde es miembro
 - **Servicio al cliente (M08):** Leer la base de conocimiento
-- **Finanzas (M10):** Ver facturas · Solicitar facturas · Aprobar facturas · Registrar documento fiscal emitido · Anular facturas · Registrar pagos · Gestionar la cartera · Ver presupuestos · Elaborar presupuestos · Aprobar presupuestos · Registrar gastos · Aprobar gastos · Gestionar la caja menor · Hacer conciliaciones bancarias · Administrar parámetros tributarios · Exportar información contable
+- **Finanzas (M10):** Ver facturas · Solicitar facturas · Aprobar facturas · Registrar documento fiscal emitido · Anular facturas · Registrar pagos · Gestionar la cartera · Ver presupuestos · Elaborar presupuestos · Aprobar presupuestos · Registrar gastos · Aprobar gastos · Gestionar la caja menor · Hacer conciliaciones bancarias · Administrar parámetros tributarios · Exportar información contable · Ver gastos, caja menor y conciliaciones · Certificar costos de desarrollo · Cerrar periodos contables
 - **Compras y activos (M11):** Solicitar compras · Aprobar solicitudes de compra · Emitir órdenes de compra · Recibir órdenes de compra · Evaluar proveedores · Solicitar viajes · Aprobar viajes · Ver activos · Administrar activos · Asignar activos · Dar de baja activos
 - **Calidad (M14):** Reportar no conformidades (solo lo propio) · Gestionar acciones de mejora (solo lo propio) · Registrar mediciones de indicadores (solo lo propio)
 
 ## Contador (`CONTADOR`)
 
-Contador Público externo. Lectura financiera, exportaciones contables, parámetros tributarios. 16 permisos.
+Contador Público externo. Lectura financiera, exportaciones contables, parámetros tributarios. 18 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Terceros (M02):** Ver terceros · Ver las cuentas bancarias de terceros
@@ -183,7 +183,7 @@ Contador Público externo. Lectura financiera, exportaciones contables, parámet
 - **Tableros (M16):** Ver tableros de proceso (solo lo propio)
 - **Contratos y firma (M06):** Ver contratos · Ver las evidencias de firma
 - **Servicio al cliente (M08):** Leer la base de conocimiento
-- **Finanzas (M10):** Ver facturas · Ver presupuestos · Exportar información contable · Administrar parámetros tributarios
+- **Finanzas (M10):** Ver facturas · Ver presupuestos · Ver gastos, caja menor y conciliaciones · Exportar información contable · Administrar parámetros tributarios · Cerrar periodos contables
 - **Compras y activos (M11):** Ver activos
 
 ## Talento humano (`TALENTO_HUMANO`)
@@ -250,7 +250,7 @@ Todo colaborador. Sus tareas, sus solicitudes, sus datos, documentos vigentes de
 
 ## Auditor (`AUDITOR`)
 
-Auditor interno o externo. Solo lectura de evidencias y auditoría, por tiempo limitado. 34 permisos.
+Auditor interno o externo. Solo lectura de evidencias y auditoría, por tiempo limitado. 35 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Identidad y acceso (M01):** Ver los usuarios y sus roles · Ver los roles y sus permisos · Ver el informe de revisión de accesos
@@ -265,7 +265,7 @@ Auditor interno o externo. Solo lectura de evidencias y auditoría, por tiempo l
 - **Contratos y firma (M06):** Ver contratos · Ver las evidencias de firma
 - **Proyectos (M07):** Ver todos los proyectos · Ver los proyectos donde es miembro
 - **Servicio al cliente (M08):** Ver tiquetes · Ver PQRSF · Leer la base de conocimiento
-- **Finanzas (M10):** Ver facturas · Ver presupuestos
+- **Finanzas (M10):** Ver facturas · Ver presupuestos · Ver gastos, caja menor y conciliaciones
 - **Compras y activos (M11):** Ver activos
 - **Talento humano (M12):** Ver colaboradores
 - **Seguridad y salud en el trabajo (M13):** Ver las actas del comité
