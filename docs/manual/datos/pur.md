@@ -1,6 +1,6 @@
 # Compras, proveedores y viajes (M11) — datos
 
-> Bloque B33. Ficha 17.12 del Manual Maestro. Los activos (`ast_`) llegan en el B34.
+> Bloque B33. Ficha 17.12 del Manual Maestro. Los activos (`ast_`) están en [`ast.md`](ast.md) (B34).
 
 Importes en `numeric(18,2)`; columnas de control, RLS por `tenant_id` y acceso sin `DELETE` (quitar
 una cotización o un gasto de viaje marca `deleted_at`). Los centros de costo y los topes se leen

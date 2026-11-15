@@ -4,6 +4,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import type { Redis } from 'ioredis';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 
+import { AssetModule } from './modules/asset/index.js';
 import { AuditModule } from './modules/audit/index.js';
 import { ContractModule } from './modules/contract/index.js';
 import { ProjectModule } from './modules/project/index.js';
@@ -54,6 +55,7 @@ const BUSINESS_MODULES = [
   ServiceModule,
   PortalModule,
   PurchaseModule,
+  AssetModule,
 ];
 
 /**

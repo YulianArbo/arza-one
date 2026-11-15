@@ -63,6 +63,7 @@ describe('menú por permisos (permiso denegado, 16.3)', () => {
     expect(visibleSlugs(['purchase.read'])).toContain('compras');
     expect(visibleSlugs(['purchase.request.create'])).toContain('compras');
     expect(visibleSlugs(['purchase.travel.request'])).toContain('compras');
+    expect(visibleSlugs(['asset.read'])).toContain('compras');
     expect(visibleSlugs(['finance.ledger.read'])).not.toContain('compras');
   });
 });

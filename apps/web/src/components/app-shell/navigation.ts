@@ -103,7 +103,12 @@ const MODULES: readonly NavigationItem[] = [
     slug: 'compras',
     label: 'Compras',
     icon: ShoppingCart,
-    permissions: ['purchase.read', 'purchase.request.create', 'purchase.travel.request'],
+    permissions: [
+      'purchase.read',
+      'purchase.request.create',
+      'purchase.travel.request',
+      'asset.read',
+    ],
   },
   {
     slug: 'talento-y-sst',

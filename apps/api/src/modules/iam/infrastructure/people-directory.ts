@@ -103,3 +103,24 @@ export async function existingRoleCodes(
   });
   return new Set(roles.map((role) => role.code));
 }
+
+/** Un colaborador interno activo y, si está vinculado, su persona en Terceros. */
+export interface Collaborator {
+  readonly id: string;
+  readonly email: string;
+  readonly displayName: string | null;
+  readonly partyId: string | null;
+}
+
+/** Colaboradores internos activos, por nombre; con ids, solo los indicados. */
+export async function activeCollaborators(
+  tx: TenantTransaction,
+  ids?: readonly string[],
+): Promise<Collaborator[]> {
+  return tx.user.findMany({
+    where: { ...ACTIVE_INTERNAL, ...(ids === undefined ? {} : { id: { in: [...new Set(ids)] } }) },
+    select: { id: true, email: true, displayName: true, partyId: true },
+    orderBy: [{ displayName: 'asc' }, { email: 'asc' }],
+    take: 500,
+  });
+}

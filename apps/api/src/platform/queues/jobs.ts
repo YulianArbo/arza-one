@@ -132,6 +132,11 @@ const sigFollowUpJobSchema = z.object({});
  * del cliente y la que el cliente respondió deja aceptado o devuelto su entregable. Del sistema.
  */
 const prjAcceptanceWorkJobSchema = z.object({});
+/**
+ * Comodatos de los activos (B34): cada pocos segundos, el que ya tiene su PDF sale a firma del
+ * colaborador y el que se firmó o se cerró deja vigente o anulada su asignación. Del sistema.
+ */
+const astLoanWorkJobSchema = z.object({});
 const svcSlaWorkJobSchema = z.object({});
 /**
  * Correos y plazos de las PQRSF y las encuestas (B29): acuse, respuesta, invitación a la encuesta y
@@ -243,6 +248,11 @@ export const JOBS = {
     name: 'prj.acceptance-work',
     schema: prjAcceptanceWorkJobSchema,
   },
+  astLoanWork: {
+    queue: QUEUES.platform,
+    name: 'ast.loan-work',
+    schema: astLoanWorkJobSchema,
+  },
   svcSlaWork: {
     queue: QUEUES.platform,
     name: 'svc.sla-work',
@@ -296,6 +306,9 @@ export const SCHEDULED_JOBS = [
     job: JOBS.prjAcceptanceWork,
     pattern: '*/20 * * * * *',
   },
+  // Cada 20 segundos: el comodato de un activo sale a firma apenas su PDF está listo, y la
+  // asignación queda vigente poco después de que el colaborador firma (B34).
+  { id: 'ast.loan-work.every-20-seconds', job: JOBS.astLoanWork, pattern: '*/20 * * * * *' },
   // Cada 5 minutos: la alerta del 80 % y la del plazo vencido llegan a lo sumo cinco minutos tarde,
   // y los tiquetes resueltos que nadie reabrió se cierran (B28).
   { id: 'svc.sla-work.every-5-minutes', job: JOBS.svcSlaWork, pattern: '*/5 * * * *' },

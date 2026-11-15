@@ -39,10 +39,7 @@ import {
   type EnvelopeWithSigners,
 } from './signature-records.js';
 import { assertOnTurn, recordRejection, recordSignature } from './signature-signing.js';
-import { envelopeDocument, isAcceptance } from './signature-sources.js';
-
-/** Lo que ve quien firma un acta de entrega de un proyecto (B27). */
-const ACCEPTANCE_KIND = 'Acta de entrega técnica';
+import { envelopeDocument, isStandalone, standaloneKind } from './signature-sources.js';
 
 // La página de firma (B25, numeral 19.2): quien firma por el cliente abre el enlace de su correo, sin
 // sesión. La API solo conoce la huella de la llave: con ella encuentra la empresa y el firmante, y lo
@@ -308,8 +305,8 @@ async function publicView(
 ): Promise<PublicSignature> {
   const [company, kind] = await Promise.all([
     companyIdentity(tx),
-    isAcceptance(envelope)
-      ? ACCEPTANCE_KIND
+    isStandalone(envelope)
+      ? standaloneKind(envelope)
       : envelopeDocument(tx, envelope).then((document) => document.kind),
   ]);
   return {

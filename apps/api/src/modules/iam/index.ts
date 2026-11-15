@@ -16,6 +16,7 @@ export { peopleById, usersInPosition } from './infrastructure/user-directory-sto
 export { findLoginUser, type IdentityRef } from './infrastructure/identity-lookup.js';
 export { linkUserToPerson, type PersonLink } from './application/person-link.js';
 export {
+  activeCollaborators,
   activeInternalUserByEmail,
   activeRoleCodes,
   activeUsersInPosition,
@@ -23,6 +24,7 @@ export {
   existingRoleCodes,
   isActiveInternalUser,
   positionOfUser,
+  type Collaborator,
   type ReceivedDelegation,
 } from './infrastructure/people-directory.js';
 export {

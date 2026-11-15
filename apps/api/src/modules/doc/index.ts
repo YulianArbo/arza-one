@@ -70,4 +70,5 @@ export {
   type SystemFormRecord,
 } from './application/system-forms.js';
 export { CODE_REVIEW_CODE, TECHNICAL_DELIVERY_CODE } from './domain/code-review-form.js';
+export { LOAN_CONTRACT_CODE } from './domain/loan-contract-form.js';
 export { FileStorage } from './infrastructure/file-storage.js';

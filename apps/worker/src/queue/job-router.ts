@@ -5,6 +5,7 @@ import {
   processAcceptanceWork,
   type AcceptanceWorkJobDependencies,
 } from '../jobs/acceptance-work.js';
+import { processLoanWork, type LoanWorkJobDependencies } from '../jobs/loan-work.js';
 import { processSlaWork, type SlaWorkJobDependencies } from '../jobs/sla-work.js';
 import { processCareWork, type CareWorkJobDependencies } from '../jobs/care-work.js';
 import { processAccountEmail, type AccountEmailJobDependencies } from '../jobs/account-email.js';
@@ -74,6 +75,7 @@ export type JobDependencies = ExampleEmailDependencies &
   ContractWorkJobDependencies &
   SignatureWorkJobDependencies &
   AcceptanceWorkJobDependencies &
+  LoanWorkJobDependencies &
   SlaWorkJobDependencies &
   CareWorkJobDependencies;
 
@@ -113,6 +115,7 @@ function handlers(deps: JobDependencies): ReadonlyMap<string, JobHandler> {
     [JOBS.sigWork.name, withoutData(async () => processSignatureWork(deps))],
     [JOBS.sigFollowUp.name, withoutData(async () => processSignatureFollowUp(deps))],
     [JOBS.prjAcceptanceWork.name, withoutData(async () => processAcceptanceWork(deps))],
+    [JOBS.astLoanWork.name, withoutData(async () => processLoanWork(deps))],
     [JOBS.svcSlaWork.name, withoutData(async () => processSlaWork(deps))],
     [JOBS.svcCareWork.name, withoutData(async () => processCareWork(deps))],
   ]);
