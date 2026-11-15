@@ -16,6 +16,7 @@ import {
   ScrollText,
   Settings,
   ShieldCheck,
+  ShoppingCart,
   Users,
   type LucideIcon,
 } from 'lucide-react';
@@ -97,6 +98,12 @@ const MODULES: readonly NavigationItem[] = [
       'finance.ledger.read',
       'finance.expense.manage',
     ],
+  },
+  {
+    slug: 'compras',
+    label: 'Compras',
+    icon: ShoppingCart,
+    permissions: ['purchase.read', 'purchase.request.create', 'purchase.travel.request'],
   },
   {
     slug: 'talento-y-sst',

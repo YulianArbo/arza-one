@@ -19,7 +19,12 @@ export {
   businessMinutesElapsed,
   nextBusinessMoment,
 } from './application/calendar.js';
-export { discountCapOn, pqrsfTermsOn, workScheduleOn } from './application/parameters.js';
+export {
+  discountCapOn,
+  pqrsfTermsOn,
+  purchaseTiersOn,
+  workScheduleOn,
+} from './application/parameters.js';
 export {
   companyIdentity,
   tenantIdByTaxId,

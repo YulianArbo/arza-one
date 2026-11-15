@@ -2,6 +2,7 @@
 
 import {
   isPqrsfTerms,
+  isPurchaseTiers,
   isWorkSchedule,
   weeklyHours,
   type ParameterSummary,
@@ -25,6 +26,7 @@ import { QueryState } from '../administration/query-state';
 import { usePermissions } from '../session/permissions';
 import { DiscountCapForm } from './discount-cap-form';
 import { describePqrsfTerms, PqrsfTermsForm } from './pqrsf-terms-form';
+import { describePurchaseTiers, PurchaseTiersForm } from './purchase-tiers-form';
 import { ScheduleForm } from './schedule-form';
 import { useParameterHistory, useParameters } from './queries';
 import { RecordDialog } from './record-dialog';
@@ -50,10 +52,11 @@ export function describeSchedule(schedule: WorkSchedule): string {
   return `De ${describeDays(schedule.days)}, ${shifts}: ${String(weeklyHours(schedule))} horas a la semana.`;
 }
 
-/** El valor en palabras: el horario, los plazos de PQRSF o el tope de descuento. */
+/** El valor en palabras: el horario, los plazos de PQRSF, los topes de compras o el de descuento. */
 export function describeValue(value: ParameterValue): string {
   if (isWorkSchedule(value)) return describeSchedule(value);
   if (isPqrsfTerms(value)) return describePqrsfTerms(value);
+  if (isPurchaseTiers(value)) return describePurchaseTiers(value);
   return `Hasta ${value.percent.replace(/\.00$/u, '').replace('.', ',')} % por ítem sin aprobación de la Dirección.`;
 }
 
@@ -121,10 +124,11 @@ function ParameterForm(props: {
     const initial = props.initial !== null && isPqrsfTerms(props.initial) ? props.initial : null;
     return <PqrsfTermsForm {...props} initial={initial} />;
   }
-  const initial =
-    props.initial !== null && !isWorkSchedule(props.initial) && !isPqrsfTerms(props.initial)
-      ? props.initial
-      : null;
+  if (props.parameterKey === 'purchase.approval_tiers') {
+    const initial = props.initial !== null && isPurchaseTiers(props.initial) ? props.initial : null;
+    return <PurchaseTiersForm {...props} initial={initial} />;
+  }
+  const initial = props.initial !== null && 'percent' in props.initial ? props.initial : null;
   return <DiscountCapForm {...props} initial={initial} />;
 }
 

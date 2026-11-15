@@ -61,7 +61,8 @@ const MATRIX: Readonly<Record<string, string>> = {
 /** Permisos sensibles (nivel restricted) y su porqué en el numeral 15.2. */
 const EXTRAS: Readonly<Partial<Record<InternalRoleCode, readonly PermissionCode[]>>> = {
   // «Aprobaciones de alto nivel».
-  DIRECCION: ['party.due_diligence.approve'],
+  // Las compras del tramo alto las aprueba solo la Dirección (decisión 2 del B33).
+  DIRECCION: ['party.due_diligence.approve', 'purchase.request.approve_high'],
   // Las cuentas bancarias de terceros se registran y aprueban en finanzas (doble aprobación).
   ADMIN_FINANCIERO: [
     'party.bank_account.read',

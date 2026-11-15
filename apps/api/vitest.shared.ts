@@ -87,6 +87,9 @@ export const DATABASE_BOUND_FILES = [
   // Parámetros tributarios (B23): casos de uso y controladores.
   'src/modules/fin/application/**/*.ts',
   'src/modules/fin/interface/**/*.ts',
+  // Compras, proveedores y viajes (B33): todo menos las reglas del dominio, que se prueban solas.
+  'src/modules/purchase/application/**/*.ts',
+  'src/modules/purchase/interface/**/*.ts',
   // Contratos (B24): todo menos las reglas del dominio, que se prueban solas.
   'src/modules/contract/application/**/*.ts',
   'src/modules/contract/interface/**/*.ts',

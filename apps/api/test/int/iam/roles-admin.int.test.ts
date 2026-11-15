@@ -45,12 +45,14 @@ describe('consultar roles y permisos', () => {
       (await scenario.get('/v1/permissions', director.session)).body,
     );
     const permissions = catalog.groups.flatMap((group) => group.permissions);
-    expect(permissions).toHaveLength(207);
+    expect(permissions).toHaveLength(209);
     expect(permissions.map((permission) => permission.code)).toEqual(
       expect.arrayContaining([
         'finance.ledger.read',
         'finance.cost_certification.manage',
         'finance.period.close',
+        'purchase.read',
+        'purchase.request.approve_high',
       ]),
     );
   });
