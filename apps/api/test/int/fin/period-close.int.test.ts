@@ -271,6 +271,30 @@ async function isolatedBatches(): Promise<void> {
   expect(batches.data).toEqual([]);
 }
 
+async function refusesMismatchedExport(): Promise<void> {
+  const { finance, period } = world();
+  const fixture = await s.inTenant((tx) =>
+    tx.finExportBatch.create({
+      data: {
+        tenantId: s.tenant.id,
+        period: monthsBefore(`${period}-01`, 1),
+        kind: 'definitive',
+        rowCount: 0,
+        totals: {},
+        checksum: '0'.repeat(64),
+        fileName: 'prueba.csv',
+        exportedBy: finance.id,
+        exportedAt: s.clock.now(),
+      },
+    }),
+  );
+  expectError(
+    await s.get(`${FIN}/exports/${fixture.id}/file`, finance.session),
+    409,
+    'FIN_STATUS_INVALID',
+  );
+}
+
 describe('cierre de periodo y exportación contable (B32)', () => {
   it('no cierra un mes con gastos sin decidir ni el mes en curso', async () => {
     await prepare();
@@ -300,5 +324,9 @@ describe('cierre de periodo y exportación contable (B32)', () => {
 
   it('otra empresa no ve los lotes', async () => {
     await isolatedBatches();
+  });
+
+  it('rechaza una descarga definitiva cuando no coincide la huella del lote', async () => {
+    await refusesMismatchedExport();
   });
 });

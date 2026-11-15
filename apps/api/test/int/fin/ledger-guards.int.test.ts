@@ -1,5 +1,6 @@
 import {
   budgetDetailEnvelopeSchema,
+  budgetExecutionEnvelopeSchema,
   expenseListResponseSchema,
   pettyCashResponseSchema,
 } from '@arza/contracts';
@@ -114,35 +115,64 @@ it('registra un solo vale al reintentar y rechaza fechas y soportes inválidos',
   expect(data.movements).toHaveLength(2);
 });
 
-it('conserva la línea de un presupuesto histórico con referencias retiradas', async () => {
-  const { costCenterId } = await ledgerBasics(scenario);
-  const finance = await scenario.person('finanzas-historico', ['ADMIN_FINANCIERO']);
-  const category = 'HISTORICO_PRUEBA';
-  const item = await scenario.inTenant(async (tx) => {
+const history = new AccessScenario('finanzas referencias históricas');
+
+async function historicalCategory(category: string) {
+  return history.inTenant(async (tx) => {
     const catalog = await tx.catalog.findFirstOrThrow({ where: { key: 'fin_expense_categories' } });
     return tx.catalogItem.create({
       data: {
-        tenantId: scenario.tenant.id,
+        tenantId: history.tenant.id,
         catalogId: catalog.id,
         code: category,
         label: 'Histórico',
       },
     });
   });
-  const year = Number(day(scenario, 0).slice(0, 4));
-  const id = await createdId(scenario.post(`${FIN}/budgets`, finance.session, { year }));
+}
+
+async function historicalLedger() {
+  const { costCenterId } = await ledgerBasics(history);
+  const finance = await history.person('finanzas-historico', ['ADMIN_FINANCIERO']);
+  const category = 'HISTORICO_PRUEBA';
+  const item = await historicalCategory(category);
+  const year = Number(day(history, 0).slice(0, 4));
+  const id = await createdId(history.post(`${FIN}/budgets`, finance.session, { year }));
   const path = `${FIN}/budgets/${id}`;
   const lines = [{ cost_center_id: costCenterId, category, month: 1, planned: '100.00' }];
-  const saved = await putVersioned(scenario, `${path}/lines`, finance, { lines }, 1);
+  const date = day(history, 0);
+  const expense = await expenseBody(history, finance, costCenterId, date);
+  const expenseId = await createdId(
+    keyed(history, finance, `${FIN}/expenses`, { ...expense, category }),
+  );
+  const approver = await history.person('aprobador-historico', ['ADMIN_FINANCIERO']);
+  await versioned(
+    history.post(`${FIN}/expenses/${expenseId}/approval`, approver.session),
+    1,
+  ).expect(204);
+  const cashPath = `${FIN}/petty-cash/movements`;
+  await createdId(keyed(history, finance, cashPath, movementBody('opening', '100.00', date)));
+  await createdId(
+    keyed(history, finance, cashPath, {
+      ...movementBody('voucher', '10.00', date, costCenterId),
+      category,
+    }),
+  );
+  const saved = await putVersioned(history, `${path}/lines`, finance, { lines }, 1);
   expect(saved.status, saved.text).toBe(204);
 
-  await scenario.inTenant(async (tx) => {
-    const deletedAt = scenario.clock.now();
+  await history.inTenant(async (tx) => {
+    const deletedAt = history.clock.now();
     await tx.costCenter.update({ where: { id: costCenterId }, data: { deletedAt } });
     await tx.catalogItem.update({ where: { id: item.id }, data: { deletedAt } });
   });
 
-  const result = await scenario.get(path, finance.session);
+  return { finance, category, costCenterId, expenseId, path, date };
+}
+
+it('conserva las referencias retiradas en las consultas y la exportación', async () => {
+  const { finance, category, costCenterId, expenseId, path, date } = await historicalLedger();
+  const result = await history.get(path, finance.session);
   expect(result.status, result.text).toBe(200);
   expect(budgetDetailEnvelopeSchema.parse(result.body).data.lines).toMatchObject([
     {
@@ -151,4 +181,25 @@ it('conserva la línea de un presupuesto histórico con referencias retiradas', 
       planned: '100.00',
     },
   ]);
+  const expenses = await history.get(`${FIN}/expenses`, finance.session);
+  expect(expenseListResponseSchema.parse(expenses.body).data).toContainEqual(
+    expect.objectContaining({ id: expenseId, category: { code: category, label: category } }),
+  );
+  const cash = await history.get(`${FIN}/petty-cash`, finance.session);
+  expect(pettyCashResponseSchema.parse(cash.body).data.movements).toContainEqual(
+    expect.objectContaining({ type: 'voucher', category: { code: category, label: category } }),
+  );
+  const execution = await history.get(`${path}/execution`, finance.session);
+  expect(budgetExecutionEnvelopeSchema.parse(execution.body).data.rows).toContainEqual({
+    cost_center: { id: costCenterId, code: '—', name: 'Centro de costo' },
+    category: { code: category, label: category },
+    planned: '100.00',
+    executed: '150010.00',
+  });
+  const exported = await history.post(`${FIN}/exports/accounting`, finance.session, {
+    period: date.slice(0, 7),
+  });
+  expect(exported.status, exported.text).toBe(200);
+  expect(exported.text).toContain(`;;${category};150000,00;`);
+  expect(exported.text).toContain(`;;${category};10,00;`);
 });
