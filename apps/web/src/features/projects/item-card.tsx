@@ -21,6 +21,8 @@ import {
   ITEM_TYPES,
   ITEM_TYPE_TONES,
   PRIORITY_TONES,
+  REVIEW_RESULTS,
+  REVIEW_TONES,
   itemLabel,
 } from './labels';
 
@@ -34,6 +36,12 @@ interface ItemCardProps {
   readonly item: ProjectItem;
   readonly canMove: boolean;
   readonly onMove: (item: ProjectItem, status: ItemStatus) => void;
+  readonly onReview: (item: ProjectItem) => void;
+}
+
+/** Se revisa el código en las columnas En revisión y En pruebas (B27). */
+function reviewable(item: ProjectItem): boolean {
+  return item.status === 'in_review' || item.status === 'in_testing';
 }
 
 function MoveMenu(props: ItemCardProps): JSX.Element {
@@ -65,16 +73,44 @@ function MoveMenu(props: ItemCardProps): JSX.Element {
   );
 }
 
+function ItemBadges({ item }: { readonly item: ProjectItem }): JSX.Element {
+  return (
+    <div className="flex flex-wrap gap-1">
+      <Badge tone={ITEM_TYPE_TONES[item.type]}>{ITEM_TYPES[item.type]}</Badge>
+      <Badge tone={PRIORITY_TONES[item.priority]}>{ITEM_PRIORITIES[item.priority]}</Badge>
+      {item.last_review === null ? null : (
+        <Badge tone={REVIEW_TONES[item.last_review]}>
+          Revisión: {REVIEW_RESULTS[item.last_review]}
+        </Badge>
+      )}
+    </div>
+  );
+}
+
+function ReviewButton(props: ItemCardProps): JSX.Element | null {
+  const { item } = props;
+  if (!props.canMove || !reviewable(item)) return null;
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      aria-label={`Revisar el código de ${itemLabel(item)}`}
+      onClick={() => {
+        props.onReview(item);
+      }}
+    >
+      Revisar
+    </Button>
+  );
+}
+
 export function ItemCard(props: ItemCardProps): JSX.Element {
   const { item } = props;
   const drag = useDragSource(ITEM_DRAG, item.id, props.canMove);
   return (
     <li ref={drag} className="flex flex-col gap-1 rounded-md border bg-card p-3 text-sm">
       <span className="font-medium">{itemLabel(item)}</span>
-      <div className="flex flex-wrap gap-1">
-        <Badge tone={ITEM_TYPE_TONES[item.type]}>{ITEM_TYPES[item.type]}</Badge>
-        <Badge tone={PRIORITY_TONES[item.priority]}>{ITEM_PRIORITIES[item.priority]}</Badge>
-      </div>
+      <ItemBadges item={item} />
       {item.parent === null ? null : (
         <p className="text-xs text-muted-foreground">En {itemLabel(item.parent)}</p>
       )}
@@ -82,7 +118,10 @@ export function ItemCard(props: ItemCardProps): JSX.Element {
         <span className="text-xs text-muted-foreground">
           {item.assignee?.name ?? 'Sin asignar'}
         </span>
-        {props.canMove ? <MoveMenu {...props} /> : null}
+        <div className="flex flex-wrap gap-1">
+          <ReviewButton {...props} />
+          {props.canMove ? <MoveMenu {...props} /> : null}
+        </div>
       </div>
     </li>
   );

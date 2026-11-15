@@ -35,7 +35,21 @@ export interface ProjectPartTarget extends ProjectTarget {
 }
 
 type ProjectEntity =
-  'prj_project' | 'prj_member' | 'prj_milestone' | 'prj_sprint' | 'prj_item' | 'prj_external_link';
+  | 'prj_project'
+  | 'prj_member'
+  | 'prj_milestone'
+  | 'prj_sprint'
+  | 'prj_item'
+  | 'prj_external_link'
+  | 'prj_time_entry'
+  | 'prj_deliverable'
+  | 'prj_acceptance'
+  | 'prj_risk'
+  | 'prj_release'
+  | 'prj_code_review'
+  | 'prj_incident'
+  | 'prj_client_access'
+  | 'prj_shared_file';
 
 export interface ProjectChange {
   /** Acción de la auditoría, como «project.member.add». */

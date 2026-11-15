@@ -16,6 +16,7 @@ export { peopleById, usersInPosition } from './infrastructure/user-directory-sto
 export { findLoginUser, type IdentityRef } from './infrastructure/identity-lookup.js';
 export { linkUserToPerson, type PersonLink } from './application/person-link.js';
 export {
+  activeCollaborators,
   activeInternalUserByEmail,
   activeRoleCodes,
   activeUsersInPosition,
@@ -23,6 +24,7 @@ export {
   existingRoleCodes,
   isActiveInternalUser,
   positionOfUser,
+  type Collaborator,
   type ReceivedDelegation,
 } from './infrastructure/people-directory.js';
 export {
@@ -42,3 +44,23 @@ export {
   type StoredImage,
 } from './application/profile-ports.js';
 export { assertUsableImage, imageNotAllowed, imageNotFound } from './application/image-messages.js';
+export {
+  changePortalRole,
+  companyAccounts,
+  emailOutsideCompany,
+  portalAccountOf,
+  portalRoleOfUser,
+  renamePortalAccount,
+  setPortalAccountActive,
+  type CompanyAccount,
+  type PortalAccount,
+  type PortalAdminActor,
+} from './application/portal-accounts.js';
+export {
+  acceptedTermsOf,
+  recentSessionsOf,
+  recordTermsAcceptance,
+  type AcceptedTerms,
+  type TermsVersion,
+} from './application/portal-terms.js';
+export { InvitationUseCase } from './application/invitation.js';

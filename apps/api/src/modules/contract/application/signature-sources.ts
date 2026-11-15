@@ -60,11 +60,34 @@ export async function sourceDocument(
   return documentOf(await findContract(tx, amendment.contractId), amendment);
 }
 
+/**
+ * Origen de un proceso que no es un contrato ni un otrosí: el acta de entrega de un proyecto (B27).
+ * Proyectos la prepara y sigue su resultado; Contratos no lee las tablas prj_.
+ */
+export const ACCEPTANCE_SOURCE = 'acceptance';
+
+/**
+ * Origen de un proceso que firma el contrato de comodato de un activo (B34, CT-ADM-001). Activos
+ * lo prepara y sigue su resultado; Contratos no lee las tablas ast_.
+ */
+export const LOAN_SOURCE = 'asset_loan';
+
+/** El proceso firma un documento de otro módulo (acta o comodato), no un contrato ni un otrosí. */
+export function isStandalone(envelope: { readonly source: string }): boolean {
+  return envelope.source === ACCEPTANCE_SOURCE || envelope.source === LOAN_SOURCE;
+}
+
+/** Cómo se llama el documento de otro módulo ante quien lo firma. */
+export function standaloneKind(envelope: { readonly source: string }): string {
+  return envelope.source === LOAN_SOURCE ? 'Contrato de comodato' : 'Acta de entrega técnica';
+}
+
 /** El documento de un proceso: el contrato y, si lo es, el otrosí. */
 export async function envelopeDocument(
   tx: TenantTransaction,
-  envelope: { readonly contractId: string; readonly amendmentId: string | null },
+  envelope: { readonly contractId: string | null; readonly amendmentId: string | null },
 ): Promise<SignableDocument> {
+  if (envelope.contractId === null) throw contractNotFound('El contrato');
   return envelope.amendmentId === null
     ? sourceDocument(tx, 'contract', envelope.contractId)
     : sourceDocument(tx, 'amendment', envelope.amendmentId);

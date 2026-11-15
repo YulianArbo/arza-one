@@ -35,6 +35,7 @@ import {
   PROJECTS,
   projectAudit,
   projectPayload,
+  assertOpen,
   statusOf,
   updateProjectVersioned,
 } from './project-records.js';
@@ -54,7 +55,9 @@ const STEP_LABELS: Readonly<Record<ProjectStep, string>> = {
   start: 'Solo se inicia un proyecto en planeación.',
   risk: 'Solo se marca en riesgo un proyecto en ejecución.',
   pause: 'Solo se pausa un proyecto en ejecución o en riesgo.',
-  resume: 'Solo se reanuda un proyecto en riesgo o pausado.',
+  resume: 'Solo se reanuda un proyecto en riesgo, pausado o en cierre.',
+  closing: 'Solo pasa a cierre un proyecto en ejecución o en riesgo.',
+  close: 'Solo se cierra un proyecto que está en cierre.',
 };
 
 /** El cliente y el contrato del proyecto nuevo, revisados. */
@@ -179,6 +182,7 @@ export class ProjectsUseCase {
     assertDates(input);
     await this.database.withTenant(principal, async (tx) => {
       const before = await findProject(tx, target.id);
+      assertOpen(before);
       if (input.manager_id !== before.managerId) {
         await assertTeamCandidate(tx, input.manager_id, actor.at);
       }
@@ -218,6 +222,8 @@ export class ProjectsUseCase {
         status: to,
         statusReason: input?.reason ?? null,
         ...(step === 'start' ? { startedAt: actor.at } : {}),
+        // Reanudar desde «en cierre» lo devuelve a ejecución (B27).
+        ...(step === 'resume' ? { closingStartedAt: null } : {}),
       });
       await recordProjectChange(tx, actor, {
         action: `project.${step}`,

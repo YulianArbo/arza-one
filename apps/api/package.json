@@ -39,6 +39,18 @@
     "./contract": {
       "types": "./dist/modules/contract/index.d.ts",
       "default": "./dist/modules/contract/index.js"
+    },
+    "./project": {
+      "types": "./dist/modules/project/index.d.ts",
+      "default": "./dist/modules/project/index.js"
+    },
+    "./service": {
+      "types": "./dist/modules/service/index.d.ts",
+      "default": "./dist/modules/service/index.js"
+    },
+    "./asset": {
+      "types": "./dist/modules/asset/index.d.ts",
+      "default": "./dist/modules/asset/index.js"
     }
   },
   "scripts": {

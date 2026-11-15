@@ -155,3 +155,27 @@ export class CostCentersUseCase {
     });
   }
 }
+
+/** Centros de costo por identificador, también los inactivos que guardan los registros. */
+export async function costCenterRefs(
+  tx: TenantTransaction,
+  ids: readonly string[],
+): Promise<Map<string, { id: string; code: string; name: string; isActive: boolean }>> {
+  if (ids.length === 0) return new Map();
+  const centers = await tx.costCenter.findMany({
+    where: { id: { in: [...new Set(ids)] }, deletedAt: null },
+    select: { id: true, code: true, name: true, isActive: true },
+  });
+  return new Map(centers.map((center) => [center.id, center]));
+}
+
+/** Centros de costo activos, para elegir en un formulario. */
+export async function activeCostCenters(
+  tx: TenantTransaction,
+): Promise<{ id: string; code: string; name: string }[]> {
+  return tx.costCenter.findMany({
+    where: { isActive: true, deletedAt: null },
+    select: { id: true, code: true, name: true },
+    orderBy: { code: 'asc' },
+  });
+}

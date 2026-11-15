@@ -39,7 +39,7 @@ import {
   type EnvelopeWithSigners,
 } from './signature-records.js';
 import { assertOnTurn, recordRejection, recordSignature } from './signature-signing.js';
-import { envelopeDocument } from './signature-sources.js';
+import { envelopeDocument, isStandalone, standaloneKind } from './signature-sources.js';
 
 // La página de firma (B25, numeral 19.2): quien firma por el cliente abre el enlace de su correo, sin
 // sesión. La API solo conoce la huella de la llave: con ella encuentra la empresa y el firmante, y lo
@@ -303,16 +303,18 @@ async function publicView(
   envelope: EnvelopeWithSigners,
   signer: SigSigner,
 ): Promise<PublicSignature> {
-  const [company, document] = await Promise.all([
+  const [company, kind] = await Promise.all([
     companyIdentity(tx),
-    envelopeDocument(tx, envelope),
+    isStandalone(envelope)
+      ? standaloneKind(envelope)
+      : envelopeDocument(tx, envelope).then((document) => document.kind),
   ]);
   return {
     company: { name: company.legalName, tax_id: company.taxId },
     document: {
       code: envelope.documentCode,
       title: envelope.documentTitle,
-      kind: document.kind,
+      kind,
       sha256: envelope.documentSha256,
     },
     signer: {

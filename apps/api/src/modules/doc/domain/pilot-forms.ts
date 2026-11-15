@@ -1,29 +1,12 @@
-import type { CreateFormTemplate, FormDefinition, FormField, FormFillMode } from '@arza/contracts';
+import type { CreateFormTemplate, FormDefinition, FormFillMode } from '@arza/contracts';
 
-// Los cinco formatos piloto del bloque B20 (capítulo 18, tabla 18.3), que la semilla publica en
-// cada empresa la primera vez. Sus campos se armaron con lo que dice el manual y la práctica del
-// SGC, como borrador por validar contra el original (decisión 1 del plan): Calidad los ajusta en
-// el diseñador y publica una versión nueva, sin programar.
+import { CODE_REVIEW, CODE_REVIEW_CODE, TECHNICAL_DELIVERY_CODE } from './code-review-form.js';
+import { choice, date, field, long, section, text, yesNo } from './form-builders.js';
+import { LOAN_CONTRACT, LOAN_CONTRACT_CODE } from './loan-contract-form.js';
 
-type FieldInput = Partial<FormField> & Pick<FormField, 'key' | 'label' | 'type'>;
-
-function field(input: FieldInput): FormField {
-  return { required: false, help: null, options: [], items: [], columns: [], ...input };
-}
-
-const text = (key: string, label: string, required = false) =>
-  field({ key, label, type: 'text', required });
-const long = (key: string, label: string, required = false) =>
-  field({ key, label, type: 'textarea', required });
-const date = (key: string, label: string, required = false) =>
-  field({ key, label, type: 'date', required });
-const yesNo = (key: string, label: string) => field({ key, label, type: 'boolean' });
-const choice = (key: string, label: string, options: string[], required = false) =>
-  field({ key, label, type: 'select', options, required });
-
-function section(key: string, title: string, fields: FormField[]) {
-  return { key, title, fields };
-}
+// Los formatos piloto del B20 (tabla 18.3) y el FT-TEC-002 del B27, que la semilla publica en cada
+// empresa la primera vez. Sus campos son un borrador por validar contra el original: Calidad los
+// ajusta en el diseñador y publica una versión nueva, sin programar.
 
 export interface PilotForm {
   readonly template: Omit<CreateFormTemplate, 'output_template_id' | 'document_id'>;
@@ -277,7 +260,7 @@ export const PILOT_FORMS: readonly PilotForm[] = [
   },
   {
     template: {
-      code: 'FT-TEC-001',
+      code: TECHNICAL_DELIVERY_CODE,
       name: 'Acta de Entrega Técnica',
       definition: TECHNICAL_DELIVERY,
       layout: { orientation: 'portrait' },
@@ -300,5 +283,31 @@ export const PILOT_FORMS: readonly PilotForm[] = [
     },
     fillMode: 'system',
     outputCode: CHANGE_REQUEST_FORM_CODE,
+  },
+  {
+    template: {
+      code: CODE_REVIEW_CODE,
+      name: 'Lista de Revisión de Código',
+      definition: CODE_REVIEW,
+      layout: { orientation: 'portrait' },
+      workflow_key: null,
+      classification: 'internal',
+      entity_type: 'prj_code_review',
+    },
+    fillMode: 'system',
+    outputCode: null,
+  },
+  {
+    template: {
+      code: LOAN_CONTRACT_CODE,
+      name: 'Contrato de Comodato',
+      definition: LOAN_CONTRACT,
+      layout: { orientation: 'portrait' },
+      workflow_key: null,
+      classification: 'internal',
+      entity_type: 'ast_assignment',
+    },
+    fillMode: 'system',
+    outputCode: null,
   },
 ];

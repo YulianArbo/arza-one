@@ -1,7 +1,12 @@
+import { FINANCE_PATHS } from './api-paths-finance.js';
+import { PORTAL_PATHS } from './api-paths-portal.js';
+import { PURCHASE_PATHS } from './api-paths-purchase.js';
+import { SERVICE_PATHS } from './api-paths-service.js';
+
 // Las rutas que publica la API (numeral 14.1): la prueba del OpenAPI las compara con las reales.
 
-/** Rutas publicadas, en orden alfabético. */
-export const API_PATHS = [
+/** Rutas de los demás módulos, en orden alfabético. */
+const PLATFORM_PATHS = [
   '/health',
   '/v1/access-review',
   '/v1/attachments',
@@ -109,9 +114,6 @@ export const API_PATHS = [
   '/v1/files/uploads/{token}',
   '/v1/files/{id}',
   '/v1/files/{id}/download-link',
-  '/v1/finance/tax-parameters',
-  '/v1/finance/tax-parameters/versions',
-  '/v1/finance/tax-parameters/{key}/history',
   '/v1/folders',
   '/v1/folders/{id}',
   '/v1/form-records',
@@ -189,12 +191,24 @@ export const API_PATHS = [
   '/v1/projects',
   '/v1/projects/options',
   '/v1/projects/{id}',
+  '/v1/projects/{id}/actions/close',
   '/v1/projects/{id}/actions/pause',
   '/v1/projects/{id}/actions/request-authorization',
   '/v1/projects/{id}/actions/resume',
   '/v1/projects/{id}/actions/risk',
   '/v1/projects/{id}/actions/start',
+  '/v1/projects/{id}/actions/start-closing',
   '/v1/projects/{id}/board',
+  '/v1/projects/{id}/code-reviews',
+  '/v1/projects/{id}/control-settings',
+  '/v1/projects/{id}/deliverables',
+  '/v1/projects/{id}/deliverables/options',
+  '/v1/projects/{id}/deliverables/{deliverableId}',
+  '/v1/projects/{id}/deliverables/{deliverableId}/acta-link',
+  '/v1/projects/{id}/deliverables/{deliverableId}/actions/deliver',
+  '/v1/projects/{id}/incidents',
+  '/v1/projects/{id}/incidents/{incidentId}/actions/resolve',
+  '/v1/projects/{id}/indicators',
   '/v1/projects/{id}/items',
   '/v1/projects/{id}/items/{itemId}',
   '/v1/projects/{id}/items/{itemId}/actions/move',
@@ -206,10 +220,18 @@ export const API_PATHS = [
   '/v1/projects/{id}/milestones',
   '/v1/projects/{id}/milestones/{milestoneId}',
   '/v1/projects/{id}/milestones/{milestoneId}/actions/complete',
+  '/v1/projects/{id}/releases',
+  '/v1/projects/{id}/releases/{releaseId}/report-link',
+  '/v1/projects/{id}/risks',
+  '/v1/projects/{id}/risks/{riskId}',
   '/v1/projects/{id}/sprints',
   '/v1/projects/{id}/sprints/{sprintId}',
   '/v1/projects/{id}/sprints/{sprintId}/actions/close',
   '/v1/projects/{id}/sprints/{sprintId}/actions/start',
+  '/v1/projects/{id}/time-entries',
+  '/v1/projects/{id}/time-entries/actions/approve',
+  '/v1/projects/{id}/time-entries/{entryId}',
+  '/v1/projects/{id}/time-entries/{entryId}/actions/return',
   '/v1/public/quotes/accept',
   '/v1/public/quotes/pdf',
   '/v1/public/quotes/reject',
@@ -250,6 +272,8 @@ export const API_PATHS = [
   '/v1/tasks/{id}/actions/reject',
   '/v1/tasks/{id}/actions/start',
   '/v1/tenant',
+  '/v1/time-entries/mine',
+  '/v1/time-entries/options',
   '/v1/users',
   '/v1/users/{id}',
   '/v1/users/{id}/actions/invite',
@@ -275,3 +299,7 @@ export const API_PATHS = [
   '/v1/workflows/{id}/actions/start-test',
   '/version',
 ];
+
+const ALL_PATHS = PLATFORM_PATHS.concat(FINANCE_PATHS, SERVICE_PATHS, PORTAL_PATHS, PURCHASE_PATHS);
+
+export const API_PATHS = ALL_PATHS.sort();

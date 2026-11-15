@@ -4,17 +4,21 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import type { Redis } from 'ioredis';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 
+import { AssetModule } from './modules/asset/index.js';
 import { AuditModule } from './modules/audit/index.js';
 import { ContractModule } from './modules/contract/index.js';
 import { ProjectModule } from './modules/project/index.js';
+import { ServiceModule } from './modules/service/index.js';
+import { PortalModule } from './modules/portal/index.js';
 import { CoreModule } from './modules/core/index.js';
 import { CrmModule } from './modules/crm/index.js';
 import { DocModule, ProfileImagesModule } from './modules/doc/index.js';
-import { FinModule } from './modules/fin/index.js';
+import { FinModule } from './modules/fin/interface/fin.module.js';
 import { IamModule } from './modules/iam/index.js';
 import { PartyModule } from './modules/party/index.js';
 import { NtfModule } from './modules/ntf/index.js';
 import { PrivacyModule } from './modules/privacy/index.js';
+import { PurchaseModule } from './modules/purchase/index.js';
 import { WfModule } from './modules/wf/index.js';
 import { AccessGuard } from './platform/access/access.guard.js';
 import { AuthorizationGuard } from './platform/access/authorization.guard.js';
@@ -48,6 +52,10 @@ const BUSINESS_MODULES = [
   CrmModule,
   ContractModule,
   ProjectModule,
+  ServiceModule,
+  PortalModule,
+  PurchaseModule,
+  AssetModule,
 ];
 
 /**

@@ -62,6 +62,18 @@ export const NOTIFICATION_KINDS = {
     label: 'Novedad de un proyecto suyo',
     variables: ['nombre', 'proyecto', 'novedad'],
   },
+  svc_ticket_update: {
+    label: 'Novedad de un tiquete de la mesa de ayuda',
+    variables: ['nombre', 'tiquete', 'novedad'],
+  },
+  svc_ticket_alert: {
+    label: 'Alerta de plazo o tiquete crítico',
+    variables: ['nombre', 'tiquete', 'novedad'],
+  },
+  svc_pqrsf_update: {
+    label: 'Novedad o plazo de una PQRSF',
+    variables: ['nombre', 'pqrsf', 'novedad'],
+  },
 } as const satisfies Record<string, { label: string; variables: readonly string[] }>;
 
 export type NotificationKind = keyof typeof NOTIFICATION_KINDS;

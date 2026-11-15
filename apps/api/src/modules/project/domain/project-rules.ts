@@ -14,7 +14,10 @@ export const PROJECT_STEPS = {
   start: { from: ['planning'], to: 'in_progress' },
   risk: { from: ['in_progress'], to: 'at_risk' },
   pause: { from: ['in_progress', 'at_risk'], to: 'paused' },
-  resume: { from: ['at_risk', 'paused'], to: 'in_progress' },
+  resume: { from: ['at_risk', 'paused', 'closing'], to: 'in_progress' },
+  // B27: el cierre. Se entra desde ejecución o riesgo; se cierra desde «en cierre».
+  closing: { from: ['in_progress', 'at_risk'], to: 'closing' },
+  close: { from: ['closing'], to: 'closed' },
 } as const satisfies Record<
   string,
   { readonly from: readonly ProjectStatus[]; readonly to: ProjectStatus }

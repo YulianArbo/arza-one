@@ -24,7 +24,11 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const ACCOUNTANT = permissionsOf(['finance.tax_parameter.manage', 'finance.invoice.read']);
+const ACCOUNTANT = permissionsOf([
+  'finance.tax_parameter.manage',
+  'finance.invoice.read',
+  'finance.ledger.read',
+]);
 
 const VERSION = {
   id: '01999a00-0000-7000-8000-0000000e0001',
@@ -50,7 +54,7 @@ function serveTaxes(permissions: object) {
 }
 
 describe('finanzas', () => {
-  it('la portada lleva a los parámetros tributarios y dice qué viene después', async () => {
+  it('la portada enlaza parámetros y facturación, y deja clara la cartera pendiente', async () => {
     serveTaxes(ACCOUNTANT);
     renderWithApi(
       <Screen>
@@ -59,7 +63,12 @@ describe('finanzas', () => {
     );
     const link = await screen.findByRole('link', { name: /Parámetros tributarios/u });
     expect(link).toHaveAttribute('href', '/app/finanzas/parametros-tributarios');
-    expect(screen.getByText('Disponible pronto')).toBeVisible();
+    const invoices = screen.getByRole('link', { name: /Facturas y recaudos/u });
+    expect(invoices).toHaveAttribute('href', '/app/finanzas/facturas');
+    const closing = screen.getByRole('link', { name: /Cierre y exportación contable/u });
+    expect(closing).toHaveAttribute('href', '/app/finanzas/cierre');
+    expect(screen.queryByRole('link', { name: /Presupuesto/u })).toBeNull();
+    expect(screen.getByText('Cartera por edades: disponible pronto')).toBeVisible();
   });
 });
 

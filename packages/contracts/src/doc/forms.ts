@@ -45,6 +45,9 @@ export const FORM_ENTITY_TYPES = {
   doc_version: 'Versión de un documento',
   party: 'Tercero',
   doc_change_request: 'Solicitud de acción documental',
+  prj_acceptance: 'Acta de entrega de un proyecto',
+  prj_code_review: 'Revisión de código de un proyecto',
+  ast_assignment: 'Asignación de un activo en comodato',
 } as const;
 
 export type FormEntityType = keyof typeof FORM_ENTITY_TYPES;

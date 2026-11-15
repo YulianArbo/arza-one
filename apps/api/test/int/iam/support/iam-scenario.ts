@@ -59,7 +59,10 @@ export class IamScenario {
       this.database = createDatabaseService();
       await createTenant(this.database, this.tenant);
       await createTenant(this.database, this.otherTenant);
-      this.application = await createIamTestApp(this.clock);
+      // El sitio público de la API es el de la empresa del escenario (B29).
+      this.application = await createIamTestApp(this.clock, {
+        PUBLIC_SITE_TAX_ID: this.tenant.taxId,
+      });
     });
     afterAll(async () => {
       await this.application?.close();

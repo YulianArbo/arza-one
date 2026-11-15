@@ -99,6 +99,28 @@ model Tenant {
   crmQuotes               CrmQuote[]
   crmQuoteItems           CrmQuoteItem[]
   finTaxParameters        FinTaxParameter[]
+  finInvoices             FinInvoice[]
+  finInvoiceItems         FinInvoiceItem[]
+  finCreditNotes          FinCreditNote[]
+  finPayments             FinPayment[]
+  finBudgets              FinBudget[]
+  finBudgetLines          FinBudgetLine[]
+  finExpenses             FinExpense[]
+  finPettyCash            FinPettyCash[]
+  finBankReconciliations  FinBankReconciliation[]
+  finCostCertifications   FinCostCertification[]
+  finPeriods              FinPeriod[]
+  finExportBatches        FinExportBatch[]
+  purRequests             PurRequest[]
+  purQuotes               PurQuote[]
+  purOrders               PurOrder[]
+  purReceipts             PurReceipt[]
+  purSupplierEvaluations  PurSupplierEvaluation[]
+  purTravelRequests       PurTravelRequest[]
+  purTravelExpenses       PurTravelExpense[]
+  astAssets               AstAsset[]
+  astAssignments          AstAssignment[]
+  astMaintenance          AstMaintenance[]
   ctrClauses              CtrClause[]
   ctrTemplates            CtrTemplate[]
   ctrTemplateClauses      CtrTemplateClause[]
@@ -116,6 +138,25 @@ model Tenant {
   prjSprints              PrjSprint[]
   prjItems                PrjItem[]
   prjExternalLinks        PrjExternalLink[]
+  prjTimeEntries          PrjTimeEntry[]
+  prjDeliverables         PrjDeliverable[]
+  prjAcceptances          PrjAcceptance[]
+  prjRisks                PrjRisk[]
+  prjReleases             PrjRelease[]
+  prjCodeReviews          PrjCodeReview[]
+  prjIncidents            PrjIncident[]
+  slaPolicies             SlaPolicy[]
+  svcTickets              SvcTicket[]
+  svcTicketMessages       SvcTicketMessage[]
+  svcWarranties           SvcWarranty[]
+  svcCompensations        SvcCompensation[]
+  svcPqrsf                SvcPqrsf[]
+  svcSurveys              SvcSurvey[]
+  svcSurveyResponses      SvcSurveyResponse[]
+  svcKbArticles           SvcKbArticle[]
+  iamTermsAcceptances     TermsAcceptance[]
+  prjClientAccess         PrjClientAccess[]
+  prjSharedFiles          PrjSharedFile[]
 
   @@map("core_tenants")
 }
@@ -2196,6 +2237,348 @@ model FinTaxParameter {
   @@map("fin_tax_parameters")
 }
 
+/// Factura operativa (B31): se solicita desde un hito facturable y luego se registran los datos
+/// fiscales tal como los emitió el software habilitado. ARZA ONE no calcula ni transmite impuestos.
+model FinInvoice {
+  id               String           @id @default(uuid(7)) @db.Uuid
+  tenantId         String           @map("tenant_id") @db.Uuid
+  code             String
+  partyId          String           @map("party_id") @db.Uuid
+  contractId       String?          @map("contract_id") @db.Uuid
+  milestoneId      String           @map("milestone_id") @db.Uuid
+  requestedAmount  Decimal          @map("requested_amount") @db.Decimal(18, 2)
+  status           String           @default("requested")
+  issueDate        DateTime?        @map("issue_date") @db.Date
+  dueDate          DateTime?        @map("due_date") @db.Date
+  subtotal         Decimal?         @db.Decimal(18, 2)
+  taxTotal         Decimal?         @map("tax_total") @db.Decimal(18, 2)
+  withholdingTotal Decimal?         @map("withholding_total") @db.Decimal(18, 2)
+  total            Decimal?         @db.Decimal(18, 2)
+  fiscalNumber     String?          @map("fiscal_number")
+  fiscalUuid       String?          @map("fiscal_uuid")
+  fiscalFileId     String?          @map("fiscal_file_id") @db.Uuid
+  requestKey       String           @map("request_key")
+  approvalKey      String?          @map("approval_key")
+  fiscalKey        String?          @map("fiscal_key")
+  approvedBy       String?          @map("approved_by") @db.Uuid
+  approvedAt       DateTime?        @map("approved_at") @db.Timestamptz(6)
+  voidedBy         String?          @map("voided_by") @db.Uuid
+  voidedAt         DateTime?        @map("voided_at") @db.Timestamptz(6)
+  voidReason       String?          @map("void_reason")
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy        String?          @map("created_by") @db.Uuid
+  updatedAt        DateTime         @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy        String?          @map("updated_by") @db.Uuid
+  version          Int              @default(1)
+  deletedAt        DateTime?        @map("deleted_at") @db.Timestamptz(6)
+  tenant           Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  items            FinInvoiceItem[]
+  creditNotes      FinCreditNote[]
+  payments         FinPayment[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, requestKey])
+  @@unique([tenantId, fiscalNumber])
+  @@unique([tenantId, fiscalUuid])
+  /// Una sola factura vigente por hito: índice único parcial en el SQL de la migración (las
+  /// anuladas liberan el hito).
+  @@index([tenantId, milestoneId])
+  @@index([tenantId, partyId, status])
+  @@map("fin_invoices")
+}
+
+/// Línea de factura; el valor solicitado proviene del hito. Los campos fiscales se registran desde
+/// el documento externo y no se recalculan en la plataforma.
+model FinInvoiceItem {
+  id          String     @id @default(uuid(7)) @db.Uuid
+  tenantId    String     @map("tenant_id") @db.Uuid
+  invoiceId   String     @map("invoice_id") @db.Uuid
+  position    Int
+  description String
+  quantity    Decimal    @default(1) @db.Decimal(12, 2)
+  unitPrice   Decimal    @map("unit_price") @db.Decimal(18, 2)
+  taxRate     Decimal?   @map("tax_rate") @db.Decimal(5, 2)
+  lineTotal   Decimal    @map("line_total") @db.Decimal(18, 2)
+  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?    @map("created_by") @db.Uuid
+  updatedAt   DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?    @map("updated_by") @db.Uuid
+  version     Int        @default(1)
+  deletedAt   DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant      Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  invoice     FinInvoice @relation(fields: [tenantId, invoiceId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, invoiceId, position])
+  @@map("fin_invoice_items")
+}
+
+/// Nota crédito emitida en el software fiscal externo. B31 excluye las notas débito.
+model FinCreditNote {
+  id           String     @id @default(uuid(7)) @db.Uuid
+  tenantId     String     @map("tenant_id") @db.Uuid
+  invoiceId    String     @map("invoice_id") @db.Uuid
+  reason       String
+  amount       Decimal    @db.Decimal(18, 2)
+  issueDate    DateTime   @map("issue_date") @db.Date
+  fiscalNumber String     @map("fiscal_number")
+  fiscalUuid   String?    @map("fiscal_uuid")
+  fiscalFileId String     @map("fiscal_file_id") @db.Uuid
+  requestKey   String     @map("request_key")
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy    String?    @map("created_by") @db.Uuid
+  updatedAt    DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy    String?    @map("updated_by") @db.Uuid
+  version      Int        @default(1)
+  deletedAt    DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant       Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  invoice      FinInvoice @relation(fields: [tenantId, invoiceId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, fiscalNumber])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, invoiceId])
+  @@map("fin_credit_notes")
+}
+
+/// Recaudo aplicado a una factura concreta (B31); los soportes se conservan como referencias.
+model FinPayment {
+  id            String     @id @default(uuid(7)) @db.Uuid
+  tenantId      String     @map("tenant_id") @db.Uuid
+  invoiceId     String     @map("invoice_id") @db.Uuid
+  paidOn        DateTime   @map("paid_on") @db.Date
+  amount        Decimal    @db.Decimal(18, 2)
+  method        String
+  reference     String?
+  supportFileId String?    @map("support_file_id") @db.Uuid
+  requestKey    String     @map("request_key")
+  createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?    @map("created_by") @db.Uuid
+  updatedAt     DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?    @map("updated_by") @db.Uuid
+  version       Int        @default(1)
+  deletedAt     DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  invoice       FinInvoice @relation(fields: [tenantId, invoiceId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, invoiceId, paidOn])
+  @@map("fin_payments")
+}
+
+// Finanzas (M10, B32): presupuesto, gastos, caja menor, conciliación, certificación de costos,
+// cierre de periodo y exportación contable. Un periodo cerrado no admite cambios (disparador
+// fin_reject_closed_period en la migración).
+
+/// Presupuesto anual por centro de costo: borrador → aprobado. Uno por año.
+model FinBudget {
+  id         String          @id @default(uuid(7)) @db.Uuid
+  tenantId   String          @map("tenant_id") @db.Uuid
+  year       Int
+  status     String          @default("draft")
+  approvedBy String?         @map("approved_by") @db.Uuid
+  approvedAt DateTime?       @map("approved_at") @db.Timestamptz(6)
+  createdAt  DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?         @map("created_by") @db.Uuid
+  updatedAt  DateTime        @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?         @map("updated_by") @db.Uuid
+  version    Int             @default(1)
+  deletedAt  DateTime?       @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  lines      FinBudgetLine[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, year])
+  @@map("fin_budgets")
+}
+
+/// Lo planeado por centro de costo, rubro y mes. Lo ejecutado se calcula, no se guarda.
+model FinBudgetLine {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  tenantId     String    @map("tenant_id") @db.Uuid
+  budgetId     String    @map("budget_id") @db.Uuid
+  costCenterId String    @map("cost_center_id") @db.Uuid
+  category     String
+  month        Int       @db.SmallInt
+  planned      Decimal   @db.Decimal(18, 2)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy    String?   @map("created_by") @db.Uuid
+  updatedAt    DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy    String?   @map("updated_by") @db.Uuid
+  version      Int       @default(1)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  budget       FinBudget @relation(fields: [tenantId, budgetId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  /// Una línea vigente por centro, rubro y mes: índice único parcial en el SQL de la migración.
+  @@index([tenantId, budgetId])
+  @@map("fin_budget_lines")
+}
+
+/// Gasto con soporte: pendiente → aprobado o rechazado por otra persona.
+model FinExpense {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  tenantId      String    @map("tenant_id") @db.Uuid
+  code          String
+  costCenterId  String    @map("cost_center_id") @db.Uuid
+  supplierId    String?   @map("supplier_id") @db.Uuid
+  expenseDate   DateTime  @map("expense_date") @db.Date
+  amount        Decimal   @db.Decimal(18, 2)
+  category      String
+  description   String
+  supportFileId String    @map("support_file_id") @db.Uuid
+  status        String    @default("pending")
+  decidedBy     String?   @map("decided_by") @db.Uuid
+  decidedAt     DateTime? @map("decided_at") @db.Timestamptz(6)
+  decisionNote  String?   @map("decision_note")
+  requestKey    String    @map("request_key")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?   @map("created_by") @db.Uuid
+  updatedAt     DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?   @map("updated_by") @db.Uuid
+  version       Int       @default(1)
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, expenseDate, status])
+  @@index([tenantId, createdBy])
+  @@map("fin_expenses")
+}
+
+/// Libro de la caja menor (una por empresa): apertura, vales y reembolsos con el saldo resultante.
+model FinPettyCash {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  tenantId      String    @map("tenant_id") @db.Uuid
+  code          String
+  movementDate  DateTime  @map("movement_date") @db.Date
+  type          String
+  amount        Decimal   @db.Decimal(18, 2)
+  concept       String
+  costCenterId  String?   @map("cost_center_id") @db.Uuid
+  category      String?
+  supportFileId String?   @map("support_file_id") @db.Uuid
+  balance       Decimal   @db.Decimal(18, 2)
+  requestKey    String    @map("request_key")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?   @map("created_by") @db.Uuid
+  updatedAt     DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?   @map("updated_by") @db.Uuid
+  version       Int       @default(1)
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, movementDate])
+  @@map("fin_petty_cash")
+}
+
+/// Conciliación de una cuenta bancaria en un mes; la cuenta va por su nombre corto.
+model FinBankReconciliation {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  tenantId     String    @map("tenant_id") @db.Uuid
+  account      String
+  period       String
+  bookBalance  Decimal   @map("book_balance") @db.Decimal(18, 2)
+  bankBalance  Decimal   @map("bank_balance") @db.Decimal(18, 2)
+  differences  Json      @default("[]")
+  status       String    @default("draft")
+  reconciledBy String?   @map("reconciled_by") @db.Uuid
+  reconciledAt DateTime? @map("reconciled_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy    String?   @map("created_by") @db.Uuid
+  updatedAt    DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy    String?   @map("updated_by") @db.Uuid
+  version      Int       @default(1)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, account, period])
+  @@map("fin_bank_reconciliations")
+}
+
+/// Certificación de costos de desarrollo de un proyecto en un mes: horas aprobadas y valor.
+model FinCostCertification {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  code       String
+  projectId  String    @map("project_id") @db.Uuid
+  period     String
+  hours      Decimal   @db.Decimal(10, 2)
+  amount     Decimal   @db.Decimal(18, 2)
+  phase      String
+  requestKey String    @map("request_key")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?   @map("created_by") @db.Uuid
+  updatedAt  DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?   @map("updated_by") @db.Uuid
+  version    Int       @default(1)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, projectId, period])
+  @@unique([tenantId, requestKey])
+  @@map("fin_cost_certifications")
+}
+
+/// Mes contable cerrado. Solo existen filas de meses cerrados y no se reabren (decisión 3 del B32).
+model FinPeriod {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  tenantId  String    @map("tenant_id") @db.Uuid
+  period    String
+  status    String    @default("closed")
+  closedBy  String    @map("closed_by") @db.Uuid
+  closedAt  DateTime  @map("closed_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy String?   @map("created_by") @db.Uuid
+  updatedAt DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy String?   @map("updated_by") @db.Uuid
+  version   Int       @default(1)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, period])
+  @@map("fin_periods")
+}
+
+/// Lote exportado al software contable: preliminar (mes abierto) o definitivo (al cerrar).
+model FinExportBatch {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  period     String
+  kind       String
+  rowCount   Int       @map("row_count")
+  totals     Json
+  checksum   String
+  fileName   String    @map("file_name")
+  fileId     String?   @map("file_id") @db.Uuid
+  exportedBy String    @map("exported_by") @db.Uuid
+  exportedAt DateTime  @map("exported_at") @db.Timestamptz(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?   @map("created_by") @db.Uuid
+  updatedAt  DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?   @map("updated_by") @db.Uuid
+  version    Int       @default(1)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  /// Un solo lote definitivo por mes: índice único parcial en el SQL de la migración.
+  @@index([tenantId, period])
+  @@map("fin_export_batches")
+}
+
 // Contratos (M06, B24) ---------------------------------------------------------------------------
 
 /// Biblioteca de cláusulas aprobadas. Cada cambio es una versión nueva; los contratos guardan la
@@ -2441,8 +2824,12 @@ model SigEnvelope {
   tenantId           String            @map("tenant_id") @db.Uuid
   code               String
   source             String
-  contractId         String            @map("contract_id") @db.Uuid
+  /// El contrato del documento; vacío en un acta de entrega de un proyecto (B27).
+  contractId         String?           @map("contract_id") @db.Uuid
   amendmentId        String?           @map("amendment_id") @db.Uuid
+  /// Otro documento que se firma (B27: el acta de entrega de un proyecto) y su cliente.
+  sourceId           String?           @map("source_id") @db.Uuid
+  partyId            String?           @map("party_id") @db.Uuid
   /// El PDF aprobado que se firma y su huella: no cambian.
   documentFileId     String            @map("document_file_id") @db.Uuid
   documentSha256     String            @map("document_sha256")
@@ -2476,7 +2863,7 @@ model SigEnvelope {
   version            Int               @default(1)
   deletedAt          DateTime?         @map("deleted_at") @db.Timestamptz(6)
   tenant             Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  contract           CtrContract       @relation(fields: [tenantId, contractId], references: [tenantId, id], onDelete: Restrict)
+  contract           CtrContract?      @relation(fields: [tenantId, contractId], references: [tenantId, id], onDelete: Restrict)
   signers            SigSigner[]
   events             SigEvent[]
   verifications      SigVerification[]
@@ -2487,6 +2874,7 @@ model SigEnvelope {
   @@index([tenantId, contractId])
   @@index([tenantId, status])
   @@index([signedSha256])
+  @@index([tenantId, sourceId])
   @@map("sig_envelopes")
 }
 
@@ -2609,6 +2997,19 @@ model PrjProject {
   authorizationDecidedAt DateTime?         @map("authorization_decided_at") @db.Timestamptz(6)
   workflowInstanceId     String?           @map("workflow_instance_id") @db.Uuid
   startedAt              DateTime?         @map("started_at") @db.Timestamptz(6)
+  /// Costo promedio de una hora del equipo, para la rentabilidad (B27).
+  hourCost               Decimal?          @map("hour_cost") @db.Decimal(18, 2)
+  /// Días que tiene el cliente para responder un acta de entrega (B27).
+  respondDays            Int               @default(10) @map("respond_days") @db.SmallInt
+  /// El contrato prevé la aceptación tácita, y en qué cláusula (ficha 17.8).
+  tacitAcceptance        Boolean           @default(false) @map("tacit_acceptance")
+  tacitClause            String?           @map("tacit_clause")
+  /// Se ve en el portal del cliente desde que inicia (B30, decisión 2).
+  portalVisible          Boolean           @default(true) @map("portal_visible")
+  closingStartedAt       DateTime?         @map("closing_started_at") @db.Timestamptz(6)
+  closedAt               DateTime?         @map("closed_at") @db.Timestamptz(6)
+  /// Lecciones aprendidas, al cerrar.
+  closingNote            String?           @map("closing_note")
   createdAt              DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
   createdBy              String?           @map("created_by") @db.Uuid
   updatedAt              DateTime          @default(now()) @map("updated_at") @db.Timestamptz(6)
@@ -2621,11 +3022,21 @@ model PrjProject {
   sprints                PrjSprint[]
   items                  PrjItem[]
   links                  PrjExternalLink[]
+  timeEntries            PrjTimeEntry[]
+  deliverables           PrjDeliverable[]
+  acceptances            PrjAcceptance[]
+  risks                  PrjRisk[]
+  releases               PrjRelease[]
+  codeReviews            PrjCodeReview[]
+  incidents              PrjIncident[]
+  clientAccess           PrjClientAccess[]
+  sharedFiles            PrjSharedFile[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, code])
   @@index([tenantId, status])
   @@index([tenantId, contractId])
+  @@index([tenantId, partyId])
   @@map("prj_projects")
 }
 
@@ -2654,22 +3065,27 @@ model PrjMember {
 
 /// Hitos con el porcentaje del valor que se factura al cumplirlos; entre todos, máximo 100 %.
 model PrjMilestone {
-  id         String     @id @default(uuid(7)) @db.Uuid
-  tenantId   String     @map("tenant_id") @db.Uuid
-  projectId  String     @map("project_id") @db.Uuid
-  name       String
-  dueOn      DateTime   @map("due_on") @db.Date
-  billingPct Decimal    @map("billing_pct") @db.Decimal(5, 2)
-  status     String     @default("pending")
-  doneAt     DateTime?  @map("done_at") @db.Timestamptz(6)
-  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
-  createdBy  String?    @map("created_by") @db.Uuid
-  updatedAt  DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
-  updatedBy  String?    @map("updated_by") @db.Uuid
-  version    Int        @default(1)
-  deletedAt  DateTime?  @map("deleted_at") @db.Timestamptz(6)
-  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  project    PrjProject @relation(fields: [tenantId, projectId], references: [tenantId, id], onDelete: Restrict)
+  id             String     @id @default(uuid(7)) @db.Uuid
+  tenantId       String     @map("tenant_id") @db.Uuid
+  projectId      String     @map("project_id") @db.Uuid
+  name           String
+  dueOn          DateTime   @map("due_on") @db.Date
+  billingPct     Decimal    @map("billing_pct") @db.Decimal(5, 2)
+  status         String     @default("pending")
+  doneAt         DateTime?  @map("done_at") @db.Timestamptz(6)
+  /// Listo para facturar (B27): cuándo y cuánto, el porcentaje sobre el valor del contrato.
+  billableAt     DateTime?  @map("billable_at") @db.Timestamptz(6)
+  billableAmount Decimal?   @map("billable_amount") @db.Decimal(18, 2)
+  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy      String?    @map("created_by") @db.Uuid
+  updatedAt      DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy      String?    @map("updated_by") @db.Uuid
+  version        Int        @default(1)
+  deletedAt      DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant         Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  project        PrjProject @relation(fields: [tenantId, projectId], references: [tenantId, id], onDelete: Restrict)
+
+  deliverables PrjDeliverable[]
 
   @@unique([tenantId, id])
   @@index([tenantId, projectId])
@@ -2704,36 +3120,38 @@ model PrjSprint {
 
 /// Épicas, historias, tareas y defectos, numerados dentro de su proyecto (PRY-2026-0001-12).
 model PrjItem {
-  id                 String     @id @default(uuid(7)) @db.Uuid
-  tenantId           String     @map("tenant_id") @db.Uuid
-  projectId          String     @map("project_id") @db.Uuid
-  parentId           String?    @map("parent_id") @db.Uuid
+  id                 String          @id @default(uuid(7)) @db.Uuid
+  tenantId           String          @map("tenant_id") @db.Uuid
+  projectId          String          @map("project_id") @db.Uuid
+  parentId           String?         @map("parent_id") @db.Uuid
   type               String
   number             Int
   code               String
   title              String
   description        String?
-  acceptanceCriteria String?    @map("acceptance_criteria")
-  status             String     @default("pending")
-  priority           String     @default("normal")
-  estimateHours      Decimal?   @map("estimate_hours") @db.Decimal(4, 1)
-  assigneeId         String?    @map("assignee_id") @db.Uuid
-  sprintId           String?    @map("sprint_id") @db.Uuid
-  /// Enlace a la revisión de código y nota de pruebas, exigidos para terminar (B27: FT-TEC-002).
-  reviewUrl          String?    @map("review_url")
-  testNote           String?    @map("test_note")
-  doneAt             DateTime?  @map("done_at") @db.Timestamptz(6)
-  createdAt          DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
-  createdBy          String?    @map("created_by") @db.Uuid
-  updatedAt          DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
-  updatedBy          String?    @map("updated_by") @db.Uuid
-  version            Int        @default(1)
-  deletedAt          DateTime?  @map("deleted_at") @db.Timestamptz(6)
-  tenant             Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  project            PrjProject @relation(fields: [tenantId, projectId], references: [tenantId, id], onDelete: Restrict)
-  parent             PrjItem?   @relation("PrjItemParent", fields: [tenantId, parentId], references: [tenantId, id], onDelete: Restrict)
-  children           PrjItem[]  @relation("PrjItemParent")
-  sprint             PrjSprint? @relation(fields: [tenantId, sprintId], references: [tenantId, id], onDelete: Restrict)
+  acceptanceCriteria String?         @map("acceptance_criteria")
+  status             String          @default("pending")
+  priority           String          @default("normal")
+  estimateHours      Decimal?        @map("estimate_hours") @db.Decimal(4, 1)
+  assigneeId         String?         @map("assignee_id") @db.Uuid
+  sprintId           String?         @map("sprint_id") @db.Uuid
+  /// Nota de pruebas, exigida para terminar; desde el B27 también una revisión FT-TEC-002 aprobada.
+  reviewUrl          String?         @map("review_url")
+  testNote           String?         @map("test_note")
+  doneAt             DateTime?       @map("done_at") @db.Timestamptz(6)
+  createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy          String?         @map("created_by") @db.Uuid
+  updatedAt          DateTime        @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy          String?         @map("updated_by") @db.Uuid
+  version            Int             @default(1)
+  deletedAt          DateTime?       @map("deleted_at") @db.Timestamptz(6)
+  tenant             Tenant          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  project            PrjProject      @relation(fields: [tenantId, projectId], references: [tenantId, id], onDelete: Restrict)
+  parent             PrjItem?        @relation("PrjItemParent", fields: [tenantId, parentId], references: [tenantId, id], onDelete: Restrict)
+  children           PrjItem[]       @relation("PrjItemParent")
+  sprint             PrjSprint?      @relation(fields: [tenantId, sprintId], references: [tenantId, id], onDelete: Restrict)
+  timeEntries        PrjTimeEntry[]
+  codeReviews        PrjCodeReview[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, projectId, number])
@@ -2762,4 +3180,880 @@ model PrjExternalLink {
   @@unique([tenantId, id])
   @@index([tenantId, projectId])
   @@map("prj_external_links")
+}
+
+/// Registro de horas (B27, ficha 17.8): máximo siete días de atraso; el Líder técnico aprueba.
+model PrjTimeEntry {
+  id           String     @id @default(uuid(7)) @db.Uuid
+  tenantId     String     @map("tenant_id") @db.Uuid
+  projectId    String     @map("project_id") @db.Uuid
+  itemId       String?    @map("item_id") @db.Uuid
+  userId       String     @map("user_id") @db.Uuid
+  workDate     DateTime   @map("work_date") @db.Date
+  hours        Decimal    @db.Decimal(4, 2)
+  billable     Boolean    @default(true)
+  note         String?
+  status       String     @default("registered")
+  decidedBy    String?    @map("decided_by") @db.Uuid
+  decidedAt    DateTime?  @map("decided_at") @db.Timestamptz(6)
+  decisionNote String?    @map("decision_note")
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy    String?    @map("created_by") @db.Uuid
+  updatedAt    DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy    String?    @map("updated_by") @db.Uuid
+  version      Int        @default(1)
+  deletedAt    DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant       Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  project      PrjProject @relation(fields: [tenantId, projectId], references: [tenantId, id], onDelete: Restrict)
+  item         PrjItem?   @relation(fields: [tenantId, itemId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, projectId, status])
+  @@index([tenantId, userId, workDate])
+  @@map("prj_time_entries")
+}
+
+/// Entregables (B27): en preparación → entregado → aceptado o devuelto.
+model PrjDeliverable {
+  id           String          @id @default(uuid(7)) @db.Uuid
+  tenantId     String          @map("tenant_id") @db.Uuid
+  projectId    String          @map("project_id") @db.Uuid
+  milestoneId  String?         @map("milestone_id") @db.Uuid
+  name         String
+  description  String?
+  versionLabel String?         @map("version_label")
+  evidenceUrl  String?         @map("evidence_url")
+  status       String          @default("preparing")
+  acceptedAt   DateTime?       @map("accepted_at") @db.Timestamptz(6)
+  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy    String?         @map("created_by") @db.Uuid
+  updatedAt    DateTime        @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy    String?         @map("updated_by") @db.Uuid
+  version      Int             @default(1)
+  deletedAt    DateTime?       @map("deleted_at") @db.Timestamptz(6)
+  tenant       Tenant          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  project      PrjProject      @relation(fields: [tenantId, projectId], references: [tenantId, id], onDelete: Restrict)
+  milestone    PrjMilestone?   @relation(fields: [tenantId, milestoneId], references: [tenantId, id], onDelete: Restrict)
+  acceptances  PrjAcceptance[]
+
+  @@unique([tenantId, id])
+  @@index([tenantId, projectId])
+  @@index([tenantId, milestoneId])
+  @@map("prj_deliverables")
+}
+
+/// Actas de entrega FT-TEC-001 (B27): el registro del formato, su PDF enviado a firma del cliente
+/// (proceso de firma del módulo de Contratos) y la respuesta. Se guardan por identificador.
+model PrjAcceptance {
+  id            String         @id @default(uuid(7)) @db.Uuid
+  tenantId      String         @map("tenant_id") @db.Uuid
+  projectId     String         @map("project_id") @db.Uuid
+  deliverableId String         @map("deliverable_id") @db.Uuid
+  status        String         @default("preparing")
+  signerPartyId String         @map("signer_party_id") @db.Uuid
+  signerName    String         @map("signer_name")
+  environment   String
+  pendingNote   String?        @map("pending_note")
+  message       String?
+  respondBy     DateTime       @map("respond_by") @db.Date
+  formRecordId  String?        @map("form_record_id") @db.Uuid
+  recordCode    String?        @map("record_code")
+  envelopeId    String?        @map("envelope_id") @db.Uuid
+  envelopeCode  String?        @map("envelope_code")
+  signedFileId  String?        @map("signed_file_id") @db.Uuid
+  deliveredBy   String         @map("delivered_by") @db.Uuid
+  deliveredAt   DateTime       @map("delivered_at") @db.Timestamptz(6)
+  answeredAt    DateTime?      @map("answered_at") @db.Timestamptz(6)
+  acceptedAt    DateTime?      @map("accepted_at") @db.Timestamptz(6)
+  clientNote    String?        @map("client_note")
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?        @map("created_by") @db.Uuid
+  updatedAt     DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?        @map("updated_by") @db.Uuid
+  version       Int            @default(1)
+  deletedAt     DateTime?      @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  project       PrjProject     @relation(fields: [tenantId, projectId], references: [tenantId, id], onDelete: Restrict)
+  deliverable   PrjDeliverable @relation(fields: [tenantId, deliverableId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, deliverableId])
+  @@index([tenantId, status])
+  @@map("prj_acceptances")
+}
+
+/// Riesgos del proyecto (B27): probabilidad e impacto de 1 a 5; el nivel se calcula.
+model PrjRisk {
+  id          String     @id @default(uuid(7)) @db.Uuid
+  tenantId    String     @map("tenant_id") @db.Uuid
+  projectId   String     @map("project_id") @db.Uuid
+  description String
+  probability Int        @db.SmallInt
+  impact      Int        @db.SmallInt
+  response    String?
+  ownerId     String     @map("owner_id") @db.Uuid
+  status      String     @default("open")
+  closedAt    DateTime?  @map("closed_at") @db.Timestamptz(6)
+  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?    @map("created_by") @db.Uuid
+  updatedAt   DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?    @map("updated_by") @db.Uuid
+  version     Int        @default(1)
+  deletedAt   DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant      Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  project     PrjProject @relation(fields: [tenantId, projectId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, projectId])
+  @@map("prj_risks")
+}
+
+/// Versiones liberadas (B27, PR-TEC-003): siempre con su informe de pruebas.
+model PrjRelease {
+  id               String     @id @default(uuid(7)) @db.Uuid
+  tenantId         String     @map("tenant_id") @db.Uuid
+  projectId        String     @map("project_id") @db.Uuid
+  versionLabel     String     @map("version_label")
+  environment      String
+  releasedOn       DateTime   @map("released_on") @db.Date
+  notes            String
+  testReportFileId String     @map("test_report_file_id") @db.Uuid
+  releasedBy       String     @map("released_by") @db.Uuid
+  createdAt        DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy        String?    @map("created_by") @db.Uuid
+  updatedAt        DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy        String?    @map("updated_by") @db.Uuid
+  version          Int        @default(1)
+  deletedAt        DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant           Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  project          PrjProject @relation(fields: [tenantId, projectId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, projectId])
+  @@map("prj_releases")
+}
+
+/// Revisiones de código con la lista FT-TEC-002 (B27): una aprobada deja terminar el ítem.
+model PrjCodeReview {
+  id                String     @id @default(uuid(7)) @db.Uuid
+  tenantId          String     @map("tenant_id") @db.Uuid
+  projectId         String     @map("project_id") @db.Uuid
+  itemId            String     @map("item_id") @db.Uuid
+  referenceUrl      String     @map("reference_url")
+  reviewerId        String     @map("reviewer_id") @db.Uuid
+  answers           Json
+  result            String
+  notes             String?
+  checklistRecordId String?    @map("checklist_record_id") @db.Uuid
+  recordCode        String?    @map("record_code")
+  createdAt         DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy         String?    @map("created_by") @db.Uuid
+  updatedAt         DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy         String?    @map("updated_by") @db.Uuid
+  version           Int        @default(1)
+  deletedAt         DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant            Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  project           PrjProject @relation(fields: [tenantId, projectId], references: [tenantId, id], onDelete: Restrict)
+  item              PrjItem    @relation(fields: [tenantId, itemId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, projectId])
+  @@index([tenantId, itemId])
+  @@map("prj_code_reviews")
+}
+
+/// Incidentes críticos y de seguridad (B27, FT-TEC-004, PR-TEC-004). Código INC-AAAA-NNNN.
+model PrjIncident {
+  id           String     @id @default(uuid(7)) @db.Uuid
+  tenantId     String     @map("tenant_id") @db.Uuid
+  projectId    String     @map("project_id") @db.Uuid
+  code         String
+  title        String
+  kind         String
+  severity     String
+  description  String
+  detectedAt   DateTime   @map("detected_at") @db.Timestamptz(6)
+  personalData Boolean    @default(false) @map("personal_data")
+  status       String     @default("open")
+  resolvedAt   DateTime?  @map("resolved_at") @db.Timestamptz(6)
+  rootCause    String?    @map("root_cause")
+  actions      String?
+  reportedBy   String     @map("reported_by") @db.Uuid
+  formRecordId String?    @map("form_record_id") @db.Uuid
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy    String?    @map("created_by") @db.Uuid
+  updatedAt    DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy    String?    @map("updated_by") @db.Uuid
+  version      Int        @default(1)
+  deletedAt    DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant       Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  project      PrjProject @relation(fields: [tenantId, projectId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@index([tenantId, projectId])
+  @@map("prj_incidents")
+}
+
+// M08 Servicio al cliente (B28): mesa de ayuda. El cliente, el proyecto, el entregable y las
+// personas se guardan por identificador, sin llaves hacia tablas de otros módulos (numeral 8.3).
+
+model SlaPolicy {
+  id                 String      @id @default(uuid(7)) @db.Uuid
+  tenantId           String      @map("tenant_id") @db.Uuid
+  priority           String
+  firstResponseHours Decimal     @map("first_response_hours") @db.Decimal(6, 2)
+  resolutionHours    Decimal     @map("resolution_hours") @db.Decimal(6, 2)
+  calendar           String      @default("business")
+  createdAt          DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy          String?     @map("created_by") @db.Uuid
+  updatedAt          DateTime    @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy          String?     @map("updated_by") @db.Uuid
+  version            Int         @default(1)
+  deletedAt          DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  tenant             Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  tickets            SvcTicket[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, priority])
+  @@map("wf_sla_policies")
+}
+
+model SvcTicket {
+  id                 String             @id @default(uuid(7)) @db.Uuid
+  tenantId           String             @map("tenant_id") @db.Uuid
+  code               String
+  subject            String
+  description        String
+  category           String
+  priority           String
+  level              Int                @default(1) @db.SmallInt
+  channel            String             @default("internal")
+  status             String             @default("new")
+  partyId            String?            @map("party_id") @db.Uuid
+  requesterId        String?            @map("requester_id") @db.Uuid
+  requesterName      String?            @map("requester_name")
+  requesterEmail     String?            @map("requester_email")
+  projectId          String?            @map("project_id") @db.Uuid
+  deliverableId      String?            @map("deliverable_id") @db.Uuid
+  warrantyId         String?            @map("warranty_id") @db.Uuid
+  assigneeId         String?            @map("assignee_id") @db.Uuid
+  slaPolicyId        String             @map("sla_policy_id") @db.Uuid
+  slaConsumedMinutes Int                @default(0) @map("sla_consumed_minutes")
+  slaResumedAt       DateTime?          @map("sla_resumed_at") @db.Timestamptz(6)
+  responseDueAt      DateTime?          @map("response_due_at") @db.Timestamptz(6)
+  resolutionDueAt    DateTime?          @map("resolution_due_at") @db.Timestamptz(6)
+  warnAt             DateTime?          @map("warn_at") @db.Timestamptz(6)
+  firstResponseAt    DateTime?          @map("first_response_at") @db.Timestamptz(6)
+  pausedAt           DateTime?          @map("paused_at") @db.Timestamptz(6)
+  warnedAt           DateTime?          @map("warned_at") @db.Timestamptz(6)
+  breachedAt         DateTime?          @map("breached_at") @db.Timestamptz(6)
+  resolvedAt         DateTime?          @map("resolved_at") @db.Timestamptz(6)
+  resolution         String?
+  autoCloseAt        DateTime?          @map("auto_close_at") @db.Timestamptz(6)
+  closedAt           DateTime?          @map("closed_at") @db.Timestamptz(6)
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy          String?            @map("created_by") @db.Uuid
+  updatedAt          DateTime           @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy          String?            @map("updated_by") @db.Uuid
+  version            Int                @default(1)
+  deletedAt          DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  tenant             Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  slaPolicy          SlaPolicy          @relation(fields: [tenantId, slaPolicyId], references: [tenantId, id], onDelete: Restrict)
+  warranty           SvcWarranty?       @relation(fields: [tenantId, warrantyId], references: [tenantId, id], onDelete: Restrict)
+  messages           SvcTicketMessage[]
+  compensations      SvcCompensation[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@index([tenantId, status])
+  @@index([tenantId, assigneeId])
+  @@index([tenantId, requesterId])
+  @@index([tenantId, warnAt])
+  @@index([tenantId, resolutionDueAt])
+  @@map("svc_tickets")
+}
+
+model SvcTicketMessage {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  ticketId   String    @map("ticket_id") @db.Uuid
+  authorId   String?   @map("author_id") @db.Uuid
+  body       String
+  isInternal Boolean   @default(false) @map("is_internal")
+  fromClient Boolean   @default(false) @map("from_client")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?   @map("created_by") @db.Uuid
+  updatedAt  DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?   @map("updated_by") @db.Uuid
+  version    Int       @default(1)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  ticket     SvcTicket @relation(fields: [tenantId, ticketId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, ticketId, createdAt])
+  @@map("svc_ticket_messages")
+}
+
+model SvcWarranty {
+  id            String      @id @default(uuid(7)) @db.Uuid
+  tenantId      String      @map("tenant_id") @db.Uuid
+  projectId     String      @map("project_id") @db.Uuid
+  deliverableId String      @map("deliverable_id") @db.Uuid
+  partyId       String?     @map("party_id") @db.Uuid
+  startsOn      DateTime    @map("starts_on") @db.Date
+  endsOn        DateTime    @map("ends_on") @db.Date
+  scope         String
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?     @map("created_by") @db.Uuid
+  updatedAt     DateTime    @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?     @map("updated_by") @db.Uuid
+  version       Int         @default(1)
+  deletedAt     DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  tickets       SvcTicket[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, deliverableId])
+  @@index([tenantId, endsOn])
+  @@map("svc_warranties")
+}
+
+model SvcCompensation {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  tenantId     String    @map("tenant_id") @db.Uuid
+  ticketId     String    @map("ticket_id") @db.Uuid
+  type         String
+  amount       Decimal?  @db.Decimal(18, 2)
+  hours        Decimal?  @db.Decimal(6, 2)
+  days         Int?      @db.SmallInt
+  reason       String
+  status       String    @default("proposed")
+  proposedBy   String    @map("proposed_by") @db.Uuid
+  approvedBy   String?   @map("approved_by") @db.Uuid
+  decidedAt    DateTime? @map("decided_at") @db.Timestamptz(6)
+  decisionNote String?   @map("decision_note")
+  appliedOn    DateTime? @map("applied_on") @db.Date
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy    String?   @map("created_by") @db.Uuid
+  updatedAt    DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy    String?   @map("updated_by") @db.Uuid
+  version      Int       @default(1)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  ticket       SvcTicket @relation(fields: [tenantId, ticketId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, ticketId])
+  @@index([tenantId, status])
+  @@map("svc_compensations")
+}
+
+model SvcPqrsf {
+  id                String    @id @default(uuid(7)) @db.Uuid
+  tenantId          String    @map("tenant_id") @db.Uuid
+  code              String
+  type              String
+  privacyKind       String?   @map("privacy_kind")
+  channel           String
+  status            String    @default("filed")
+  approval          String    @default("none")
+  partyId           String?   @map("party_id") @db.Uuid
+  requesterName     String    @map("requester_name")
+  requesterEmail    String?   @map("requester_email")
+  requesterPhone    String?   @map("requester_phone")
+  subject           String
+  description       String
+  receivedAt        DateTime  @map("received_at") @db.Timestamptz(6)
+  termDays          Int       @map("term_days") @db.SmallInt
+  dueOn             DateTime  @map("due_on") @db.Date
+  warnOn            DateTime  @map("warn_on") @db.Date
+  assigneeId        String?   @map("assignee_id") @db.Uuid
+  classifiedAt      DateTime? @map("classified_at") @db.Timestamptz(6)
+  responseDraft     String?   @map("response_draft")
+  wellFounded       Boolean?  @map("well_founded")
+  draftedBy         String?   @map("drafted_by") @db.Uuid
+  submittedAt       DateTime? @map("submitted_at") @db.Timestamptz(6)
+  returnReason      String?   @map("return_reason")
+  response          String?
+  approvedBy        String?   @map("approved_by") @db.Uuid
+  respondedAt       DateTime? @map("responded_at") @db.Timestamptz(6)
+  transferredAt     DateTime? @map("transferred_at") @db.Timestamptz(6)
+  nonconformityAt   DateTime? @map("nonconformity_at") @db.Timestamptz(6)
+  privacyNoticeId   String?   @map("privacy_notice_id") @db.Uuid
+  privacyAcceptedAt DateTime? @map("privacy_accepted_at") @db.Timestamptz(6)
+  mailPending       String?   @map("mail_pending")
+  ackSentAt         DateTime? @map("ack_sent_at") @db.Timestamptz(6)
+  responseSentAt    DateTime? @map("response_sent_at") @db.Timestamptz(6)
+  warnedAt          DateTime? @map("warned_at") @db.Timestamptz(6)
+  breachedAt        DateTime? @map("breached_at") @db.Timestamptz(6)
+  closedAt          DateTime? @map("closed_at") @db.Timestamptz(6)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy         String?   @map("created_by") @db.Uuid
+  updatedAt         DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy         String?   @map("updated_by") @db.Uuid
+  version           Int       @default(1)
+  deletedAt         DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant            Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@index([tenantId, status])
+  @@index([tenantId, assigneeId])
+  @@index([tenantId, dueOn])
+  @@map("svc_pqrsf")
+}
+
+model SvcSurvey {
+  id                   String              @id @default(uuid(7)) @db.Uuid
+  tenantId             String              @map("tenant_id") @db.Uuid
+  key                  String
+  name                 String
+  trigger              String
+  recommendQuestion    String              @map("recommend_question")
+  satisfactionQuestion String              @map("satisfaction_question")
+  commentQuestion      String              @map("comment_question")
+  isActive             Boolean             @default(true) @map("is_active")
+  createdAt            DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy            String?             @map("created_by") @db.Uuid
+  updatedAt            DateTime            @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy            String?             @map("updated_by") @db.Uuid
+  version              Int                 @default(1)
+  deletedAt            DateTime?           @map("deleted_at") @db.Timestamptz(6)
+  tenant               Tenant              @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  responses            SvcSurveyResponse[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, key])
+  @@map("svc_surveys")
+}
+
+model SvcSurveyResponse {
+  id             String    @id @default(uuid(7)) @db.Uuid
+  tenantId       String    @map("tenant_id") @db.Uuid
+  surveyId       String    @map("survey_id") @db.Uuid
+  partyId        String?   @map("party_id") @db.Uuid
+  entityType     String    @map("entity_type")
+  entityId       String    @map("entity_id") @db.Uuid
+  recipientEmail String?   @map("recipient_email")
+  tokenHash      String?   @unique @map("token_hash")
+  expiresAt      DateTime? @map("expires_at") @db.Timestamptz(6)
+  mailPending    Boolean   @default(false) @map("mail_pending")
+  sentAt         DateTime? @map("sent_at") @db.Timestamptz(6)
+  supersededAt   DateTime? @map("superseded_at") @db.Timestamptz(6)
+  score          Int?      @db.SmallInt
+  satisfaction   Int?      @db.SmallInt
+  comment        String?
+  answeredAt     DateTime? @map("answered_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy      String?   @map("created_by") @db.Uuid
+  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy      String?   @map("updated_by") @db.Uuid
+  version        Int       @default(1)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  survey         SvcSurvey @relation(fields: [tenantId, surveyId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, entityType, entityId])
+  @@index([tenantId, answeredAt])
+  @@index([tenantId, createdAt])
+  @@map("svc_survey_responses")
+}
+
+model SvcKbArticle {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  tenantId    String    @map("tenant_id") @db.Uuid
+  title       String
+  summary     String
+  body        String
+  category    String
+  audience    String
+  status      String    @default("draft")
+  publishedAt DateTime? @map("published_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?   @map("created_by") @db.Uuid
+  updatedAt   DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?   @map("updated_by") @db.Uuid
+  version     Int       @default(1)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, status, audience])
+  @@map("svc_kb_articles")
+}
+
+/// Aceptación de los términos de uso del portal y de la política de privacidad (B30, ficha 17.10):
+/// una fila por versión aceptada, con su evidencia. No se edita ni se borra.
+model TermsAcceptance {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  tenantId      String    @map("tenant_id") @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  noticeId      String    @map("notice_id") @db.Uuid
+  noticeKey     String    @map("notice_key")
+  versionNumber Int       @map("version_number")
+  acceptedAt    DateTime  @map("accepted_at") @db.Timestamptz(6)
+  ipAddress     String?   @map("ip_address")
+  userAgent     String?   @map("user_agent")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?   @map("created_by") @db.Uuid
+  updatedAt     DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?   @map("updated_by") @db.Uuid
+  version       Int       @default(1)
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, userId, noticeId])
+  @@index([tenantId, userId])
+  @@map("iam_terms_acceptances")
+}
+
+/// Qué proyectos ve cada usuario del cliente que no es su administrador (B30, decisión 3). Lo
+/// asigna el administrador del cliente; quitar la asignación quita el acceso (deleted_at).
+model PrjClientAccess {
+  id        String     @id @default(uuid(7)) @db.Uuid
+  tenantId  String     @map("tenant_id") @db.Uuid
+  projectId String     @map("project_id") @db.Uuid
+  userId    String     @map("user_id") @db.Uuid
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy String?    @map("created_by") @db.Uuid
+  updatedAt DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy String?    @map("updated_by") @db.Uuid
+  version   Int        @default(1)
+  deletedAt DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  project   PrjProject @relation(fields: [tenantId, projectId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, projectId])
+  @@index([tenantId, userId])
+  @@map("prj_client_access")
+}
+
+/// Archivos que el equipo comparte a propósito con el cliente en el portal (B30, decisión 5).
+/// Dejar de compartir marca deleted_at; el archivo sigue en el expediente.
+model PrjSharedFile {
+  id        String     @id @default(uuid(7)) @db.Uuid
+  tenantId  String     @map("tenant_id") @db.Uuid
+  projectId String     @map("project_id") @db.Uuid
+  fileId    String     @map("file_id") @db.Uuid
+  title     String
+  sharedBy  String     @map("shared_by") @db.Uuid
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy String?    @map("created_by") @db.Uuid
+  updatedAt DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy String?    @map("updated_by") @db.Uuid
+  version   Int        @default(1)
+  deletedAt DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  project   PrjProject @relation(fields: [tenantId, projectId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, projectId])
+  @@map("prj_shared_files")
+}
+
+/// Solicitud de compra: borrador → en aprobación → aprobada → cotizada → ordenada → recibida → cerrada.
+model PurRequest {
+  id              String     @id @default(uuid(7)) @db.Uuid
+  tenantId        String     @map("tenant_id") @db.Uuid
+  code            String
+  requesterId     String     @map("requester_id") @db.Uuid
+  costCenterId    String     @map("cost_center_id") @db.Uuid
+  description     String
+  estimatedAmount Decimal    @map("estimated_amount") @db.Decimal(18, 2)
+  approvedAmount  Decimal?   @map("approved_amount") @db.Decimal(18, 2)
+  status          String     @default("draft")
+  submittedAt     DateTime?  @map("submitted_at") @db.Timestamptz(6)
+  decidedBy       String?    @map("decided_by") @db.Uuid
+  decidedAt       DateTime?  @map("decided_at") @db.Timestamptz(6)
+  decisionNote    String?    @map("decision_note")
+  requestKey      String     @map("request_key")
+  createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?    @map("created_by") @db.Uuid
+  updatedAt       DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy       String?    @map("updated_by") @db.Uuid
+  version         Int        @default(1)
+  deletedAt       DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant          Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  quotes          PurQuote[]
+  orders          PurOrder[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, status])
+  @@index([tenantId, requesterId])
+  @@map("pur_requests")
+}
+
+/// Cotización de un proveedor para una solicitud; una sola queda elegida en el cuadro comparativo.
+model PurQuote {
+  id           String     @id @default(uuid(7)) @db.Uuid
+  tenantId     String     @map("tenant_id") @db.Uuid
+  requestId    String     @map("request_id") @db.Uuid
+  supplierId   String     @map("supplier_id") @db.Uuid
+  amount       Decimal    @db.Decimal(18, 2)
+  deliveryDays Int        @map("delivery_days")
+  fileId       String     @map("file_id") @db.Uuid
+  selected     Boolean    @default(false)
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy    String?    @map("created_by") @db.Uuid
+  updatedAt    DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy    String?    @map("updated_by") @db.Uuid
+  version      Int        @default(1)
+  deletedAt    DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant       Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  request      PurRequest @relation(fields: [tenantId, requestId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, requestId])
+  @@map("pur_quotes")
+}
+
+/// Orden de compra emitida al proveedor de la cotización elegida.
+model PurOrder {
+  id         String       @id @default(uuid(7)) @db.Uuid
+  tenantId   String       @map("tenant_id") @db.Uuid
+  code       String
+  requestId  String       @map("request_id") @db.Uuid
+  supplierId String       @map("supplier_id") @db.Uuid
+  total      Decimal      @db.Decimal(18, 2)
+  status     String       @default("issued")
+  documentId String?      @map("document_id") @db.Uuid
+  issuedBy   String       @map("issued_by") @db.Uuid
+  issuedAt   DateTime     @map("issued_at") @db.Timestamptz(6)
+  closedAt   DateTime?    @map("closed_at") @db.Timestamptz(6)
+  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?      @map("created_by") @db.Uuid
+  updatedAt  DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?      @map("updated_by") @db.Uuid
+  version    Int          @default(1)
+  deletedAt  DateTime?    @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant       @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  request    PurRequest   @relation(fields: [tenantId, requestId], references: [tenantId, id], onDelete: Restrict)
+  receipts   PurReceipt[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@index([tenantId, status])
+  @@map("pur_orders")
+}
+
+/// Recepción de una orden: conforme o con la novedad explicada.
+model PurReceipt {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  orderId    String    @map("order_id") @db.Uuid
+  receivedOn DateTime  @map("received_on") @db.Date
+  receivedBy String    @map("received_by") @db.Uuid
+  conforming Boolean
+  note       String?
+  requestKey String    @map("request_key")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?   @map("created_by") @db.Uuid
+  updatedAt  DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?   @map("updated_by") @db.Uuid
+  version    Int       @default(1)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  order      PurOrder  @relation(fields: [tenantId, orderId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, orderId])
+  @@map("pur_receipts")
+}
+
+/// Selección o reevaluación de un proveedor en un periodo: criterios, puntaje y resultado.
+model PurSupplierEvaluation {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  tenantId    String    @map("tenant_id") @db.Uuid
+  supplierId  String    @map("supplier_id") @db.Uuid
+  kind        String
+  period      String
+  criteria    Json
+  score       Decimal   @db.Decimal(3, 2)
+  result      String
+  note        String?
+  evaluatedBy String    @map("evaluated_by") @db.Uuid
+  evaluatedAt DateTime  @map("evaluated_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?   @map("created_by") @db.Uuid
+  updatedAt   DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?   @map("updated_by") @db.Uuid
+  version     Int       @default(1)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, supplierId])
+  @@map("pur_supplier_evaluations")
+}
+
+/// Solicitud de viaje: borrador → en aprobación → aprobada o rechazada → legalizada.
+model PurTravelRequest {
+  id            String             @id @default(uuid(7)) @db.Uuid
+  tenantId      String             @map("tenant_id") @db.Uuid
+  code          String
+  travelerId    String             @map("traveler_id") @db.Uuid
+  destination   String
+  purpose       String
+  startsOn      DateTime           @map("starts_on") @db.Date
+  endsOn        DateTime           @map("ends_on") @db.Date
+  advanceAmount Decimal            @map("advance_amount") @db.Decimal(18, 2)
+  status        String             @default("draft")
+  submittedAt   DateTime?          @map("submitted_at") @db.Timestamptz(6)
+  decidedBy     String?            @map("decided_by") @db.Uuid
+  decidedAt     DateTime?          @map("decided_at") @db.Timestamptz(6)
+  decisionNote  String?            @map("decision_note")
+  legalizedAt   DateTime?          @map("legalized_at") @db.Timestamptz(6)
+  requestKey    String             @map("request_key")
+  createdAt     DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?            @map("created_by") @db.Uuid
+  updatedAt     DateTime           @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?            @map("updated_by") @db.Uuid
+  version       Int                @default(1)
+  deletedAt     DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  expenses      PurTravelExpense[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, status])
+  @@index([tenantId, travelerId])
+  @@map("pur_travel_requests")
+}
+
+/// Gasto de la legalización de un viaje, con su soporte.
+model PurTravelExpense {
+  id              String           @id @default(uuid(7)) @db.Uuid
+  tenantId        String           @map("tenant_id") @db.Uuid
+  travelRequestId String           @map("travel_request_id") @db.Uuid
+  concept         String
+  amount          Decimal          @db.Decimal(18, 2)
+  supportFileId   String           @map("support_file_id") @db.Uuid
+  requestKey      String           @map("request_key")
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?          @map("created_by") @db.Uuid
+  updatedAt       DateTime         @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy       String?          @map("updated_by") @db.Uuid
+  version         Int              @default(1)
+  deletedAt       DateTime?        @map("deleted_at") @db.Timestamptz(6)
+  tenant          Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  travelRequest   PurTravelRequest @relation(fields: [tenantId, travelRequestId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, travelRequestId])
+  @@map("pur_travel_expenses")
+}
+
+/// Activos fijos y licencias (B34, ficha 17.12, RE-ADM-003).
+model AstAsset {
+  id               String           @id @default(uuid(7)) @db.Uuid
+  tenantId         String           @map("tenant_id") @db.Uuid
+  code             String
+  name             String
+  category         String
+  serial           String?
+  purchaseDate     DateTime         @map("purchase_date") @db.Date
+  cost             Decimal          @db.Decimal(18, 2)
+  usefulLifeMonths Int              @map("useful_life_months")
+  /// available, reserved (comodato pendiente de firma), assigned o retired.
+  status           String           @default("available")
+  location         String?
+  retiredOn        DateTime?        @map("retired_on") @db.Date
+  retireReason     String?          @map("retire_reason")
+  retireNote       String?          @map("retire_note")
+  retiredBy        String?          @map("retired_by") @db.Uuid
+  requestKey       String           @map("request_key")
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy        String?          @map("created_by") @db.Uuid
+  updatedAt        DateTime         @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy        String?          @map("updated_by") @db.Uuid
+  version          Int              @default(1)
+  deletedAt        DateTime?        @map("deleted_at") @db.Timestamptz(6)
+  tenant           Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  assignments      AstAssignment[]
+  maintenance      AstMaintenance[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, status])
+  @@map("ast_assets")
+}
+
+/// Asignación de un activo en comodato (CT-ADM-001): vigente solo con su contrato firmado.
+model AstAssignment {
+  id                 String    @id @default(uuid(7)) @db.Uuid
+  tenantId           String    @map("tenant_id") @db.Uuid
+  assetId            String    @map("asset_id") @db.Uuid
+  /// El colaborador (cuenta interna) que recibe; el B35 lo unirá con su hoja de vida.
+  userId             String    @map("user_id") @db.Uuid
+  /// Su persona en Terceros: con ella firma el comodato.
+  signerPartyId      String    @map("signer_party_id") @db.Uuid
+  status             String    @default("preparing")
+  assignedOn         DateTime  @map("assigned_on") @db.Date
+  signBy             DateTime  @map("sign_by") @db.Date
+  message            String?
+  formRecordId       String?   @map("form_record_id") @db.Uuid
+  recordCode         String?   @map("record_code")
+  envelopeId         String?   @map("envelope_id") @db.Uuid
+  envelopeCode       String?   @map("envelope_code")
+  /// El comodato firmado (archivo); obligatorio para estar vigente.
+  contractDocumentId String?   @map("contract_document_id") @db.Uuid
+  assignedBy         String    @map("assigned_by") @db.Uuid
+  activatedAt        DateTime? @map("activated_at") @db.Timestamptz(6)
+  returnedOn         DateTime? @map("returned_on") @db.Date
+  returnNote         String?   @map("return_note")
+  returnedBy         String?   @map("returned_by") @db.Uuid
+  closedReason       String?   @map("closed_reason")
+  requestKey         String    @map("request_key")
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy          String?   @map("created_by") @db.Uuid
+  updatedAt          DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy          String?   @map("updated_by") @db.Uuid
+  version            Int       @default(1)
+  deletedAt          DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant             Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  asset              AstAsset  @relation(fields: [tenantId, assetId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, assetId])
+  @@index([tenantId, userId])
+  @@index([tenantId, status])
+  @@map("ast_assignments")
+}
+
+/// Mantenimientos de un activo: programados y, al hacerlos, con su fecha y su costo.
+model AstMaintenance {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  tenantId    String    @map("tenant_id") @db.Uuid
+  assetId     String    @map("asset_id") @db.Uuid
+  kind        String
+  scheduledOn DateTime  @map("scheduled_on") @db.Date
+  doneOn      DateTime? @map("done_on") @db.Date
+  cost        Decimal?  @db.Decimal(18, 2)
+  note        String?
+  requestKey  String    @map("request_key")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?   @map("created_by") @db.Uuid
+  updatedAt   DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?   @map("updated_by") @db.Uuid
+  version     Int       @default(1)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  asset       AstAsset  @relation(fields: [tenantId, assetId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, assetId])
+  @@map("ast_maintenance")
 }

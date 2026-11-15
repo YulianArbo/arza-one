@@ -18,6 +18,7 @@ import { seedPartyDemo } from '../../../modules/party/index.js';
 import { seedNotificationTemplates } from '../../../modules/ntf/index.js';
 import { seedPrivacyDemo, seedPrivacyNotices } from '../../../modules/privacy/index.js';
 import { seedProjects } from '../../../modules/project/index.js';
+import { seedService } from '../../../modules/service/index.js';
 import { seedWorkflowDemo } from '../../../modules/wf/index.js';
 import { systemClock } from '../../clock/clock.js';
 import { DatabaseService } from '../database.service.js';
@@ -55,6 +56,7 @@ async function main(): Promise<void> {
     await seedCrmWorkflows(database, tenantIds, systemClock);
     await seedContracts(database, tenantIds, systemClock);
     await seedProjects(database, tenantIds, systemClock);
+    await seedService(database, tenantIds, systemClock);
     if (withDemo) {
       const demoIds = DEMO_TENANTS.map((tenant) => tenant.id);
       // Los terceros ficticios llegan con su autorización: primero se publican los textos.

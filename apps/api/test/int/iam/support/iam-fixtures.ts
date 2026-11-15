@@ -28,8 +28,8 @@ import { createTestApp } from '../../../support/test-app.js';
 import { testEnv } from '../../../support/test-env.js';
 import {
   apiDatabase,
-  createDatabaseService,
   integrationDatabase,
+  preparationDatabase,
 } from '../../support/integration-database.js';
 
 // Apoyo de las pruebas de identidad con PostgreSQL y Valkey reales. Todos los datos son ficticios.
@@ -64,13 +64,17 @@ function iamValkeyUrl(): string {
   return `${inject('valkeyUrl')}/1`;
 }
 
-export async function createIamTestApp(clock: Clock): Promise<NestExpressApplication> {
+export async function createIamTestApp(
+  clock: Clock,
+  env: Record<string, string> = {},
+): Promise<NestExpressApplication> {
   return createTestApp({
     clock,
     env: {
       DATABASE_URL: integrationDatabase().appUrl,
       VALKEY_URL: iamValkeyUrl(),
       ...storageEnv(),
+      ...env,
     },
   });
 }
@@ -249,13 +253,11 @@ export function postWithSession(
     .send(body);
 }
 
-let fixtureDatabase: DatabaseService | undefined;
-
 /** Olvida el último código usado de la cuenta (ver signIn). Es preparación, no un caso de uso. */
 async function forgetLastCode(email: string): Promise<void> {
   const { tenantId, userId } = phoneOf(email);
-  fixtureDatabase ??= createDatabaseService();
-  await fixtureDatabase.withTenant({ tenantId, userId: null }, (tx) =>
+  const database = preparationDatabase();
+  await database.withTenant({ tenantId, userId: null }, (tx) =>
     tx.mfaFactor.updateMany({ where: { userId }, data: { lastUsedStep: null } }),
   );
 }

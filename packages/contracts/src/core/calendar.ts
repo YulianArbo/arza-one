@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { purchaseTiersSchema, type PurchaseTiers } from '../purchase/tiers.js';
 import { recordNameSchema } from './org.js';
 
 // Parámetros con vigencia, festivos y días hábiles (M00, B12). Un parámetro nunca se sobrescribe:
@@ -56,6 +57,16 @@ export const PARAMETER_DEFINITIONS = {
     description:
       'Descuento máximo por ítem que una cotización lleva sin aprobación de la Dirección (ficha 17.6).',
   },
+  'service.pqrsf_terms': {
+    label: 'Plazos de respuesta de PQRSF',
+    description:
+      'Días hábiles para responder cada tipo de PQRSF (PR-SAC-002) y las consultas y reclamos sobre datos personales (Ley 1581).',
+  },
+  'purchase.approval_tiers': {
+    label: 'Topes de aprobación de compras',
+    description:
+      'Topes por monto de una compra: cuántas cotizaciones exige cada tramo y desde qué valor la aprueba la Dirección (ficha 17.12).',
+  },
 } as const;
 
 export type ParameterKey = keyof typeof PARAMETER_DEFINITIONS;
@@ -73,13 +84,50 @@ export const discountCapSchema = z.strictObject({
     .refine((value) => Number(value) <= 100, 'El tope no puede pasar de 100 %.'),
 });
 
+const termDaysSchema = z
+  .number()
+  .int('Escriba días enteros.')
+  .min(1, 'El plazo es de al menos un día hábil.')
+  .max(60, 'El plazo va hasta 60 días hábiles.');
+
+/**
+ * Plazos de respuesta de PQRSF en días hábiles (ficha 17.9, decisión 2 del B29): por tipo según
+ * PR-SAC-002 y, si trata de datos personales, los de la Ley 1581 (consulta y reclamo).
+ */
+export const pqrsfTermsSchema = z.strictObject({
+  petition: termDaysSchema.describe('Petición'),
+  complaint: termDaysSchema.describe('Queja'),
+  claim: termDaysSchema.describe('Reclamo'),
+  suggestion: termDaysSchema.describe('Sugerencia'),
+  compliment: termDaysSchema.describe('Felicitación'),
+  privacy_inquiry: termDaysSchema.describe('Consulta sobre datos personales'),
+  privacy_claim: termDaysSchema.describe('Reclamo sobre datos personales'),
+});
+
 /** Esquema del valor de cada parámetro: la API valida la vigencia nueva con el de su clave. */
 export const PARAMETER_VALUE_SCHEMAS = {
   'work.schedule': workScheduleSchema,
   'crm.discount_cap': discountCapSchema,
+  'service.pqrsf_terms': pqrsfTermsSchema,
+  'purchase.approval_tiers': purchaseTiersSchema,
 } as const satisfies Record<ParameterKey, z.ZodType>;
 
-const parameterValueSchema = z.union([workScheduleSchema, discountCapSchema]);
+const parameterValueSchema = z.union([
+  workScheduleSchema,
+  discountCapSchema,
+  pqrsfTermsSchema,
+  purchaseTiersSchema,
+]);
+
+/** El valor son los topes de aprobación de compras (B33). */
+export function isPurchaseTiers(value: ParameterValue): value is PurchaseTiers {
+  return 'low_limit' in value;
+}
+
+/** El valor son los plazos de respuesta de PQRSF (B29). */
+export function isPqrsfTerms(value: ParameterValue): value is PqrsfTerms {
+  return 'petition' in value;
+}
 
 /** El valor es un horario laboral (y no otro parámetro). */
 export function isWorkSchedule(value: ParameterValue): value is WorkSchedule {
@@ -150,6 +198,7 @@ export const businessDaysResponseSchema = z.object({
 
 export type WorkSchedule = z.infer<typeof workScheduleSchema>;
 export type DiscountCap = z.infer<typeof discountCapSchema>;
+export type PqrsfTerms = z.infer<typeof pqrsfTermsSchema>;
 export type ParameterValue = z.infer<typeof parameterValueSchema>;
 export type ParameterVersion = z.infer<typeof parameterVersionSchema>;
 export type ParameterSummary = z.infer<typeof parameterSummarySchema>;

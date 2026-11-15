@@ -51,6 +51,12 @@ export const DATABASE_BOUND_FILES = [
   'src/modules/iam/infrastructure/people-directory.ts',
   // Persona del firmante (B25).
   'src/modules/iam/application/person-link.ts',
+  // Empresa, foto y cargos de la persona (B22A) y cuentas y términos del portal (B30).
+  'src/modules/iam/application/my-company.ts',
+  'src/modules/iam/application/profile-photo.ts',
+  'src/modules/iam/application/user-position.ts',
+  'src/modules/iam/application/portal-accounts.ts',
+  'src/modules/iam/application/portal-terms.ts',
   // Auditoría y trazabilidad (B11): todo menos el formato CSV, que se prueba solo.
   'src/modules/audit/application/**/*.ts',
   'src/modules/audit/infrastructure/**/*.ts',
@@ -81,6 +87,12 @@ export const DATABASE_BOUND_FILES = [
   // Parámetros tributarios (B23): casos de uso y controladores.
   'src/modules/fin/application/**/*.ts',
   'src/modules/fin/interface/**/*.ts',
+  // Compras, proveedores y viajes (B33): todo menos las reglas del dominio, que se prueban solas.
+  'src/modules/purchase/application/**/*.ts',
+  'src/modules/purchase/interface/**/*.ts',
+  // Activos (B34): todo menos las reglas del dominio, que se prueban solas.
+  'src/modules/asset/application/**/*.ts',
+  'src/modules/asset/interface/**/*.ts',
   // Contratos (B24): todo menos las reglas del dominio, que se prueban solas.
   'src/modules/contract/application/**/*.ts',
   'src/modules/contract/interface/**/*.ts',
@@ -90,6 +102,14 @@ export const DATABASE_BOUND_FILES = [
   // Proyectos (B26): todo menos las reglas y los flujos del dominio, que se prueban solos.
   'src/modules/project/application/**/*.ts',
   'src/modules/project/interface/**/*.ts',
+  // Servicio al cliente: mesa de ayuda (B28), PQRSF, encuestas y base de conocimiento (B29).
+  'src/modules/service/application/**/*.ts',
+  'src/modules/service/interface/**/*.ts',
+  // Portal (B30): consultas y escrituras con base de datos, medidas en integración.
+  'src/modules/iam/application/portal-accounts.ts',
+  'src/modules/iam/application/portal-terms.ts',
+  'src/modules/portal/application/**/*.ts',
+  'src/modules/portal/interface/**/*.ts',
 ];
 
 /** Procesos que solo arrancan algo; se prueban a mano o como proceso real. */

@@ -1,4 +1,4 @@
-import type { DiscountCap, WorkSchedule } from '@arza/contracts';
+import type { DiscountCap, PurchaseTiers, WorkSchedule } from '@arza/contracts';
 
 // Datos semilla del núcleo (B12, capítulo 12.1).
 //
@@ -19,6 +19,19 @@ export const WORK_SCHEDULE_VALID_FROM = '2026-01-01';
 
 /** Tope de descuento sin aprobación de la Dirección (B23): 10 % por ítem, decisión del dueño. */
 export const DISCOUNT_CAP: DiscountCap = { percent: '10.00' };
+
+/**
+ * Topes de aprobación de compras (B33, decisión 2): valores DE EJEMPLO, pendientes de validar
+ * contra PR-ADM-001. Hasta $ 1.000.000, una cotización; hasta $ 10.000.000, dos; por encima, tres
+ * y aprueba la Dirección. Se corrigen desde Administración › Parámetros.
+ */
+export const PURCHASE_APPROVAL_TIERS: PurchaseTiers = {
+  low_limit: '1000000.00',
+  mid_limit: '10000000.00',
+  quotes_low: 1,
+  quotes_mid: 2,
+  quotes_high: 3,
+};
 
 export interface SeedCatalog {
   readonly key: string;
@@ -138,6 +151,21 @@ export const CATALOGS: readonly SeedCatalog[] = [
       ['FALSE_DATA', 'Datos falsos'],
       ['DUPLICATE', 'Duplicado'],
       ['OTHER', 'Otro'],
+    ],
+  },
+  {
+    key: 'fin_expense_categories',
+    name: 'Rubros de gasto y presupuesto',
+    description:
+      'Rubros con que se planea el presupuesto y se clasifican gastos y vales de caja menor (B32).',
+    items: [
+      ['SOFTWARE', 'Software y licencias'],
+      ['PRO_SERVICES', 'Servicios profesionales'],
+      ['TRANSPORT', 'Transporte'],
+      ['OFFICE', 'Papelería y oficina'],
+      ['UTILITIES', 'Servicios públicos y conectividad'],
+      ['MEALS', 'Alimentación'],
+      ['OTHER', 'Otros gastos'],
     ],
   },
 ];

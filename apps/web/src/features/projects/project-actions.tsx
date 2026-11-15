@@ -9,10 +9,12 @@ import { useApiClient } from '../../lib/api/api-provider';
 import { FormError } from '../access/form-alert';
 import { NoteForm, type NoteFormSpec } from '../contracts/decision-forms';
 import { RecordDialog } from '../organization/record-dialog';
+import { CloseDialog, SettingsDialog } from './closing-actions';
 import { PROJECT_PATHS } from './labels';
 import { useProjectAction } from './queries';
 
-// Acciones del proyecto (B26, ficha 17.8), según su estado. Solo las ve quien gestiona proyectos
+// Acciones del proyecto (B26 y B27, ficha 17.8), según su estado; desde el B27, el control y el
+// cierre. Solo las ve quien gestiona proyectos
 // (Líder técnico). Sin contrato vigente, se pide la autorización de la Dirección antes de iniciar.
 // La API vuelve a revisar cada paso.
 
@@ -101,6 +103,14 @@ function PlanningActions({ project }: Props): JSX.Element | null {
 }
 
 function RunningActions({ project }: Props): JSX.Element {
+  if (project.status === 'closing') {
+    return (
+      <>
+        {project.can.close ? <CloseDialog project={project} /> : null}
+        <StepButton project={project} action="resume" label="Volver a ejecución" />
+      </>
+    );
+  }
   return (
     <>
       {project.status === 'in_progress' ? (
@@ -122,12 +132,15 @@ function RunningActions({ project }: Props): JSX.Element {
       {project.status === 'in_progress' ? null : (
         <StepButton project={project} action="resume" label="Reanudar" />
       )}
+      {project.can.close && project.status !== 'paused' ? (
+        <StepButton project={project} action="start-closing" label="Pasar a cierre" />
+      ) : null}
     </>
   );
 }
 
 export function ProjectActions({ project }: Props): JSX.Element | null {
-  if (!project.can.update) return null;
+  if (!project.can.update || project.status === 'closed') return null;
   return (
     <div className="flex flex-wrap items-start gap-2">
       {project.status === 'planning' ? (
@@ -135,6 +148,7 @@ export function ProjectActions({ project }: Props): JSX.Element | null {
       ) : (
         <RunningActions project={project} />
       )}
+      <SettingsDialog project={project} />
       <Link
         href={PROJECT_PATHS.edit(project.id)}
         className={buttonVariants({ variant: 'outline' })}

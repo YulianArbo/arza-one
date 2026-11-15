@@ -8,7 +8,12 @@ import { DatabaseService } from '../../../platform/database/database.service.js'
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
 import { addBusinessDays } from '../domain/business-days.js';
-import { addBusinessHours, minutesOfDay } from '../domain/business-hours.js';
+import {
+  addBusinessHours,
+  businessMinutesBetween,
+  minutesOfDay,
+  type WorkHoursCalendar,
+} from '../domain/business-hours.js';
 import { bogotaToday, fromCalendarDate, toCalendarDate } from '../domain/calendar-date.js';
 import { auditCore } from './core-audit.js';
 import { holidayTaken, recordNotFound } from './core-messages.js';
@@ -65,16 +70,33 @@ export async function businessHoursDeadline(
   from: Date,
   hours: number,
 ): Promise<Date> {
+  return addBusinessHours(from, hours, await workHoursFrom(tx, from));
+}
+
+/** El horario laboral vigente en `from` y los festivos desde ese año. */
+async function workHoursFrom(tx: TenantTransaction, from: Date): Promise<WorkHoursCalendar> {
   const today = bogotaToday(from);
   const schedule = (await workScheduleOn(tx, today)) ?? WORK_SCHEDULE;
-  return addBusinessHours(from, hours, {
+  return {
     workdays: new Set(schedule.days),
     holidays: await holidaysFrom(tx, today),
     shifts: [schedule.morning, schedule.afternoon].map((shift) => ({
       start: minutesOfDay(shift.start),
       end: minutesOfDay(shift.end),
     })),
-  });
+  };
+}
+
+/**
+ * Minutos hábiles entre dos instantes, con el horario vigente en `from` y los festivos de la
+ * empresa. Lo usa la mesa de ayuda para saber cuánto plazo consumió un tiquete antes de pausarse.
+ */
+export async function businessMinutesElapsed(
+  tx: TenantTransaction,
+  from: Date,
+  to: Date,
+): Promise<number> {
+  return businessMinutesBetween(from, to, await workHoursFrom(tx, from));
 }
 
 const MINUTE_MS = 60 * 1000;

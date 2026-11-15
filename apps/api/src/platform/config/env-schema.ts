@@ -15,6 +15,12 @@ export const envSchema = z.object({
   API_PORT: positiveInteger.max(65_535).default(4000),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
+  /** Espera máxima por una conexión libre a PostgreSQL, en milisegundos. */
+  DATABASE_CONNECT_TIMEOUT_MS: positiveInteger.default(2000),
+  /** Espera máxima por el inicio de una transacción interactiva, en milisegundos. */
+  DATABASE_TRANSACTION_MAX_WAIT_MS: positiveInteger.optional(),
+  /** Duración máxima de una transacción interactiva, en milisegundos. */
+  DATABASE_TRANSACTION_TIMEOUT_MS: positiveInteger.optional(),
   VALKEY_URL: z.url({ protocol: /^rediss?$/ }),
   S3_ENDPOINT: url,
   S3_REGION: required,
@@ -28,6 +34,16 @@ export const envSchema = z.object({
   CSRF_SECRET: z.string().min(32),
   /** Llave del cifrado de campos sensibles, como los secretos del segundo factor (anexo F). */
   FIELD_ENCRYPTION_KEY: z.string().min(32),
+  /**
+   * NIT de la empresa dueña del sitio público (B29): allí llegan las PQRSF que se radican sin
+   * sesión. Vacío o sin definir, el formulario público responde que no está disponible.
+   */
+  PUBLIC_SITE_TAX_ID: z
+    .string()
+    .trim()
+    .max(60)
+    .optional()
+    .transform((value) => (value === '' ? undefined : value)),
 });
 
 export type Env = z.infer<typeof envSchema>;

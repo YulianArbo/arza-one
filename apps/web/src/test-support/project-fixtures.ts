@@ -1,20 +1,25 @@
-// Datos ficticios de las pruebas de las pantallas de Proyectos (B26). Ninguno es real.
+// Datos ficticios de las pruebas de las pantallas de Proyectos (B26 y B27). Ninguno es real.
 
 import type { PermissionCode } from '@arza/contracts';
 
 import { SESSION, json, mockApi, type SentRequest } from './fake-api';
 import { ORG_ID, permissionsOf } from './party-fixtures';
+import { controlRoutes } from './project-control-fixtures';
+import {
+  CONTRACT_ID,
+  DEVELOPER,
+  EPIC_ID,
+  ITEM_ID,
+  LEADER,
+  MEMBER_ID,
+  PROJECT_ID,
+  SPRINT_ID,
+  STORY_ID,
+  TESTER,
+} from './project-ids';
 
-export const PROJECT_ID = '01999a00-0000-7000-8000-0000000e0001';
-export const CONTRACT_ID = '01999a00-0000-7000-8000-0000000d0001';
-export const SPRINT_ID = '01999a00-0000-7000-8000-0000000e0101';
-export const ITEM_ID = '01999a00-0000-7000-8000-0000000e0201';
-const STORY_ID = '01999a00-0000-7000-8000-0000000e0202';
-const EPIC_ID = '01999a00-0000-7000-8000-0000000e0203';
-const MEMBER_ID = '01999a00-0000-7000-8000-0000000e0301';
-const LEADER = { id: SESSION.user.id, name: 'Ana Pérez' };
-const DEVELOPER = { id: '01999a00-0000-7000-8000-00000000a003', name: 'Carlos Ruiz' };
-export const TESTER = { id: '01999a00-0000-7000-8000-00000000a004', name: 'Marta Prueba' };
+export { CONTRACT_ID, ITEM_ID, PROJECT_ID, SPRINT_ID, TESTER } from './project-ids';
+export * from './project-control-fixtures';
 
 const LEAD: readonly PermissionCode[] = [
   'party.read',
@@ -24,6 +29,12 @@ const LEAD: readonly PermissionCode[] = [
   'project.update',
   'project.member.manage',
   'project.item.manage',
+  'project.time.log',
+  'project.time.approve',
+  'project.deliverable.submit',
+  'project.release.manage',
+  'project.incident.manage',
+  'project.close',
 ];
 
 export const PROJECT_LEADER = permissionsOf(LEAD);
@@ -77,7 +88,30 @@ const MILESTONES = [
   },
 ];
 
-const CAN_ALL = { update: true, manage_members: true, manage_items: true };
+const CAN_ALL = {
+  update: true,
+  manage_members: true,
+  manage_items: true,
+  log_time: true,
+  approve_time: true,
+  deliver: true,
+  manage_releases: true,
+  manage_incidents: true,
+  close: true,
+  see_money: true,
+};
+
+/** Lo que puede quien solo lee el proyecto (B27). */
+export const CAN_NOTHING = Object.fromEntries(Object.keys(CAN_ALL).map((key) => [key, false]));
+
+const CONTROL = {
+  hour_cost: '45000.00',
+  respond_days: 10,
+  tacit_acceptance: false,
+  tacit_clause: null,
+  closing_note: null,
+  closed_at: null,
+};
 
 /** Ficha de un proyecto; por omisión, en ejecución desde un contrato vigente. */
 function projectDetail(overrides: object = {}): object {
@@ -104,12 +138,14 @@ function projectDetail(overrides: object = {}): object {
         label: 'Repositorio del portal',
       },
     ],
+    control: CONTROL,
     can: CAN_ALL,
     ...overrides,
   };
 }
 
-function item(overrides: object = {}): object {
+/** Un ítem de la lista; por omisión, una historia en pruebas. */
+export function projectItem(overrides: object = {}): object {
   return {
     id: ITEM_ID,
     number: 2,
@@ -126,6 +162,7 @@ function item(overrides: object = {}): object {
     sprint_id: SPRINT_ID,
     review_url: null,
     test_note: null,
+    last_review: null,
     done_at: null,
     version: 4,
     ...overrides,
@@ -133,7 +170,7 @@ function item(overrides: object = {}): object {
 }
 
 const ITEMS = [
-  item({
+  projectItem({
     id: EPIC_ID,
     number: 1,
     code: 'PRY-2026-0001-1',
@@ -144,8 +181,8 @@ const ITEMS = [
     sprint_id: null,
     acceptance_criteria: null,
   }),
-  item(),
-  item({
+  projectItem(),
+  projectItem({
     id: STORY_ID,
     number: 3,
     code: 'PRY-2026-0001-3',
@@ -184,6 +221,7 @@ export function serveProjects(permissions: object, extra: Routes = {}): SentRequ
     [`GET /v1/projects/${PROJECT_ID}/board`]: () =>
       json({ sprint: SPRINT, items: ITEMS.slice(1, 2), refreshed_at: '2026-11-05T15:00:00.000Z' }),
     'GET /v1/parties': () => json({ data: [], next_cursor: null }),
+    ...controlRoutes(),
     ...extra,
   });
 }

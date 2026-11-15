@@ -61,7 +61,8 @@ const MATRIX: Readonly<Record<string, string>> = {
 /** Permisos sensibles (nivel restricted) y su porqué en el numeral 15.2. */
 const EXTRAS: Readonly<Partial<Record<InternalRoleCode, readonly PermissionCode[]>>> = {
   // «Aprobaciones de alto nivel».
-  DIRECCION: ['party.due_diligence.approve'],
+  // Las compras del tramo alto las aprueba solo la Dirección (decisión 2 del B33).
+  DIRECCION: ['party.due_diligence.approve', 'purchase.request.approve_high'],
   // Las cuentas bancarias de terceros se registran y aprueban en finanzas (doble aprobación).
   ADMIN_FINANCIERO: [
     'party.bank_account.read',
@@ -69,22 +70,41 @@ const EXTRAS: Readonly<Partial<Record<InternalRoleCode, readonly PermissionCode[
     'party.bank_account.approve',
   ],
   // «Lectura financiera, exportaciones contables, parámetros tributarios».
-  CONTADOR: ['party.bank_account.read', 'finance.export', 'finance.tax_parameter.manage'],
+  // El cierre de periodo lo hace también el Contador (decisión 5 del B32).
+  CONTADOR: [
+    'party.bank_account.read',
+    'finance.export',
+    'finance.tax_parameter.manage',
+    'finance.period.close',
+  ],
   TALENTO_HUMANO: ['hr.file.read', 'hr.salary.read'],
   // «Incluidos los conceptos de aptitud; nunca diagnósticos».
   SST: ['sst.medical.read', 'sst.medical.manage'],
   // «Solo lectura de evidencias y auditoría».
   AUDITOR: ['audit.event.export'],
+  // Las PQRSF sobre datos personales se le trasladan (B29, decisión 5): debe poder abrirlas.
+  OFICIAL_DATOS: ['service.pqrsf.read'],
 };
 
 /**
  * Permisos que la letra de la matriz daría, pero que el manual reserva a otro rol. Una cotización
  * con descuento sobre el tope exige aprobación de la Dirección (ficha 17.6); Comercial la elabora y
- * no la aprueba (decisión del dueño, B23).
+ * no la aprueba (decisión del dueño, B23). El acta de entrega la envía quien lidera (B27).
  */
 const WITHHELD: Readonly<Partial<Record<InternalRoleCode, readonly PermissionCode[]>>> = {
-  COMERCIAL: ['crm.quote.approve'],
+  // Gastos, caja menor y conciliaciones los leen Finanzas, el Contador, la Dirección y el auditor;
+  // Comercial solo lee facturas y presupuestos (decisión 5 del B32).
+  COMERCIAL: ['crm.quote.approve', 'finance.ledger.read'],
+  // El acta de entrega tiene valor ante el cliente: la envía el líder del proyecto o un Líder
+  // técnico, no cualquier miembro del equipo (decisión 2 del B27).
+  EQUIPO_PROYECTO: ['project.deliverable.submit'],
 };
+
+/**
+ * Permisos de lectura que todo rol interno tiene, lo lea o no en la matriz: la base de conocimiento
+ * es el manual de usuario de la plataforma (capítulo 22) y la ayuda del equipo (decisión 10 del B29).
+ */
+const EVERY_INTERNAL_ROLE: readonly PermissionCode[] = ['service.kb.read'];
 
 /** Solo por permiso nominal además del rol (numeral 15.4, clasificación): ningún rol lo trae. */
 export const NOMINAL_ONLY_PERMISSIONS: readonly PermissionCode[] = ['doc.restricted.read'];
@@ -132,8 +152,10 @@ function internalGrants(role: InternalRoleCode): RoleGrant[] {
     return grant === null ? [] : [grant];
   });
   const withheld = WITHHELD[role] ?? [];
-  const extras = (EXTRAS[role] ?? []).map((code) => ({ code, own: false }));
-  return [...fromMatrix.filter((grant) => !withheld.includes(grant.code)), ...extras];
+  const kept = fromMatrix.filter((grant) => !withheld.includes(grant.code));
+  const extraCodes = [...(EXTRAS[role] ?? []), ...EVERY_INTERNAL_ROLE];
+  const missing = extraCodes.filter((code) => !kept.some((grant) => grant.code === code));
+  return [...kept, ...[...new Set(missing)].map((code) => ({ code, own: false }))];
 }
 
 const PORTAL_CODES: readonly PermissionCode[] =

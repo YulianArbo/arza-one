@@ -15,6 +15,7 @@ import type { Principal } from '../../../platform/access/principal.js';
 import { changesBetween } from '../../../platform/audit/audit-recorder.js';
 import { CLOCK, type Clock } from '../../../platform/clock/clock.js';
 import { DatabaseService } from '../../../platform/database/database.service.js';
+import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
 import {
   assertAssignee,
@@ -29,8 +30,8 @@ import {
 } from './item-records.js';
 import {
   criteriaRequired,
-  evidenceRequired,
   moveInvalid,
+  reviewRequired,
   statusInvalid,
 } from './project-messages.js';
 import { assertWorking, findProjectForItems, lockProject } from './project-records.js';
@@ -44,8 +45,8 @@ import {
 
 // La lista de pendientes y el tablero (B26, ficha 17.8). Los ítems los gestiona el equipo del
 // proyecto (y quien gestiona todos los proyectos). Un ítem no entra a una iteración sin criterios de
-// aceptación; avanza de a una columna; no pasa a terminado sin el enlace a la revisión de código y
-// la nota de pruebas; uno terminado no se edita: se reabre moviéndolo a otra columna.
+// aceptación; avanza de a una columna; no pasa a terminado sin una revisión de código FT-TEC-002
+// aprobada (B27) y la nota de pruebas; uno terminado no se edita: se reabre moviéndolo.
 
 /** Quien actúa con sus permisos, para revisar su pertenencia al proyecto. */
 export interface ItemRequester {
@@ -66,13 +67,22 @@ function assertMove(item: PrjItem, input: MoveItemRequest): ItemStatus {
   return from;
 }
 
-/** La evidencia con que el ítem termina: la que llega o la que ya tenía. */
-function evidenceFor(item: PrjItem, input: MoveItemRequest) {
+/**
+ * La evidencia con que el ítem termina: la nota de pruebas (la que llega o la que ya tenía) y, desde
+ * el B27, su última revisión de código FT-TEC-002 aprobada.
+ */
+async function evidenceFor(tx: TenantTransaction, item: PrjItem, input: MoveItemRequest) {
   const reviewUrl = input.review_url ?? item.reviewUrl;
   const testNote = input.test_note ?? item.testNote;
   const done = input.status === 'done';
-  if (done && (reviewUrl === null || testNote === null)) throw evidenceRequired();
-  return { reviewUrl, testNote, done };
+  if (!done) return { reviewUrl, testNote, done };
+  const last = await tx.prjCodeReview.findFirst({
+    where: { itemId: item.id, deletedAt: null },
+    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+    select: { result: true, referenceUrl: true },
+  });
+  if (last?.result !== 'approved' || testNote === null) throw reviewRequired();
+  return { reviewUrl: reviewUrl ?? last.referenceUrl, testNote, done };
 }
 
 function itemData(input: UpdateItemRequest) {
@@ -178,7 +188,7 @@ export class ItemsUseCase {
       );
       const item = await findItem(tx, target);
       const from = assertMove(item, input);
-      const { reviewUrl, testNote, done } = evidenceFor(item, input);
+      const { reviewUrl, testNote, done } = await evidenceFor(tx, item, input);
       await updateItemVersioned(tx, target, {
         status: input.status,
         reviewUrl,

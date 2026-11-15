@@ -168,8 +168,12 @@ Consecutivos: su prefijo forma parte del código del documento y no se edita.
 
 Índice único (`tenant_id`, `key`, `valid_from`). El disparador `core_parameters_keep_history`
 impide cambiar la clave, el valor o el inicio de una vigencia, cerrarla dos veces o borrarla: un
-parámetro nunca se sobrescribe. Parámetro de hoy: `work.schedule` (días de la semana y dos
-jornadas; sembrado de lunes a viernes, 8:00 a 12:00 y 13:00 a 17:00).
+parámetro nunca se sobrescribe. Parámetros: `work.schedule` (días de la semana y dos jornadas;
+sembrado de lunes a viernes, 8:00 a 12:00 y 13:00 a 17:00), `crm.discount_cap` (B23) y
+`service.pqrsf_terms` (B29: días hábiles para responder cada tipo de PQRSF; sembrado con 15 para
+petición, queja y reclamo, 30 para sugerencia y felicitación, y 10 y 15 para la consulta y el
+reclamo sobre datos personales). La función `core_tenant_by_tax_id(nit)` (B29) dice qué empresa
+activa tiene ese NIT, sin contexto de empresa: la usa el sitio público.
 
 ### core_holidays · Festivos
 

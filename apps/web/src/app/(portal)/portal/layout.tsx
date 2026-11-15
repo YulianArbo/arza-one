@@ -6,6 +6,7 @@ import { UserMenu } from '../../../components/app-shell/top-bar-menus';
 import { BrandLogo } from '../../../components/brand-logo';
 import { ThemeMenu } from '../../../components/theme-menu';
 import { PortalCompany } from '../../../features/portal/portal-company';
+import { PortalGate } from '../../../features/portal/portal-gate';
 import { PortalTabs } from '../../../features/portal/portal-tabs';
 import { RequireSession } from '../../../features/session/session-provider';
 
@@ -50,7 +51,7 @@ export default function PortalLayout({ children }: { children: ReactNode }): JSX
           id="contenido"
           className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-8 animate-enter"
         >
-          {children}
+          <PortalGate>{children}</PortalGate>
         </main>
       </div>
     </RequireSession>

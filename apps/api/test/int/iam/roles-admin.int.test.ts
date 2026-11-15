@@ -44,7 +44,17 @@ describe('consultar roles y permisos', () => {
     const catalog = permissionCatalogResponseSchema.parse(
       (await scenario.get('/v1/permissions', director.session)).body,
     );
-    expect(catalog.groups.flatMap((group) => group.permissions)).toHaveLength(202);
+    const permissions = catalog.groups.flatMap((group) => group.permissions);
+    expect(permissions).toHaveLength(209);
+    expect(permissions.map((permission) => permission.code)).toEqual(
+      expect.arrayContaining([
+        'finance.ledger.read',
+        'finance.cost_certification.manage',
+        'finance.period.close',
+        'purchase.read',
+        'purchase.request.approve_high',
+      ]),
+    );
   });
 
   it('un rol del sistema no se edita', async () => {

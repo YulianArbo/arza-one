@@ -4,8 +4,9 @@ Tipos exactos, restricciones e índices de las tablas del dominio `wf_` (capítu
 17.5, ADR-011). Se actualiza en el mismo pull request que cambia el modelo
 (`apps/api/prisma/schema.prisma`). Migración: `20261016000000_wf_workflows_and_tasks` (B15).
 
-`wf_sla_policies` (acuerdos de tiempo por prioridad del capítulo 12.3) llega con la mesa de ayuda
-(M08), que es quien la usa. Las tablas `ntf_` de avisos están en [ntf.md](ntf.md) (B16).
+`wf_sla_policies` (acuerdos de tiempo por prioridad del capítulo 12.3) llegó con la mesa de ayuda
+(M08, B28), que es su dueña: ver [svc.md](svc.md). Las tablas `ntf_` de avisos están en [ntf.md](ntf.md)
+(B16).
 
 ## Reglas comunes
 

@@ -160,6 +160,16 @@ value`. Agréguelas **en el servidor**, sin copiar el archivo fuera de él:
 ssh suadmin@203.0.113.10 'sudo -u deploy sh -c "grep -q ^FIELD_ENCRYPTION_KEY= /srv/arza-one/.env || echo FIELD_ENCRYPTION_KEY=\$(openssl rand -hex 32) >> /srv/arza-one/.env"'
 ```
 
+`PUBLIC_SITE_TAX_ID` (B29) es opcional y no es secreta: el NIT de la empresa dueña del sitio
+público, a la que llegan las PQRSF radicadas sin sesión. Sin ella el despliegue funciona, pero el
+formulario público de PQRSF responde «no está disponible». Para activarlo, agregue la línea
+`PUBLIC_SITE_TAX_ID=<NIT registrado en Administración › Empresa>` al `.env` del servidor.
+
+El portal del cliente (B30) no deja entrar mientras no estén publicados los **Términos de uso del
+portal** y la **Política de tratamiento de datos personales**. Después de desplegar, el Oficial de
+Protección de Datos los publica en Privacidad › Avisos y versiones (los borradores provisionales de la
+semilla dicen «PENDIENTE DE CONCEPTO JURÍDICO» y deben reemplazarse por los textos aprobados).
+
 La llave se crea dentro del servidor y no se muestra. **No la cambie después**: los segundos
 factores ya configurados dejarían de funcionar y habría que reiniciarlos
 (`pnpm iam:reiniciar-segundo-factor`). El anexo F pide rotarla «con procedimiento»; ese

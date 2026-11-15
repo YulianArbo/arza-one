@@ -1,17 +1,15 @@
-import { EmptyState } from '@arza/ui';
+import type { Metadata } from 'next';
 import type { JSX } from 'react';
 
-import { PageHeader } from '../../../components/app-shell/page-header';
+import { PortalHomePage } from '../../../features/portal/portal-home';
+import { RequirePermission } from '../../../features/session/permissions';
 
-/** Inicio del portal del cliente. Sus pantallas se construyen en B30. */
-export default function PortalHomePage(): JSX.Element {
+export const metadata: Metadata = { title: 'Inicio' };
+
+export default function Page(): JSX.Element {
   return (
-    <>
-      <PageHeader title="Bienvenido" description="Su resumen." />
-      <EmptyState
-        title="Su portal estará disponible pronto"
-        description="Aquí podrá ver el avance de sus proyectos, aprobar entregables, firmar documentos y pedir soporte."
-      />
-    </>
+    <RequirePermission anyOf={['portal.project.read']}>
+      <PortalHomePage />
+    </RequirePermission>
   );
 }

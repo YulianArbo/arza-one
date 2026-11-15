@@ -58,6 +58,8 @@ export class SignaturesUseCase {
     id: string,
   ): Promise<EnvelopeWithSigners> {
     const envelope = await findEnvelope(tx, id);
+    // Las actas de los proyectos (B27) no se ven desde Contratos.
+    if (envelope.contractId === null) throw envelopeNotFound();
     try {
       await findVisibleContract(tx, ability, envelope.contractId);
     } catch {

@@ -13,26 +13,26 @@ permisos de una persona son la suma de sus roles vigentes.
 
 | Rol | Código | Para | Permisos | Solo lo propio |
 | --- | --- | --- | --- | --- |
-| Dirección | `DIRECCION` | Interno | 69 | 1 |
-| Administrador de plataforma | `ADMIN_PLATAFORMA` | Interno | 32 | 1 |
-| Calidad | `CALIDAD` | Interno | 63 | 1 |
-| Comercial | `COMERCIAL` | Interno | 51 | 9 |
-| Líder técnico | `LIDER_TECNICO` | Interno | 46 | 8 |
-| Equipo de proyecto | `EQUIPO_PROYECTO` | Interno | 21 | 18 |
-| Servicio al cliente | `SERVICIO` | Interno | 43 | 9 |
-| Administrativo y financiero | `ADMIN_FINANCIERO` | Interno | 57 | 5 |
-| Contador | `CONTADOR` | Interno | 15 | 2 |
-| Talento humano | `TALENTO_HUMANO` | Interno | 39 | 9 |
-| Seguridad y salud en el trabajo | `SST` | Interno | 28 | 8 |
-| Oficial de protección de datos | `OFICIAL_DATOS` | Interno | 31 | 5 |
-| Colaborador | `COLABORADOR` | Interno | 23 | 20 |
-| Auditor | `AUDITOR` | Interno | 33 | 0 |
+| Dirección | `DIRECCION` | Interno | 73 | 1 |
+| Administrador de plataforma | `ADMIN_PLATAFORMA` | Interno | 33 | 1 |
+| Calidad | `CALIDAD` | Interno | 65 | 1 |
+| Comercial | `COMERCIAL` | Interno | 52 | 9 |
+| Líder técnico | `LIDER_TECNICO` | Interno | 47 | 8 |
+| Equipo de proyecto | `EQUIPO_PROYECTO` | Interno | 21 | 17 |
+| Servicio al cliente | `SERVICIO` | Interno | 45 | 9 |
+| Administrativo y financiero | `ADMIN_FINANCIERO` | Interno | 62 | 5 |
+| Contador | `CONTADOR` | Interno | 19 | 2 |
+| Talento humano | `TALENTO_HUMANO` | Interno | 40 | 9 |
+| Seguridad y salud en el trabajo | `SST` | Interno | 29 | 8 |
+| Oficial de protección de datos | `OFICIAL_DATOS` | Interno | 33 | 5 |
+| Colaborador | `COLABORADOR` | Interno | 24 | 20 |
+| Auditor | `AUDITOR` | Interno | 36 | 0 |
 | Administrador del cliente | `CLIENTE_ADMIN` | Portal | 9 | 0 |
 | Usuario del cliente | `CLIENTE_USUARIO` | Portal | 4 | 4 |
 
 ## Dirección (`DIRECCION`)
 
-Director General. Lectura transversal, aprobaciones de alto nivel, firma de contratos, tableros. 69 permisos.
+Director General. Lectura transversal, aprobaciones de alto nivel, firma de contratos, tableros. 73 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Identidad y acceso (M01):** Ver los usuarios y sus roles · Ver los roles y sus permisos · Ver el informe de revisión de accesos
@@ -46,9 +46,9 @@ Director General. Lectura transversal, aprobaciones de alto nivel, firma de cont
 - **Comercial (M05):** Ver prospectos · Ver oportunidades · Ver cotizaciones · Aprobar cotizaciones · Ver informes comerciales
 - **Contratos y firma (M06):** Ver contratos · Crear contratos en borrador · Editar contratos en borrador · Aprobar contratos · Terminar contratos · Renovar contratos · Administrar el banco de cláusulas · Preparar sobres de firma · Enviar sobres a firma · Anular sobres de firma · Ver las evidencias de firma
 - **Proyectos (M07):** Ver todos los proyectos · Ver los proyectos donde es miembro
-- **Servicio al cliente (M08):** Ver tiquetes · Ver PQRSF
-- **Finanzas (M10):** Ver facturas · Aprobar facturas · Registrar facturas ante la DIAN · Anular facturas · Ver presupuestos · Aprobar presupuestos · Aprobar gastos
-- **Compras y activos (M11):** Aprobar solicitudes de compra · Aprobar viajes · Ver activos
+- **Servicio al cliente (M08):** Ver tiquetes · Ver PQRSF · Leer la base de conocimiento
+- **Finanzas (M10):** Ver facturas · Aprobar facturas · Registrar documento fiscal emitido · Anular facturas · Ver presupuestos · Aprobar presupuestos · Aprobar gastos · Ver gastos, caja menor y conciliaciones
+- **Compras y activos (M11):** Aprobar solicitudes de compra · Aprobar viajes · Ver compras, proveedores y viajes · Ver activos · Aprobar compras del tramo alto
 - **Talento humano (M12):** Ver colaboradores · Aprobar permisos y vacaciones · Autorizar horas extras · Cerrar el periodo de novedades de nómina
 - **Seguridad y salud en el trabajo (M13):** Ver las actas del comité
 - **Calidad (M14):** Cerrar no conformidades · Verificar la eficacia de las acciones · Evaluar el cumplimiento legal
@@ -56,7 +56,7 @@ Director General. Lectura transversal, aprobaciones de alto nivel, firma de cont
 
 ## Administrador de plataforma (`ADMIN_PLATAFORMA`)
 
-Responsable técnico. Usuarios, roles, parámetros, flujos y catálogos, sin acceso al contenido restringido por el solo hecho de administrar. 32 permisos.
+Responsable técnico. Usuarios, roles, parámetros, flujos y catálogos, sin acceso al contenido restringido por el solo hecho de administrar. 33 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Cambiar los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Administrar sedes, procesos, cargos y centros de costo · Administrar los catálogos · Ver los parámetros y el estado del sistema · Cambiar los parámetros · Administrar los consecutivos
 - **Identidad y acceso (M01):** Ver los usuarios y sus roles · Invitar usuarios · Cambiar los datos de un usuario · Bloquear y desbloquear usuarios · Reiniciar el segundo factor de otra persona · Ver los roles y sus permisos · Crear y editar roles personalizados · Asignar y retirar roles · Cerrar las sesiones de otras personas · Delegar aprobaciones · Ver el informe de revisión de accesos
@@ -65,10 +65,11 @@ Responsable técnico. Usuarios, roles, parámetros, flujos y catálogos, sin acc
 - **Flujos y tareas (M04):** Administrar flujos · Ver las tareas de todas las personas · Reasignar tareas · Atender sus tareas (solo lo propio) · Administrar plantillas de avisos
 - **Sitio y textos legales (M17):** Editar páginas del sitio · Editar textos legales · Ver formularios recibidos en el sitio
 - **Auditoría (M19):** Ver la auditoría · Ver los eventos de seguridad · Verificar la cadena de la auditoría
+- **Servicio al cliente (M08):** Leer la base de conocimiento
 
 ## Calidad (`CALIDAD`)
 
-Coordinador de Calidad e Innovación. Control documental, riesgos, no conformidades, auditorías, indicadores. 63 permisos.
+Coordinador de Calidad e Innovación. Control documental, riesgos, no conformidades, auditorías, indicadores. 65 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Terceros (M02):** Ver terceros
@@ -81,15 +82,15 @@ Coordinador de Calidad e Innovación. Control documental, riesgos, no conformida
 - **Comercial (M05):** Ver prospectos · Ver oportunidades · Ver cotizaciones · Ver informes comerciales
 - **Contratos y firma (M06):** Ver contratos · Ver las evidencias de firma
 - **Proyectos (M07):** Ver todos los proyectos · Ver los proyectos donde es miembro
-- **Servicio al cliente (M08):** Ver tiquetes · Ver PQRSF
-- **Compras y activos (M11):** Ver activos
+- **Servicio al cliente (M08):** Ver tiquetes · Ver PQRSF · Leer la base de conocimiento
+- **Compras y activos (M11):** Ver compras, proveedores y viajes · Ver activos
 - **Seguridad y salud en el trabajo (M13):** Ver las actas del comité
 - **Calidad (M14):** Administrar procesos y su contexto · Gestionar riesgos · Reportar no conformidades · Gestionar no conformidades · Cerrar no conformidades · Gestionar acciones de mejora · Verificar la eficacia de las acciones · Planear auditorías internas · Ejecutar auditorías internas · Administrar indicadores · Registrar mediciones de indicadores · Gestionar la revisión por la dirección · Administrar la matriz de requisitos legales · Evaluar el cumplimiento legal
 - **Innovación (M15):** Proponer ideas · Evaluar ideas · Aprobar ideas · Administrar la hoja de ruta · Administrar la propiedad intelectual · Gestionar la vigilancia tecnológica
 
 ## Comercial (`COMERCIAL`)
 
-Gerente y analistas comerciales. Prospectos, oportunidades, cotizaciones, clientes; contratos en borrador. 51 permisos.
+Gerente y analistas comerciales. Prospectos, oportunidades, cotizaciones, clientes; contratos en borrador. 52 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Terceros (M02):** Ver terceros · Crear terceros · Editar terceros · Fusionar terceros duplicados · Registrar el conocimiento del tercero
@@ -100,7 +101,7 @@ Gerente y analistas comerciales. Prospectos, oportunidades, cotizaciones, client
 - **Comercial (M05):** Ver prospectos · Crear prospectos · Editar prospectos · Convertir prospectos en clientes · Ver oportunidades · Crear oportunidades · Editar oportunidades · Cerrar oportunidades ganadas o perdidas · Administrar el portafolio de servicios · Ver cotizaciones · Crear cotizaciones · Editar cotizaciones · Enviar cotizaciones al cliente · Ver informes comerciales
 - **Contratos y firma (M06):** Ver contratos · Crear contratos en borrador · Editar contratos en borrador · Preparar sobres de firma · Ver las evidencias de firma
 - **Proyectos (M07):** Ver todos los proyectos · Ver los proyectos donde es miembro
-- **Servicio al cliente (M08):** Ver tiquetes · Ver PQRSF
+- **Servicio al cliente (M08):** Ver tiquetes · Ver PQRSF · Leer la base de conocimiento
 - **Finanzas (M10):** Ver facturas · Ver presupuestos
 - **Compras y activos (M11):** Solicitar compras (solo lo propio) · Solicitar viajes (solo lo propio) · Ver activos (solo lo propio)
 - **Calidad (M14):** Reportar no conformidades (solo lo propio) · Gestionar acciones de mejora (solo lo propio) · Registrar mediciones de indicadores (solo lo propio)
@@ -108,7 +109,7 @@ Gerente y analistas comerciales. Prospectos, oportunidades, cotizaciones, client
 
 ## Líder técnico (`LIDER_TECNICO`)
 
-Gerente de Desarrollo, líder técnico. Todos los proyectos, liberaciones, incidentes. 46 permisos.
+Gerente de Desarrollo, líder técnico. Todos los proyectos, liberaciones, incidentes. 47 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Terceros (M02):** Ver terceros
@@ -118,7 +119,7 @@ Gerente de Desarrollo, líder técnico. Todos los proyectos, liberaciones, incid
 - **Comercial (M05):** Ver prospectos · Ver oportunidades · Ver cotizaciones · Ver informes comerciales
 - **Contratos y firma (M06):** Ver contratos · Ver las evidencias de firma
 - **Proyectos (M07):** Ver todos los proyectos · Ver los proyectos donde es miembro · Crear proyectos · Editar proyectos · Cerrar proyectos · Administrar los miembros de un proyecto · Gestionar tareas e ítems del proyecto · Registrar horas · Aprobar horas · Enviar entregables al cliente · Gestionar liberaciones · Gestionar incidentes
-- **Servicio al cliente (M08):** Ver tiquetes · Crear tiquetes · Asignar tiquetes · Resolver tiquetes · Cerrar tiquetes · Ver PQRSF · Clasificar PQRSF · Responder PQRSF
+- **Servicio al cliente (M08):** Ver tiquetes · Crear tiquetes · Asignar tiquetes · Resolver tiquetes · Cerrar tiquetes · Ver PQRSF · Clasificar PQRSF · Responder PQRSF · Leer la base de conocimiento
 - **Compras y activos (M11):** Solicitar compras (solo lo propio) · Solicitar viajes (solo lo propio) · Ver activos (solo lo propio)
 - **Calidad (M14):** Reportar no conformidades (solo lo propio) · Gestionar acciones de mejora (solo lo propio) · Registrar mediciones de indicadores (solo lo propio)
 - **Innovación (M15):** Proponer ideas · Gestionar la vigilancia tecnológica
@@ -131,15 +132,15 @@ Desarrolladores, QA, diseñadores. Solo los proyectos donde es miembro. 21 permi
 - **Terceros (M02):** Ver terceros (solo lo propio)
 - **Gestión documental (M03):** Ver documentos (solo lo propio) · Solicitar cambios documentales (solo lo propio) · Diligenciar formatos (solo lo propio)
 - **Flujos y tareas (M04):** Atender sus tareas (solo lo propio)
-- **Proyectos (M07):** Ver los proyectos donde es miembro (solo lo propio) · Gestionar tareas e ítems del proyecto (solo lo propio) · Registrar horas (solo lo propio) · Enviar entregables al cliente (solo lo propio)
-- **Servicio al cliente (M08):** Ver tiquetes (solo lo propio) · Crear tiquetes (solo lo propio)
+- **Proyectos (M07):** Ver los proyectos donde es miembro (solo lo propio) · Gestionar tareas e ítems del proyecto (solo lo propio) · Registrar horas (solo lo propio)
+- **Servicio al cliente (M08):** Ver tiquetes (solo lo propio) · Crear tiquetes (solo lo propio) · Leer la base de conocimiento
 - **Compras y activos (M11):** Solicitar compras (solo lo propio) · Solicitar viajes (solo lo propio) · Ver activos (solo lo propio)
 - **Calidad (M14):** Reportar no conformidades (solo lo propio) · Gestionar acciones de mejora (solo lo propio) · Registrar mediciones de indicadores (solo lo propio)
 - **Innovación (M15):** Proponer ideas (solo lo propio)
 
 ## Servicio al cliente (`SERVICIO`)
 
-Líder y técnicos de servicio al cliente. Tiquetes, PQRSF, encuestas, base de conocimiento. 43 permisos.
+Líder y técnicos de servicio al cliente. Tiquetes, PQRSF, encuestas, base de conocimiento. 45 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Terceros (M02):** Ver terceros · Crear terceros · Editar terceros · Fusionar terceros duplicados · Registrar el conocimiento del tercero
@@ -149,14 +150,14 @@ Líder y técnicos de servicio al cliente. Tiquetes, PQRSF, encuestas, base de c
 - **Comercial (M05):** Ver prospectos · Ver oportunidades · Ver cotizaciones · Ver informes comerciales
 - **Contratos y firma (M06):** Ver contratos · Ver las evidencias de firma
 - **Proyectos (M07):** Ver todos los proyectos · Ver los proyectos donde es miembro
-- **Servicio al cliente (M08):** Ver tiquetes · Crear tiquetes · Asignar tiquetes · Resolver tiquetes · Cerrar tiquetes · Ver PQRSF · Clasificar PQRSF · Responder PQRSF · Aprobar respuestas de PQRSF · Administrar encuestas de satisfacción · Administrar la base de conocimiento · Aprobar compensaciones al cliente
+- **Servicio al cliente (M08):** Ver tiquetes · Crear tiquetes · Asignar tiquetes · Resolver tiquetes · Cerrar tiquetes · Ver PQRSF · Clasificar PQRSF · Responder PQRSF · Aprobar respuestas de PQRSF · Administrar encuestas de satisfacción · Leer la base de conocimiento · Administrar la base de conocimiento · Aprobar compensaciones al cliente · Configurar los acuerdos de tiempo y las garantías
 - **Compras y activos (M11):** Solicitar compras (solo lo propio) · Solicitar viajes (solo lo propio) · Ver activos (solo lo propio)
 - **Calidad (M14):** Reportar no conformidades (solo lo propio) · Gestionar acciones de mejora (solo lo propio) · Registrar mediciones de indicadores (solo lo propio)
 - **Innovación (M15):** Proponer ideas (solo lo propio)
 
 ## Administrativo y financiero (`ADMIN_FINANCIERO`)
 
-Gerente administrativo, asistente. Facturación, cartera, compras, activos, presupuesto, caja menor. 57 permisos.
+Gerente administrativo, asistente. Facturación, cartera, compras, activos, presupuesto, caja menor. 62 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Terceros (M02):** Ver terceros · Crear terceros · Editar terceros · Fusionar terceros duplicados · Registrar el conocimiento del tercero · Ver las cuentas bancarias de terceros · Registrar cuentas bancarias de terceros · Aprobar cuentas bancarias de terceros
@@ -166,13 +167,14 @@ Gerente administrativo, asistente. Facturación, cartera, compras, activos, pres
 - **Comercial (M05):** Ver prospectos · Ver oportunidades · Ver cotizaciones · Ver informes comerciales
 - **Contratos y firma (M06):** Ver contratos · Ver las evidencias de firma
 - **Proyectos (M07):** Ver todos los proyectos · Ver los proyectos donde es miembro
-- **Finanzas (M10):** Ver facturas · Solicitar facturas · Aprobar facturas · Registrar facturas ante la DIAN · Anular facturas · Registrar pagos · Gestionar la cartera · Ver presupuestos · Elaborar presupuestos · Aprobar presupuestos · Registrar gastos · Aprobar gastos · Gestionar la caja menor · Hacer conciliaciones bancarias · Administrar parámetros tributarios · Exportar información contable
-- **Compras y activos (M11):** Solicitar compras · Aprobar solicitudes de compra · Emitir órdenes de compra · Recibir órdenes de compra · Evaluar proveedores · Solicitar viajes · Aprobar viajes · Ver activos · Administrar activos · Asignar activos · Dar de baja activos
+- **Servicio al cliente (M08):** Leer la base de conocimiento
+- **Finanzas (M10):** Ver facturas · Solicitar facturas · Aprobar facturas · Registrar documento fiscal emitido · Anular facturas · Registrar pagos · Gestionar la cartera · Ver presupuestos · Elaborar presupuestos · Aprobar presupuestos · Registrar gastos · Aprobar gastos · Gestionar la caja menor · Hacer conciliaciones bancarias · Administrar parámetros tributarios · Exportar información contable · Ver gastos, caja menor y conciliaciones · Certificar costos de desarrollo · Cerrar periodos contables
+- **Compras y activos (M11):** Solicitar compras · Aprobar solicitudes de compra · Emitir órdenes de compra · Recibir órdenes de compra · Evaluar proveedores · Solicitar viajes · Aprobar viajes · Ver compras, proveedores y viajes · Ver activos · Administrar activos · Asignar activos · Dar de baja activos
 - **Calidad (M14):** Reportar no conformidades (solo lo propio) · Gestionar acciones de mejora (solo lo propio) · Registrar mediciones de indicadores (solo lo propio)
 
 ## Contador (`CONTADOR`)
 
-Contador Público externo. Lectura financiera, exportaciones contables, parámetros tributarios. 15 permisos.
+Contador Público externo. Lectura financiera, exportaciones contables, parámetros tributarios. 19 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Terceros (M02):** Ver terceros · Ver las cuentas bancarias de terceros
@@ -180,12 +182,13 @@ Contador Público externo. Lectura financiera, exportaciones contables, parámet
 - **Flujos y tareas (M04):** Atender sus tareas (solo lo propio)
 - **Tableros (M16):** Ver tableros de proceso (solo lo propio)
 - **Contratos y firma (M06):** Ver contratos · Ver las evidencias de firma
-- **Finanzas (M10):** Ver facturas · Ver presupuestos · Exportar información contable · Administrar parámetros tributarios
-- **Compras y activos (M11):** Ver activos
+- **Servicio al cliente (M08):** Leer la base de conocimiento
+- **Finanzas (M10):** Ver facturas · Ver presupuestos · Ver gastos, caja menor y conciliaciones · Exportar información contable · Administrar parámetros tributarios · Cerrar periodos contables
+- **Compras y activos (M11):** Ver compras, proveedores y viajes · Ver activos
 
 ## Talento humano (`TALENTO_HUMANO`)
 
-Coordinador de talento humano. Colaboradores, selección, novedades, formación, disciplinarios. 39 permisos.
+Coordinador de talento humano. Colaboradores, selección, novedades, formación, disciplinarios. 40 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Terceros (M02):** Ver terceros · Crear terceros · Editar terceros · Fusionar terceros duplicados · Registrar el conocimiento del tercero
@@ -193,6 +196,7 @@ Coordinador de talento humano. Colaboradores, selección, novedades, formación,
 - **Flujos y tareas (M04):** Atender sus tareas (solo lo propio)
 - **Tableros (M16):** Ver tableros de proceso (solo lo propio)
 - **Contratos y firma (M06):** Ver contratos (solo lo propio)
+- **Servicio al cliente (M08):** Leer la base de conocimiento
 - **Compras y activos (M11):** Solicitar compras (solo lo propio) · Solicitar viajes (solo lo propio) · Ver activos (solo lo propio)
 - **Talento humano (M12):** Ver colaboradores · Administrar colaboradores · Gestionar vacantes · Gestionar candidatos · Solicitar permisos y vacaciones · Aprobar permisos y vacaciones · Autorizar horas extras · Registrar novedades de nómina · Cerrar el periodo de novedades de nómina · Gestionar evaluaciones de desempeño · Gestionar formación · Gestionar procesos disciplinarios · Gestionar retiros · Ver la historia laboral · Ver salarios
 - **Seguridad y salud en el trabajo (M13):** Ver las actas del comité
@@ -200,19 +204,20 @@ Coordinador de talento humano. Colaboradores, selección, novedades, formación,
 
 ## Seguridad y salud en el trabajo (`SST`)
 
-Líder de SST. Módulo de SST, incluidos los conceptos de aptitud; nunca diagnósticos. 28 permisos.
+Líder de SST. Módulo de SST, incluidos los conceptos de aptitud; nunca diagnósticos. 29 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Gestión documental (M03):** Ver documentos · Crear documentos · Editar documentos · Enviar una versión a revisión · Solicitar cambios documentales · Diligenciar formatos
 - **Flujos y tareas (M04):** Atender sus tareas (solo lo propio)
 - **Tableros (M16):** Ver tableros de proceso (solo lo propio)
+- **Servicio al cliente (M08):** Leer la base de conocimiento
 - **Compras y activos (M11):** Solicitar compras (solo lo propio) · Solicitar viajes (solo lo propio) · Ver activos (solo lo propio)
 - **Seguridad y salud en el trabajo (M13):** Gestionar la matriz de peligros · Gestionar el plan de trabajo de SST · Reportar incidentes y actos inseguros · Investigar incidentes · Cerrar incidentes · Gestionar inspecciones · Ver las actas del comité · Gestionar el comité · Gestionar los estándares mínimos · Ver conceptos de aptitud (nunca diagnósticos) · Registrar conceptos de aptitud y restricciones
 - **Calidad (M14):** Reportar no conformidades (solo lo propio) · Gestionar acciones de mejora (solo lo propio) · Registrar mediciones de indicadores (solo lo propio)
 
 ## Oficial de protección de datos (`OFICIAL_DATOS`)
 
-Oficial de Protección de Datos. Módulo de privacidad, consentimientos, solicitudes de titulares. 31 permisos.
+Oficial de Protección de Datos. Módulo de privacidad, consentimientos, solicitudes de titulares. 33 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Terceros (M02):** Ver terceros
@@ -222,11 +227,12 @@ Oficial de Protección de Datos. Módulo de privacidad, consentimientos, solicit
 - **Sitio y textos legales (M17):** Editar páginas del sitio · Editar textos legales · Publicar textos legales · Ver formularios recibidos en el sitio
 - **Privacidad (M18):** Administrar actividades de tratamiento · Administrar avisos de privacidad · Ver autorizaciones de tratamiento · Gestionar solicitudes de titulares · Responder solicitudes de titulares · Entregar los datos de un titular · Suprimir los datos de un titular · Gestionar incidentes de datos personales · Administrar encargados del tratamiento
 - **Auditoría (M19):** Ver la auditoría · Ver los eventos de seguridad · Verificar la cadena de la auditoría
+- **Servicio al cliente (M08):** Ver PQRSF · Leer la base de conocimiento
 - **Calidad (M14):** Reportar no conformidades (solo lo propio) · Gestionar acciones de mejora (solo lo propio) · Registrar mediciones de indicadores (solo lo propio)
 
 ## Colaborador (`COLABORADOR`)
 
-Todo colaborador. Sus tareas, sus solicitudes, sus datos, documentos vigentes de su proceso. 23 permisos.
+Todo colaborador. Sus tareas, sus solicitudes, sus datos, documentos vigentes de su proceso. 24 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Identidad y acceso (M01):** Delegar aprobaciones (solo lo propio)
@@ -234,7 +240,7 @@ Todo colaborador. Sus tareas, sus solicitudes, sus datos, documentos vigentes de
 - **Flujos y tareas (M04):** Atender sus tareas (solo lo propio)
 - **Privacidad (M18):** Ver autorizaciones de tratamiento (solo lo propio)
 - **Contratos y firma (M06):** Ver contratos (solo lo propio)
-- **Servicio al cliente (M08):** Ver tiquetes (solo lo propio) · Crear tiquetes (solo lo propio)
+- **Servicio al cliente (M08):** Ver tiquetes (solo lo propio) · Crear tiquetes (solo lo propio) · Leer la base de conocimiento
 - **Finanzas (M10):** Registrar gastos (solo lo propio)
 - **Compras y activos (M11):** Solicitar compras (solo lo propio) · Solicitar viajes (solo lo propio) · Ver activos (solo lo propio)
 - **Talento humano (M12):** Ver colaboradores (solo lo propio) · Solicitar permisos y vacaciones (solo lo propio)
@@ -244,7 +250,7 @@ Todo colaborador. Sus tareas, sus solicitudes, sus datos, documentos vigentes de
 
 ## Auditor (`AUDITOR`)
 
-Auditor interno o externo. Solo lectura de evidencias y auditoría, por tiempo limitado. 33 permisos.
+Auditor interno o externo. Solo lectura de evidencias y auditoría, por tiempo limitado. 36 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Identidad y acceso (M01):** Ver los usuarios y sus roles · Ver los roles y sus permisos · Ver el informe de revisión de accesos
@@ -258,9 +264,9 @@ Auditor interno o externo. Solo lectura de evidencias y auditoría, por tiempo l
 - **Comercial (M05):** Ver prospectos · Ver oportunidades · Ver cotizaciones · Ver informes comerciales
 - **Contratos y firma (M06):** Ver contratos · Ver las evidencias de firma
 - **Proyectos (M07):** Ver todos los proyectos · Ver los proyectos donde es miembro
-- **Servicio al cliente (M08):** Ver tiquetes · Ver PQRSF
-- **Finanzas (M10):** Ver facturas · Ver presupuestos
-- **Compras y activos (M11):** Ver activos
+- **Servicio al cliente (M08):** Ver tiquetes · Ver PQRSF · Leer la base de conocimiento
+- **Finanzas (M10):** Ver facturas · Ver presupuestos · Ver gastos, caja menor y conciliaciones
+- **Compras y activos (M11):** Ver compras, proveedores y viajes · Ver activos
 - **Talento humano (M12):** Ver colaboradores
 - **Seguridad y salud en el trabajo (M13):** Ver las actas del comité
 

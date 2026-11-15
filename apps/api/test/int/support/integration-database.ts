@@ -31,22 +31,67 @@ export function integrationDatabase(): IntegrationDatabase {
   return inject('database');
 }
 
+const createdDatabases: DatabaseService[] = [];
+
+// La base compartida crece con toda la suite; en un equipo modesto una transacción de preparación
+// puede pasar de los 5 s que Prisma permite por defecto.
+const TEST_TRANSACTION = { maxWait: 60_000, timeout: 120_000 } as const;
+
+/** Cierra los clientes abiertos por el archivo actual; los llama el teardown de vitest. */
+export async function closeCreatedDatabases(): Promise<void> {
+  const databases = createdDatabases.splice(0);
+  if (applicationDatabase !== undefined) {
+    databases.push(applicationDatabase);
+    applicationDatabase = undefined;
+  }
+  if (preparationClient !== undefined) {
+    databases.push(preparationClient);
+    preparationClient = undefined;
+  }
+  await Promise.all(databases.map((database) => database.onModuleDestroy()));
+}
+
 /**
  * Conexión de app_user para preparar y revisar datos de prueba directamente en las tablas: no exige
  * el evento de auditoría de cada transacción. El código de la aplicación nunca corre con ella.
  */
 export function createDatabaseService(): DatabaseService {
-  return new DatabaseService(integrationDatabase().appUrl, { requireAudit: false });
+  const database = new DatabaseService(integrationDatabase().appUrl, {
+    requireAudit: false,
+    poolSize: 20,
+    connectTimeoutMs: 30_000,
+    transaction: TEST_TRANSACTION,
+  });
+  createdDatabases.push(database);
+  return database;
 }
 
 let applicationDatabase: DatabaseService | undefined;
+
+let preparationClient: DatabaseService | undefined;
+
+/** Conexión sin exigencia de auditoría para preparar datos; se cierra al terminar cada archivo. */
+export function preparationDatabase(): DatabaseService {
+  preparationClient ??= new DatabaseService(integrationDatabase().appUrl, {
+    requireAudit: false,
+    poolSize: 20,
+    connectTimeoutMs: 30_000,
+    transaction: TEST_TRANSACTION,
+  });
+  return preparationClient;
+}
 
 /**
  * Conexión como la de la API, que exige el evento de auditoría de cada escritura (B11): con ella
  * corren en las pruebas los casos de uso, la semilla y los comandos.
  */
 export function apiDatabase(): DatabaseService {
-  applicationDatabase ??= new DatabaseService(integrationDatabase().appUrl);
+  applicationDatabase ??= new DatabaseService(integrationDatabase().appUrl, {
+    requireAudit: true,
+    poolSize: 20,
+    connectTimeoutMs: 30_000,
+    transaction: TEST_TRANSACTION,
+  });
   return applicationDatabase;
 }
 

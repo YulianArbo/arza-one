@@ -1,5 +1,11 @@
-// Interfaz pública de Finanzas (M10). En B23 solo trae los parámetros tributarios: las cotizaciones
-// leen la tarifa vigente de cada impuesto con taxRatesOn; nunca leen la tabla fin_tax_parameters.
-export { FinModule } from './interface/fin.module.js';
+// Interfaz pública de Finanzas (M10): parámetros tributarios y consulta de facturas para el portal.
+// FinModule no se reexporta aquí: es el punto de composición de Nest y lo importa app.module.
+// Reexportarlo haría que cualquier módulo que use esta interfaz arrastrara sus controladores y,
+// con ellos, la lectura de hitos de Proyectos: un ciclo entre Finanzas, Proyectos y Contratos.
 export { seedTaxParameters } from './application/tax-seed.js';
 export { taxLabels, taxRatesOn } from './application/tax-parameters.js';
+export {
+  clientCreditNoteFile,
+  clientInvoiceFile,
+  clientInvoices,
+} from './application/invoice-queries.js';

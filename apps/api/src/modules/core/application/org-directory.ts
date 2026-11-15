@@ -64,3 +64,15 @@ export async function activePositions(tx: TenantTransaction): Promise<PositionSu
     orderBy: { name: 'asc' },
   });
 }
+
+/** Cargo dueño de un proceso, como el «Líder de Servicio al Cliente» de SAC; null si no tiene. */
+export async function processOwnerPositionId(
+  tx: TenantTransaction,
+  processCode: string,
+): Promise<string | null> {
+  const unit = await tx.orgUnit.findFirst({
+    where: { code: processCode, kind: 'process', isActive: true, deletedAt: null },
+    select: { ownerPositionId: true },
+  });
+  return unit?.ownerPositionId ?? null;
+}

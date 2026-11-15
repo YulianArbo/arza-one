@@ -1,8 +1,8 @@
 // Interfaz pública de la gestión documental (M03). El worker analiza los archivos con
 // scanUploadedFile, convierte las versiones a PDF con renderVersionPdf (B18), genera los PDF de
 // los registros diligenciados y las copias de consulta con renderPendingPdfs (B20), y propone y
-// ejecuta la disposición final y extrae el texto para la búsqueda (B21); los demás módulos usan
-// este índice, nunca las tablas doc_.
+// ejecuta la disposición final y extrae el texto para la búsqueda (B21); Proyectos llena el acta
+// FT-TEC-001 y la lista FT-TEC-002 (B27); los demás módulos usan este índice, nunca las tablas doc_.
 export { DocModule } from './interface/doc.module.js';
 export { ProfileImagesModule } from './interface/profile-images.module.js';
 export {
@@ -61,4 +61,14 @@ export {
   type OpenedFile,
 } from './application/attached-files.js';
 export { storePdf as storeGeneratedPdf } from './application/generated-pdf.js';
+export {
+  isFormPublished,
+  recordSystemForm,
+  systemFormPdf,
+  type SystemFormInput,
+  type SystemFormPdf,
+  type SystemFormRecord,
+} from './application/system-forms.js';
+export { CODE_REVIEW_CODE, TECHNICAL_DELIVERY_CODE } from './domain/code-review-form.js';
+export { LOAN_CONTRACT_CODE } from './domain/loan-contract-form.js';
 export { FileStorage } from './infrastructure/file-storage.js';

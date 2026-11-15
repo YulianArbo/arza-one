@@ -27,10 +27,18 @@ import { DOC_FORM_ROUTE_CALLS } from './doc-form-route-calls.js';
 import { DOC_REQUEST_ROUTE_CALLS } from './doc-request-route-calls.js';
 import { DOC_RETENTION_ROUTE_CALLS } from './doc-retention-route-calls.js';
 import { DOC_ROUTE_CALLS } from './doc-route-calls.js';
+import { FINANCE_ROUTE_CALLS } from './finance-route-calls.js';
+import { LEDGER_ROUTE_CALLS } from './ledger-route-calls.js';
 import { MEDIA_ROUTE_CALLS } from './media-route-calls.js';
 import { NTF_ROUTE_CALLS } from './ntf-route-calls.js';
 import { PARTY_ROUTE_CALLS } from './party-route-calls.js';
 import { PRIVACY_ROUTE_CALLS } from './privacy-route-calls.js';
+import { PORTAL_ROUTE_CALLS } from './portal-route-calls.js';
+import { PROJECT_CONTROL_ROUTE_CALLS } from './project-control-route-calls.js';
+import { ASSET_ROUTE_CALLS } from './asset-route-calls.js';
+import { PURCHASE_ROUTE_CALLS } from './purchase-route-calls.js';
+import { SERVICE_ROUTE_CALLS } from './service-route-calls.js';
+import { CARE_ROUTE_CALLS } from './care-route-calls.js';
 import { PROJECT_ROUTE_CALLS } from './project-route-calls.js';
 import { CONTRACT_ROUTE_CALLS } from './contract-route-calls.js';
 import { QUOTE_ROUTE_CALLS } from './quote-route-calls.js';
@@ -306,5 +314,13 @@ export const WRITE_ROUTE_CALLS: Readonly<Record<string, RouteCall>> = {
   ...QUOTE_ROUTE_CALLS,
   ...CONTRACT_ROUTE_CALLS,
   ...PROJECT_ROUTE_CALLS,
+  ...PROJECT_CONTROL_ROUTE_CALLS,
+  ...SERVICE_ROUTE_CALLS,
+  ...CARE_ROUTE_CALLS,
+  ...PORTAL_ROUTE_CALLS,
+  ...FINANCE_ROUTE_CALLS,
+  ...LEDGER_ROUTE_CALLS,
+  ...PURCHASE_ROUTE_CALLS,
+  ...ASSET_ROUTE_CALLS,
   ...MEDIA_ROUTE_CALLS,
 };

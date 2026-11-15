@@ -13,3 +13,16 @@ export async function companyIdentity(tx: TenantTransaction): Promise<CompanyIde
   const tenant = await tx.tenant.findFirstOrThrow({ select: { legalName: true, taxId: true } });
   return { legalName: tenant.legalName, taxId: tenant.taxId };
 }
+
+/**
+ * La empresa activa con ese NIT, sin contexto de empresa: la usa el sitio público para saber a qué
+ * empresa llega un formulario (B29, decisión 3). Devuelve solo el identificador.
+ */
+export async function tenantIdByTaxId(
+  tx: TenantTransaction,
+  taxId: string,
+): Promise<string | null> {
+  const rows = await tx.$queryRaw<{ id: string | null }[]>`
+    SELECT core_tenant_by_tax_id(${taxId}) AS id`;
+  return rows[0]?.id ?? null;
+}

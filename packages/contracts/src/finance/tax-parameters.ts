@@ -5,10 +5,23 @@ import { z } from 'zod';
 // Finanzas (B31) los amplía. Cada clave tiene vigencias: un cambio crea una vigencia nueva y cierra
 // la anterior el día antes, sin sobrescribirla.
 
-/** Códigos estables de los errores de los parámetros tributarios (numeral 14.2). */
+/** Códigos estables de los errores de Finanzas (numeral 14.2). */
 export const FINANCE_ERROR_CODES = {
   taxParameterUnknown: 'FIN_TAX_PARAMETER_UNKNOWN',
   taxValidFromInvalid: 'FIN_TAX_VALID_FROM_INVALID',
+  invoiceNotFound: 'FIN_INVOICE_NOT_FOUND',
+  milestoneNotBillable: 'FIN_MILESTONE_NOT_BILLABLE',
+  invoiceStatusInvalid: 'FIN_INVOICE_STATUS_INVALID',
+  fiscalFileInvalid: 'FIN_FISCAL_FILE_INVALID',
+  creditNoteInvalid: 'FIN_CREDIT_NOTE_INVALID',
+  paymentInvalid: 'FIN_PAYMENT_INVALID',
+  recordNotFound: 'FIN_RECORD_NOT_FOUND',
+  recordInvalid: 'FIN_RECORD_INVALID',
+  statusInvalid: 'FIN_STATUS_INVALID',
+  segregationRequired: 'FIN_SEGREGATION_REQUIRED',
+  periodClosed: 'FIN_PERIOD_CLOSED',
+  periodNotClosable: 'FIN_PERIOD_NOT_CLOSABLE',
+  exportTooLarge: 'FIN_EXPORT_TOO_LARGE',
 } as const;
 
 /** Clave de un parámetro tributario, como IVA_GENERAL. */

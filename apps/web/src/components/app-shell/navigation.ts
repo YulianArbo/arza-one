@@ -16,6 +16,7 @@ import {
   ScrollText,
   Settings,
   ShieldCheck,
+  ShoppingCart,
   Users,
   type LucideIcon,
 } from 'lucide-react';
@@ -70,8 +71,7 @@ const MODULES: readonly NavigationItem[] = [
     slug: 'servicio',
     label: 'Servicio',
     icon: Headset,
-    permissions: ['service.ticket.read', 'service.pqrsf.read'],
-    block: 'B28',
+    permissions: ['service.ticket.read', 'service.pqrsf.read', 'service.kb.read'],
   },
   {
     slug: 'documentos',
@@ -91,7 +91,24 @@ const MODULES: readonly NavigationItem[] = [
     slug: 'finanzas',
     label: 'Finanzas',
     icon: Landmark,
-    permissions: ['finance.invoice.read', 'finance.budget.read', 'finance.tax_parameter.manage'],
+    permissions: [
+      'finance.invoice.read',
+      'finance.budget.read',
+      'finance.tax_parameter.manage',
+      'finance.ledger.read',
+      'finance.expense.manage',
+    ],
+  },
+  {
+    slug: 'compras',
+    label: 'Compras',
+    icon: ShoppingCart,
+    permissions: [
+      'purchase.read',
+      'purchase.request.create',
+      'purchase.travel.request',
+      'asset.read',
+    ],
   },
   {
     slug: 'talento-y-sst',

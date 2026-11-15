@@ -182,13 +182,20 @@ export function ProjectList(): JSX.Element {
     <div className="flex flex-col gap-4">
       <PageHeader
         title="Proyectos"
-        description="Proyectos de software: equipo, hitos, iteraciones y tablero de trabajo."
+        description="Proyectos de software: equipo, hitos, tablero, horas, entregables y su control."
         action={
-          canCreate ? (
-            <Link href={PROJECT_PATHS.create} className={buttonVariants()}>
-              Nuevo proyecto
-            </Link>
-          ) : null
+          <div className="flex flex-wrap gap-2">
+            {can('project.time.log') ? (
+              <Link href={PROJECT_PATHS.myHours} className={buttonVariants({ variant: 'outline' })}>
+                Mis horas
+              </Link>
+            ) : null}
+            {canCreate ? (
+              <Link href={PROJECT_PATHS.create} className={buttonVariants()}>
+                Nuevo proyecto
+              </Link>
+            ) : null}
+          </div>
         }
       />
       {options.data === undefined ? null : <PendingContracts options={options.data} />}
