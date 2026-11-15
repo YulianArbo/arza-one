@@ -17,3 +17,6 @@ apps/api/src/generated/
 next-env.d.ts
 playwright-report/
 test-results/
+
+# Archivos generados por OpenNext para Cloudflare
+.open-next/

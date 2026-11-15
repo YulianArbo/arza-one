@@ -18,6 +18,8 @@ allowBuilds:
   protobufjs: false
   # Aceleración nativa opcional de msgpackr (la usa BullMQ, B06); sin ella usa JavaScript puro.
   msgpackr-extract: false
+  esbuild: true
+  workerd: true
 # Versiones corregidas de dependencias indirectas con vulnerabilidades altas (B05, osv-scanner).
 # Prisma 7.10.0 (la última 7.x) fija las vulnerables. Retirar al actualizar Prisma.
 overrides:
