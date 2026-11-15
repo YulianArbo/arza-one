@@ -29,12 +29,11 @@ describe('radicación pública', () => {
     const today = bogotaToday(scenario.clock.now());
     const holiday = nextWeekday(today);
     const holidays = await scenario.inTenant(async (tx) => {
-      await tx.holiday.create({
-        data: {
-          tenantId: scenario.tenant.id,
-          holidayDate: new Date(`${holiday}T00:00:00Z`),
-          name: 'Festivo de prueba',
-        },
+      const key = { tenantId: scenario.tenant.id, holidayDate: new Date(`${holiday}T00:00:00Z`) };
+      await tx.holiday.upsert({
+        where: { tenantId_holidayDate: key },
+        create: { ...key, name: 'Festivo de prueba' },
+        update: { deletedAt: null },
       });
       const rows = await tx.holiday.findMany({ where: { deletedAt: null } });
       return new Set(rows.map((row) => row.holidayDate.toISOString().slice(0, 10)));

@@ -68,7 +68,26 @@ describe('garantía del entregable aceptado', () => {
     const extend = { ends_on: addDays(warranty.ends_on, 30), scope: 'Fallas y ajustes.' };
     const path = `/v1/warranties/${warranty.id}`;
     expect((await scenario.put(path, delivery.leader, extend, warranty.version)).status).toBe(403);
+    expect((await scenario.put(path, found.agent, extend, warranty.version + 1)).status).toBe(409);
+    const tooEarly = { ...extend, ends_on: addDays(warranty.starts_on, -1) };
+    expect((await scenario.put(path, found.agent, tooEarly, warranty.version)).status).toBe(422);
     const saved = await scenario.put(path, found.agent, extend, warranty.version);
     expect(saved.status, saved.text).toBe(204);
   });
+});
+
+it('filtra las garantías vencidas y rechaza actualizar una inexistente', async () => {
+  const { agent, warranty } = await accepted();
+  const missing = '/v1/warranties/00000000-0000-4000-8000-000000000001';
+  const body = { ends_on: warranty.ends_on, scope: warranty.scope };
+  expect((await scenario.put(missing, agent, body, warranty.version)).status).toBe(404);
+  scenario.clock.advance(91 * 86_400_000);
+  const renewed = await scenario.refresh(agent);
+  const all = await scenario.get('/v1/warranties', renewed.session);
+  const expired = await scenario.get('/v1/warranties?active=false', renewed.session);
+  for (const response of [all, expired]) {
+    expect(warrantyListResponseSchema.parse(response.body).data).toContainEqual(
+      expect.objectContaining({ id: warranty.id, active: false }),
+    );
+  }
 });

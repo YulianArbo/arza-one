@@ -8,6 +8,8 @@ import {
   prepareDatabase,
   startServices,
   stopServices,
+  waitForDatabase,
+  type DatabaseAddress,
   type RunCommand,
   type StackFiles,
 } from './local-stack.ts';
@@ -17,6 +19,8 @@ export interface StackDependencies {
   readonly garage: GarageCli;
   readonly files: StackFiles;
   readonly pnpm: readonly string[];
+  /** El Node que corre este guion, para la espera de la base de datos. */
+  readonly node: string;
   readonly env: Readonly<Record<string, string | undefined>>;
   readonly print: (message: string) => void;
 }
@@ -36,6 +40,15 @@ function garageSettings(env: StackDependencies['env']): GarageSettings {
 function port(env: StackDependencies['env'], name: string, fallback: string): string {
   const value = env[name];
   return value === undefined || value === '' ? fallback : value;
+}
+
+/** La dirección de la base de datos que usan las migraciones (DATABASE_MIGRATION_URL). */
+export function databaseAddress(env: StackDependencies['env']): DatabaseAddress {
+  const url = env['DATABASE_MIGRATION_URL'];
+  const parsed = url === undefined || url === '' ? null : URL.parse(url);
+  const fallback = { host: 'localhost', port: Number(port(env, 'POSTGRES_PORT', '5432')) };
+  if (parsed === null) return fallback;
+  return { host: parsed.hostname, port: Number(parsed.port || '5432') };
 }
 
 function summary(env: StackDependencies['env']): string {
@@ -64,6 +77,8 @@ export function infraUp(deps: StackDependencies): void {
   startServices(deps.run, deps.files);
   deps.print('Preparando el almacenamiento de archivos (Garage)…\n');
   setupGarage(deps.garage, settings);
+  deps.print('Esperando a que la base de datos acepte conexiones…\n');
+  waitForDatabase(deps.run, deps.node, databaseAddress(deps.env));
   deps.print('Aplicando las migraciones y los datos semilla…\n');
   prepareDatabase(deps.run, deps.pnpm);
   deps.print(summary(deps.env));

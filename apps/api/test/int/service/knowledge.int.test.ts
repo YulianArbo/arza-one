@@ -44,6 +44,46 @@ async function stepOk(person: Person, id: string, action: string): Promise<void>
   expect(response.status, response.text).toBe(204);
 }
 
+it('rechaza la edición obsoleta y la publicación duplicada', async () => {
+  const agent = await scenario.agent();
+  const id = await article(agent);
+  const path = `/v1/kb-articles/${id}`;
+  const draft = await detail(agent, id);
+  const missing = '/v1/kb-articles/00000000-0000-4000-8000-000000000001';
+  expect((await scenario.put(missing, agent, ARTICLE, draft.version)).status).toBe(404);
+  expect((await scenario.put(path, agent, ARTICLE, draft.version + 1)).status).toBe(409);
+  expect((await scenario.action(`${path}/actions/publish`, agent, draft.version + 1)).status).toBe(
+    409,
+  );
+  await stepOk(agent, id, 'publish');
+  const published = await detail(agent, id);
+  expect((await scenario.action(`${path}/actions/publish`, agent, published.version)).status).toBe(
+    409,
+  );
+  await stepOk(agent, id, 'archive');
+  const archived = await detail(agent, id);
+  expect((await scenario.action(`${path}/actions/archive`, agent, archived.version)).status).toBe(
+    409,
+  );
+  await stepOk(agent, id, 'publish');
+  expect((await detail(agent, id)).status).toBe('published');
+});
+
+it('pagina artículos publicados con el cursor de la página anterior', async () => {
+  const agent = await scenario.agent();
+  const first = await article(agent, { title: 'Rotación de claves de prueba' });
+  const second = await article(agent, { title: 'Rotación de claves de respaldo' });
+  await stepOk(agent, first, 'publish');
+  await stepOk(agent, second, 'publish');
+  const query = '?q=Rotaci%C3%B3n%20de%20claves&status=published&limit=1';
+  const page = await list(agent, query);
+  const cursor = page.next_cursor;
+  if (cursor === null) throw new Error('Falta el cursor de la segunda página');
+  const next = await list(agent, `${query}&cursor=${cursor}`);
+  expect(next.next_cursor).toBeNull();
+  expect([...page.data, ...next.data].map((row) => row.id).sort()).toEqual([first, second].sort());
+});
+
 describe('ciclo del artículo', () => {
   it('nace en borrador, se publica, se edita y se archiva, con su auditoría', async () => {
     const agent = await scenario.agent();
@@ -85,7 +125,7 @@ describe('ciclo del artículo', () => {
       audience: 'client',
     });
     await stepOk(agent, id, 'publish');
-    const found = await list(agent, '?q=código único&audience=client');
+    const found = await list(agent, '?q=código único&audience=client&category=billing');
     expect(found.data.map((row) => row.id)).toEqual([id]);
     expect(found.can_manage).toBe(true);
     const drafts = await list(agent, '?status=draft');

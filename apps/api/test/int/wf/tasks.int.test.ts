@@ -128,13 +128,15 @@ describe('reasignación y tareas cerradas', () => {
   it('quien reasigna entrega cualquier tarea abierta con un plazo nuevo', async () => {
     const { admin, id, review } = await inReview();
     const other = await scenario.people('otro', ['COLABORADOR']);
-    // Tres días después: el plazo nuevo siempre queda más tarde, caiga en fin de semana o no.
-    scenario.clock.advance(3 * 24 * 60 * 60 * 1000);
+    const originalDeadline = review.dueAt?.getTime();
+    if (originalDeadline === undefined) throw new Error('Expected the review to have a deadline');
+    // Reassign after the original deadline, regardless of weekends or holidays.
+    scenario.clock.advance(originalDeadline + 1 - scenario.clock.now().getTime());
     const later = await scenario.refresh(admin);
     await scenario.act(later, review.id, 'reassign', { to_user_id: other.id });
     const moved = await scenario.onlyOpenTask(id);
     expect(moved).toMatchObject({ assigneeId: other.id, status: 'pending', escalatedToId: null });
-    expect(moved.dueAt?.getTime()).toBeGreaterThan(review.dueAt?.getTime() ?? 0);
+    expect(moved.dueAt?.getTime()).toBeGreaterThan(originalDeadline);
   });
 
   it('una tarea cerrada no admite más acciones', async () => {
