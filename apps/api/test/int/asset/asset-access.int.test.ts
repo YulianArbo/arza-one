@@ -237,10 +237,10 @@ it('anula una asignación pendiente de generación y rechaza reintentos incompat
     'IDEMPOTENCY_KEY_REUSED',
   );
   const path = `${ASSIGNMENTS}/${id}`;
+  const { version } = await s.openAssignment(t.manager, assetId);
   const cancel = s.post(`${path}/cancellation`, t.manager.session, {
     reason: 'Solicitud duplicada',
   });
-  const { version } = await s.openAssignment(t.manager, assetId);
   await versioned(cancel, version).expect(204);
   const returned = s.post(`${path}/return`, t.manager.session, {
     returned_on: s.day(0),
