@@ -7,6 +7,7 @@ import {
 import type { Response } from 'supertest';
 import { describe, expect, it } from 'vitest';
 
+import { signedCopy } from '../audit/support/contract-steps.js';
 import { createdId, keyed, putVersioned, versioned } from '../fin/support/ledger-steps.js';
 import { AccessScenario, type Person } from '../iam/support/access-scenario.js';
 import { auditActions, errorCode } from '../iam/support/iam-fixtures.js';
@@ -221,4 +222,50 @@ describe('evaluación de proveedores y viajes (B33)', () => {
   it('otra empresa no ve estos registros y sin el permiso responde 403', async () => {
     await isolatedAndDenied(travelId);
   });
+});
+
+it('reenvía la solicitud de viaje y conserva el borrador ante versiones obsoletas', async () => {
+  const t = team();
+  const key = crypto.randomUUID();
+  const body = travelBody(s, 5);
+  const post = (input: object) =>
+    s.post(TRAVEL, t.requester.session, input).set('Idempotency-Key', key);
+  const id = await createdId(post(body));
+  expect(await createdId(post(body))).toBe(id);
+  expectError(
+    await post({ ...body, destination: 'Otro destino ficticio' }),
+    409,
+    'IDEMPOTENCY_KEY_REUSED',
+  );
+  const path = `${TRAVEL}/${id}`;
+  expectError(await putVersioned(s, path, t.requester, body, 9), 409, 'VERSION_CONFLICT');
+  expectError(
+    await versioned(s.post(`${path}/approval`, t.approver.session), 1),
+    409,
+    'PUR_STATUS_INVALID',
+  );
+  await versioned(s.post(`${path}/submission`, t.requester.session), 1).expect(204);
+  expectError(await putVersioned(s, path, t.requester, body, 2), 409, 'PUR_STATUS_INVALID');
+});
+
+it('deduplica un gasto de viaje y rechaza reutilizarlo para otro viaje', async () => {
+  const t = team();
+  const id = await approvedTravel(s, t);
+  const other = await approvedTravel(s, t);
+  const key = crypto.randomUUID();
+  const body = {
+    concept: 'Traslado ficticio',
+    amount: '100.00',
+    support_file_id: await signedCopy(s, t.requester),
+  };
+  const post = (travel: string) =>
+    s.post(`${TRAVEL}/${travel}/expenses`, t.requester.session, body).set('Idempotency-Key', key);
+  const expenseId = await createdId(post(id));
+  expect(await createdId(post(id))).toBe(expenseId);
+  expectError(await post(other), 409, 'IDEMPOTENCY_KEY_REUSED');
+  expect((await travelOf(t.requester, id, true)).expenses).toHaveLength(1);
+  expect((await travelOf(t.requester, other, true)).expenses).toHaveLength(0);
+  const path = `/v1/travel-expenses/${expenseId}`;
+  await del(s, path, t.requester).expect(204);
+  expectError(await del(s, path, t.requester), 404, 'PUR_RECORD_NOT_FOUND');
 });

@@ -9,8 +9,8 @@
 
 -- AlterTable
 ALTER TABLE "sig_envelopes" ADD COLUMN     "party_id" UUID,
-ADD COLUMN     "source_id" UUID,
-ALTER COLUMN "contract_id" DROP NOT NULL;
+ADD COLUMN     "source_id" UUID;
+ALTER TABLE "sig_envelopes" ALTER COLUMN "contract_id" DROP NOT NULL;
 
 -- AlterTable
 ALTER TABLE "prj_projects" ADD COLUMN     "closed_at" TIMESTAMPTZ(6),

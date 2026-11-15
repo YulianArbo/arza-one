@@ -5,6 +5,7 @@ import {
   invoiceCreatedResponseSchema,
 } from '@arza/contracts';
 import type { Response } from 'supertest';
+import { v7 as uuidv7 } from 'uuid';
 import { describe, expect, it } from 'vitest';
 
 import { AccessScenario, type Person } from '../iam/support/access-scenario.js';
@@ -182,7 +183,7 @@ async function exportMatchesRecords(): Promise<void> {
   const batches = exportBatchListResponseSchema.parse(
     (await s.get(`${FIN}/exports`, finance.session)).body,
   );
-  expect(batches.data[0]).toMatchObject({
+  expect(batches.data.find((batch) => batch.id === world().batchId)).toMatchObject({
     kind: 'definitive',
     row_count: 4,
     totals: { expense: '120000.50', petty_cash: '470000.50', invoice: '0.00' },
@@ -191,6 +192,11 @@ async function exportMatchesRecords(): Promise<void> {
 
 async function closedPeriodRejectsChanges(): Promise<void> {
   const { finance, costCenterId } = world();
+  const missing = await s.get(`${FIN}/exports/${uuidv7()}/file`, finance.session);
+  expect(missing.status, missing.text).toBe(404);
+  const movement = movementBody('voucher', '1.00', on('17'), costCenterId);
+  const response = await keyed(s, finance, `${FIN}/petty-cash/movements`, movement);
+  expectError(response, 409, 'FIN_PERIOD_CLOSED');
   const expense = await expenseBody(s, finance, costCenterId, on('15'));
   expectError(await keyed(s, finance, `${FIN}/expenses`, expense), 409, 'FIN_PERIOD_CLOSED');
   const reconciliation = {
@@ -265,6 +271,30 @@ async function isolatedBatches(): Promise<void> {
   expect(batches.data).toEqual([]);
 }
 
+async function refusesMismatchedExport(): Promise<void> {
+  const { finance, period } = world();
+  const fixture = await s.inTenant((tx) =>
+    tx.finExportBatch.create({
+      data: {
+        tenantId: s.tenant.id,
+        period: monthsBefore(`${period}-01`, 1),
+        kind: 'definitive',
+        rowCount: 0,
+        totals: {},
+        checksum: '0'.repeat(64),
+        fileName: 'prueba.csv',
+        exportedBy: finance.id,
+        exportedAt: s.clock.now(),
+      },
+    }),
+  );
+  expectError(
+    await s.get(`${FIN}/exports/${fixture.id}/file`, finance.session),
+    409,
+    'FIN_STATUS_INVALID',
+  );
+}
+
 describe('cierre de periodo y exportación contable (B32)', () => {
   it('no cierra un mes con gastos sin decidir ni el mes en curso', async () => {
     await prepare();
@@ -294,5 +324,9 @@ describe('cierre de periodo y exportación contable (B32)', () => {
 
   it('otra empresa no ve los lotes', async () => {
     await isolatedBatches();
+  });
+
+  it('rechaza una descarga definitiva cuando no coincide la huella del lote', async () => {
+    await refusesMismatchedExport();
   });
 });
