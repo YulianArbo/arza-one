@@ -74,6 +74,13 @@ async function budgetFlow(): Promise<void> {
   world().budgetId = await createdId(s.post(`${FIN}/budgets`, finance.session, { year }));
   expectError(await s.post(`${FIN}/budgets`, finance.session, { year }), 422, 'FIN_RECORD_INVALID');
   const path = `${FIN}/budgets/${world().budgetId}`;
+  const draft = await s.get(path, approver.session);
+  expect(budgetDetailEnvelopeSchema.parse(draft.body).data).toMatchObject({
+    status: 'draft',
+    approved_at: null,
+    line_count: 0,
+    mine: false,
+  });
   expectError(
     await versioned(s.post(`${path}/approval`, approver.session), 1),
     422,
