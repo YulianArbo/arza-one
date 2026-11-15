@@ -1,10 +1,17 @@
 import { assetMaintenanceListResponseSchema } from '@arza/contracts';
 import type { Response } from 'supertest';
+import { v7 as uuidv7 } from 'uuid';
 import { describe, expect, it } from 'vitest';
 
 import { createdId, keyed, putVersioned, versioned } from '../fin/support/ledger-steps.js';
 import { auditActions, errorCode } from '../iam/support/iam-fixtures.js';
-import { ASSETS, MAINTENANCE, AssetScenario, type AssetTeam } from './support/asset-scenario.js';
+import {
+  ASSETS,
+  ASSIGNMENTS,
+  MAINTENANCE,
+  AssetScenario,
+  type AssetTeam,
+} from './support/asset-scenario.js';
 
 // B34: inventario y mantenimientos con sus reglas, permisos denegados, «solo lo propio» y
 // aislamiento entre empresas. Datos ficticios.
@@ -168,4 +175,107 @@ describe('aislamiento entre empresas', () => {
     const own = await s.post(`${ASSETS}/book/export`, t.auditor.session, {});
     expect(own.text).toContain(serial);
   });
+});
+
+it('deduplica el registro y rechaza una segunda baja', async () => {
+  const t = await team();
+  const key = crypto.randomUUID();
+  const body = s.assetBody();
+  const post = (input: object) =>
+    s.post(ASSETS, t.manager.session, input).set('Idempotency-Key', key);
+  const id = await createdId(post(body));
+  expect(await createdId(post(body))).toBe(id);
+  expectError(await post({ ...body, name: 'Otro activo' }), 409, 'IDEMPOTENCY_KEY_REUSED');
+  expectError(await post({ ...body, purchase_date: s.day(-399) }), 409, 'IDEMPOTENCY_KEY_REUSED');
+  const retired = await s.retire(t.manager, id);
+  expect(retired.status, retired.text).toBe(204);
+  expectError(await s.retire(t.manager, id), 409, 'AST_STATUS_INVALID');
+});
+
+it('deduplica el mantenimiento y protege el estado y la versión', async () => {
+  const t = await team();
+  const assetId = await s.newAsset(t.manager);
+  const other = await s.newAsset(t.manager);
+  const key = crypto.randomUUID();
+  const body = { kind: 'preventive', scheduled_on: s.day(0), note: 'Revisión' };
+  const post = (id: string, input: object) =>
+    s.post(`${ASSETS}/${id}/maintenance`, t.manager.session, input).set('Idempotency-Key', key);
+  const id = await createdId(post(assetId, body));
+  expect(await createdId(post(assetId, body))).toBe(id);
+  expectError(await post(other, body), 409, 'IDEMPOTENCY_KEY_REUSED');
+  expectError(await post(assetId, { ...body, kind: 'corrective' }), 409, 'IDEMPOTENCY_KEY_REUSED');
+  const done = { done_on: s.day(0), cost: '100.00', note: 'Revisión terminada' };
+  const complete = (record: string, version: number) =>
+    versioned(s.post(`${MAINTENANCE}/${record}/completion`, t.manager.session, done), version);
+  expectError(await complete(uuidv7(), 1), 404, 'AST_RECORD_NOT_FOUND');
+  expectError(await complete(id, 9), 409, 'VERSION_CONFLICT');
+  await complete(id, 1).expect(204);
+  expect((await s.assetDetail(t.manager, assetId)).maintenance).toContainEqual(
+    expect.objectContaining({ id, note: done.note, cost: done.cost }),
+  );
+  expect((await s.retire(t.manager, other)).status).toBe(204);
+  expectError(
+    await keyed(s, t.manager, `${ASSETS}/${other}/maintenance`, body),
+    409,
+    'AST_STATUS_INVALID',
+  );
+});
+
+it('anula una asignación pendiente de generación y rechaza reintentos incompatibles', async () => {
+  const t = await team();
+  const assetId = await s.newAsset(t.manager);
+  const other = await s.newAsset(t.manager);
+  const key = crypto.randomUUID();
+  const body = { user_id: t.holder.id, assigned_on: s.day(0), message: null };
+  const post = (id: string, input: object) =>
+    s.post(`${ASSETS}/${id}/assignments`, t.manager.session, input).set('Idempotency-Key', key);
+  const id = await createdId(post(assetId, body));
+  expectError(await post(other, body), 409, 'IDEMPOTENCY_KEY_REUSED');
+  expectError(
+    await post(assetId, { ...body, user_id: t.unlinked.id }),
+    409,
+    'IDEMPOTENCY_KEY_REUSED',
+  );
+  const path = `${ASSIGNMENTS}/${id}`;
+  const cancel = s.post(`${path}/cancellation`, t.manager.session, {
+    reason: 'Solicitud duplicada',
+  });
+  const { version } = await s.openAssignment(t.manager, assetId);
+  await versioned(cancel, version).expect(204);
+  const returned = s.post(`${path}/return`, t.manager.session, {
+    returned_on: s.day(0),
+    note: 'Estado de prueba',
+  });
+  expectError(await versioned(returned, version + 1), 409, 'AST_STATUS_INVALID');
+  expect((await s.assetDetail(t.manager, assetId)).asset.status).toBe('available');
+});
+
+it('limita al colaborador los mantenimientos de activos a su cargo', async () => {
+  const t = await team();
+  const mine = await s.newAsset(t.manager);
+  const other = await s.newAsset(t.manager);
+  const body = { kind: 'preventive', scheduled_on: s.day(0), note: null };
+  const schedule = (assetId: string) =>
+    keyed(s, t.manager, `${ASSETS}/${assetId}/maintenance`, body);
+  const ownMaintenance = await createdId(schedule(mine));
+  const otherMaintenance = await createdId(schedule(other));
+  const assignment = await s.activeWithoutSigning(t, mine);
+  const list = await s.get(MAINTENANCE, t.holder.session);
+  expect(list.status, list.text).toBe(200);
+  const ids = assetMaintenanceListResponseSchema.parse(list.body).data.map((row) => row.id);
+  expect(ids).toContain(ownMaintenance);
+  expect(ids).not.toContain(otherMaintenance);
+
+  const { version } = await s.openAssignment(t.manager, mine);
+  const returned = (date: string) =>
+    versioned(
+      s.post(`${ASSIGNMENTS}/${assignment}/return`, t.manager.session, {
+        returned_on: date,
+        note: 'Estado de prueba',
+      }),
+      version,
+    );
+  expectError(await returned(s.day(1)), 422, 'AST_RECORD_INVALID');
+  expectError(await returned(s.day(-1)), 422, 'AST_RECORD_INVALID');
+  await returned(s.day(0)).expect(204);
 });
