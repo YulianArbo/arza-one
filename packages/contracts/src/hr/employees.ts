@@ -76,8 +76,7 @@ export type OnboardingTaskKind = keyof typeof ONBOARDING_TASKS;
 export const onboardingTaskKindSchema = enumOf(ONBOARDING_TASKS);
 
 /**
- * Lista de chequeo de la historia laboral. El formato RE-GTH-002 no está en el repositorio: esta
- * lista es una propuesta por validar (decisión 10 del B35).
+ * Lista de chequeo aprobada para B35. La carga del formato RE-GTH-002 se hará en otro bloque.
  */
 export const FILE_ITEMS = {
   id_document: 'Documento de identidad',

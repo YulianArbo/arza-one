@@ -91,6 +91,7 @@ export const selectionEvaluationKindSchema = enumOf(SELECTION_EVALUATION_KINDS);
 export const CANDIDATE_RETENTION_MONTHS = 12;
 
 export const hrRefSchema = z.object({ id: idSchema, name: z.string() });
+export const hrPositionListResponseSchema = z.object({ data: z.array(hrRefSchema) });
 
 export const vacancySchema = z.object({
   id: idSchema,
@@ -255,6 +256,7 @@ export const hireCandidateSchema = z
       .describe('Código del catálogo «Bandas salariales»'),
     salary: moneySchema.describe('Salario mensual en pesos'),
     work_email: z.email().max(160).describe('Correo de trabajo para la cuenta del colaborador'),
+    contract_file_id: idSchema.describe('PDF del contrato laboral revisado por el antivirus'),
     company_signer_id: idSchema.describe('Persona de la Dirección que firma por la empresa'),
     message: optionalText(1000),
   })

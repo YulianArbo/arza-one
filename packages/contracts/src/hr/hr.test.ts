@@ -24,6 +24,7 @@ const HIRE = {
   salary_band: 'BANDA_2',
   salary: '3500000',
   work_email: 'nueva.persona@arzatech.test',
+  contract_file_id: ID,
   company_signer_id: ID,
 };
 
@@ -63,6 +64,15 @@ describe('proceso de selección (ficha 17.13)', () => {
 });
 
 describe('contrato laboral', () => {
+  it('exige identificar el PDF que se enviará a firma', () => {
+    expect(hireCandidateSchema.safeParse({ ...HIRE, contract_file_id: undefined }).success).toBe(
+      false,
+    );
+    expect(
+      hireCandidateSchema.safeParse({ ...HIRE, contract_file_id: 'contrato.pdf' }).success,
+    ).toBe(false);
+  });
+
   it('el término indefinido no lleva terminación; los demás sí', () => {
     expect(needsEndDate('indefinite')).toBe(false);
     expect(needsEndDate('fixed')).toBe(true);

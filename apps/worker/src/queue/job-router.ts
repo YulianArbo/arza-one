@@ -1,4 +1,5 @@
 import { JOBS } from '@arza/api/platform';
+import { expireRecruitmentData } from '@arza/api/hr';
 import { UnrecoverableError } from 'bullmq';
 
 import {
@@ -116,6 +117,7 @@ function handlers(deps: JobDependencies): ReadonlyMap<string, JobHandler> {
     [JOBS.sigFollowUp.name, withoutData(async () => processSignatureFollowUp(deps))],
     [JOBS.prjAcceptanceWork.name, withoutData(async () => processAcceptanceWork(deps))],
     [JOBS.astLoanWork.name, withoutData(async () => processLoanWork(deps))],
+    [JOBS.hrRetention.name, withoutData(async () => expireRecruitmentData(deps))],
     [JOBS.svcSlaWork.name, withoutData(async () => processSlaWork(deps))],
     [JOBS.svcCareWork.name, withoutData(async () => processCareWork(deps))],
   ]);

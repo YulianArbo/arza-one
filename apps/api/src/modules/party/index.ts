@@ -5,6 +5,13 @@
 // proveedores y el documento de cada tercero para el archivo contable. Compras (B33) pide los
 // proveedores con el estado de su conocimiento del tercero.
 export { PartyModule } from './interface/party.module.js';
+export {
+  candidateParties,
+  eraseRecruitmentIdentity,
+  registerCandidateParty,
+  type CandidatePartyRecord,
+  type CandidatePrivacy,
+} from './application/recruitment-parties.js';
 export { seedPartyDemo } from './application/party-demo-seed.js';
 export { visiblePartyName } from './application/party-records.js';
 export { activeSuppliers, financeParties, type FinanceParty } from './application/party-finance.js';

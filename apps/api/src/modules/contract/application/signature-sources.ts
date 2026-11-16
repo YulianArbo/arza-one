@@ -72,13 +72,21 @@ export const ACCEPTANCE_SOURCE = 'acceptance';
  */
 export const LOAN_SOURCE = 'asset_loan';
 
-/** El proceso firma un documento de otro módulo (acta o comodato), no un contrato ni un otrosí. */
+/** El contrato laboral lo prepara Talento Humano y Contratos gestiona su firma. */
+export const EMPLOYMENT_SOURCE = 'hr_contract';
+
+/** El proceso firma un documento de otro módulo. */
 export function isStandalone(envelope: { readonly source: string }): boolean {
-  return envelope.source === ACCEPTANCE_SOURCE || envelope.source === LOAN_SOURCE;
+  return (
+    envelope.source === ACCEPTANCE_SOURCE ||
+    envelope.source === LOAN_SOURCE ||
+    envelope.source === EMPLOYMENT_SOURCE
+  );
 }
 
 /** Cómo se llama el documento de otro módulo ante quien lo firma. */
 export function standaloneKind(envelope: { readonly source: string }): string {
+  if (envelope.source === EMPLOYMENT_SOURCE) return 'Contrato laboral';
   return envelope.source === LOAN_SOURCE ? 'Contrato de comodato' : 'Acta de entrega técnica';
 }
 

@@ -55,6 +55,28 @@ export async function isAttachableFile(
   return count > 0;
 }
 
+/** PDF que la persona puede adjuntar a una solicitud de firma y huella registrada al cargarlo. */
+export async function attachablePdfForSignature(
+  tx: TenantTransaction,
+  principal: Pick<Principal, 'tenantId' | 'userId'>,
+  fileId: string,
+): Promise<{ id: string; sha256: string } | null> {
+  const file = await tx.file.findFirst({
+    where: {
+      id: fileId,
+      tenantId: principal.tenantId,
+      createdBy: principal.userId,
+      scanStatus: 'available',
+      deletedAt: null,
+      mimeType: 'application/pdf',
+    },
+    select: { id: true, sha256: true },
+  });
+  if (file === null) return null;
+  if (file.sha256 === null) return null;
+  return { id: file.id, sha256: file.sha256 };
+}
+
 @Injectable()
 export class AttachedFileLinks {
   constructor(

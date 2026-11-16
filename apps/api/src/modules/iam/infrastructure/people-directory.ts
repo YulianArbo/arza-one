@@ -45,6 +45,10 @@ export async function delegationsTo(
 }
 
 /** Cargo de la persona, o null si no tiene. */
+export async function hasAccountForParty(tx: TenantTransaction, partyId: string): Promise<boolean> {
+  return (await tx.user.count({ where: { partyId } })) > 0;
+}
+
 export async function positionOfUser(
   tx: TenantTransaction,
   userId: string,
