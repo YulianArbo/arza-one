@@ -1,5 +1,6 @@
 import {
   budgetDetailEnvelopeSchema,
+  budgetListResponseSchema,
   budgetExecutionEnvelopeSchema,
   certifiableHoursResponseSchema,
   expenseListResponseSchema,
@@ -7,6 +8,7 @@ import {
   reconciliationListResponseSchema,
 } from '@arza/contracts';
 import type { Response } from 'supertest';
+import { v7 as uuidv7 } from 'uuid';
 import { describe, expect, it } from 'vitest';
 
 import { AccessScenario, type Person } from '../iam/support/access-scenario.js';
@@ -72,17 +74,36 @@ async function budgetFlow(): Promise<void> {
   world().budgetId = await createdId(s.post(`${FIN}/budgets`, finance.session, { year }));
   expectError(await s.post(`${FIN}/budgets`, finance.session, { year }), 422, 'FIN_RECORD_INVALID');
   const path = `${FIN}/budgets/${world().budgetId}`;
+  const draft = await s.get(path, approver.session);
+  expect(budgetDetailEnvelopeSchema.parse(draft.body).data).toMatchObject({
+    status: 'draft',
+    approved_at: null,
+    line_count: 0,
+    mine: false,
+  });
+  expectError(
+    await versioned(s.post(`${path}/approval`, approver.session), 1),
+    422,
+    'FIN_RECORD_INVALID',
+  );
   const lines = { lines: [line(1, '1000000.00'), line(2, '500000.00')] };
+  expect((await putVersioned(s, `${path}/lines`, finance, lines, 9)).status).toBe(409);
   expect((await putVersioned(s, `${path}/lines`, finance, lines, 1)).status).toBe(204);
   expectError(
     await versioned(s.post(`${path}/approval`, finance.session), 2),
     409,
     'FIN_SEGREGATION_REQUIRED',
   );
+  expect((await versioned(s.post(`${path}/approval`, approver.session), 9)).status).toBe(409);
   expect((await versioned(s.post(`${path}/approval`, approver.session), 2)).status).toBe(204);
+  expect((await versioned(s.post(`${path}/approval`, approver.session), 3)).status).toBe(409);
   expectError(await putVersioned(s, `${path}/lines`, finance, lines, 3), 409, 'FIN_STATUS_INVALID');
   const detail = budgetDetailEnvelopeSchema.parse((await s.get(path, finance.session)).body).data;
   expect(detail).toMatchObject({ status: 'approved', planned_total: '1500000.00', line_count: 2 });
+  const list = await s.get(`${FIN}/budgets`, approver.session);
+  expect(budgetListResponseSchema.parse(list.body).data).toContainEqual(
+    expect.objectContaining({ id: world().budgetId, status: 'approved' }),
+  );
 }
 
 async function expenseFlow(): Promise<void> {
@@ -173,6 +194,7 @@ async function reconciliationFlow(): Promise<void> {
     differences: [],
   };
   const id = await createdId(s.post(`${FIN}/bank-reconciliations`, finance.session, body));
+  expect((await s.post(`${FIN}/bank-reconciliations`, finance.session, body)).status).toBe(422);
   const path = `${FIN}/bank-reconciliations/${id}`;
   expectError(
     await versioned(s.post(`${path}/close`, finance.session), 1),
@@ -183,8 +205,11 @@ async function reconciliationFlow(): Promise<void> {
     ...body,
     differences: [{ description: 'Comisión bancaria', amount: '-15000.00' }],
   };
+  expect((await putVersioned(s, path, finance, fixed, 9)).status).toBe(409);
   expect((await putVersioned(s, path, finance, fixed, 1)).status).toBe(204);
+  expect((await versioned(s.post(`${path}/close`, finance.session), 9)).status).toBe(409);
   expect((await versioned(s.post(`${path}/close`, finance.session), 2)).status).toBe(204);
+  expect((await versioned(s.post(`${path}/close`, finance.session), 3)).status).toBe(409);
   const list = reconciliationListResponseSchema.parse(
     (await s.get(`${FIN}/bank-reconciliations`, finance.session)).body,
   );
@@ -195,6 +220,10 @@ async function certificationFlow(): Promise<void> {
   const { finance } = world();
   const crew = await running(s);
   const period = day(s, 0).slice(0, 7);
+  const body = { project_id: crew.id, period, amount: '850000.00', phase: 'development' };
+  const path = `${FIN}/cost-certifications`;
+  expect((await keyed(s, finance, path, { ...body, project_id: uuidv7() })).status).toBe(422);
+  expect((await keyed(s, finance, path, body)).status).toBe(422);
   await s.inTenant((tx) =>
     tx.prjTimeEntry.create({
       data: {
@@ -214,13 +243,26 @@ async function certificationFlow(): Promise<void> {
     finance.session,
   );
   expect(certifiableHoursResponseSchema.parse(hours.body).data.hours).toBe('6.50');
-  const body = { project_id: crew.id, period, amount: '850000.00', phase: 'development' };
-  await createdId(keyed(s, finance, `${FIN}/cost-certifications`, body));
+  const key = crypto.randomUUID();
+  const post = (input: object) => s.post(path, finance.session, input).set('Idempotency-Key', key);
+  const id = await createdId(post(body));
+  expect(await createdId(post(body))).toBe(id);
+  expect((await post({ ...body, project_id: uuidv7() })).status).toBe(409);
+  await expectCertificationListed(finance, id);
   expectError(
     await keyed(s, finance, `${FIN}/cost-certifications`, body),
     422,
     'FIN_RECORD_INVALID',
   );
+}
+
+async function expectCertificationListed(finance: Person, id: string): Promise<void> {
+  const path = `${FIN}/cost-certifications`;
+  const projects = await s.get(`${path}/projects`, finance.session);
+  expect(projects.status, projects.text).toBe(200);
+  const certificates = await s.get(path, finance.session);
+  expect(certificates.status, certificates.text).toBe(200);
+  expect(certificates.body).toMatchObject({ data: [{ id, hours: '6.50' }] });
 }
 
 async function isolatedBetweenCompanies(): Promise<void> {

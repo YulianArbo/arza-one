@@ -88,6 +88,52 @@ export function deleteData(run: RunCommand, files: StackFiles): void {
   }
 }
 
+/** Dónde escucha la base de datos para este equipo. */
+export interface DatabaseAddress {
+  readonly host: string;
+  readonly port: number;
+}
+
+/** Segundos que se espera a que el puerto de la base de datos acepte conexiones. */
+const DATABASE_WAIT_SECONDS = 60;
+
+/**
+ * Programa que intenta conectarse al puerto una vez por segundo hasta lograrlo o agotar el plazo.
+ * Corre en un Node aparte porque los guiones locales son síncronos.
+ */
+function databaseProbe(address: DatabaseAddress, seconds = DATABASE_WAIT_SECONDS): string {
+  return [
+    "const net = require('node:net');",
+    `const deadline = Date.now() + ${String(seconds * 1000)};`,
+    'const attempt = () => {',
+    `  const socket = net.connect(${String(address.port)}, ${JSON.stringify(address.host)});`,
+    '  socket.once("connect", () => { socket.end(); process.exit(0); });',
+    '  socket.once("error", () => {',
+    '    socket.destroy();',
+    '    if (Date.now() > deadline) process.exit(1);',
+    '    setTimeout(attempt, 1000);',
+    '  });',
+    '};',
+    'attempt();',
+  ].join('\n');
+}
+
+/**
+ * Docker marca la base de datos como lista desde dentro del contenedor, pero en Windows el puerto
+ * hacia este equipo puede tardar unos segundos más en abrir. Las migraciones esperan a ese puerto.
+ */
+export function waitForDatabase(run: RunCommand, node: string, address: DatabaseAddress): void {
+  if (run(node, ['-e', databaseProbe(address)]).status !== 0) {
+    throw new LocalStackError(
+      [
+        `La base de datos no responde en ${address.host}:${String(address.port)}.`,
+        'Revise «pnpm infra:status» (postgres debe decir «healthy») y que el puerto de',
+        'DATABASE_MIGRATION_URL sea el mismo POSTGRES_PORT de .env. Luego repita el comando.',
+      ].join('\n'),
+    );
+  }
+}
+
 /**
  * Aplica las migraciones y carga los datos semilla con las dos empresas ficticias de demostración
  * (idempotentes). Solo en el entorno local: la semilla de demostración nunca va a producción.

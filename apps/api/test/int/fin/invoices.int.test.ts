@@ -77,13 +77,32 @@ async function prepareActors(): Promise<Actors> {
 async function issueInvoice(actors: Actors): Promise<{ invoiceId: string; detailPath: string }> {
   const path = '/v1/finance/invoices';
   expect((await scenario.get(path, actors.forbidden.session)).status).toBe(403);
+  const empty = await scenario.get(path, actors.financeOther.session);
+  expect(empty.status, empty.text).toBe(200);
+  expect(empty.body).toMatchObject({ data: [] });
   expect(
     (await keyed(actors.forbidden, path, { milestone_id: actors.delivery.milestoneId })).status,
   ).toBe(403);
   const created = await keyed(actors.finance, path, { milestone_id: actors.delivery.milestoneId });
   expect(created.status, created.text).toBe(201);
   const invoiceId = invoiceCreatedResponseSchema.parse(created.body).id;
+  const portal = await scenario.readyPerson('CLIENTE_ADMIN', actors.delivery.client.partyId);
+  expect(
+    portalInvoiceListSchema.parse((await scenario.get('/v1/portal/invoices', portal.session)).body)
+      .data,
+  ).toEqual([]);
+  const unissued = await scenario.post(`/v1/portal/invoices/${invoiceId}/link`, portal.session, {});
+  expect(errorCode(unissued)).toBe('PORTAL_NOT_FOUND');
   const detailPath = `${path}/${invoiceId}`;
+  const draft = await scenario.get(detailPath, actors.finance.session);
+  expect(draft.status, draft.text).toBe(200);
+  expect(invoiceDetailEnvelopeSchema.parse(draft.body).data).toMatchObject({
+    status: 'requested',
+    total: null,
+    balance: null,
+    issue_date: null,
+    due_date: null,
+  });
   expect((await scenario.get(detailPath, actors.financeOther.session)).status).toBe(404);
   await approveInvoice(actors.finance, detailPath);
   await postFiscalInvoice(actors.finance, detailPath, actors.fiscalFileId);
@@ -236,4 +255,12 @@ async function assertPortalIsolation(
   );
   expect(hidden.status).toBe(404);
   expect(errorCode(hidden)).toBe('PORTAL_NOT_FOUND');
+  const invoiceLink = await scenario.post(
+    `/v1/portal/invoices/${invoiceId}/link`,
+    unrelatedPortal.session,
+    {},
+  );
+  expect(invoiceLink.status).toBe(404);
+  const reader = await scenario.readyPerson('CLIENTE_USUARIO', otherPartyId);
+  expect((await scenario.get('/v1/portal/invoices', reader.session)).status).toBe(403);
 }

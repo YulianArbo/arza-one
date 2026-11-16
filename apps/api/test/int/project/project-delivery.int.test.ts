@@ -2,7 +2,7 @@ import { downloadLinkResponseSchema } from '@arza/contracts';
 import { describe, expect, it } from 'vitest';
 
 import type { Person } from '../iam/support/access-scenario.js';
-import { tenantScope } from '../iam/support/iam-fixtures.js';
+import { errorCode, tenantScope } from '../iam/support/iam-fixtures.js';
 import { DeliveryScenario, type DeliveryProject } from './support/delivery-scenario.js';
 
 // Criterio del B27: «Aceptar un entregable genera el acta firmada y el evento para facturar». El
@@ -45,6 +45,55 @@ async function expectSignedActa(leader: Person, projectId: string, id: string) {
   expect(downloadLinkResponseSchema.parse(link.body).url).toContain('/v1/files/');
 }
 
+it('valida el hito, la versión y el firmante del entregable', async () => {
+  const delivery = await scenario.deliveryProject();
+  const { leader, projectId } = delivery;
+  const path = `/v1/projects/${projectId}/deliverables`;
+  const missing = '00000000-0000-4000-8000-000000000001';
+  expect(
+    (await scenario.post(path, leader.session, scenario.deliverableBody({ milestone_id: missing })))
+      .status,
+  ).toBe(404);
+  const id = await newDeliverable(delivery);
+  const { version } = await scenario.deliverableOf(leader, projectId, id);
+  const updated = await scenario.put(
+    `${path}/${id}`,
+    leader,
+    scenario.deliverableBody({
+      milestone_id: delivery.milestoneId,
+      description: null,
+      version_label: null,
+    }),
+    version,
+  );
+  expect(updated.status, updated.text).toBe(204);
+  const stale = await scenario.put(`${path}/${id}`, leader, scenario.deliverableBody(), version);
+  expect(stale.status).toBe(409);
+  const unauthorizedSigner = await scenario.deliver(leader, { projectId, id, signerId: missing });
+  expect(unauthorizedSigner.status).toBe(422);
+});
+
+it('impide editar o volver a entregar mientras el acta está abierta', async () => {
+  const delivery = await scenario.deliveryProject();
+  const { leader, projectId, client } = delivery;
+  const path = `/v1/projects/${projectId}/deliverables`;
+  const id = await newDeliverable(delivery, { description: null, version_label: null });
+  const target = { projectId, id, signerId: client.signers[0]?.personId ?? '' };
+  const sent = await scenario.deliver(leader, target, {
+    pending_note: 'Queda pendiente el manual.',
+  });
+  expect(sent.status, sent.text).toBe(201);
+  expect(errorCode(await scenario.deliver(leader, target))).toBe('PROJECT_STATUS_INVALID');
+  const delivered = await scenario.deliverableOf(leader, projectId, id);
+  const edit = await scenario.put(
+    `${path}/${id}`,
+    leader,
+    scenario.deliverableBody(),
+    delivered.version,
+  );
+  expect(errorCode(edit)).toBe('PROJECT_STATUS_INVALID');
+});
+
 describe('entrega y aceptación con acta firmada (FT-TEC-001)', () => {
   it('firmar el acta acepta el entregable y deja el hito listo para facturar', async () => {
     const delivery = await scenario.deliveryProject();
@@ -62,6 +111,18 @@ describe('entrega y aceptación con acta firmada (FT-TEC-001)', () => {
     expect((await scenario.acceptanceWork()).answered).toBe(1);
     await expectSignedActa(leader, projectId, id);
     await expectBillable(leader, projectId, milestoneId);
+    const duplicate = await scenario.post(
+      `/v1/projects/${projectId}/deliverables`,
+      leader.session,
+      scenario.deliverableBody({ milestone_id: milestoneId }),
+    );
+    expect(errorCode(duplicate)).toBe('PROJECT_STATUS_INVALID');
+    const resend = await scenario.deliver(leader, {
+      projectId,
+      id,
+      signerId: client.signers[0]?.personId ?? '',
+    });
+    expect(errorCode(resend)).toBe('PROJECT_STATUS_INVALID');
     await scenario.dispatchNotices();
     expect((await scenario.noticesFor(finance.id)).join(' ')).toContain('$ 3.000.000,00');
   });
@@ -83,6 +144,12 @@ describe('devolución del acta', () => {
     expect(returned.status).toBe('returned');
     expect(returned.acceptance?.status).toBe('returned');
     expect(returned.acceptance?.client_note).toContain('manual de usuario');
+    const link = await scenario.post(
+      `/v1/projects/${projectId}/deliverables/${id}/acta-link`,
+      leader.session,
+      {},
+    );
+    expect(link.status, link.text).toBe(201);
 
     // Se corrige y se entrega de nuevo: otra acta.
     const fixed = await scenario.put(
@@ -96,6 +163,25 @@ describe('devolución del acta', () => {
     const again = await scenario.deliverableOf(leader, projectId, id);
     expect(again.acceptance?.status).toBe('in_signature');
   });
+});
+
+it('distingue un entregable sin acta de uno con PDF pendiente', async () => {
+  const delivery = await scenario.deliveryProject();
+  const { leader, projectId, client } = delivery;
+  const id = await newDeliverable(delivery);
+  const path = `/v1/projects/${projectId}/deliverables/${id}/acta-link`;
+  expect((await scenario.post(path, leader.session, {})).status).toBe(404);
+  const sent = await scenario.deliver(leader, {
+    projectId,
+    id,
+    signerId: client.signers[0]?.personId ?? '',
+  });
+  expect(sent.status, sent.text).toBe(201);
+  expect(errorCode(await scenario.post(path, leader.session, {}))).toBe('PROJECT_STATUS_INVALID');
+  await scenario.acceptanceWork();
+  expect((await scenario.deliverableOf(leader, projectId, id)).acceptance?.status).toBe(
+    'preparing',
+  );
 });
 
 /** Pasa el plazo: el worker de firma vence el proceso y el de actas lo lee. */

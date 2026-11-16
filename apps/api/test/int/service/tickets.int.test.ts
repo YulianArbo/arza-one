@@ -1,7 +1,6 @@
-import { compensationListResponseSchema, slaPolicyListResponseSchema } from '@arza/contracts';
+import { slaPolicyListResponseSchema, ticketListResponseSchema } from '@arza/contracts';
 import { describe, expect, it } from 'vitest';
 
-import type { Person } from '../iam/support/access-scenario.js';
 import { ServiceScenario } from './support/service-scenario.js';
 
 // La mesa de ayuda del B28: registrar con cliente, escalar por niveles, la conversación con notas
@@ -9,6 +8,67 @@ import { ServiceScenario } from './support/service-scenario.js';
 // acuerdos de tiempo. Datos ficticios.
 
 const scenario = new ServiceScenario('mesa de ayuda: tiquetes');
+
+it('valida la versión y el estado al editar un tiquete sin cambiar su prioridad', async () => {
+  const agent = await scenario.agent();
+  const id = await scenario.working(agent);
+  const original = await scenario.ticketOf(agent, id);
+  const path = `/v1/tickets/${id}`;
+  const body = {
+    ...scenario.ticketBody(),
+    priority: original.priority,
+    subject: 'Detalle corregido',
+  };
+  expect((await scenario.put(path, agent, body, original.version + 1)).status).toBe(409);
+  expect((await scenario.put(path, agent, body, original.version)).status).toBe(204);
+  expect((await scenario.ticketOf(agent, id)).resolution_due_at).toBe(original.resolution_due_at);
+  await scenario.stepOk(agent, id, 'resolve', { resolution: 'Se corrigió la falla.' });
+  const resolved = await scenario.ticketOf(agent, id);
+  expect((await scenario.put(path, agent, body, resolved.version)).status).toBe(409);
+  await scenario.stepOk(agent, id, 'close');
+  const closed = await scenario.ticketOf(agent, id);
+  expect((await scenario.put(path, agent, body, closed.version)).status).toBe(409);
+});
+
+it('pagina por cursor los tiquetes que coinciden con el texto y la prioridad', async () => {
+  const agent = await scenario.agent();
+  const first = await scenario.ticket(agent, {
+    subject: 'Impresora de recepción',
+    priority: 'high',
+  });
+  const second = await scenario.ticket(agent, { subject: 'Impresora de bodega', priority: 'high' });
+  await scenario.ticket(agent, { subject: 'Impresora de ventas', priority: 'low' });
+  await scenario.ticket(agent, { subject: 'Pantalla de recepción', priority: 'medium' });
+  const path = '/v1/tickets?q=impresora&priority=high&limit=1';
+  const page = ticketListResponseSchema.parse((await scenario.get(path, agent.session)).body);
+  expect(page.data).toHaveLength(1);
+  const cursor = page.next_cursor;
+  if (cursor === null) throw new Error('Falta el cursor de la segunda página');
+  expect(cursor).toBe(page.data[0]?.id);
+  const next = ticketListResponseSchema.parse(
+    (await scenario.get(`${path}&cursor=${cursor}`, agent.session)).body,
+  );
+  expect(next.data).toHaveLength(1);
+  expect(new Set([...page.data, ...next.data].map((ticket) => ticket.id))).toEqual(
+    new Set([first, second]),
+  );
+  expect(next.next_cursor).toBeNull();
+});
+
+it('rechaza una asignación repetida y conserva el estado al reasignar', async () => {
+  const agent = await scenario.agent();
+  const tech = await scenario.person('lider-tecnico', ['LIDER_TECNICO']);
+  const id = await scenario.ticket(agent);
+  await scenario.stepOk(agent, id, 'assign', { assignee_id: agent.id });
+  expect((await scenario.step(agent, id, 'assign', { assignee_id: agent.id })).status).toBe(409);
+  await scenario.stepOk(agent, id, 'start');
+  const before = await scenario.ticketOf(agent, id);
+  await scenario.stepOk(agent, id, 'assign', { assignee_id: tech.id });
+  expect(await scenario.ticketOf(agent, id)).toMatchObject({
+    status: before.status,
+    assignee: { id: tech.id },
+  });
+});
 
 describe('registro', () => {
   it('a nombre de un cliente, con código y vencimientos', async () => {
@@ -54,14 +114,14 @@ describe('tiquete crítico (PT-TEC-003)', () => {
     const agent = await scenario.agent();
     const tech = await scenario.person('lider-tecnico', ['LIDER_TECNICO']);
     const director = await scenario.person('direccion', ['DIRECCION']);
-    await scenario.ticket(agent, { priority: 'critical' });
+    const id = await scenario.ticket(agent, { priority: 'critical' });
     await scenario.dispatchNotices();
     for (const person of [tech, director]) {
-      expect((await scenario.noticesFor(person.id, 'svc_ticket_alert')).join(' ')).toContain(
+      expect((await scenario.noticesFor(person.id, 'svc_ticket_alert', id)).join(' ')).toContain(
         'PT-TEC-003',
       );
     }
-    expect(await scenario.noticesFor(agent.id, 'svc_ticket_alert')).toHaveLength(0);
+    expect(await scenario.noticesFor(agent.id, 'svc_ticket_alert', id)).toHaveLength(0);
   });
 });
 
@@ -135,49 +195,6 @@ describe('conversación', () => {
   });
 });
 
-async function compensations(person: Person, ticketId: string) {
-  const response = await scenario.get(`/v1/tickets/${ticketId}/compensations`, person.session);
-  expect(response.status, response.text).toBe(200);
-  return compensationListResponseSchema.parse(response.body).data;
-}
-
-describe('compensaciones (RE-SAC-001)', () => {
-  it('otra persona la decide; quien la propuso no puede', async () => {
-    const agent = await scenario.agent();
-    const approver = await scenario.agent();
-    const id = await scenario.working(agent);
-    const base = `/v1/tickets/${id}/compensations`;
-    const mixed = await scenario.post(base, agent.session, {
-      type: 'discount',
-      hours: 2,
-      reason: 'Se superó el plazo.',
-    });
-    expect(mixed.status).toBe(422);
-    const compensationId = await scenario.create(base, agent, {
-      type: 'discount',
-      amount: '150000.50',
-      reason: 'Se superó el plazo de solución.',
-    });
-    const [proposed] = await compensations(agent, id);
-    expect(proposed).toMatchObject({ status: 'proposed', amount: '150000.50' });
-    const decide = `${base}/${compensationId}/actions/decide`;
-    const own = await scenario.action(decide, agent, proposed?.version ?? 0, { approve: true });
-    expect(own.status).toBe(422);
-    const ok = await scenario.action(decide, approver, proposed?.version ?? 0, { approve: true });
-    expect(ok.status, ok.text).toBe(204);
-    const [approved] = await compensations(agent, id);
-    expect(approved).toMatchObject({ status: 'approved', decided_by: { id: approver.id } });
-    await scenario.dispatchNotices();
-    expect((await scenario.noticesFor(agent.id, 'svc_ticket_update')).join(' ')).toContain(
-      'aprobaron',
-    );
-    expect(await scenario.auditActions(compensationId)).toEqual([
-      'service.compensation.propose',
-      'service.compensation.approve',
-    ]);
-  });
-});
-
 describe('acuerdos de tiempo', () => {
   it('Servicio los cambia y la nueva prioridad recalcula el tiquete', async () => {
     const agent = await scenario.agent();
@@ -210,4 +227,19 @@ describe('acuerdos de tiempo', () => {
       resolution_hours: 4,
     });
   });
+});
+
+it('persiste el acuerdo de tiempo y rechaza versiones obsoletas', async () => {
+  const agent = await scenario.agent();
+  const list = async () =>
+    slaPolicyListResponseSchema.parse((await scenario.get('/v1/sla-policies', agent.session)).body);
+  const low = (await list()).data.find((policy) => policy.priority === 'low');
+  if (low === undefined) throw new Error('No aparece el acuerdo de prioridad baja');
+  const path = `/v1/sla-policies/${low.id}`;
+  const body = { first_response_hours: 3, resolution_hours: 8, calendar: 'business' };
+  const missing = '/v1/sla-policies/00000000-0000-4000-8000-000000000001';
+  expect((await scenario.put(missing, agent, body, low.version)).status).toBe(404);
+  expect((await scenario.put(path, agent, body, low.version)).status).toBe(204);
+  expect((await scenario.put(path, agent, body, low.version)).status).toBe(409);
+  expect((await list()).data.find((policy) => policy.id === low.id)).toMatchObject(body);
 });

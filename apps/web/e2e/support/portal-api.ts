@@ -80,6 +80,7 @@ const SIGNATURE = {
 
 /** Todo lo que piden las secciones del portal. */
 export const PORTAL_API: ApiRoutes = {
+  '/v1/portal/invoices': { body: { data: [] } },
   '/v1/portal/terms': { body: ACCEPTED_TERMS },
   '/v1/portal/home': {
     body: {
@@ -248,7 +249,7 @@ export const PORTAL_PAGES = [
   { path: `/portal/proyectos/${PORTAL_PROJECT}`, ready: 'Módulo de facturas' },
   { path: '/portal/por-aprobar', ready: 'Acta de entrega del módulo de facturas' },
   { path: '/portal/firmas', ready: 'Desarrollo del portal de autogestión' },
-  { path: '/portal/facturas', ready: 'Disponible pronto' },
+  { path: '/portal/facturas', ready: 'Aún no hay facturas emitidas' },
   { path: '/portal/soporte', ready: 'No abre el reporte mensual de ventas' },
   { path: `/portal/soporte/${PORTAL_TICKET}`, ready: '¿Desde qué navegador lo abre?' },
   { path: '/portal/documentos', ready: 'Manual de usuario del portal' },
