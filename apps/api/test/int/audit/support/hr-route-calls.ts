@@ -2,7 +2,7 @@ import { hrCreatedResponseSchema } from '@arza/contracts';
 import type request from 'supertest';
 import { v7 as uuidv7 } from 'uuid';
 
-import { bogotaToday } from '../../../../src/modules/core/index.js';
+import { bogotaToday, fromCalendarDate } from '../../../../src/modules/core/index.js';
 import { putVersioned } from '../../fin/support/ledger-steps.js';
 import { candidateFixture, registrationBody } from '../../hr/support/candidate-fixture.js';
 import { hiringFixture } from '../../hr/support/hiring-fixture.js';
@@ -192,6 +192,28 @@ export const HR_ROUTE_CALLS: Readonly<Record<string, RouteCall>> = {
           reason: 'Proceso finalizado',
         })
         .set('If-Match', '"1"'),
+    );
+  },
+  'POST /v1/hr/candidates/{id}/actions/extend-retention': async (scenario) => {
+    const recruiter = await scenario.person('aplazar-candidato', ['TALENTO_HUMANO']);
+    const { id } = await candidateFixture(scenario);
+    const today = fromCalendarDate(bogotaToday(scenario.clock.now()));
+    const { version } = await scenario.inTenant((tx) =>
+      tx.hrCandidate.update({
+        where: { id },
+        data: {
+          stage: 'discarded',
+          talentBank: true,
+          discardedOn: today,
+          discardReason: 'Proceso finalizado',
+          retentionUntil: new Date(today.getTime() + 365 * 24 * 60 * 60 * 1000),
+        },
+      }),
+    );
+    return final(
+      scenario
+        .post(`/v1/hr/candidates/${id}/actions/extend-retention`, recruiter.session)
+        .set('If-Match', `"${String(version)}"`),
     );
   },
   'POST /v1/hr/vacancies': async (scenario) =>

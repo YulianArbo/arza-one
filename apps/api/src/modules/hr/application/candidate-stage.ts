@@ -8,6 +8,7 @@ import {
   type CandidateStage,
 } from '@arza/contracts';
 
+import type { HrCandidate } from '../../../generated/prisma/client.js';
 import type { Principal } from '../../../platform/access/principal.js';
 import { recordAuditEvent } from '../../../platform/audit/audit-recorder.js';
 import { CLOCK, type Clock } from '../../../platform/clock/clock.js';
@@ -16,7 +17,7 @@ import type { TenantTransaction } from '../../../platform/database/tenant-contex
 import { AppError } from '../../../platform/errors/app-error.js';
 import { versionConflict } from '../../../platform/http/if-match.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
-import { bogotaToday, fromCalendarDate } from '../../core/index.js';
+import { bogotaToday, fromCalendarDate, toCalendarDate } from '../../core/index.js';
 
 type StageChange =
   | { readonly kind: 'advance'; readonly note: string | null }
@@ -41,7 +42,7 @@ async function loadCandidate(
   tx: TenantTransaction,
   tenantId: string,
   target: { readonly id: string; readonly version: number },
-): Promise<{ readonly id: string; readonly stage: string }> {
+): Promise<HrCandidate> {
   const candidate = await tx.hrCandidate.findFirst({
     where: { tenantId, id: target.id, deletedAt: null },
   });
@@ -130,6 +131,60 @@ async function applyStageChange(
   });
 }
 
+/**
+ * Quien autorizó el banco de hojas de vida puede quedar doce meses más (decisión C del B35): el
+ * plazo se corre desde la fecha vigente y nunca queda indefinido.
+ */
+async function postponeErasure(
+  tx: TenantTransaction,
+  actor: StageActor,
+  target: { readonly id: string; readonly version: number },
+): Promise<void> {
+  const current = await extendableRetention(tx, actor.tenantId, target);
+  const until = retentionDate(current);
+  const result = await tx.hrCandidate.updateMany({
+    where: { tenantId: actor.tenantId, id: target.id, version: target.version, erasedAt: null },
+    data: { retentionUntil: until, retentionExtendedAt: actor.at },
+  });
+  if (result.count !== 1) throw versionConflict();
+  await recordAuditEvent(tx, {
+    tenantId: actor.tenantId,
+    occurredAt: actor.at,
+    actor: { kind: 'user', id: actor.userId },
+    action: 'hr.candidate.extend_retention',
+    entityType: 'hr_candidate',
+    entityId: target.id,
+    result: 'success',
+    changes: { retention_until: { from: toCalendarDate(current), to: toCalendarDate(until) } },
+    meta: actor.meta,
+  });
+}
+
+/** La fecha vigente de eliminación de una candidatura que se puede aplazar. */
+async function extendableRetention(
+  tx: TenantTransaction,
+  tenantId: string,
+  target: { readonly id: string; readonly version: number },
+): Promise<Date> {
+  const candidate = await loadCandidate(tx, tenantId, target);
+  const current = candidate.retentionUntil;
+  if (candidate.stage !== 'discarded' || candidate.erasedAt !== null || current === null) {
+    throw new AppError(
+      HttpStatus.CONFLICT,
+      HR_ERROR_CODES.statusInvalid,
+      'Solo se aplaza la eliminación de una candidatura descartada cuyos datos siguen guardados.',
+    );
+  }
+  if (!candidate.talentBank) {
+    throw new AppError(
+      HttpStatus.UNPROCESSABLE_ENTITY,
+      HR_ERROR_CODES.recordInvalid,
+      'El candidato no autorizó conservar su hoja de vida para futuros procesos.',
+    );
+  }
+  return current;
+}
+
 @Injectable()
 export class CandidateStageUseCase {
   constructor(
@@ -151,5 +206,15 @@ export class CandidateStageUseCase {
       const next = resolveNextStage(input.kind, previous);
       await applyStageChange(tx, actor, target, input, previous, next);
     });
+  }
+
+  /** Aplaza doce meses la eliminación de los datos de quien está en el banco de hojas de vida. */
+  async extendRetention(
+    principal: Principal,
+    meta: RequestMeta,
+    target: { readonly id: string; readonly version: number },
+  ): Promise<void> {
+    const actor = { ...principal, at: this.clock.now(), meta };
+    await this.database.withTenant(principal, (tx) => postponeErasure(tx, actor, target));
   }
 }

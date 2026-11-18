@@ -3,15 +3,24 @@ import type { Clock } from '../../../platform/clock/clock.js';
 import type { DatabaseService } from '../../../platform/database/database.service.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import { bogotaToday, fromCalendarDate } from '../../core/index.js';
+import { disposeAttachedFile, type FileStorage } from '../../doc/index.js';
 import { hasAccountForParty } from '../../iam/index.js';
-import { eraseRecruitmentIdentity } from '../../party/index.js';
+import { dropCandidateRole, eraseRecruitmentIdentity } from '../../party/index.js';
 import { canEraseRecruitmentIdentity } from '../../privacy/index.js';
+
+// Eliminación de los datos de candidatos no seleccionados (B35, ficha 17.13): llegada la fecha de
+// eliminación (doce meses después del descarte, o la que aplazó Talento humano para el banco de
+// hojas de vida), cada noche se borran la hoja de vida, las notas de evaluación y los datos de la
+// persona. Si la persona también es cliente, proveedor, colaborador o tiene otra candidatura, su
+// ficha de Terceros se conserva y solo pierde el papel de candidato (decisión B). Queda el rastro
+// anónimo de la candidatura: vacante, origen, etapas y fechas.
 
 const BATCH_SIZE = 100;
 
 interface RetentionDeps {
   readonly database: Pick<DatabaseService, 'withTenant' | 'withoutTenant'>;
   readonly clock: Clock;
+  readonly storage: Pick<FileStorage, 'delete'>;
 }
 
 interface RetentionScope {
@@ -20,27 +29,29 @@ interface RetentionScope {
   readonly at: Date;
 }
 
-/** Candidatura vencida con los datos necesarios para anonimizarla. */
-interface ClaimableCandidate {
+interface ExpiredCandidate {
+  readonly id: string;
   readonly version: number;
   readonly partyId: string;
   readonly consentId: string;
-  readonly talentBank: boolean;
+  readonly resumeFileId: string | null;
 }
 
-/** Aplica el plazo de selección únicamente cuando se puede retirar la identidad con seguridad. */
+/** Qué pasó con la persona en Terceros. */
+type IdentityOutcome = 'anonymized' | 'role_removed' | 'kept';
+
+/** Elimina los datos de las candidaturas vencidas de todas las empresas; devuelve cuántas. */
 export async function expireRecruitmentData(deps: RetentionDeps): Promise<number> {
   const at = deps.clock.now();
   const today = bogotaToday(at);
-  const tenants = await expiredTenants(deps.database, today);
   let expired = 0;
-  for (const tenantId of tenants) {
-    expired += await expireTenant(deps.database, { tenantId, today, at });
+  for (const tenantId of await expiredTenants(deps.database, today)) {
+    expired += await expireTenant(deps, { tenantId, today, at });
   }
   return expired;
 }
 
-/** Tenants con candidaturas vencidas según la función de base de datos. */
+/** Empresas con candidaturas vencidas según la función de base de datos. */
 async function expiredTenants(
   database: RetentionDeps['database'],
   today: string,
@@ -53,41 +64,39 @@ async function expiredTenants(
   return rows.map((row) => row.tenant_id);
 }
 
-/** Recorre por lotes las candidaturas vencidas de un tenant. */
-async function expireTenant(
-  database: RetentionDeps['database'],
-  scope: RetentionScope,
-): Promise<number> {
-  const context = { tenantId: scope.tenantId, userId: null };
+/** Recorre por lotes las candidaturas vencidas de una empresa. */
+async function expireTenant(deps: RetentionDeps, scope: RetentionScope): Promise<number> {
   let after: string | undefined;
   let expired = 0;
   for (;;) {
-    const ids = await pendingCandidates(database, context, scope, after);
+    const ids = await pendingCandidates(deps.database, scope, after);
     for (const id of ids) {
-      if (await expireCandidate(database, context, scope, id)) expired += 1;
+      if (await expireCandidate(deps, scope, id)) expired += 1;
     }
     after = ids.at(-1);
     if (ids.length < BATCH_SIZE) return expired;
   }
 }
 
+function expiredWhere(scope: RetentionScope) {
+  return {
+    tenantId: scope.tenantId,
+    stage: 'discarded',
+    erasedAt: null,
+    retentionUntil: { lte: fromCalendarDate(scope.today) },
+    deletedAt: null,
+  };
+}
+
 /** Identificadores de la siguiente página de candidaturas vencidas. */
 async function pendingCandidates(
   database: RetentionDeps['database'],
-  context: { readonly tenantId: string; readonly userId: null },
   scope: RetentionScope,
   after: string | undefined,
 ): Promise<readonly string[]> {
-  const rows = await database.withTenant(context, (tx) =>
+  const rows = await database.withTenant({ tenantId: scope.tenantId, userId: null }, (tx) =>
     tx.hrCandidate.findMany({
-      where: {
-        tenantId: scope.tenantId,
-        stage: 'discarded',
-        erasedAt: null,
-        retentionUntil: { lte: fromCalendarDate(scope.today) },
-        deletedAt: null,
-        ...(after === undefined ? {} : { id: { gt: after } }),
-      },
+      where: { ...expiredWhere(scope), ...(after === undefined ? {} : { id: { gt: after } }) },
       select: { id: true },
       orderBy: { id: 'asc' },
       take: BATCH_SIZE,
@@ -96,93 +105,81 @@ async function pendingCandidates(
   return rows.map((row) => row.id);
 }
 
-/** Intenta anonimizar una candidatura; los datos compartidos la dejan intacta. */
+/** Elimina una candidatura en su transacción y, ya confirmada, borra su archivo del almacenamiento. */
 async function expireCandidate(
-  database: RetentionDeps['database'],
-  context: { readonly tenantId: string; readonly userId: null },
+  deps: RetentionDeps,
   scope: RetentionScope,
   id: string,
 ): Promise<boolean> {
-  return database
-    .withTenant(context, (tx) => eraseCandidate(tx, scope, id))
-    .catch((error: unknown) => {
-      if (error instanceof SharedRecruitmentIdentity) return false;
-      throw error;
-    });
+  const result = await deps.database.withTenant({ tenantId: scope.tenantId, userId: null }, (tx) =>
+    eraseCandidate(tx, scope, id),
+  );
+  if (result === null) return false;
+  if (result.storageKey !== null) await deps.storage.delete(result.storageKey);
+  return true;
 }
 
 async function eraseCandidate(
   tx: TenantTransaction,
   scope: RetentionScope,
   id: string,
-): Promise<boolean> {
-  const candidate = await claimableCandidate(tx, scope, id);
-  if (candidate === null) return false;
-  const claimed = await tx.hrCandidate.updateMany({
-    where: { id, tenantId: scope.tenantId, version: candidate.version, erasedAt: null },
-    data: { erasedAt: scope.at, discardReason: 'Datos de selección eliminados' },
-  });
-  if (claimed.count !== 1) return false;
-  await retireIdentity(tx, scope, candidate);
-  await clearEvaluations(tx, scope, id);
-  await auditErasure(tx, scope, id);
-  return true;
-}
-
-/** Candidatura vencida cuya identidad puede retirarse sin afectar otros usos. */
-async function claimableCandidate(
-  tx: TenantTransaction,
-  scope: RetentionScope,
-  id: string,
-): Promise<ClaimableCandidate | null> {
-  const candidate = await tx.hrCandidate.findFirst({
-    where: {
-      id,
-      tenantId: scope.tenantId,
-      stage: 'discarded',
-      erasedAt: null,
-      deletedAt: null,
-      retentionUntil: { lte: fromCalendarDate(scope.today) },
-    },
+): Promise<{ readonly storageKey: string | null } | null> {
+  const candidate: ExpiredCandidate | null = await tx.hrCandidate.findFirst({
+    where: { id, ...expiredWhere(scope) },
   });
   if (candidate === null) return null;
-  if (candidate.resumeFileId !== null) return null;
-  if (await partyInUse(tx, scope.tenantId, candidate.partyId, id)) return null;
-  return candidate;
-}
-
-/** Indica si la persona aún se usa en otra candidatura, como colaborador o con cuenta. */
-async function partyInUse(
-  tx: TenantTransaction,
-  tenantId: string,
-  partyId: string,
-  candidateId: string,
-): Promise<boolean> {
-  const otherUse = await tx.hrCandidate.count({
-    where: { tenantId, partyId, NOT: { id: candidateId } },
+  const claimed = await tx.hrCandidate.updateMany({
+    where: { id, version: candidate.version, erasedAt: null },
+    data: {
+      erasedAt: scope.at,
+      resumeFileId: null,
+      discardReason: 'Datos de selección eliminados',
+    },
   });
-  const employees = await tx.hrEmployee.count({ where: { tenantId, partyId } });
-  if (otherUse > 0 || employees > 0) return true;
-  return hasAccountForParty(tx, partyId);
+  if (claimed.count !== 1) return null;
+  const storageKey = await retireResume(tx, scope, candidate.resumeFileId);
+  const identity = await settleIdentity(tx, scope, candidate);
+  await clearEvaluations(tx, scope, id);
+  await auditErasure(tx, scope, id, { resume: candidate.resumeFileId !== null, identity });
+  return { storageKey };
 }
 
-/** Retira la identidad de la persona; si no es posible, revierte la marca de anonimización. */
-async function retireIdentity(
+/** La hoja de vida se retira, salvo que ya haga parte de la historia laboral de un colaborador. */
+async function retireResume(
   tx: TenantTransaction,
   scope: RetentionScope,
-  candidate: { readonly partyId: string; readonly consentId: string; readonly talentBank: boolean },
-): Promise<void> {
-  const consent = await canEraseRecruitmentIdentity(tx, {
+  fileId: string | null,
+): Promise<string | null> {
+  if (fileId === null) return null;
+  const inFile = await tx.hrFileChecklistItem.count({
+    where: { tenantId: scope.tenantId, documentId: fileId, deletedAt: null },
+  });
+  return inFile > 0 ? null : disposeAttachedFile(tx, fileId);
+}
+
+/** Anonimiza la persona si solo existía para esta candidatura; si no, conserva su ficha. */
+async function settleIdentity(
+  tx: TenantTransaction,
+  scope: RetentionScope,
+  candidate: ExpiredCandidate,
+): Promise<IdentityOutcome> {
+  const { tenantId, at } = scope;
+  const otherCandidacies = await tx.hrCandidate.count({
+    where: { tenantId, partyId: candidate.partyId, erasedAt: null, NOT: { id: candidate.id } },
+  });
+  if (otherCandidacies > 0) return 'kept';
+  const usedElsewhere =
+    (await tx.hrEmployee.count({ where: { tenantId, partyId: candidate.partyId } })) > 0 ||
+    (await hasAccountForParty(tx, candidate.partyId));
+  const consentAllows = await canEraseRecruitmentIdentity(tx, {
     id: candidate.consentId,
     partyId: candidate.partyId,
-    talentBank: candidate.talentBank,
   });
-  const erased =
-    consent && (await eraseRecruitmentIdentity(tx, scope.tenantId, candidate.partyId, scope.at));
-  if (!erased) {
-    // Revertir evita marcar como anonimizado un registro que aún tiene su identidad.
-    throw new SharedRecruitmentIdentity();
+  if (!usedElsewhere && consentAllows) {
+    if (await eraseRecruitmentIdentity(tx, tenantId, candidate.partyId, at)) return 'anonymized';
   }
+  await dropCandidateRole(tx, tenantId, candidate.partyId, at);
+  return 'role_removed';
 }
 
 /** Las notas de evaluación dejan de ser datos personales de la candidatura. */
@@ -192,7 +189,7 @@ async function clearEvaluations(
   id: string,
 ): Promise<void> {
   await tx.hrSelectionEvaluation.updateMany({
-    where: { tenantId: scope.tenantId, candidateId: id },
+    where: { tenantId: scope.tenantId, candidateId: id, deletedAt: null },
     data: { note: null, evaluatorId: null, deletedAt: scope.at },
   });
 }
@@ -201,6 +198,7 @@ async function auditErasure(
   tx: TenantTransaction,
   scope: RetentionScope,
   id: string,
+  outcome: { readonly resume: boolean; readonly identity: IdentityOutcome },
 ): Promise<void> {
   await recordAuditEvent(tx, {
     tenantId: scope.tenantId,
@@ -210,9 +208,7 @@ async function auditErasure(
     entityType: 'hr_candidate',
     entityId: id,
     result: 'success',
-    changes: { erased: true },
+    changes: { erased: true, resume_removed: outcome.resume, identity: outcome.identity },
     meta: null,
   });
 }
-
-class SharedRecruitmentIdentity extends Error {}

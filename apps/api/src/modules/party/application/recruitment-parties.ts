@@ -179,3 +179,31 @@ export async function eraseRecruitmentIdentity(
   });
   return true;
 }
+
+/**
+ * La persona también es cliente, proveedor, colaborador o contacto: su ficha se conserva y solo se
+ * le quita el papel de candidato (decisión B del B35).
+ */
+export async function dropCandidateRole(
+  tx: TenantTransaction,
+  tenantId: string,
+  partyId: string,
+  at: Date,
+): Promise<void> {
+  const result = await tx.partyRole.updateMany({
+    where: { tenantId, partyId, role: 'candidate', deletedAt: null },
+    data: { status: 'ended', deletedAt: at },
+  });
+  if (result.count === 0) return;
+  await recordAuditEvent(tx, {
+    tenantId,
+    occurredAt: at,
+    actor: { kind: 'system' },
+    result: 'success',
+    meta: null,
+    action: 'party.recruitment.role_remove',
+    entityType: 'party',
+    entityId: partyId,
+    changes: { role: 'candidate', removed: true },
+  });
+}

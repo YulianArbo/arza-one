@@ -139,3 +139,24 @@ export async function openAvailableFile(
     content: await storage.stream(file.storageKey),
   };
 }
+
+/**
+ * Retira un archivo adjunto cuyos datos personales ya deben eliminarse (B35, candidatos): deja de
+ * poder descargarse y pierde su nombre. Devuelve la llave para borrarlo del almacenamiento después
+ * de la transacción, o null si ya estaba retirado.
+ */
+export async function disposeAttachedFile(
+  tx: TenantTransaction,
+  fileId: string,
+): Promise<string | null> {
+  const file = await tx.file.findFirst({
+    where: { id: fileId, scanStatus: { not: 'disposed' } },
+    select: { storageKey: true },
+  });
+  if (file === null) return null;
+  await tx.file.update({
+    where: { id: fileId },
+    data: { scanStatus: 'disposed', fileName: 'archivo-eliminado' },
+  });
+  return file.storageKey;
+}

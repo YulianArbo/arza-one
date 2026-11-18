@@ -162,23 +162,17 @@ export async function publishedAuthorizationNotices(tx: TenantTransaction): Prom
   return rows.map(noticeView);
 }
 
-/** Verifica si la autorización permite eliminar la identidad, conservando su registro inmutable. */
+/**
+ * Verifica si la autorización permite anonimizar la identidad, conservando su registro inmutable.
+ * Una autorización con soporte firmado se conserva como prueba, y con ella la persona. El banco de
+ * hojas de vida no impide eliminar: llegada la fecha (aplazada o no), se elimina (decisión C del B35).
+ */
 export async function canEraseRecruitmentIdentity(
   tx: TenantTransaction,
-  target: {
-    readonly id: string;
-    readonly partyId: string;
-    readonly talentBank: boolean;
-  },
+  target: { readonly id: string; readonly partyId: string },
 ): Promise<boolean> {
   const result = await tx.privacyConsent.count({
-    where: {
-      id: target.id,
-      partyId: target.partyId,
-      source: 'hr_candidate',
-      evidenceFileId: null,
-      ...(target.talentBank ? { revokedAt: { not: null } } : {}),
-    },
+    where: { id: target.id, partyId: target.partyId, source: 'hr_candidate', evidenceFileId: null },
   });
   return result === 1;
 }

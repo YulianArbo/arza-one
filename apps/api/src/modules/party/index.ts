@@ -7,10 +7,9 @@
 export { PartyModule } from './interface/party.module.js';
 export {
   candidateParties,
+  dropCandidateRole,
   eraseRecruitmentIdentity,
   registerCandidateParty,
-  type CandidatePartyRecord,
-  type CandidatePrivacy,
 } from './application/recruitment-parties.js';
 export { seedPartyDemo } from './application/party-demo-seed.js';
 export { visiblePartyName } from './application/party-records.js';

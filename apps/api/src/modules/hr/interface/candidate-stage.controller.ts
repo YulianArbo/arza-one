@@ -197,4 +197,24 @@ export class CandidateStageController {
       { kind: 'discard', reason: input.reason },
     );
   }
+
+  @Post(':id/actions/extend-retention')
+  @ApiHeader({ name: 'If-Match', required: true, description: 'Versión de la candidatura' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @RequirePermission('hr.candidate.manage')
+  @ApiOperation({
+    summary: 'Aplazar doce meses la eliminación de los datos de un candidato descartado',
+    description: 'Solo si el candidato autorizó conservar su hoja de vida para futuros procesos.',
+  })
+  async extendRetention(
+    @CurrentPrincipal() principal: Principal,
+    @Meta() meta: RequestMeta,
+    @Param('id', UUID) id: string,
+    @Headers('if-match') version: string | undefined,
+  ): Promise<void> {
+    await this.stages.extendRetention(principal, meta, {
+      id,
+      version: versionFromIfMatch(version),
+    });
+  }
 }
