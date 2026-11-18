@@ -2,7 +2,7 @@ import type { Candidate, EmployeeDetail, Vacancy } from '@arza/contracts';
 
 // Datos ficticios de las pantallas de Talento humano (B35).
 
-export const VACANCY_ID = '01999a00-0000-7000-8000-0000000fd201';
+const VACANCY_ID = '01999a00-0000-7000-8000-0000000fd201';
 export const CANDIDATE_ID = '01999a00-0000-7000-8000-0000000fd202';
 export const EMPLOYEE_ID = '01999a00-0000-7000-8000-0000000fd203';
 const POSITION_ID = '01999a00-0000-7000-8000-0000000fd204';
