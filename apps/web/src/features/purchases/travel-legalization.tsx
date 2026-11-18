@@ -42,7 +42,7 @@ export function TravelLegalization(props: {
         <PurchaseButton
           label="Legalizar viaje"
           pendingLabel="Legalizando…"
-          ariaLabel={`Legalizar el viaje ${travel.code}`}
+          ariaLabel={`Legalizar viaje ${travel.code}`}
           run={async (csrfToken) => {
             await api.post(`/v1/travel-requests/${travel.id}/legalization`, {
               body: {},

@@ -49,7 +49,7 @@ describe('tablero del embudo', () => {
     });
     renderBoard();
     await userEvent.click(
-      await screen.findByRole('button', { name: 'Mover OPO-2026-0001 a otra etapa' }),
+      await screen.findByRole('button', { name: 'Mover a otra etapa: OPO-2026-0001' }),
     );
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Propuesta' }));
     await vi.waitFor(() => {
@@ -65,7 +65,7 @@ describe('tablero del embudo: lectura y tabla', () => {
     serveCrm(CRM_READER);
     renderBoard();
     expect(await screen.findByRole('link', { name: 'Portal de clientes' })).toBeVisible();
-    expect(screen.queryByRole('button', { name: /Mover OPO/u })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Mover a otra etapa: OPO/u })).toBeNull();
     expect(screen.queryByRole('link', { name: 'Registrar oportunidad' })).toBeNull();
   });
 

@@ -137,7 +137,7 @@ function LegalizeDialog({ travel }: { readonly travel: TravelRequest }): JSX.Ele
   return (
     <RecordDialog
       triggerLabel="Legalizar"
-      triggerAriaLabel={`Legalizar el viaje ${travel.code}`}
+      triggerAriaLabel={`Legalizar viaje ${travel.code}`}
       title={`Legalizar el viaje ${travel.code}`}
       description="Registre cada gasto con su soporte. Se legaliza desde el día de salida."
       variant="outline"
