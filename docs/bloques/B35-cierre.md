@@ -3,11 +3,11 @@
 - Fecha: 17/11/2026
 - Rama: `feat/b35-talento-humano-colaboradores-s`, actualizada con `main` (los bloques B31 a B34 ya
   están unidos). El pull request va directo contra `main`.
-- Estado: en revisión. **Es un bloque crítico**: además de la aprobación del Director General, exige
-  revisión externa antes de unirlo.
-- Pendiente principal: confirmar `pnpm check` completo en la integración continua del pull request
-  (en este equipo no cierra de una sola vez, igual que en B31 a B34), la revisión externa y validar
-  con Talento humano la lista de chequeo de la historia laboral y las bandas salariales de ejemplo.
+- Estado: **terminado el 18/11/2026**. Bloque crítico: la revisión del propietario y la revisión
+  externa (hecha por Claude Code por decisión del propietario) están al final de este documento.
+  La integración continua del pull request #54 quedó en verde.
+- Pendiente: validar con Talento humano la lista de chequeo de la historia laboral y las bandas
+  salariales de ejemplo.
 
 ## Quién lo construyó
 
@@ -266,3 +266,43 @@ Notas:
 - Resultado final: las 11 revisiones de GitHub en verde.
 - «Workers Builds: arza-one» (Cloudflare) falla porque su configuración solo existe en la rama
   `deploy/cloudflare`. No es del B35 ni es obligatoria; el propietario decidió ignorarla por ahora.
+
+## Revisiones para cerrar el bloque (18/11/2026)
+
+### Revisión del propietario
+
+El propietario probó el B35 en su navegador con los pasos de este cierre y lo dio por bueno. Si
+aparece alguna novedad, la reportará para corregirla en un cambio aparte.
+
+### Revisión externa (decisión del propietario)
+
+El B35 es bloque crítico y el manual pide revisión externa. El propietario no cuenta con un revisor
+externo y **decidió que Claude Code la hiciera con criterio de revisor externo**. Queda constancia de
+su límite: Claude Code participó en la construcción, así que no es una revisión independiente.
+
+Alcance revisado, sobre todo el código del bloque (incluido lo construido por OpenCode):
+
+| Tema                                              | Resultado                                                                                                                                                              |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Permisos de las 19 rutas                          | Todas exigen sesión y permiso; la firma de la empresa exige además confirmar la identidad. La historia laboral se edita solo con el permiso restringido `hr.file.read` |
+| Lo propio y lo ajeno                              | Con `hr.employee.read` limitado a lo propio, el colaborador ve solo su ficha; lo ajeno responde 404                                                                    |
+| Aislamiento entre empresas                        | Todas las tablas `hr_*` con RLS; probado en integración                                                                                                                |
+| Datos personales en la auditoría y en los eventos | Solo identificadores, etapas y fechas; sin nombres, correos ni documentos                                                                                              |
+| Salario y contrato                                | El valor exacto solo con `hr.salary.read`; el PDF solo para Talento humano o para quien firma por la empresa                                                           |
+| Cuenta del colaborador                            | Se crea solo con el rol Colaborador                                                                                                                                    |
+| Eliminación de candidatos                         | Probada: hoja de vida, evaluaciones y persona; conserva la ficha compartida                                                                                            |
+
+Hallazgo corregido durante la revisión:
+
+- **Una persona ya registrada en Terceros no podía volver a postularse** (por ejemplo, un candidato
+  descartado que aplica a otra vacante antes de que se borren sus datos, o un contacto de un
+  cliente): el registro fallaba por documento repetido. Ahora se reutiliza su ficha sin cambiar sus
+  datos, recupera el papel de candidato y se registra su nueva autorización. Prueba en
+  `hr-edges.int.test.ts`.
+
+Puntos anotados para bloques siguientes (no bloquean el cierre):
+
+- El colaborador aún no descarga su propio contrato ni ve su historia laboral: llega con el
+  autoservicio (B36).
+- Si la persona ya existía en Terceros, sus datos de contacto no se actualizan desde el registro de
+  candidatura; se corrigen en Terceros.

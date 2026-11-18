@@ -38,7 +38,7 @@ Un bloque a la vez, en orden. Actualice la columna Estado al cerrar cada uno.
 | B32 | F6 | Presupuesto, gastos, caja menor y exportación contable | B31 | — | En revisión |
 | B33 | F6 | Compras, proveedores y viajes | B13 · B15 | — | En revisión |
 | B34 | F6 | Activos | B33 · B25 | — | En revisión |
-| B35 | F7 | Talento humano: colaboradores, selección y vinculación | B25 · B17 | Sí | En revisión |
+| B35 | F7 | Talento humano: colaboradores, selección y vinculación | B25 · B17 | Sí | Terminado |
 | B22B | Transversal, después de B35 y antes de B36 | Nueva jerarquía visual de las tres superficies | B22A · B35 | — | Pendiente |
 | B36 | F7 | Talento humano: novedades, desempeño y retiro | B35 | — | Pendiente |
 | B37 | F7 | Seguridad y salud en el trabajo | B36 | — | Pendiente |
