@@ -173,8 +173,9 @@ se usan radio `xl` y ninguna sombra en reposo.
 
 ## Decisiones del dueño (17/11/2026)
 
-1. **Bocetos:** se guardan en `docs/bloques/B22B-bocetos/`. Usted los copia allí, y F0 no se inicia
-   sin ellos.
+1. **Bocetos:** usted hará bocetos **nuevos** y los cargará en `docs/bloques/B22B-bocetos/`. Esos
+   mandan en todo el bloque, y F0 no se inicia sin ellos. Los seis bocetos HTML que generó OpenCode
+   el 15/11/2026, en `AppData\Local\Temp\opencode\arza-dx\v2\`, quedan solo como referencia.
 2. **Portal:** F5 rediseña todo el portal: el encabezado, las listas y los detalles.
 3. **Estructura:** se acepta la barra lateral fija. Se conservan todos los elementos del numeral
    16.3.
