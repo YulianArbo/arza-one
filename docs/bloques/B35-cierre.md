@@ -97,13 +97,13 @@ Decisiones técnicas tomadas al terminar (para su conocimiento):
 
 ## Criterios de aceptación
 
-| Criterio                                                                  | Estado                                                                                              |
-| ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Vincular crea cuenta, inducción, evaluación médica y asignación de equipo | Cumplido y probado (prueba de integración de la vinculación completa)                               |
-| Los datos de candidatos descartados tienen fecha de eliminación           | Cumplido: lo exige la base de datos, se muestra en pantalla y la eliminación nocturna está probada  |
-| `pnpm check` en verde                                                     | Por partes en este equipo (ver abajo); la corrida completa queda a cargo de la integración continua |
-| Pruebas de permiso denegado, aislamiento entre empresas y auditoría       | Cumplido: pruebas de Talento humano y recorrido de auditoría de todas las escrituras                |
-| Documentación y cierre del bloque escritos                                | Cumplido                                                                                            |
+| Criterio                                                                  | Estado                                                                                             |
+| ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Vincular crea cuenta, inducción, evaluación médica y asignación de equipo | Cumplido y probado (prueba de integración de la vinculación completa)                              |
+| Los datos de candidatos descartados tienen fecha de eliminación           | Cumplido: lo exige la base de datos, se muestra en pantalla y la eliminación nocturna está probada |
+| `pnpm check` en verde                                                     | Cumplido: las 11 revisiones de GitHub del pull request #54 en verde el 18/11/2026 (ver abajo)      |
+| Pruebas de permiso denegado, aislamiento entre empresas y auditoría       | Cumplido: pruebas de Talento humano y recorrido de auditoría de todas las escrituras               |
+| Documentación y cierre del bloque escritos                                | Cumplido                                                                                           |
 
 ## Cómo lo prueba usted, paso a paso
 
@@ -253,3 +253,16 @@ Notas:
   de la suite completa de integración la confirma la integración continua.
 - No se debilitó ninguna prueba ni control. La base de datos protege los archivos ya analizados por
   el antivirus; en vez de abrir esa protección, la hoja de vida vencida se retira con borrado lógico.
+
+### Integración continua del pull request #54 (18/11/2026)
+
+- Primera corrida: la integración pasó sus 1.419 pruebas, pero la cobertura de ramas quedó en 83,89 %
+  (mínimo 85 %), porque Talento humano se mide con estas pruebas y sus caminos de error no estaban
+  probados. Se agregaron 9 pruebas de integración de casos límite (`hr-edges.int.test.ts` y
+  `hr-employee-edges.int.test.ts`) y la comprobación de que los avisos de inducción llegan a cada
+  responsable. No se bajó ningún umbral.
+- La revisión de seguridad falló por una vulnerabilidad alta de picomatch sin versión corregida;
+  el propietario aprobó una excepción temporal hasta el 17/12/2026 (`osv-scanner.toml`).
+- Resultado final: las 11 revisiones de GitHub en verde.
+- «Workers Builds: arza-one» (Cloudflare) falla porque su configuración solo existe en la rama
+  `deploy/cloudflare`. No es del B35 ni es obligatoria; el propietario decidió ignorarla por ahora.
