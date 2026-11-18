@@ -1,4 +1,4 @@
-import { candidateListResponseSchema } from '@arza/contracts';
+import { candidateListResponseSchema, hrCreatedResponseSchema } from '@arza/contracts';
 import type request from 'supertest';
 import { v7 as uuidv7 } from 'uuid';
 import { expect, it } from 'vitest';
@@ -187,4 +187,38 @@ it('no avanza más allá de seleccionado, no descarta con vinculación pendiente
   );
   const discard = await action(id, 'discard', { reason: 'Otro perfil' }, version);
   expect(discard.status).toBe(409);
+});
+
+it('reutiliza la persona que ya está en Terceros cuando se postula de nuevo', async () => {
+  const recruiter = await scenario.person('repostulacion', ['TALENTO_HUMANO']);
+  const first = await registrationBody(scenario);
+  const second = { ...(await registrationBody(scenario)), person: first.person };
+  const created = await register(recruiter, first);
+  expect(created.status, created.text).toBe(201);
+  const again = await register(recruiter, second);
+  expect(again.status, again.text).toBe(201);
+  const rows = await scenario.inTenant((tx) =>
+    tx.hrCandidate.findMany({
+      where: {
+        id: {
+          in: [created.body, again.body].map((body) => hrCreatedResponseSchema.parse(body).id),
+        },
+      },
+    }),
+  );
+  expect(new Set(rows.map((row) => row.partyId)).size).toBe(1);
+  expect(new Set(rows.map((row) => row.consentId)).size).toBe(2);
+  const partyId = rows[0]?.partyId ?? '';
+  await scenario.inTenant((tx) =>
+    tx.partyRole.updateMany({
+      where: { partyId, role: 'candidate' },
+      data: { status: 'ended', deletedAt: scenario.clock.now() },
+    }),
+  );
+  const third = { ...(await registrationBody(scenario)), person: first.person };
+  expect((await register(recruiter, third)).status).toBe(201);
+  const role = await scenario.inTenant((tx) =>
+    tx.partyRole.findFirstOrThrow({ where: { partyId, role: 'candidate' } }),
+  );
+  expect(role).toMatchObject({ status: 'active', deletedAt: null });
 });

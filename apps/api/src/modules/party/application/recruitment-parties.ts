@@ -80,7 +80,52 @@ async function grantCandidateConsent(
   });
 }
 
-/** Registra el tercero y la autorización de selección dentro de la transacción de Talento Humano. */
+/** La persona vigente ya registrada con ese documento, si existe. */
+async function existingPerson(tx: TenantTransaction, input: CreatePartyRequest) {
+  if (input.id_type === null || input.id_number === null) return null;
+  return tx.party.findFirst({
+    where: {
+      idType: input.id_type,
+      idNumber: input.id_number,
+      kind: 'person',
+      deletedAt: null,
+      mergedIntoId: null,
+    },
+    select: { id: true },
+  });
+}
+
+/** Le agrega (o le devuelve) el papel de candidato a una persona que ya está en Terceros. */
+async function ensureCandidateRole(
+  tx: TenantTransaction,
+  actor: PartyActor,
+  partyId: string,
+): Promise<void> {
+  const { tenantId } = actor.principal;
+  const since = fromCalendarDate(bogotaToday(actor.at));
+  const role = await tx.partyRole.findFirst({ where: { partyId, role: 'candidate' } });
+  if (role !== null && role.deletedAt === null && role.status === 'active') return;
+  if (role === null) {
+    await tx.partyRole.create({ data: { tenantId, partyId, role: 'candidate', since } });
+  } else {
+    await tx.partyRole.update({
+      where: { id: role.id },
+      data: { status: 'active', deletedAt: null, since },
+    });
+  }
+  await auditParty(tx, actor, {
+    action: 'party.role.add',
+    entityType: 'party',
+    entityId: partyId,
+    changes: { role: 'candidate' },
+  });
+}
+
+/**
+ * Registra la persona y la autorización de selección dentro de la transacción de Talento Humano.
+ * Si la persona ya está en Terceros con ese documento (otra candidatura, un contacto, un cliente),
+ * se usa su ficha sin cambiar sus datos: solo gana el papel de candidato y la nueva autorización.
+ */
 export async function registerCandidateParty(
   tx: TenantTransaction,
   actor: PartyActor,
@@ -89,10 +134,13 @@ export async function registerCandidateParty(
 ): Promise<CandidatePrivacy> {
   const input = consentInput(person, consent);
   await assertCatalogs(tx, input, null);
-  await assertUniqueId(tx, input, null);
-  const party = await createCandidateParty(tx, actor, input);
-  const consentId = await grantCandidateConsent(tx, actor, party.id, consent);
-  return { partyId: party.id, consentId };
+  const existing = await existingPerson(tx, input);
+  if (existing === null) await assertUniqueId(tx, input, null);
+  const partyId =
+    existing === null ? (await createCandidateParty(tx, actor, input)).id : existing.id;
+  if (existing !== null) await ensureCandidateRole(tx, actor, partyId);
+  const consentId = await grantCandidateConsent(tx, actor, partyId, consent);
+  return { partyId, consentId };
 }
 
 /** Identidad referenciada desde el expediente de selección que autoriza Talento Humano. */
