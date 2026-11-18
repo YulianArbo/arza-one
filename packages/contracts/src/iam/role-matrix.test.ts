@@ -108,7 +108,8 @@ describe('permisos limitados y sensibles', () => {
 
   it('los datos sensibles solo los ven los roles que nombra el numeral 15.2', () => {
     const holders = (code: string) => ALL_ROLES.filter((role) => codesOf(role).includes(code));
-    expect(holders('hr.salary.read')).toEqual(['TALENTO_HUMANO']);
+    // Ficha 17.13: el salario exacto solo lo ven Talento humano, la Dirección y el Contador.
+    expect(holders('hr.salary.read')).toEqual(['DIRECCION', 'CONTADOR', 'TALENTO_HUMANO']);
     expect(holders('sst.medical.read')).toEqual(['SST']);
     expect(holders('finance.export')).toEqual(['ADMIN_FINANCIERO', 'CONTADOR']);
   });

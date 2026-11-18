@@ -3,9 +3,17 @@ import { createHash } from 'node:crypto';
 import { publicSignatureSchema, verifyDocumentResponseSchema } from '@arza/contracts';
 import { describe, expect, it } from 'vitest';
 
+import {
+  sendEmploymentSignature,
+  signEmploymentAsCompany,
+} from '../../../src/modules/contract/index.js';
 import type { Person } from '../iam/support/access-scenario.js';
 import { errorCode } from '../iam/support/iam-fixtures.js';
-import { SignatureScenario, type Prepared } from './support/signature-scenario.js';
+import {
+  SignatureScenario,
+  type Prepared,
+  type SigningClient,
+} from './support/signature-scenario.js';
 
 // El recorrido completo de la firma electrónica (B25, numeral 19.2 y criterios de la ficha 17.7):
 // Comercial prepara, la Dirección envía, el cliente firma con el código de su correo, la empresa
@@ -17,6 +25,97 @@ const scenario = new SignatureScenario('firma recorrido');
 function sha256(content: Buffer): string {
   return createHash('sha256').update(content).digest('hex');
 }
+
+interface EmploymentCase {
+  readonly contractId: string;
+  readonly envelopeId: string;
+  readonly signerEmail: string;
+  readonly director: Person;
+}
+
+/** El contrato laboral aprobado se envía con el caso de uso directo, sin pasar por la ruta. */
+async function employmentEnvelope(
+  sales: Person,
+  client: SigningClient,
+  director: Person,
+): Promise<EmploymentCase> {
+  const signer = client.signers[0];
+  if (signer === undefined) throw new Error('Falta la persona que firma');
+  const contractId = await scenario.approvedFor(sales, client);
+  const envelopeId = await scenario.inTenant(async (tx) => {
+    const contract = await tx.ctrContract.findUniqueOrThrow({ where: { id: contractId } });
+    if (contract.pdfFileId === null || contract.pdfSha256 === null) throw new Error('Falta el PDF');
+    const result = await sendEmploymentSignature(
+      tx,
+      { tenantId: scenario.tenant.id, userId: sales.id, at: scenario.clock.now(), meta: null },
+      {
+        contractId,
+        personId: signer.personId,
+        email: signer.email,
+        companySignerId: director.id,
+        pdf: { id: contract.pdfFileId, sha256: contract.pdfSha256 },
+        expiresOn: scenario.day(10),
+        message: null,
+      },
+    );
+    return result.id;
+  });
+  return { contractId, envelopeId, signerEmail: signer.email, director };
+}
+
+/** La empresa firma de última y solo con verificación reciente de su cuenta. */
+async function companyAfterRecentVerification(context: EmploymentCase): Promise<void> {
+  const tenantId = scenario.tenant.id;
+  const actor = {
+    tenantId,
+    userId: context.director.id,
+    at: scenario.clock.now(),
+    meta: null,
+  };
+  const principal = {
+    tenantId,
+    userId: context.director.id,
+    sessionId: crypto.randomUUID(),
+    csrfToken: 'fixture',
+    signInComplete: true,
+    recentlyVerified: false,
+  };
+  const target = { contractId: context.contractId, envelopeId: context.envelopeId };
+  await expect(
+    scenario.inTenant((tx) => signEmploymentAsCompany(tx, actor, principal, target)),
+  ).rejects.toThrow();
+  await scenario.inTenant((tx) =>
+    signEmploymentAsCompany(tx, actor, { ...principal, recentlyVerified: true }, target),
+  );
+  await scenario.signatureWork();
+}
+
+it('envía el contrato laboral al colaborador antes de Dirección', async () => {
+  const sales = await scenario.sales();
+  const client = await scenario.signingClient(sales);
+  const director = await scenario.signingDirector(sales);
+  const context = await employmentEnvelope(sales, client, director);
+  await scenario.signatureWork();
+  const { token, ticket } = await scenario.ticketFor(context.signerEmail);
+  expect((await scenario.publicSign('sign', { token, ticket, accept: true })).status).toBe(204);
+  const envelope = await scenario.inTenant((tx) =>
+    tx.sigEnvelope.findUniqueOrThrow({
+      where: { id: context.envelopeId },
+      include: { signers: { orderBy: { signOrder: 'asc' } } },
+    }),
+  );
+  expect(envelope).toMatchObject({
+    source: 'hr_contract',
+    status: 'sent',
+    signers: [{ status: 'signed' }, { userId: director.id, status: 'pending' }],
+  });
+  await companyAfterRecentVerification(context);
+  expect(
+    await scenario.inTenant((tx) =>
+      tx.sigEnvelope.findUnique({ where: { id: context.envelopeId } }),
+    ),
+  ).toMatchObject({ status: 'completed', sealStatus: 'ready' });
+});
 
 function firstSigner(prepared: Prepared): { readonly email: string } {
   const [signer] = prepared.client.signers;

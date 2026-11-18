@@ -33,6 +33,17 @@ export {
   sendLoanSignature,
   type LoanSignatureRequest,
 } from './application/loan-signatures.js';
+export { employmentCompanySigners } from './application/signature-company-signers.js';
+export {
+  sendEmploymentSignature,
+  type EmploymentSignatureRequest,
+} from './application/employment-signature-send.js';
+export {
+  cancelEmploymentSignature,
+  employmentSignatureSnapshot,
+  sealedEmploymentContract,
+  signEmploymentAsCompany,
+} from './application/employment-signatures.js';
 export {
   processSignatureWork,
   type SignatureWorkDependencies,

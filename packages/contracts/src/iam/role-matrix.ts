@@ -62,7 +62,9 @@ const MATRIX: Readonly<Record<string, string>> = {
 const EXTRAS: Readonly<Partial<Record<InternalRoleCode, readonly PermissionCode[]>>> = {
   // «Aprobaciones de alto nivel».
   // Las compras del tramo alto las aprueba solo la Dirección (decisión 2 del B33).
-  DIRECCION: ['party.due_diligence.approve', 'purchase.request.approve_high'],
+  // El salario exacto lo ven Talento humano, la Dirección y el Contador (ficha 17.13, decisión 7
+  // del B35).
+  DIRECCION: ['party.due_diligence.approve', 'purchase.request.approve_high', 'hr.salary.read'],
   // Las cuentas bancarias de terceros se registran y aprueban en finanzas (doble aprobación).
   ADMIN_FINANCIERO: [
     'party.bank_account.read',
@@ -76,6 +78,7 @@ const EXTRAS: Readonly<Partial<Record<InternalRoleCode, readonly PermissionCode[
     'finance.export',
     'finance.tax_parameter.manage',
     'finance.period.close',
+    'hr.salary.read',
   ],
   TALENTO_HUMANO: ['hr.file.read', 'hr.salary.read'],
   // «Incluidos los conceptos de aptitud; nunca diagnósticos».

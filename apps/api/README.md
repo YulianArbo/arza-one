@@ -844,6 +844,23 @@ mantenimientos, bajas y libro de activos (ficha 17.12). Tablas y rutas en
 | Depreciación                                | `straightLineDepreciation` (contratos): informativa, sin movimientos en Finanzas                                                                                                                                                                                                                                                                                            |
 | Libro (RE-ADM-003)                          | `POST /v1/assets/book/export`: CSV con el formato del archivo contable; cada descarga se audita                                                                                                                                                                                                                                                                             |
 
+## Talento humano (B35, módulo `src/modules/hr`)
+
+Vacantes, selección de candidatos, contrato laboral con firma electrónica, vinculación, inducción e
+historia laboral (ficha 17.13). Tablas, reglas y rutas en
+[`hr.md`](../../docs/manual/datos/hr.md).
+
+| Regla                                    | Cómo se cumple                                                                                                                                                                                                |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Candidato con autorización               | El registro crea la persona en Terceros (`registerCandidateParty()`) y la autorización de selección vigente en Privacidad en la misma transacción                                                             |
+| Descartado con fecha de eliminación      | Descartar fija `retention_until` a doce meses; la restricción `hr_candidates_discard_check` lo exige. El banco de hojas de vida la aplaza doce meses (`…/actions/extend-retention`), nunca la quita           |
+| Eliminación al vencer                    | El trabajo `hr.retention` (4:00) borra la hoja de vida (`disposeAttachedFile()` de Documentos), las notas de evaluación y anonimiza la persona, o solo le quita el papel de candidato (`dropCandidateRole()`) |
+| Contrato firmado electrónicamente        | Contratos firma el PDF con `sendEmploymentSignature()`: primero la persona, luego la Dirección designada con autenticación reciente (`signEmploymentAsCompany()`)                                             |
+| Vincular exige el contrato firmado       | El disparador `hr_employees_require_signed_contract` impide un colaborador `active` sin contrato `signed` con su PDF sellado                                                                                  |
+| Vincular crea cuenta, inducción y equipo | En una transacción: cuenta e invitación (Identidad), tareas de inducción con su responsable, 13 ítems de historia laboral y el evento `employee.hired`, que avisa a cada responsable (`hr_onboarding_task`)   |
+| Historia laboral y salario restringidos  | El expediente exige `hr.file.read`; el salario exacto, `hr.salary.read` (Talento humano, Dirección y Contador). Sin ellos la API responde `null`                                                              |
+| Solo lo propio                           | Con `hr.employee.read` limitado a lo propio, la persona ve solo su ficha; lo ajeno responde 404                                                                                                               |
+
 ## Flujos y tareas (B15, módulo `src/modules/wf`)
 
 Motor de flujos definido por datos (ficha 17.5, numeral 13.2, ADR-011). Las tablas están en

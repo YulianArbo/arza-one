@@ -114,8 +114,7 @@ const MODULES: readonly NavigationItem[] = [
     slug: 'talento-y-sst',
     label: 'Talento y SST',
     icon: Users,
-    permissions: ['hr.employee.read', 'sst.plan.manage'],
-    block: 'B35',
+    permissions: ['hr.employee.read', 'hr.vacancy.manage', 'hr.candidate.manage'],
   },
   {
     slug: 'indicadores',

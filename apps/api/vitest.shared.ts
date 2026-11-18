@@ -93,6 +93,11 @@ export const DATABASE_BOUND_FILES = [
   // Activos (B34): todo menos las reglas del dominio, que se prueban solas.
   'src/modules/asset/application/**/*.ts',
   'src/modules/asset/interface/**/*.ts',
+  // Talento humano (B35): selección, vinculación, inducción y eliminación de datos de candidatos.
+  'src/modules/hr/application/**/*.ts',
+  'src/modules/hr/interface/**/*.ts',
+  'src/modules/iam/application/invitation-messages.ts',
+  'src/modules/iam/application/invitation-records.ts',
   // Contratos (B24): todo menos las reglas del dominio, que se prueban solas.
   'src/modules/contract/application/**/*.ts',
   'src/modules/contract/interface/**/*.ts',
