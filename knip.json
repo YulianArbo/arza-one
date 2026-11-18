@@ -25,6 +25,9 @@
       ],
       "ignoreDependencies": ["@prisma/client"]
     },
+    "apps/web": {
+      "entry": ["open-next.config.ts"]
+    },
     "apps/worker": {
       "entry": ["src/main.ts", "src/healthcheck.ts", "src/cli/enqueue-example.ts"]
     },

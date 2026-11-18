@@ -50,7 +50,6 @@
     "lefthook": "^2.1.16",
     "prettier": "^3.9.9",
     "turbo": "^2.11.7",
-    "typescript": "~6.0.3",
-    "wrangler": "^4.162.0"
+    "typescript": "~6.0.3"
   }
 }

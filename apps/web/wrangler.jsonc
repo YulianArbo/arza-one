@@ -3,19 +3,16 @@
   "name": "arza-one",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-11-15",
-  "compatibility_flags": [
-    "nodejs_compat",
-    "global_fetch_strictly_public"
-  ],
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "workers_dev": true,
   "assets": {
     "directory": ".open-next/assets",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
   },
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
-      "service": "arza-one"
-    }
-  ]
+      "service": "arza-one",
+    },
+  ],
 }
