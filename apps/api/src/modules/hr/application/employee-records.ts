@@ -22,7 +22,7 @@ import type { TenantTransaction } from '../../../platform/database/tenant-contex
 import { AppError } from '../../../platform/errors/app-error.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
 import { employmentSignatureSnapshot } from '../../contract/index.js';
-import { bogotaToday, positionsById, toCalendarDate } from '../../core/index.js';
+import { bogotaToday, catalogLabels, positionsById, toCalendarDate } from '../../core/index.js';
 import { AttachedFileLinks } from '../../doc/index.js';
 import { peopleById } from '../../iam/index.js';
 import { candidateParties } from '../../party/index.js';
@@ -34,6 +34,9 @@ interface Viewer {
 
 type SignatureSnapshot = NonNullable<Awaited<ReturnType<typeof employmentSignatureSnapshot>>>;
 
+/** Catálogo de las bandas salariales (decisión 8 del B35). */
+export const SALARY_BANDS = 'hr_salary_bands';
+
 interface DetailSource {
   readonly row: HrEmployee;
   readonly employee: Employee | undefined;
@@ -43,6 +46,7 @@ interface DetailSource {
   readonly tasks: readonly HrOnboardingTask[];
   readonly people: Awaited<ReturnType<typeof peopleById>>;
   readonly seesFile: boolean;
+  readonly bands: ReadonlyMap<string, string>;
 }
 
 function scope(viewer: Viewer) {
@@ -150,7 +154,8 @@ async function detailSource(
     tx,
     tasks.flatMap(({ responsibleId }) => (responsibleId === null ? [] : [responsibleId])),
   );
-  return { row, employee, contract, signature, entries, tasks, people, seesFile };
+  const bands = await catalogLabels(tx, SALARY_BANDS);
+  return { row, employee, contract, signature, entries, tasks, people, seesFile, bands };
 }
 
 function contractView(
@@ -233,7 +238,11 @@ function detailPayload(viewer: Viewer, source: DetailSource) {
     contract:
       source.contract === null
         ? null
-        : contractView(source.contract, source.signature, seesSalary, viewer),
+        : {
+            ...contractView(source.contract, source.signature, seesSalary, viewer),
+            salary_band_label:
+              source.bands.get(source.contract.salaryBand) ?? source.contract.salaryBand,
+          },
     file: fileView(source.entries),
     onboarding: onboardingView(source, source.row.id),
   };

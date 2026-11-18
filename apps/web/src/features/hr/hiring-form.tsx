@@ -7,6 +7,7 @@ import {
   hrCreatedResponseSchema,
   hrPositionListResponseSchema,
   WORK_MODES,
+  type CatalogItem,
   type Candidate,
   type CompanySignerOption,
   type FileListResponse,
@@ -21,6 +22,7 @@ import { QueryState } from '../administration/query-state';
 import { bogotaToday } from '../crm/labels';
 import { useFiles } from '../files/queries';
 import { NewRecord } from '../finance/ledger-ui';
+import { useCatalog } from '../organization/queries';
 import { usePermissions } from '../session/permissions';
 import { HrForm, type HrField } from './hr-form';
 import { useHrQuery } from './hr-queries';
@@ -58,7 +60,7 @@ function positionField(positions: readonly HrRef[]): HrField {
 }
 
 /** Datos del contrato que no dependen de otras consultas. */
-function hiringDetailFields(): readonly HrField[] {
+function hiringDetailFields(bands: readonly SalaryBand[]): readonly HrField[] {
   return [
     { key: 'hire_date', label: 'Fecha de ingreso', type: 'date', value: bogotaToday() },
     {
@@ -72,7 +74,13 @@ function hiringDetailFields(): readonly HrField[] {
       label: 'Modalidad',
       options: Object.entries(WORK_MODES).map(([value, label]) => ({ value, label })),
     },
-    { key: 'salary_band', label: 'Código de banda salarial' },
+    {
+      key: 'salary_band',
+      label: 'Banda salarial',
+      options: bands
+        .filter(({ is_active }) => is_active)
+        .map(({ code, label }) => ({ value: code, label })),
+    },
     { key: 'salary', label: 'Salario mensual en pesos' },
     { key: 'work_email', label: 'Correo de la cuenta de trabajo', type: 'email' },
   ];
@@ -102,10 +110,11 @@ function hiringFields(
   positions: readonly HrRef[],
   signers: readonly CompanySignerOption[],
   files: FileListResponse['data'],
+  bands: readonly SalaryBand[],
 ): readonly HrField[] {
   return [
     positionField(positions),
-    ...hiringDetailFields(),
+    ...hiringDetailFields(bands),
     contractFileField(files),
     companySignerField(signers),
     { key: 'message', label: 'Mensaje a la persona que firma' },
@@ -113,6 +122,10 @@ function hiringFields(
 }
 
 /** La terminación y el mensaje vacíos viajan como nulos. */
+/** Opciones del catálogo «Bandas salariales» (decisión 8 del B35). */
+const SALARY_BANDS = 'hr_salary_bands';
+type SalaryBand = CatalogItem;
+
 function hiringBody(values: Record<string, string>) {
   const endsOn = values['ends_on'];
   const message = values['message'];
@@ -147,9 +160,10 @@ function HiringBodyForm({ candidate, onDone, positions, signers, files }: Hiring
   const api = useApiClient();
   const router = useRouter();
   const [key] = useState(() => crypto.randomUUID());
+  const bands = useCatalog(SALARY_BANDS).data?.items ?? [];
   return (
     <HrForm
-      fields={hiringFields(positions, signers, files)}
+      fields={hiringFields(positions, signers, files, bands)}
       schema={hireCandidateSchema}
       prepare={hiringBody}
       run={async (body, csrfToken) => {

@@ -9,7 +9,14 @@ import type { TenantTransaction } from '../../../platform/database/tenant-contex
 import { AppError } from '../../../platform/errors/app-error.js';
 import { idempotencyKeyReused } from '../../../platform/http/idempotency-key.js';
 import { versionConflict } from '../../../platform/http/if-match.js';
-import { addDays, bogotaToday, fromCalendarDate, positionsById } from '../../core/index.js';
+import {
+  addDays,
+  bogotaToday,
+  fromCalendarDate,
+  isActiveCatalogCode,
+  positionsById,
+} from '../../core/index.js';
+import { SALARY_BANDS } from './employee-records.js';
 import { attachablePdfForSignature } from '../../doc/index.js';
 import { candidateParties } from '../../party/index.js';
 import { sendEmploymentSignature } from '../../contract/index.js';
@@ -77,6 +84,9 @@ async function hiringInputs(
   const pdf = await attachablePdfForSignature(tx, principal, input.contract_file_id);
   if (!position?.isActive || pdf === null || !salary.gt(0)) {
     throw recordInvalid('Revise el cargo, el salario y el PDF adjunto.');
+  }
+  if (!(await isActiveCatalogCode(tx, SALARY_BANDS, input.salary_band))) {
+    throw recordInvalid('Elija una banda de la lista «Bandas salariales».');
   }
   const person = (await candidateParties(tx, [candidate.partyId])).get(candidate.partyId);
   if (person?.email === null || person?.email === undefined) {
