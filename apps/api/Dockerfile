@@ -3,7 +3,7 @@
 # La etapa «migrate» es la imagen de migraciones del despliegue (B07):
 #   docker build -f apps/api/Dockerfile --target migrate -t arza-one/migrate .
 # La imagen base va fijada por su huella; Renovate propone las actualizaciones.
-ARG NODE_IMAGE=node:24-alpine@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1
+ARG NODE_IMAGE=node:24-alpine@sha256:116b800c3754b440ee0aa3ed2f20f5bf3d99a554bfd9adeea09ea8017f6e85f5
 
 FROM ${NODE_IMAGE} AS build
 WORKDIR /repo
