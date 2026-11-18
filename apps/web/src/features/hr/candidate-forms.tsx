@@ -24,6 +24,7 @@ import { NewRecord } from '../finance/ledger-ui';
 import { ConsentFields } from '../privacy/consent-fields';
 import { consentBody, EMPTY_CONSENT } from '../privacy/consent-values';
 import { HrForm, type HrField } from './hr-form';
+import { ExtendRetention, TalentBankField } from './candidate-retention';
 import { PrepareHiring } from './hiring-form';
 import { useHrQuery } from './hr-queries';
 
@@ -57,6 +58,7 @@ function candidateFields(vacancies: readonly Vacancy[]): readonly HrField[] {
 function registrationBody(
   values: Record<string, string>,
   consent: Parameters<typeof consentBody>[0],
+  talentBank: boolean,
 ) {
   const { vacancy_id, source, applied_on, phone, ...person } = values;
   return {
@@ -64,6 +66,7 @@ function registrationBody(
     source,
     applied_on,
     person: { ...person, phone: phone === '' ? null : phone },
+    talent_bank: talentBank,
     consent: consentBody(consent),
   };
 }
@@ -113,11 +116,12 @@ function CandidateRegistration({
   const api = useApiClient();
   const [key] = useState(() => crypto.randomUUID());
   const [consent, setConsent] = useState(EMPTY_CONSENT);
+  const [talentBank, setTalentBank] = useState(false);
   return (
     <HrForm
       fields={candidateFields(vacancies)}
       schema={registerCandidateSchema}
-      prepare={(values) => registrationBody(values, consent)}
+      prepare={(values) => registrationBody(values, consent, talentBank)}
       run={(body, csrfToken) =>
         api.post('/v1/hr/candidates', {
           body,
@@ -136,6 +140,7 @@ function CandidateRegistration({
         onChange={setConsent}
         idPrefix="hr-candidate-consent"
       />
+      <TalentBankField checked={talentBank} onChange={setTalentBank} />
     </HrForm>
   );
 }
@@ -219,6 +224,7 @@ export function CandidateActions({ candidate }: { readonly candidate: Candidate 
       <AdvanceRecord candidate={candidate} />
       <EvaluateRecord candidate={candidate} />
       <DiscardRecord candidate={candidate} />
+      <ExtendRetention candidate={candidate} />
     </div>
   );
 }

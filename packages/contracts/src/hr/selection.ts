@@ -210,6 +210,9 @@ export const advanceCandidateSchema = z.strictObject({ note: optionalText(1000) 
 
 export const discardCandidateSchema = z.strictObject({ reason: textSchema(3, 1000) });
 
+/** Aplazar doce meses la eliminación de quien autorizó el banco de hojas de vida (sin datos). */
+export const extendCandidateRetentionSchema = z.strictObject({});
+
 export const addSelectionEvaluationSchema = z.strictObject({
   kind: selectionEvaluationKindSchema,
   evaluated_on: dateSchema,

@@ -101,6 +101,7 @@ function Onboarding(props: {
               {task.done_on === null
                 ? `Pendiente · vence ${formatDate(task.due_on)}`
                 : `Realizada el ${formatDate(task.done_on)}`}
+              {task.responsible === null ? null : ` · Responsable: ${task.responsible.name}`}
             </p>
             <CompleteTask task={task} allowed={props.allowed} />
           </li>
