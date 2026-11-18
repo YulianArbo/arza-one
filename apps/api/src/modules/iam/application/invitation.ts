@@ -1,29 +1,28 @@
-import { HttpStatus, Inject, Injectable, Optional } from '@nestjs/common';
-import {
-  ACCESS_ERROR_CODES,
-  ACCESS_RULES,
-  IAM_ERROR_CODES,
-  type AcceptInvitationRequest,
-} from '@arza/contracts';
+import { Inject, Injectable, Optional } from '@nestjs/common';
+import { type AcceptInvitationRequest } from '@arza/contracts';
 
-import { Prisma, type Role, type User } from '../../../generated/prisma/client.js';
+import { Prisma } from '../../../generated/prisma/client.js';
 import type { Principal } from '../../../platform/access/principal.js';
 import { recordAuditEvent } from '../../../platform/audit/audit-recorder.js';
 import { CLOCK, type Clock } from '../../../platform/clock/clock.js';
 import { DatabaseService } from '../../../platform/database/database.service.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
-import { AppError } from '../../../platform/errors/app-error.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
 import { consumeLink, loadUser } from '../infrastructure/accounts-store.js';
-import { findRole, findRoleByCode } from '../infrastructure/assignment-store.js';
 import { findLink, type LinkRef } from '../infrastructure/identity-lookup.js';
 import { hashSecretToken } from '../infrastructure/secret-token.js';
-import { roleNotFound, userNotFound, userStateInvalid } from './access-messages.js';
+import { userNotFound, userStateInvalid } from './access-messages.js';
 import { AccountNotifier } from './account-notifier.js';
 import { linkInvalid } from './iam-messages.js';
+import { clientCompanyInvalid, emailTaken, invitationNotQueued } from './invitation-messages.js';
+import {
+  grantInitialRoles,
+  linkEmployeeAccount,
+  recordResent,
+  type EmployeeInvitationInput,
+} from './invitation-records.js';
 import { PasswordSetter } from './password-setter.js';
 import { CLIENT_COMPANIES, type ClientCompanies } from './profile-ports.js';
-import { grantRole } from './role-assignment.js';
 
 export interface InviteUserInput {
   readonly tenantId: string;
@@ -90,6 +89,50 @@ export class InvitationUseCase {
     });
     if (!queued) throw invitationNotQueued();
     return { userId, outcome };
+  }
+
+  /** Crea una cuenta interna en la misma transacción que vincula al colaborador. */
+  async createEmployeeInvitation(
+    tx: TenantTransaction,
+    principal: Principal,
+    meta: RequestMeta,
+    input: EmployeeInvitationInput,
+  ): Promise<string> {
+    const now = this.clock.now();
+    const id = await this.createInvited(
+      tx,
+      {
+        tenantId: principal.tenantId,
+        actorId: principal.userId,
+        kind: 'internal',
+        email: input.email,
+        displayName: input.displayName,
+        meta,
+      },
+      now,
+    ).catch((error: unknown) => {
+      throw isUniqueViolation(error) ? emailTaken() : error;
+    });
+    await linkEmployeeAccount(tx, { principal, meta, id, input, now });
+    return id;
+  }
+
+  async notifyEmployeeInvitation(
+    principal: Principal,
+    meta: RequestMeta,
+    userId: string,
+  ): Promise<void> {
+    if (
+      !(await this.notifier.request({
+        tenantId: principal.tenantId,
+        actorId: principal.userId,
+        accountUserId: userId,
+        purpose: 'invitation',
+        correlationId: meta.correlationId,
+      }))
+    ) {
+      throw invitationNotQueued();
+    }
   }
 
   /** Reenvía la invitación de una cuenta que sigue invitada (pantalla de usuarios). */
@@ -217,82 +260,6 @@ export class InvitationUseCase {
   }
 }
 
-/** Quién reenvió la invitación de una cuenta que sigue invitada. */
-async function recordResent(
-  tx: TenantTransaction,
-  event: {
-    readonly tenantId: string;
-    readonly actorId: string | null;
-    readonly userId: string;
-    readonly meta: RequestMeta | null;
-    readonly now: Date;
-  },
-): Promise<void> {
-  await recordAuditEvent(tx, {
-    tenantId: event.tenantId,
-    occurredAt: event.now,
-    actor: event.actorId === null ? { kind: 'system' } : { kind: 'user', id: event.actorId },
-    action: 'iam.user.invite',
-    entityType: 'iam_user',
-    entityId: event.userId,
-    result: 'success',
-    changes: { resent: true },
-    meta: event.meta,
-  });
-}
-
-/** COLABORADOR para toda persona interna (B10) y los roles elegidos al invitar. */
-async function grantInitialRoles(
-  tx: TenantTransaction,
-  target: { readonly input: InviteUserInput; readonly user: User; readonly now: Date },
-): Promise<void> {
-  const { input, now } = target;
-  const roles: Role[] = [];
-  if (input.kind === 'internal') {
-    const colaborador = await findRoleByCode(tx, ACCESS_RULES.defaultInternalRole);
-    if (colaborador === null) throw missingSystemRoles();
-    roles.push(colaborador);
-  }
-  for (const roleId of input.roleIds ?? []) {
-    if (roles.some((role) => role.id === roleId)) continue;
-    const role = await findRole(tx, roleId);
-    if (role === null) throw roleNotFound();
-    roles.push(role);
-  }
-  let user = target.user;
-  for (const role of roles) {
-    const grant = { tenantId: input.tenantId, actorId: input.actorId ?? null, user, role };
-    await grantRole(tx, { ...grant, validUntil: null, now, meta: input.meta ?? null });
-    user = await tx.user.findUniqueOrThrow({ where: { id: user.id } });
-  }
-}
-
-function missingSystemRoles(): Error {
-  return new Error('La empresa no tiene los roles del sistema. Ejecute pnpm db:seed.');
-}
-
 function isUniqueViolation(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002';
-}
-
-function clientCompanyInvalid(): AppError {
-  return new AppError(
-    HttpStatus.UNPROCESSABLE_ENTITY,
-    ACCESS_ERROR_CODES.clientCompanyInvalid,
-    'Elija una empresa registrada en Terceros como cliente activo.',
-  );
-}
-
-function emailTaken(): AppError {
-  return new AppError(
-    HttpStatus.CONFLICT,
-    IAM_ERROR_CODES.emailTaken,
-    'Ya existe una cuenta con ese correo.',
-  );
-}
-
-function invitationNotQueued(): Error {
-  return new Error(
-    'La cuenta quedó invitada, pero el correo no se pudo enviar. Intente reenviar la invitación en unos minutos.',
-  );
 }

@@ -51,6 +51,10 @@
     "./asset": {
       "types": "./dist/modules/asset/index.d.ts",
       "default": "./dist/modules/asset/index.js"
+    },
+    "./hr": {
+      "types": "./dist/modules/hr/index.d.ts",
+      "default": "./dist/modules/hr/index.js"
     }
   },
   "scripts": {
