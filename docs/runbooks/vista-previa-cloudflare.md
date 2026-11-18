@@ -28,9 +28,10 @@ admite hasta 3 MB; si la web crece por encima, hará falta el plan pagado (10 MB
 En **Workers & Pages → arza-one → Settings → Build**:
 
 1. **Git repository:** `YulianArbo/arza-one`.
-2. **Branch control:**
-   - Production branch: `deploy/cloudflare`.
-   - **Desactive «Builds for non-production branches».** Así Cloudflare deja de compilar los
+2. **Ramas:** la pantalla tiene dos pestañas.
+   - Pestaña **Production**: «Production branch» = `deploy/cloudflare`. No active aquí
+     «Disable builds»: apagaría también esta rama.
+   - Pestaña **Previews Base**: active **«Disable builds»**. Así Cloudflare deja de compilar los
      pull requests de Renovate y de los bloques, que no tienen esta configuración y siempre
      aparecían con «Workers Builds: arza-one» en rojo.
 3. **Root directory:** `/` (la raíz; el monorrepositorio necesita los paquetes compartidos).
@@ -45,7 +46,14 @@ En **Workers & Pages → arza-one → Settings → Build**:
 ## Cómo probar
 
 1. Guarde la configuración anterior.
-2. En **Deployments**, pulse «Retry build» sobre la última compilación de `deploy/cloudflare`.
+2. Cloudflare compila solo cuando llega un commit nuevo a `deploy/cloudflare` (por ejemplo, al
+   fusionar un pull request hacia esa rama).
+   **No use «Retry build» sobre compilaciones viejas:** repite el mismo commit antiguo. El
+   18/11/2026 eso compiló una versión sin el comando `cf:build` y falló con
+   `ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL … failed in apps/web`.
 3. Al terminar, abra la dirección `https://arza-one.<su-subdominio>.workers.dev` y verifique que
    carga la pantalla de ingreso.
-4. Si falla, copie las últimas 50 líneas del registro de la compilación para revisarlas.
+4. Si **Active deployment** sigue mostrando una versión vieja, abra los «…» de la compilación
+   nueva en **Deployments** y elija «Deploy version».
+5. Si falla, abra «Build» en la fila de la compilación, confirme que el commit es el último de
+   `deploy/cloudflare` y copie las últimas 50 líneas del registro para revisarlas.
