@@ -279,7 +279,7 @@ test.describe('tablero de trabajo', () => {
     await mockApi(page, API);
     await page.goto(`/app/proyectos/${PROJECT}`);
     await page.getByRole('tab', { name: 'Tablero' }).click();
-    await page.getByRole('button', { name: 'Mover #1 Consultar facturas a otra columna' }).focus();
+    await page.getByRole('button', { name: 'Mover a otra columna: #1 Consultar facturas' }).focus();
     await page.keyboard.press('Enter');
     await expect(page.getByRole('menuitem', { name: 'En curso' })).toBeVisible();
     await expect(page.getByRole('menuitem', { name: 'En revisión' })).toHaveCount(0);

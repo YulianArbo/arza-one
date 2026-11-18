@@ -233,7 +233,7 @@ async function travelLifecycle(): Promise<void> {
   expect(within(view).getByText('Hotel de prueba')).toBeVisible();
   expect(within(view).queryByRole('button', { name: /Quitar/u })).toBeNull();
   await userEvent.keyboard('{Escape}');
-  await userEvent.click(screen.getByRole('button', { name: 'Legalizar el viaje SV-2026-0001' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Legalizar viaje SV-2026-0001' }));
   const dialog = await screen.findByRole('dialog');
   const remove = 'Quitar el gasto Hotel de prueba';
   await userEvent.click(within(dialog).getByRole('button', { name: remove }));

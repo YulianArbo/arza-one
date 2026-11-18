@@ -101,7 +101,7 @@ function EvidenceDialog(props: { readonly consent: Consent; readonly holder: str
   return (
     <RecordDialog
       triggerLabel="Ver evidencia"
-      triggerAriaLabel={`Ver la evidencia de la autorización de ${holder}`}
+      triggerAriaLabel={`Ver evidencia de la autorización de ${holder}`}
       variant="outline"
       title={`Autorización de ${holder}`}
       description="Prueba de la autorización (Ley 1581 de 2012, art. 9)."

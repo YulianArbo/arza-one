@@ -51645,10 +51645,10 @@
             "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
           },
           "display_name": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "kind": {
             "type": "string",
@@ -52166,10 +52166,10 @@
             "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
           },
           "display_name": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "kind": {
             "type": "string",
@@ -52742,10 +52742,10 @@
             "type": "string"
           },
           "description": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "is_system": {
             "type": "boolean",
@@ -53792,10 +53792,10 @@
             "type": "string"
           },
           "trade_name": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "tax_id": {
             "type": "string"
@@ -54693,10 +54693,10 @@
             "type": "string"
           },
           "description": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "item_count": {
             "type": "integer",
@@ -56832,16 +56832,16 @@
           },
           "id_type": {
             "description": "Vacío solo en un prospecto sin documento",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "id_number": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "check_digit": {
             "anyOf": [
@@ -56856,22 +56856,22 @@
             ]
           },
           "email": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "phone": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "city": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "status": {
             "type": "string",
@@ -56909,40 +56909,40 @@
             "description": "Tiene logo (B22A); solo las organizaciones"
           },
           "first_name": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "last_name": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "legal_name": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "trade_name": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "address": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "status_reason": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "authorizations": {
             "type": "array",
@@ -57439,10 +57439,10 @@
             }
           },
           "next_cursor": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
@@ -58193,10 +58193,10 @@
           },
           "sha256": {
             "description": "Huella SHA-256 en hexadecimal, cuando ya se analizó",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "status": {
             "type": "string",
@@ -60495,10 +60495,10 @@
           },
           "doc_type": {
             "description": "Tipo del documento nuevo (solo en una creación)",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "process": {
             "anyOf": [
@@ -60598,10 +60598,10 @@
             ]
           },
           "decision_note": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "executed_at": {
             "anyOf": [
@@ -60643,10 +60643,10 @@
           },
           "step": {
             "description": "Paso actual del trámite",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "actions": {
             "type": "array",
@@ -62851,17 +62851,17 @@
           },
           "return_note": {
             "description": "Motivo de la última devolución",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "step": {
             "description": "Paso actual de la aprobación",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "actions": {
             "type": "array",
@@ -63155,10 +63155,10 @@
           },
           "body": {
             "description": "HTML de la plantilla (solo HTML)",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "file": {
             "anyOf": [
@@ -64012,10 +64012,10 @@
             ]
           },
           "decision_note": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "executed_at": {
             "anyOf": [
@@ -64048,10 +64048,10 @@
           },
           "step": {
             "description": "Paso actual del trámite",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "actions": {
             "type": "array",
@@ -64778,10 +64778,10 @@
             "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
           },
           "description": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "states": {
             "type": "array",
@@ -65905,10 +65905,10 @@
           },
           "assignee_role": {
             "description": "Rol que la atiende mientras nadie la toma",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "escalated_to": {
             "anyOf": [
@@ -68456,10 +68456,10 @@
             "additionalProperties": false
           },
           "revocation_reason": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
@@ -68784,10 +68784,10 @@
             "type": "string"
           },
           "international_transfers": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "processors": {
             "type": "array",
@@ -72395,22 +72395,22 @@
             "additionalProperties": false
           },
           "email": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "phone": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "company_name": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "source": {
             "type": "object",
@@ -72544,10 +72544,10 @@
             ]
           },
           "discard_note": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "opportunity": {
             "anyOf": [
@@ -73169,10 +73169,10 @@
             ]
           },
           "lost_note": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "created_at": {
             "type": "string",
@@ -74201,10 +74201,10 @@
           },
           "discount_cap": {
             "description": "Tope de descuento sin aprobación, en %",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "default_valid_days": {
             "type": "integer",
@@ -74530,10 +74530,10 @@
             "additionalProperties": false
           },
           "notes": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "items": {
             "type": "array",
@@ -74892,10 +74892,10 @@
           },
           "party_email": {
             "description": "Correo del cliente en Terceros, para el envío",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "versions": {
             "type": "array",
@@ -75291,10 +75291,10 @@
             "additionalProperties": false
           },
           "notes": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "items": {
             "type": "array",
@@ -75416,10 +75416,10 @@
             ]
           },
           "responded_by": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
@@ -76196,10 +76196,10 @@
             "type": "string"
           },
           "payment_terms": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "renewal": {
             "type": "string",
@@ -79299,10 +79299,10 @@
             "description": "Metodología"
           },
           "description": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "budget_hours": {
             "type": "number"
@@ -79321,10 +79321,10 @@
           },
           "status_reason": {
             "description": "Por qué está en riesgo o pausado",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "contract_status": {
             "anyOf": [
@@ -83347,16 +83347,16 @@
             "description": "Canal"
           },
           "requester_name": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "requester_email": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "survey": {
             "anyOf": [
@@ -83542,10 +83542,10 @@
             ]
           },
           "resolution": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "auto_close_at": {
             "anyOf": [
@@ -84995,16 +84995,16 @@
             "type": "string"
           },
           "requester_email": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "requester_phone": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "term_days": {
             "type": "integer",
@@ -85019,16 +85019,16 @@
             "description": "Desde este día avisa que está por vencer"
           },
           "response_draft": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "well_founded": {
-            "type": "array",
-            "items": {
-              "type": "boolean"
-            }
+            "type": [
+              "boolean",
+              "null"
+            ]
           },
           "drafted_by": {
             "anyOf": [
@@ -85069,17 +85069,17 @@
             "description": "Cuándo se envió a aprobación"
           },
           "return_reason": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "response": {
             "description": "Respuesta aprobada y enviada",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "approved_by": {
             "anyOf": [
@@ -85367,10 +85367,10 @@
           "well_founded": {
             "default": null,
             "description": "Queja o reclamo procedente: genera no conformidad en Calidad",
-            "type": "array",
-            "items": {
-              "type": "boolean"
-            }
+            "type": [
+              "boolean",
+              "null"
+            ]
           }
         },
         "required": [
@@ -86186,10 +86186,10 @@
           },
           "response": {
             "description": "La respuesta aprobada, cuando ya se envió",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
@@ -86651,10 +86651,10 @@
             "description": "Actas que esperan la respuesta del cliente"
           },
           "description": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "milestones": {
             "type": "array",
@@ -87567,17 +87567,17 @@
           },
           "project": {
             "description": "Nombre del proyecto",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "requester": {
             "description": "Quien lo pidió en su empresa",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "created_at": {
             "type": "string",
@@ -87593,10 +87593,10 @@
             "type": "string"
           },
           "resolution": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "messages": {
             "type": "array",
@@ -88024,19 +88024,19 @@
         "type": "object",
         "properties": {
           "display_name": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "email": {
             "type": "string"
           },
           "company": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "role": {
             "anyOf": [
@@ -92013,10 +92013,10 @@
           },
           "email": {
             "description": "Correo de trabajo de la cuenta",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "contract": {
             "anyOf": [

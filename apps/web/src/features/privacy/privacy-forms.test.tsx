@@ -145,7 +145,7 @@ describe('autorización revocada', () => {
     expect(screen.getByRole('button', { name: 'Página siguiente' })).toBeVisible();
     await userEvent.click(
       screen.getByRole('button', {
-        name: 'Ver la evidencia de la autorización de Titular retirado',
+        name: 'Ver evidencia de la autorización de Titular retirado',
       }),
     );
     const dialog = await screen.findByRole('dialog');

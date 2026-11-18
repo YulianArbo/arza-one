@@ -90,7 +90,7 @@ function OrderActions({ order }: { readonly order: PurchaseOrder }): JSX.Element
     return (
       <RecordDialog
         triggerLabel="Registrar recepción"
-        triggerAriaLabel={`Registrar la recepción de la orden ${order.code}`}
+        triggerAriaLabel={`Registrar recepción de la orden ${order.code}`}
         title={`Recepción de la orden ${order.code}`}
         description="Indique si llegó conforme. Si no, explique la novedad; la orden sigue abierta."
         variant="outline"
