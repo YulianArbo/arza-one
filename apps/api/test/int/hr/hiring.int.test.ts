@@ -3,9 +3,12 @@ import type request from 'supertest';
 import { expect, it } from 'vitest';
 
 import { bogotaToday } from '../../../src/modules/core/index.js';
+import { publishTenantEvents } from '../../../src/modules/ntf/application/publisher.js';
+import { seedNotificationTemplates } from '../../../src/modules/ntf/index.js';
 import { SignatureScenario } from '../contract/support/signature-scenario.js';
 import { putVersioned } from '../fin/support/ledger-steps.js';
 import type { Person } from '../iam/support/access-scenario.js';
+import { apiDatabase } from '../support/integration-database.js';
 import { hiringFixture, type HiringBody } from './support/hiring-fixture.js';
 
 const scenario = new SignatureScenario('contrato laboral');
@@ -175,6 +178,24 @@ async function responsiblesNotified(
   );
   expect(JSON.stringify(event.payload)).toContain(owners.sst.id);
   expect(JSON.stringify(event.payload)).not.toContain('@');
+  // La semilla crea en cada empresa la plantilla del aviso nuevo (pnpm db:seed).
+  await seedNotificationTemplates(apiDatabase(), [scenario.tenant.id], scenario.clock);
+  await publishTenantEvents(
+    { database: apiDatabase(), clock: scenario.clock },
+    scenario.tenant.id,
+    scenario.clock.now(),
+  );
+  const notices = await scenario.inTenant((tx) =>
+    tx.notification.findMany({ where: { kind: 'hr_onboarding_task' } }),
+  );
+  const toSst = notices.filter((notice) => notice.userId === owners.sst.id);
+  expect(toSst.map((notice) => notice.title)).toContain(
+    'Tarea de inducción: Evaluación médica ocupacional de ingreso',
+  );
+  expect(notices.find((notice) => notice.userId === owners.assets.id)?.link).toBe(
+    '/app/compras/activos',
+  );
+  expect(notices.some((notice) => notice.userId === context.recruiter.id)).toBe(false);
 }
 
 it('envía a firma el adjunto aprobado y permite firmar únicamente a Dirección designada', async () => {
