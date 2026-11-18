@@ -1,0 +1,22 @@
+// Rutas de Talento humano (M12, B35) que publica la API. Se suman a API_PATHS.
+export const HR_PATHS = [
+  '/v1/hr/candidates',
+  '/v1/hr/candidates/authorization-notices',
+  '/v1/hr/candidates/{id}/actions/advance',
+  '/v1/hr/candidates/{id}/actions/discard',
+  '/v1/hr/candidates/{id}/actions/extend-retention',
+  '/v1/hr/candidates/{id}/actions/prepare-hiring',
+  '/v1/hr/candidates/{id}/evaluations',
+  '/v1/hr/employees',
+  '/v1/hr/employees/company-signers',
+  '/v1/hr/employees/{id}',
+  '/v1/hr/employees/{id}/actions/activate',
+  '/v1/hr/employees/{id}/actions/cancel-hiring',
+  '/v1/hr/employees/{id}/contract/actions/sign',
+  '/v1/hr/employees/{id}/contract/download-link',
+  '/v1/hr/employees/{id}/file/{item}',
+  '/v1/hr/employees/{id}/onboarding/{taskId}/actions/complete',
+  '/v1/hr/vacancies',
+  '/v1/hr/vacancies/positions',
+  '/v1/hr/vacancies/{id}/actions/close',
+];

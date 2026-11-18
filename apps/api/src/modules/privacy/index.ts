@@ -7,6 +7,7 @@ export {
   grantConsent,
   publishedAuthorizationNotices,
   publishedNotices,
+  canEraseRecruitmentIdentity,
 } from './application/consent-grant.js';
 export { actorOf } from './application/privacy-support.js';
 export {

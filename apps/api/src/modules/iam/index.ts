@@ -22,6 +22,7 @@ export {
   activeUsersInPosition,
   delegationsTo,
   existingRoleCodes,
+  hasAccountForParty,
   isActiveInternalUser,
   positionOfUser,
   type Collaborator,

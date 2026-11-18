@@ -3,9 +3,11 @@
 # Agregar una excepción exige la aprobación del Director General en el pull request.
 
 [[IgnoredVulns]]
-# braces 3.0.3: agotamiento de pila con patrones muy anidados. No hay versión corregida publicada.
-# Solo lo usa el analizador de código (@next/eslint-plugin-next → fast-glob → micromatch) con
-# patrones escritos por nosotros; no llega a las imágenes ni procesa datos de usuarios. (B05)
-id = "GHSA-vfj7-8cjw-p6xm"
-ignoreUntil = 2026-11-06T00:00:00Z
-reason = "Sin corrección publicada; solo herramienta de desarrollo con patrones propios (B05)"
+# picomatch 2.3.2 y 4.0.7: lentitud extrema (ReDoS) con ciertos patrones de comodines repetidos.
+# No hay versión corregida publicada (la 4.0.7 es la última). Solo lo usan herramientas de
+# desarrollo (ESLint, dependency-cruiser, knip, Vite y Vitest) con patrones escritos por nosotros;
+# no llega a las imágenes ni procesa datos de usuarios. Aprobada por el dueño del producto el
+# 17/11/2026 en el pull request del B35. Al vencer, actualizar picomatch si ya hay corrección.
+id = "GHSA-fc5q-39xc-vjpf"
+ignoreUntil = 2026-12-17T00:00:00Z
+reason = "Sin corrección publicada; solo herramientas de desarrollo con patrones propios (B35)"

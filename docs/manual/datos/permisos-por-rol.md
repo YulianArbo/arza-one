@@ -13,7 +13,7 @@ permisos de una persona son la suma de sus roles vigentes.
 
 | Rol | Código | Para | Permisos | Solo lo propio |
 | --- | --- | --- | --- | --- |
-| Dirección | `DIRECCION` | Interno | 73 | 1 |
+| Dirección | `DIRECCION` | Interno | 74 | 1 |
 | Administrador de plataforma | `ADMIN_PLATAFORMA` | Interno | 33 | 1 |
 | Calidad | `CALIDAD` | Interno | 65 | 1 |
 | Comercial | `COMERCIAL` | Interno | 52 | 9 |
@@ -21,7 +21,7 @@ permisos de una persona son la suma de sus roles vigentes.
 | Equipo de proyecto | `EQUIPO_PROYECTO` | Interno | 21 | 17 |
 | Servicio al cliente | `SERVICIO` | Interno | 45 | 9 |
 | Administrativo y financiero | `ADMIN_FINANCIERO` | Interno | 62 | 5 |
-| Contador | `CONTADOR` | Interno | 19 | 2 |
+| Contador | `CONTADOR` | Interno | 20 | 2 |
 | Talento humano | `TALENTO_HUMANO` | Interno | 40 | 9 |
 | Seguridad y salud en el trabajo | `SST` | Interno | 29 | 8 |
 | Oficial de protección de datos | `OFICIAL_DATOS` | Interno | 33 | 5 |
@@ -32,7 +32,7 @@ permisos de una persona son la suma de sus roles vigentes.
 
 ## Dirección (`DIRECCION`)
 
-Director General. Lectura transversal, aprobaciones de alto nivel, firma de contratos, tableros. 73 permisos.
+Director General. Lectura transversal, aprobaciones de alto nivel, firma de contratos, tableros. 74 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Identidad y acceso (M01):** Ver los usuarios y sus roles · Ver los roles y sus permisos · Ver el informe de revisión de accesos
@@ -49,7 +49,7 @@ Director General. Lectura transversal, aprobaciones de alto nivel, firma de cont
 - **Servicio al cliente (M08):** Ver tiquetes · Ver PQRSF · Leer la base de conocimiento
 - **Finanzas (M10):** Ver facturas · Aprobar facturas · Registrar documento fiscal emitido · Anular facturas · Ver presupuestos · Aprobar presupuestos · Aprobar gastos · Ver gastos, caja menor y conciliaciones
 - **Compras y activos (M11):** Aprobar solicitudes de compra · Aprobar viajes · Ver compras, proveedores y viajes · Ver activos · Aprobar compras del tramo alto
-- **Talento humano (M12):** Ver colaboradores · Aprobar permisos y vacaciones · Autorizar horas extras · Cerrar el periodo de novedades de nómina
+- **Talento humano (M12):** Ver colaboradores · Aprobar permisos y vacaciones · Autorizar horas extras · Cerrar el periodo de novedades de nómina · Ver salarios
 - **Seguridad y salud en el trabajo (M13):** Ver las actas del comité
 - **Calidad (M14):** Cerrar no conformidades · Verificar la eficacia de las acciones · Evaluar el cumplimiento legal
 - **Innovación (M15):** Evaluar ideas · Aprobar ideas
@@ -174,7 +174,7 @@ Gerente administrativo, asistente. Facturación, cartera, compras, activos, pres
 
 ## Contador (`CONTADOR`)
 
-Contador Público externo. Lectura financiera, exportaciones contables, parámetros tributarios. 19 permisos.
+Contador Público externo. Lectura financiera, exportaciones contables, parámetros tributarios. 20 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Terceros (M02):** Ver terceros · Ver las cuentas bancarias de terceros
@@ -185,6 +185,7 @@ Contador Público externo. Lectura financiera, exportaciones contables, parámet
 - **Servicio al cliente (M08):** Leer la base de conocimiento
 - **Finanzas (M10):** Ver facturas · Ver presupuestos · Ver gastos, caja menor y conciliaciones · Exportar información contable · Administrar parámetros tributarios · Cerrar periodos contables
 - **Compras y activos (M11):** Ver compras, proveedores y viajes · Ver activos
+- **Talento humano (M12):** Ver salarios
 
 ## Talento humano (`TALENTO_HUMANO`)
 
