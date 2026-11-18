@@ -109,7 +109,8 @@ it('borra la hoja de vida, la persona y las evaluaciones al vencer, una sola vez
   expect(rows.row).toMatchObject({ resumeFileId: null, stage: 'discarded' });
   expect(rows.row.erasedAt).toBeInstanceOf(Date);
   expect(rows.person).toMatchObject({ firstName: 'Candidato', idNumber: null, email: null });
-  expect(rows.file).toMatchObject({ scanStatus: 'disposed', fileName: 'archivo-eliminado' });
+  expect(rows.file).toMatchObject({ fileName: 'archivo-eliminado' });
+  expect(rows.file.deletedAt).toBeInstanceOf(Date);
   expect(deleted).toContain(resume.storageKey);
   expect(rows.events).toBe(1);
 });

@@ -154,7 +154,7 @@ async function retireResume(
   const inFile = await tx.hrFileChecklistItem.count({
     where: { tenantId: scope.tenantId, documentId: fileId, deletedAt: null },
   });
-  return inFile > 0 ? null : disposeAttachedFile(tx, fileId);
+  return inFile > 0 ? null : disposeAttachedFile(tx, fileId, scope.at);
 }
 
 /** Anonimiza la persona si solo existía para esta candidatura; si no, conserva su ficha. */
