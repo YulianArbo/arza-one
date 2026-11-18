@@ -116,6 +116,19 @@ export const CATALOGS: readonly SeedCatalog[] = [
     ],
   },
   {
+    key: 'hr_salary_bands',
+    name: 'Bandas salariales',
+    description:
+      'Bandas del salario de los colaboradores (ficha 17.13, B35). El valor exacto solo lo ven Talento humano, la Dirección y el Contador. Valores de ejemplo por ajustar.',
+    items: [
+      ['BANDA_1', 'Banda 1'],
+      ['BANDA_2', 'Banda 2'],
+      ['BANDA_3', 'Banda 3'],
+      ['BANDA_4', 'Banda 4'],
+      ['BANDA_5', 'Banda 5'],
+    ],
+  },
+  {
     key: 'crm_lead_sources',
     name: 'Orígenes de los prospectos',
     description: 'Por dónde llegó un prospecto al CRM (B22). Se usan en el informe del embudo.',

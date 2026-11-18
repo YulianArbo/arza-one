@@ -30,7 +30,7 @@ import { auditPrivacy, type PrivacyActor } from './privacy-support.js';
 // formularios públicos (B41) y los de talento humano.
 
 /** Formulario que tomó la autorización. */
-type ConsentSource = 'party_create' | 'party_consent' | 'crm_lead';
+type ConsentSource = 'party_create' | 'party_consent' | 'crm_lead' | 'hr_candidate';
 
 export interface ConsentRequest {
   readonly partyId: string;
@@ -82,6 +82,37 @@ async function assertEvidence(tx: TenantTransaction, actor: PrivacyActor, fileId
   if (!attachable) throw evidenceInvalid();
 }
 
+/** Columnas de la autorización: la versión exacta del texto que la persona leyó. */
+function consentColumns(actor: PrivacyActor, request: ConsentRequest, notice: PrivacyNotice) {
+  const { grant } = request;
+  return {
+    tenantId: actor.tenantId,
+    partyId: request.partyId,
+    noticeId: notice.id,
+    purposes: grant.purposes,
+    channel: grant.channel,
+    grantedOn: fromCalendarDate(grant.granted_on),
+    source: request.source,
+    ipAddress: request.source === 'hr_candidate' ? null : (actor.meta?.ip ?? null),
+    userAgent: request.source === 'hr_candidate' ? null : (actor.meta?.userAgent ?? null),
+    evidenceFileId: grant.evidence_file_id,
+  };
+}
+
+/** Cambios que quedan en la auditoría de la autorización. */
+function consentChanges(request: ConsentRequest, notice: PrivacyNotice) {
+  const { grant } = request;
+  return {
+    party_id: request.partyId,
+    notice_key: notice.key,
+    notice_version: notice.versionNumber,
+    purposes: grant.purposes,
+    channel: grant.channel,
+    granted_on: grant.granted_on,
+    source: request.source,
+  };
+}
+
 /** Registra la autorización con la versión exacta del texto y su evidencia. */
 export async function grantConsent(
   tx: TenantTransaction,
@@ -90,36 +121,21 @@ export async function grantConsent(
 ): Promise<string> {
   const { grant } = request;
   const notice = await currentAuthorizationNotice(tx, grant.notice_id);
+  if (
+    request.source === 'hr_candidate' &&
+    (notice.key !== 'authorization_candidate' || !grant.purposes.includes('RECRUITMENT'))
+  ) {
+    throw purposeInvalid();
+  }
   if (unofferedPurposes(notice.purposes, grant.purposes).length > 0) throw purposeInvalid();
   if (!isGrantDateValid(grant.granted_on, bogotaToday(actor.at))) throw grantDateInvalid();
   await assertEvidence(tx, actor, grant.evidence_file_id);
-  const row = await tx.privacyConsent.create({
-    data: {
-      tenantId: actor.tenantId,
-      partyId: request.partyId,
-      noticeId: notice.id,
-      purposes: grant.purposes,
-      channel: grant.channel,
-      grantedOn: fromCalendarDate(grant.granted_on),
-      source: request.source,
-      ipAddress: actor.meta?.ip ?? null,
-      userAgent: actor.meta?.userAgent ?? null,
-      evidenceFileId: grant.evidence_file_id,
-    },
-  });
+  const row = await tx.privacyConsent.create({ data: consentColumns(actor, request, notice) });
   await auditPrivacy(tx, actor, {
     action: 'privacy.consent.grant',
     entityType: 'prv_consent',
     entityId: row.id,
-    changes: {
-      party_id: request.partyId,
-      notice_key: notice.key,
-      notice_version: notice.versionNumber,
-      purposes: grant.purposes,
-      channel: grant.channel,
-      granted_on: grant.granted_on,
-      source: request.source,
-    },
+    changes: consentChanges(request, notice),
   });
   return row.id;
 }
@@ -144,6 +160,21 @@ export async function publishedAuthorizationNotices(tx: TenantTransaction): Prom
     orderBy: { key: 'asc' },
   });
   return rows.map(noticeView);
+}
+
+/**
+ * Verifica si la autorización permite anonimizar la identidad, conservando su registro inmutable.
+ * Una autorización con soporte firmado se conserva como prueba, y con ella la persona. El banco de
+ * hojas de vida no impide eliminar: llegada la fecha (aplazada o no), se elimina (decisión C del B35).
+ */
+export async function canEraseRecruitmentIdentity(
+  tx: TenantTransaction,
+  target: { readonly id: string; readonly partyId: string },
+): Promise<boolean> {
+  const result = await tx.privacyConsent.count({
+    where: { id: target.id, partyId: target.partyId, source: 'hr_candidate', evidenceFileId: null },
+  });
+  return result === 1;
 }
 
 /**

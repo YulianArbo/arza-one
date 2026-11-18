@@ -55,6 +55,8 @@ export {
 export {
   AttachedFileLinks,
   attachedFiles,
+  attachablePdfForSignature,
+  disposeAttachedFile,
   isAttachableFile,
   openAvailableFile,
   type AttachedFile,

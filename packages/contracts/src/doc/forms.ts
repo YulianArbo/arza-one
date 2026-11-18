@@ -48,6 +48,7 @@ export const FORM_ENTITY_TYPES = {
   prj_acceptance: 'Acta de entrega de un proyecto',
   prj_code_review: 'Revisión de código de un proyecto',
   ast_assignment: 'Asignación de un activo en comodato',
+  hr_contract: 'Contrato laboral de un colaborador',
 } as const;
 
 export type FormEntityType = keyof typeof FORM_ENTITY_TYPES;

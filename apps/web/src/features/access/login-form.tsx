@@ -52,6 +52,7 @@ function LoginCard({ children }: { readonly children: ReactNode }): JSX.Element 
     <AccessCard title="Iniciar sesión" description={AUDIENCE_DESCRIPTIONS[audience]}>
       <AudienceSwitch value={audience} onChange={setAudience} />
       {children}
+      <InvitationHelp />
     </AccessCard>
   );
 }
@@ -97,5 +98,14 @@ export function LoginForm(): JSX.Element {
         <AccessLink href={ACCESS_PATHS.forgot}>¿Olvidó su contraseña?</AccessLink>
       </form>
     </LoginCard>
+  );
+}
+
+function InvitationHelp(): JSX.Element {
+  return (
+    <p className="text-sm text-muted-foreground">
+      Si te acaban de invitar, primero abre el enlace que recibiste por correo y crea tu contraseña.
+      Si no encuentras la invitación, pide que te la reenvíen.
+    </p>
   );
 }

@@ -7,6 +7,7 @@ import { taskNoticeFacts } from '../../wf/index.js';
 import { bogotaDateTime } from '../domain/bogota-time.js';
 import { excerpt } from '../domain/delivery-rules.js';
 import { CONTRACT_HANDLERS } from './contract-notices.js';
+import { HR_HANDLERS } from './hr-notices.js';
 import type { Handler, Notice } from './notice-types.js';
 import { PROJECT_HANDLERS } from './project-notices.js';
 import { SERVICE_HANDLERS } from './service-notices.js';
@@ -213,6 +214,7 @@ const HANDLERS: Readonly<Record<string, Handler>> = {
   ...CONTRACT_HANDLERS,
   ...PROJECT_HANDLERS,
   ...SERVICE_HANDLERS,
+  ...HR_HANDLERS,
 };
 
 /** Los avisos que produce el evento; ninguno si nadie se ocupa de él. */

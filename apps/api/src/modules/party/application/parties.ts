@@ -9,95 +9,27 @@ import {
   type UpdatePartyRequest,
 } from '@arza/contracts';
 
-import { Prisma, type Party } from '../../../generated/prisma/client.js';
+import type { Party } from '../../../generated/prisma/client.js';
 import type { Principal } from '../../../platform/access/principal.js';
 import { changesBetween } from '../../../platform/audit/audit-recorder.js';
 import { CLOCK, type Clock } from '../../../platform/clock/clock.js';
 import { DatabaseService } from '../../../platform/database/database.service.js';
-import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import { versionConflict } from '../../../platform/http/if-match.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
-import { bogotaToday, fromCalendarDate, isActiveCatalogCode } from '../../core/index.js';
+import { bogotaToday, fromCalendarDate } from '../../core/index.js';
 import { actorOf, grantConsent } from '../../privacy/index.js';
 import {
-  catalogValueInvalid,
-  kindChange,
-  documentRequired,
-  partyDuplicate,
-  statusTransitionInvalid,
-} from './party-messages.js';
-import { ALL_PARTIES, auditParty, findParty, partyName, type PartyActor } from './party-support.js';
-
-type PartyData = UpdatePartyRequest;
+  assertCatalogs,
+  assertUniqueId,
+  auditOf,
+  columnsOf,
+  duplicateOnConflict,
+} from './party-fields.js';
+import { documentRequired, kindChange, statusTransitionInvalid } from './party-messages.js';
+import { ALL_PARTIES, auditParty, findParty, type PartyActor } from './party-support.js';
 
 function documentOf(party: Party) {
   return { id_type: party.idType, id_number: party.idNumber, check_digit: party.checkDigit };
-}
-
-/**
- * Columnas del tercero a partir del formulario; el contrato ya exige los datos de cada tipo. El
- * teléfono se guarda sin espacios para encontrar duplicados.
- */
-function columnsOf(input: PartyData) {
-  return {
-    kind: input.kind,
-    idType: input.id_type,
-    idNumber: input.id_number,
-    checkDigit: input.check_digit,
-    email: input.email,
-    phone: input.phone === null ? null : input.phone.replaceAll(' ', ''),
-    city: input.city,
-    address: input.address,
-    legalName: input.legal_name,
-    tradeName: input.trade_name,
-    firstName: input.first_name,
-    lastName: input.last_name,
-  };
-}
-
-/** Lo que guarda la auditoría: sin dirección ni teléfono completos, que no aportan al historial. */
-function auditOf(party: Party) {
-  return {
-    kind: party.kind,
-    name: partyName(party),
-    id_type: party.idType,
-    id_number: party.idNumber,
-    email: party.email,
-    city: party.city,
-    status: party.status,
-  };
-}
-
-/** El tipo de documento sigue activo en su catálogo; si no cambió, no se revisa. */
-async function assertCatalogs(tx: TenantTransaction, input: PartyData, before: Party | null) {
-  if (
-    input.id_type !== null &&
-    input.id_type !== before?.idType &&
-    !(await isActiveCatalogCode(tx, 'identification_types', input.id_type))
-  ) {
-    throw catalogValueInvalid('El tipo de documento');
-  }
-}
-
-/** Tipo y número de documento únicos por empresa, contando los fusionados (ficha 17.3). */
-async function assertUniqueId(tx: TenantTransaction, input: PartyData, selfId: string | null) {
-  if (input.id_type === null || input.id_number === null) return;
-  const taken = await tx.party.count({
-    where: {
-      idType: input.id_type,
-      idNumber: input.id_number,
-      ...(selfId === null ? {} : { NOT: { id: selfId } }),
-    },
-  });
-  if (taken > 0) throw partyDuplicate();
-}
-
-/** Dos registros simultáneos del mismo documento: decide el índice único y se responde 409. */
-function duplicateOnConflict(error: unknown): never {
-  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-    throw partyDuplicate();
-  }
-  throw error;
 }
 
 /** Ficha, estado y papeles del tercero (ficha 17.3). */

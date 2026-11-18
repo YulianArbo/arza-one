@@ -200,7 +200,8 @@ export function InviteUserDialog(): JSX.Element {
           <DialogHeader>
             <DialogTitle>Invitar a una persona</DialogTitle>
             <DialogDescription>
-              Le llegará un correo con un enlace de un solo uso que vence en 72 horas.
+              Le llegará un enlace de un solo uso que vence en 72 horas. Para iniciar sesión, la
+              persona debe abrirlo y crear su contraseña.
             </DialogDescription>
           </DialogHeader>
           {open ? (

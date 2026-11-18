@@ -8,15 +8,14 @@ import {
 
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import { addDays, bogotaToday, companyIdentity, nextBusinessCode } from '../../core/index.js';
-import { accountsWithRoles, type CompanySignerAccount } from '../../iam/index.js';
-import {
-  contractParty,
-  partyVerified,
-  signingPerson,
-  type ContractParty,
-} from '../../party/index.js';
+import { contractParty, partyVerified, type ContractParty } from '../../party/index.js';
 import { endOfBogotaDay } from '../domain/signature-rules.js';
 import type { ContractActor } from './contract-support.js';
+import {
+  companyCandidates,
+  companySigner,
+  type SignerCandidate,
+} from './signature-company-signers.js';
 import {
   partyNotVerified,
   signatureDatesInvalid,
@@ -37,16 +36,6 @@ import { assertSignable, sourceDocument, type SignableDocument } from './signatu
 // Dirección que firma de última por la empresa. El proceso queda «en preparación» hasta que la
 // Dirección lo envía.
 
-/** Rol que firma por la empresa (numeral 15.2: la Dirección firma los contratos). */
-const COMPANY_SIGNER_ROLE = 'DIRECCION';
-
-interface SignerCandidate {
-  readonly personId: string | null;
-  readonly name: string;
-  readonly email: string | null;
-  readonly document: string | null;
-}
-
 function optionOf(candidate: SignerCandidate) {
   return {
     person_id: candidate.personId,
@@ -54,30 +43,6 @@ function optionOf(candidate: SignerCandidate) {
     email: candidate.email,
     id_number: candidate.document,
     ready: candidate.email !== null && candidate.document !== null,
-  };
-}
-
-/** La Dirección con su persona en Terceros: de ahí salen su nombre, su documento y su correo. */
-async function companyCandidates(tx: TenantTransaction, at: Date) {
-  const accounts = await accountsWithRoles(tx, [COMPANY_SIGNER_ROLE], at);
-  const candidates: (SignerCandidate & { readonly userId: string })[] = [];
-  for (const account of accounts) {
-    candidates.push(await companyCandidate(tx, account));
-  }
-  return candidates;
-}
-
-async function companyCandidate(
-  tx: TenantTransaction,
-  account: CompanySignerAccount,
-): Promise<SignerCandidate & { readonly userId: string }> {
-  const person = account.partyId === null ? null : await signingPerson(tx, account.partyId);
-  return {
-    userId: account.id,
-    personId: person?.personId ?? null,
-    name: person?.name ?? account.displayName ?? account.email,
-    email: account.email,
-    document: person?.document ?? null,
   };
 }
 
@@ -110,7 +75,7 @@ export async function envelopeOptions(
   };
 }
 
-function assertDeadline(expiresOn: string, today: string): void {
+export function assertDeadline(expiresOn: string, today: string): void {
   if (expiresOn < today || expiresOn > addDays(today, SIGNATURE_RULES.maxDays)) {
     throw signatureDatesInvalid();
   }
@@ -133,19 +98,6 @@ function clientSigners(party: ContractParty, ids: readonly string[]) {
     }
     return { ...signer, email: signer.email, document: signer.document };
   });
-}
-
-async function companySigner(tx: TenantTransaction, userId: string, at: Date) {
-  const candidate = (await companyCandidates(tx, at)).find((option) => option.userId === userId);
-  if (candidate === undefined) {
-    throw signersInvalid('Por la empresa firma una persona activa con el rol Dirección.');
-  }
-  if (candidate.email === null || candidate.document === null) {
-    throw signersInvalid(
-      `Vincule a ${candidate.name} con su persona en Terceros, con su documento, antes de que firme por la empresa.`,
-    );
-  }
-  return { ...candidate, email: candidate.email, document: candidate.document };
 }
 
 async function assertNoOpenEnvelope(tx: TenantTransaction, document: SignableDocument) {

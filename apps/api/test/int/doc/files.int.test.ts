@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 
 import { describe, expect, it } from 'vitest';
 
-import { FileNotReadyError } from '../../../src/modules/doc/index.js';
+import { attachablePdfForSignature, FileNotReadyError } from '../../../src/modules/doc/index.js';
 import { errorCode, MINUTE } from '../iam/support/iam-fixtures.js';
 import { FileScenario, eicar, pdfFile, samplePdf, storage } from './support/file-scenario.js';
 
@@ -14,15 +14,31 @@ function sha256(content: Buffer): string {
   return createHash('sha256').update(content).digest('hex');
 }
 
-describe('carga por enlace temporal y análisis', () => {
-  it('un PDF queda disponible con su huella SHA-256', async () => {
-    const person = await scenario.uploader();
-    const content = samplePdf();
-    const { id, result } = await scenario.upload(person, pdfFile(content));
-    expect(result).toBe('available');
-    const file = await scenario.file(person, id);
-    expect(file).toMatchObject({ status: 'available', rejection: null, sha256: sha256(content) });
+/** Un PDF queda disponible con su huella y solo quien lo cargó puede adjuntarlo a una firma. */
+async function availablePdf(): Promise<void> {
+  const person = await scenario.uploader();
+  const content = samplePdf();
+  const { id, result } = await scenario.upload(person, pdfFile(content));
+  expect(result).toBe('available');
+  const file = await scenario.file(person, id);
+  expect(file).toMatchObject({ status: 'available', rejection: null, sha256: sha256(content) });
+  const other = await scenario.uploader();
+  const tenantId = scenario.tenant.id;
+  await scenario.inTenant(async (tx) => {
+    await expect(
+      attachablePdfForSignature(tx, { tenantId, userId: person.id }, id),
+    ).resolves.toEqual({
+      id,
+      sha256: sha256(content),
+    });
+    await expect(
+      attachablePdfForSignature(tx, { tenantId, userId: other.id }, id),
+    ).resolves.toBeNull();
   });
+}
+
+describe('carga por enlace temporal y análisis', () => {
+  it('un PDF queda disponible con su huella SHA-256', availablePdf);
 
   it('un archivo de ensayo con firma de virus es rechazado y borrado del almacenamiento', async () => {
     const person = await scenario.uploader();
