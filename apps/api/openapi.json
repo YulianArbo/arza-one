@@ -67111,7 +67111,8 @@
                     "prj_project_update",
                     "svc_ticket_update",
                     "svc_ticket_alert",
-                    "svc_pqrsf_update"
+                    "svc_pqrsf_update",
+                    "hr_onboarding_task"
                   ],
                   "description": "Tipo de aviso"
                 },
@@ -67195,7 +67196,8 @@
                     "prj_project_update",
                     "svc_ticket_update",
                     "svc_ticket_alert",
-                    "svc_pqrsf_update"
+                    "svc_pqrsf_update",
+                    "hr_onboarding_task"
                   ],
                   "description": "Tipo de aviso"
                 },
@@ -67231,7 +67233,7 @@
         "properties": {
           "items": {
             "minItems": 1,
-            "maxItems": 13,
+            "maxItems": 14,
             "type": "array",
             "items": {
               "type": "object",
@@ -67251,7 +67253,8 @@
                     "prj_project_update",
                     "svc_ticket_update",
                     "svc_ticket_alert",
-                    "svc_pqrsf_update"
+                    "svc_pqrsf_update",
+                    "hr_onboarding_task"
                   ],
                   "description": "Tipo de aviso"
                 },
@@ -67293,7 +67296,8 @@
                     "prj_project_update",
                     "svc_ticket_update",
                     "svc_ticket_alert",
-                    "svc_pqrsf_update"
+                    "svc_pqrsf_update",
+                    "hr_onboarding_task"
                   ],
                   "description": "Tipo de aviso"
                 },
@@ -67389,7 +67393,8 @@
               "prj_project_update",
               "svc_ticket_update",
               "svc_ticket_alert",
-              "svc_pqrsf_update"
+              "svc_pqrsf_update",
+              "hr_onboarding_task"
             ],
             "description": "Tipo de aviso"
           },

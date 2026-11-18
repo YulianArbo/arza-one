@@ -39,6 +39,7 @@ function activation(session: Person['session'], employeeId: string): request.Tes
 async function hiringInProgress(): Promise<HiringContext> {
   const { body, prepare, recruiter, director } = await hiringFixture(scenario);
   expect((await prepare({ ...body, contract_file_id: crypto.randomUUID() })).status).toBe(422);
+  expect((await prepare({ ...body, salary_band: 'BANDA_9' })).status).toBe(422);
   const created = await prepare();
   expect(created.status, created.text).toBe(201);
   const employee = hrCreatedResponseSchema.parse(created.body);
