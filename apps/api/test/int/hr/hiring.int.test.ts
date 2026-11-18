@@ -20,7 +20,11 @@ interface HiringContext {
 }
 
 interface LinkedEmployee {
-  readonly onboardingTasks: readonly { readonly id: string; readonly kind: string }[];
+  readonly onboardingTasks: readonly {
+    readonly id: string;
+    readonly kind: string;
+    readonly responsibleId: string | null;
+  }[];
   readonly fileChecklist: readonly { readonly id: string }[];
 }
 
@@ -148,9 +152,38 @@ async function fileAndInduction(context: HiringContext, linked: LinkedEmployee):
   );
 }
 
+/** Cada tarea tiene su responsable y el evento de vinculación lo lleva para el aviso (decisión 6). */
+async function responsiblesNotified(
+  context: HiringContext,
+  linked: LinkedEmployee,
+  owners: { readonly sst: Person; readonly assets: Person },
+): Promise<void> {
+  const ownerOf = (kind: string) =>
+    linked.onboardingTasks.find((task) => task.kind === kind)?.responsibleId;
+  expect(ownerOf('medical_exam')).toBe(owners.sst.id);
+  expect(ownerOf('sst_induction')).toBe(owners.sst.id);
+  expect(ownerOf('equipment')).toBe(owners.assets.id);
+  expect(ownerOf('induction')).toBe(context.recruiter.id);
+  const event = await scenario.inTenant((tx) =>
+    tx.outboxEvent.findFirstOrThrow({
+      where: {
+        eventType: 'employee.hired',
+        payload: { path: ['employee_id'], equals: context.employee.id },
+      },
+    }),
+  );
+  expect(JSON.stringify(event.payload)).toContain(owners.sst.id);
+  expect(JSON.stringify(event.payload)).not.toContain('@');
+}
+
 it('envía a firma el adjunto aprobado y permite firmar únicamente a Dirección designada', async () => {
+  const owners = {
+    sst: await scenario.person('lider-sst', ['SST']),
+    assets: await scenario.person('activos', ['ADMIN_FINANCIERO']),
+  };
   const context = await hiringInProgress();
   await signedByDirector(context);
   const linked = await activatedEmployee(context);
+  await responsiblesNotified(context, linked, owners);
   await fileAndInduction(context, linked);
 });

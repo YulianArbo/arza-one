@@ -74,6 +74,10 @@ export const NOTIFICATION_KINDS = {
     label: 'Novedad o plazo de una PQRSF',
     variables: ['nombre', 'pqrsf', 'novedad'],
   },
+  hr_onboarding_task: {
+    label: 'Le corresponde una tarea de inducción',
+    variables: ['nombre', 'tarea', 'vence'],
+  },
 } as const satisfies Record<string, { label: string; variables: readonly string[] }>;
 
 export type NotificationKind = keyof typeof NOTIFICATION_KINDS;

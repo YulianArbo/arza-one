@@ -7,7 +7,6 @@ import { recordAuditEvent } from '../../../platform/audit/audit-recorder.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import { AppError } from '../../../platform/errors/app-error.js';
 import { versionConflict } from '../../../platform/http/if-match.js';
-import { addOutboxEvent } from '../../../platform/outbox/outbox.js';
 import {
   cancelEmploymentSignature,
   sealedEmploymentContract,
@@ -16,7 +15,7 @@ import {
 import { bogotaToday, fromCalendarDate } from '../../core/index.js';
 import type { InvitationUseCase } from '../../iam/index.js';
 import { candidateParties } from '../../party/index.js';
-import { createFileChecklist, createOnboardingTasks } from './hiring-onboarding.js';
+import { announceHiring, createFileChecklist, createOnboardingTasks } from './hiring-onboarding.js';
 import {
   personNotReady,
   recordNotFound,
@@ -171,34 +170,6 @@ async function closeEmploymentRecords(
   if (hired.count !== 1) throw versionConflict();
 }
 
-/** Auditoría y evento de outbox de la vinculación. */
-async function announceHiring(
-  tx: TenantTransaction,
-  actor: HiringActor,
-  employeeId: string,
-  accountId: string,
-): Promise<void> {
-  const { tenantId, userId, at, meta } = actor;
-  await recordAuditEvent(tx, {
-    tenantId,
-    occurredAt: at,
-    actor: { kind: 'user', id: userId },
-    action: 'hr.employee.hire',
-    entityType: 'hr_employee',
-    entityId: employeeId,
-    result: 'success',
-    changes: { status: 'active', account_id: accountId },
-    meta,
-  });
-  await addOutboxEvent(tx, {
-    tenantId,
-    actorId: userId,
-    occurredAt: at,
-    eventType: 'employee.hired',
-    payload: { employee_id: employeeId, user_id: accountId },
-  });
-}
-
 /** Cierra la activación: contrato, colaborador, candidatura, inducción, expediente y aviso. */
 async function finalizeActivation(
   tx: TenantTransaction,
@@ -207,6 +178,7 @@ async function finalizeActivation(
     readonly id: string;
     readonly candidateId: string;
     readonly hireDate: Date;
+    readonly positionId: string;
   },
   contractId: string,
   accountId: string,
@@ -214,9 +186,11 @@ async function finalizeActivation(
   version: number,
 ): Promise<void> {
   await closeEmploymentRecords(tx, actor, employee, contractId, accountId, signed, version);
-  await createOnboardingTasks(tx, actor.tenantId, employee.id, employee.hireDate);
-  await createFileChecklist(tx, actor.tenantId, employee.id, signed.fileId);
-  await announceHiring(tx, actor, employee.id, accountId);
+  const { tenantId, userId: actorId, at } = actor;
+  const start = { tenantId, employeeId: employee.id, hireDate: employee.hireDate, actorId, at };
+  const tasks = await createOnboardingTasks(tx, { ...start, positionId: employee.positionId });
+  await createFileChecklist(tx, tenantId, employee.id, signed.fileId);
+  await announceHiring(tx, actor, { employeeId: employee.id, accountId }, tasks);
 }
 
 /** Activa el colaborador: cuenta de acceso, contrato firmado, inducción y expediente. */
@@ -246,7 +220,7 @@ export async function activatePendingEmployee(
   await finalizeActivation(
     tx,
     actor,
-    { id: employee.id, candidateId, hireDate: employee.hireDate },
+    { ...employee, candidateId },
     contract.id,
     id,
     signed,

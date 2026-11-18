@@ -85,6 +85,12 @@ export const DEFAULT_TEMPLATES: Readonly<Record<NotificationKind, TemplateText>>
     body: 'La PQRSF {{pqrsf}} tiene una novedad: {{novedad}}. Revísela en ARZA ONE › Servicio › PQRSF.',
     urgent: false,
   },
+  // B35: a cada responsable de una tarea de inducción de un colaborador nuevo (decisión 6).
+  hr_onboarding_task: {
+    subject: 'Tarea de inducción: {{tarea}}',
+    body: 'Ingresa un colaborador nuevo y a usted le corresponde la tarea «{{tarea}}», con fecha {{vence}}. Cuando la termine, avísele a Talento humano.',
+    urgent: false,
+  },
 };
 
 /** Variables que el texto usa y que este tipo de aviso no ofrece. */
