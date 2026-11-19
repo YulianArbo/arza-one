@@ -56,7 +56,12 @@ describe('menú por permisos (permiso denegado, 16.3)', () => {
   });
 
   it('con todos los permisos del menú se ven todos los módulos', () => {
-    expect(visibleSlugs([...navigationPermissions()])).toHaveLength(19); // B13 agrega Terceros; B14, Archivos; B17, Privacidad; B33, Compras.
+    expect(visibleSlugs([...navigationPermissions()])).toHaveLength(20); // B13 agrega Terceros; B14, Archivos; B17, Privacidad; B33, Compras; B36, Mi espacio.
+  });
+
+  it('«Mi espacio» aparece a todo colaborador que ve su ficha (B36)', () => {
+    expect(visibleSlugs(['hr.employee.read'])).toContain('mi-espacio');
+    expect(visibleSlugs(['wf.task.work'])).not.toContain('mi-espacio');
   });
 
   it('«Compras» aparece a quien lee el módulo o pide lo suyo (B33)', () => {
