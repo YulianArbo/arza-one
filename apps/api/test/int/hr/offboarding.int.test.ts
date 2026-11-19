@@ -44,7 +44,6 @@ async function giveAsset(holder: Person): Promise<string> {
         purchaseDate: new Date('2026-01-10T00:00:00Z'),
         cost: '3000000',
         usefulLifeMonths: 36,
-        status: 'assigned',
         requestKey: uuidv7(),
       },
     });
@@ -64,6 +63,7 @@ async function giveAsset(holder: Person): Promise<string> {
         requestKey: uuidv7(),
       },
     });
+    await tx.astAsset.update({ where: { id: asset.id }, data: { status: 'assigned' } });
     return asset.id;
   });
 }

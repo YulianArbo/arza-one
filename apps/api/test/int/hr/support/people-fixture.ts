@@ -1,6 +1,13 @@
 import { v7 as uuidv7 } from 'uuid';
 
-import { addDays, bogotaToday, fromCalendarDate } from '../../../../src/modules/core/index.js';
+import {
+  addDays,
+  bogotaToday,
+  fromCalendarDate,
+  seedCore,
+} from '../../../../src/modules/core/index.js';
+import { systemClock } from '../../../../src/platform/clock/clock.js';
+import { apiDatabase } from '../../support/integration-database.js';
 import type { AccessScenario, Person } from '../../iam/support/access-scenario.js';
 
 // Personas de prueba del B36: un jefe y su colaborador directo (el cargo del colaborador reporta al
@@ -108,6 +115,8 @@ async function activeEmployee(
 
 /** Jefe, colaborador y compañero activos desde hace un año, y una persona de Talento humano. */
 export async function staffFixture(scenario: AccessScenario, label: string): Promise<Staff> {
+  // Listas, festivos y reglas laborales de la empresa, como en la carga inicial (idempotente).
+  await seedCore(apiDatabase(), [scenario.tenant.id], systemClock);
   const hr = await scenario.person(`${label}-th`, ['TALENTO_HUMANO', 'COLABORADOR']);
   const boss = await scenario.person(`${label}-jefe`, ['COLABORADOR']);
   const worker = await scenario.person(`${label}-colaborador`, ['COLABORADOR']);

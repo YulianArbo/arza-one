@@ -27,7 +27,7 @@ export const LEAVE_TYPES_CATALOG = 'hr_leave_types';
  */
 export const LEAVE_TYPE = {
   vacation: 'VACACIONES',
-  unpaid: 'PERMISO_NO_REMUNERADO',
+  unpaid: 'PERMISO_NO_PAGO',
   sickLeave: 'INCAPACIDAD',
 } as const;
 
@@ -47,7 +47,7 @@ export const leaveStatusSchema = enumOf(LEAVE_STATUS);
 const leaveCodeSchema = z
   .string()
   .trim()
-  .regex(/^[A-Z][A-Z0-9_]{1,39}$/u, 'Seleccione un tipo de ausencia.');
+  .regex(/^[A-Z0-9][A-Z0-9_-]{0,19}$/u, 'Seleccione un tipo de ausencia.');
 
 export const leaveRequestSchema = z.object({
   id: idSchema,

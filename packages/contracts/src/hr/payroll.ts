@@ -23,12 +23,12 @@ export const NOVELTY_CONCEPTS_CATALOG = 'hr_novelty_concepts';
 export const AUTOMATIC_CONCEPTS = {
   vacation: 'VACACIONES',
   paidLeave: 'LICENCIA_REMUNERADA',
-  unpaidLeave: 'LICENCIA_NO_REMUNERADA',
+  unpaidLeave: 'LICENCIA_NO_PAGA',
   sickLeave: 'INCAPACIDAD',
   overtimeDay: 'HE_DIURNA',
   overtimeNight: 'HE_NOCTURNA',
-  overtimeHolidayDay: 'HE_DOMINICAL_DIURNA',
-  overtimeHolidayNight: 'HE_DOMINICAL_NOCTURNA',
+  overtimeHolidayDay: 'HE_FESTIVA_DIURNA',
+  overtimeHolidayNight: 'HE_FESTIVA_NOCTURNA',
   termination: 'RETIRO',
 } as const;
 
@@ -54,7 +54,7 @@ export const payrollPeriodStatusSchema = enumOf(PAYROLL_PERIOD_STATUS);
 const conceptCodeSchema = z
   .string()
   .trim()
-  .regex(/^[A-Z][A-Z0-9_]{1,39}$/u, 'Seleccione un concepto.');
+  .regex(/^[A-Z0-9][A-Z0-9_-]{0,19}$/u, 'Seleccione un concepto.');
 
 /** Cantidad con hasta dos decimales, mayor que cero. */
 export const noveltyQuantitySchema = z

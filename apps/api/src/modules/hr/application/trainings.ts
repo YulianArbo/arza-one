@@ -140,13 +140,14 @@ export class Trainings {
           facilitator: input.facilitator,
           description: input.description,
           requestKey: key,
-          attendance: {
-            create: input.employee_ids.map((employeeId) => ({
-              tenantId: actor.tenantId,
-              employeeId,
-            })),
-          },
         },
+      });
+      await tx.hrTrainingAttendance.createMany({
+        data: input.employee_ids.map((employeeId) => ({
+          tenantId: actor.tenantId,
+          trainingId: row.id,
+          employeeId,
+        })),
       });
       await auditHr(tx, actor, {
         action: 'hr.training.create',

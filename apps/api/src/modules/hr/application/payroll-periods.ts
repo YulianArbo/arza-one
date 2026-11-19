@@ -201,7 +201,7 @@ export class PayrollPeriods {
         tenantId: actor.tenantId,
         actorId: actor.userId,
         occurredAt: actor.at,
-        eventType: 'hr.payroll_period.closed',
+        eventType: 'hr.payroll.closed',
         payload: { period, novelties },
       });
     });

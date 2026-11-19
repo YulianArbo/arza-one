@@ -193,7 +193,7 @@ it('no autoriza un día que ya pasó y la persona puede retirar su solicitud', a
     .set('Idempotency-Key', uuidv7());
   const { id } = hrCreatedResponseSchema.parse(created.body);
   const reject = `/v1/hr/overtime/${id}/actions/reject`;
-  expect((await act(staff.boss, reject, 1, {})).status).toBe(400);
+  expect((await act(staff.boss, reject, 1, {})).status).toBe(422);
   expect((await act(staff.worker, `/v1/hr/overtime/${id}/actions/cancel`, 1)).status).toBe(204);
   expect((await act(staff.boss, reject, 2, { note: 'No aplica' })).status).toBe(409);
   const yesterday = addDays(bogotaToday(scenario.clock.now()), -1);

@@ -29,7 +29,7 @@ CREATE TABLE "hr_leave_requests" (
     "version" INTEGER NOT NULL DEFAULT 1,
     "deleted_at" TIMESTAMPTZ(6),
     CONSTRAINT "hr_leave_requests_pkey" PRIMARY KEY ("id"),
-    CONSTRAINT "hr_leave_requests_type_check" CHECK ("type" ~ '^[A-Z][A-Z0-9_]{1,39}$'),
+    CONSTRAINT "hr_leave_requests_type_check" CHECK ("type" ~ '^[A-Z0-9][A-Z0-9_-]{0,19}$'),
     CONSTRAINT "hr_leave_requests_status_check" CHECK ("status" IN ('requested', 'approved', 'rejected', 'cancelled', 'taken')),
     CONSTRAINT "hr_leave_requests_dates_check" CHECK ("ends_on" >= "starts_on" AND "days" > 0),
     -- Ficha 17.13: radicada → aprobada o rechazada → disfrutada. Lo decidido dice quién y cuándo;
@@ -127,7 +127,7 @@ CREATE TABLE "hr_payroll_novelties" (
     "deleted_at" TIMESTAMPTZ(6),
     CONSTRAINT "hr_payroll_novelties_pkey" PRIMARY KEY ("id"),
     CONSTRAINT "hr_payroll_novelties_period_check" CHECK ("period" ~ '^[0-9]{4}-(0[1-9]|1[0-2])$'),
-    CONSTRAINT "hr_payroll_novelties_concept_check" CHECK ("concept" ~ '^[A-Z][A-Z0-9_]{1,39}$'),
+    CONSTRAINT "hr_payroll_novelties_concept_check" CHECK ("concept" ~ '^[A-Z0-9][A-Z0-9_-]{0,19}$'),
     CONSTRAINT "hr_payroll_novelties_unit_check" CHECK ("unit" IN ('days', 'hours', 'units')),
     CONSTRAINT "hr_payroll_novelties_values_check" CHECK (
         "quantity" > 0
