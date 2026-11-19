@@ -80,3 +80,13 @@ for (const theme of ['light', 'dark'] as const) {
     });
   });
 }
+
+test.describe('portada de Compras (B22B)', () => {
+  test('«Nueva solicitud» abre el formulario de una solicitud nueva', async ({ page }) => {
+    await mockApi(page, API);
+    await page.goto('/app/compras');
+    await page.getByRole('main').getByRole('link', { name: 'Nueva solicitud' }).click();
+    await expect(page).toHaveURL(/\/app\/compras\/solicitudes\?nueva=1$/u);
+    await expect(page.getByRole('dialog', { name: 'Nueva solicitud de compra' })).toBeVisible();
+  });
+});

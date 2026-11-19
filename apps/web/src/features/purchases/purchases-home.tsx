@@ -5,7 +5,7 @@ import {
   purchaseRequestListResponseSchema,
 } from '@arza/contracts';
 import { AttentionList, buttonVariants, HighlightCard, QuickLinks, StageSummary } from '@arza/ui';
-import { ClipboardList, Columns3, FilePlus, FileText, PackageCheck } from 'lucide-react';
+import { ClipboardList, Columns3, FilePlus, FileText, PackageCheck, Plus } from 'lucide-react';
 import Link from 'next/link';
 import type { JSX } from 'react';
 
@@ -25,6 +25,9 @@ const PURCHASE_HOME_PERMISSIONS = [
   'purchase.travel.request',
   'asset.read',
 ] as const;
+
+/** Abre Solicitudes con el formulario de una solicitud nueva. */
+const NEW_REQUEST_PATH = '/app/compras/solicitudes?nueva=1';
 
 const STAGE_ICONS = {
   need: <FilePlus />,
@@ -191,6 +194,14 @@ export function PurchasesHome(): JSX.Element {
         <PageHeader
           title="Compras"
           description="Ubique cada compra en el recorrido desde la solicitud hasta la recepción."
+          action={
+            can('purchase.request.create') ? (
+              <Link href={NEW_REQUEST_PATH} className={buttonVariants()}>
+                <Plus aria-hidden="true" />
+                Nueva solicitud
+              </Link>
+            ) : null
+          }
         />
         {can('purchase.read') ? (
           <PurchaseJourneyBlock aside={<ResourcesCard granted={granted} />} />

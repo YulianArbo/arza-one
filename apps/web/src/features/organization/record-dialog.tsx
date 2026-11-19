@@ -23,13 +23,15 @@ interface RecordDialogProps {
   readonly title: string;
   readonly description: string;
   readonly variant?: 'primary' | 'outline';
+  /** Abre el diálogo al llegar, por ejemplo desde «Nueva solicitud» de una portada (B22B). */
+  readonly startOpen?: boolean;
   /** El formulario; recibe cómo cerrar el diálogo cuando se guarde. */
   readonly children: (close: () => void) => ReactNode;
 }
 
 /** Diálogo con un formulario para crear o editar un registro (16.5). */
 export function RecordDialog(props: RecordDialogProps): JSX.Element {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(props.startOpen ?? false);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>

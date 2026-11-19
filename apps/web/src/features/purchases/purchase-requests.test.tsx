@@ -86,6 +86,20 @@ async function collaboratorCreates(): Promise<void> {
   });
 }
 
+describe('solicitud nueva desde la portada (B22B)', () => {
+  it('con «?nueva=1» abre el formulario al llegar', async () => {
+    serve(['purchase.request.create'], {
+      [`GET ${REQUESTS}/mine`]: () => json({ data: [] }),
+    });
+    renderWithApi(
+      <Screen>
+        <RequestsPanel startNew />
+      </Screen>,
+    );
+    expect(await screen.findByRole('dialog', { name: 'Nueva solicitud de compra' })).toBeVisible();
+  });
+});
+
 describe('pantalla de solicitudes de compra (B33)', () => {
   it('el colaborador ve solo las suyas y el formulario exige los datos', async () => {
     await collaboratorCreates();

@@ -248,6 +248,24 @@ describe('portada de Compras (B33, B22B)', () => {
   });
 });
 
+describe('«Nueva solicitud» en la portada de Compras (B22B)', () => {
+  it('lleva al formulario de una solicitud nueva a quien puede pedir compras', async () => {
+    serve(['purchase.request.create']);
+    show(<PurchasesHome />);
+    expect(await screen.findByRole('link', { name: 'Nueva solicitud' })).toHaveAttribute(
+      'href',
+      '/app/compras/solicitudes?nueva=1',
+    );
+  });
+
+  it('no lo ofrece a quien no puede pedir compras', async () => {
+    serve(['asset.read']);
+    show(<PurchasesHome />);
+    expect(await screen.findByRole('region', { name: 'Gestión de recursos' })).toBeVisible();
+    expect(screen.queryByRole('link', { name: 'Nueva solicitud' })).toBeNull();
+  });
+});
+
 describe('portada de Compras cuando el recorrido no carga (B22B)', () => {
   it('muestra el error con reintento y deja a la vista los recursos', async () => {
     serve(['purchase.read'], {

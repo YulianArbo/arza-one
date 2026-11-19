@@ -25,7 +25,8 @@ const DESCRIPTIONS = {
   mine: 'Pida sus compras, envíelas a aprobación y siga su estado.',
 };
 
-export function RequestsPanel(): JSX.Element {
+/** startNew: llega desde «Nueva solicitud» de la portada y abre el formulario (B22B). */
+export function RequestsPanel({ startNew = false }: { readonly startNew?: boolean }): JSX.Element {
   const { can } = usePermissions();
   const all = can('purchase.read');
   const path = all ? '/v1/purchase-requests' : '/v1/purchase-requests/mine';
@@ -38,6 +39,7 @@ export function RequestsPanel(): JSX.Element {
       />
       <NewRecord
         allowed={can('purchase.request.create')}
+        startOpen={startNew}
         label="Nueva solicitud"
         title="Nueva solicitud de compra"
         description="Queda en borrador hasta que usted la envíe a aprobación."
