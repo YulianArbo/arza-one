@@ -245,7 +245,7 @@ describe('tablero', () => {
     });
     await openTab('Tablero');
     await userEvent.click(
-      await screen.findByRole('button', { name: 'Mover #2 Consultar facturas a otra columna' }),
+      await screen.findByRole('button', { name: 'Mover a otra columna: #2 Consultar facturas' }),
     );
     await userEvent.click(await screen.findByRole('menuitem', { name: 'En curso' }));
     expect(await screen.findByText(/Otra persona cambió el ítem/u)).toBeVisible();

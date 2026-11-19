@@ -156,15 +156,15 @@ describe('cierre y exportación (B32)', () => {
     });
     show(<ClosingPanel />);
     expect(await screen.findByText('Definitivo')).toBeVisible();
-    expect(screen.queryByRole('button', { name: 'Cerrar el mes 11/2026' })).toBeNull();
-    await userEvent.click(screen.getByRole('button', { name: 'Cerrar el mes 10/2026' }));
+    expect(screen.queryByRole('button', { name: 'Cerrar mes 11/2026' })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Cerrar mes 10/2026' }));
     await vi.waitFor(() => {
       expect(sent.find((request) => request.path.endsWith('/close'))?.body).toEqual({
         period: '2026-10',
       });
     });
     await userEvent.click(
-      screen.getByRole('button', { name: 'Exportar el mes 11/2026 (preliminar)' }),
+      screen.getByRole('button', { name: 'Exportar preliminar del mes 11/2026' }),
     );
     expect(
       await screen.findByText('Descargamos contabilidad-2026-11-preliminar.csv.'),
@@ -176,7 +176,7 @@ describe('cierre y exportación (B32)', () => {
     serve({ 'GET /v1/finance/periods': () => json(PERIODS) }, ['finance.ledger.read']);
     show(<ClosingPanel />);
     expect(await screen.findByText('10/2026')).toBeVisible();
-    expect(screen.queryByRole('button', { name: /Cerrar el mes/u })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Cerrar mes/u })).toBeNull();
     expect(screen.queryByRole('button', { name: /Exportar/u })).toBeNull();
   });
 });

@@ -30,7 +30,7 @@ const SCREENS = [
   {
     path: '/ordenes',
     heading: 'Órdenes de compra',
-    dialog: 'Registrar la recepción de la orden OC-2026-0001',
+    dialog: 'Registrar recepción de la orden OC-2026-0001',
   },
   { path: '/recepciones', heading: 'Recepciones', dialog: null },
   { path: '/proveedores', heading: 'Evaluación de proveedores', dialog: 'Evaluar proveedor' },
@@ -64,7 +64,7 @@ for (const theme of ['light', 'dark'] as const) {
       await useTheme(page, theme);
       await mockApi(page, API);
       await page.goto('/app/compras/viajes');
-      await page.getByRole('button', { name: 'Legalizar el viaje SV-2026-0001' }).click();
+      await page.getByRole('button', { name: 'Legalizar viaje SV-2026-0001' }).click();
       await expect(page.getByRole('dialog').getByText(/Al viajero se le deben/u)).toBeVisible();
       expect(await accessibilityViolations(page)).toEqual([]);
       expect(consoleErrors).toEqual([]);

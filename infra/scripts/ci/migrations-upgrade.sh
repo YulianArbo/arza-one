@@ -11,7 +11,7 @@
 set -euo pipefail
 
 BASE_REF="${1:?Indique la rama o el commit de la versión anterior (por ejemplo origin/main)}"
-POSTGRES_IMAGE='postgres:17@sha256:ae69c452f483507a6b99fb654cf93aad7fe156ffd2c56247707eef4e36d3c12b'
+POSTGRES_IMAGE='postgres:17@sha256:0d938e975177bef9f1f61f3f9dbcf2e0aa0a139568f66d3415ed8892eb97f6ac'
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 WORK_DIR="$(mktemp -d)"
 BASE_DIR="${WORK_DIR}/base"

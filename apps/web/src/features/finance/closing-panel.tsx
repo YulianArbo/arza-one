@@ -70,7 +70,7 @@ function PeriodActions({ period }: { readonly period: FinancePeriod }): JSX.Elem
         <ActionButton
           label="Cerrar mes"
           pendingLabel="Cerrando…"
-          ariaLabel={`Cerrar el mes ${monthLabel(period.period)}`}
+          ariaLabel={`Cerrar mes ${monthLabel(period.period)}`}
           run={(csrfToken) =>
             api.post('/v1/finance/periods/close', { body: { period: period.period }, csrfToken })
           }
@@ -98,7 +98,7 @@ function ExportButton({ period }: { readonly period: FinancePeriod }): JSX.Eleme
         type="button"
         size="sm"
         variant="outline"
-        aria-label={`Exportar el mes ${monthLabel(period.period)} (${kind})`}
+        aria-label={`Exportar ${kind} del mes ${monthLabel(period.period)}`}
         disabled={action.pending}
         onClick={() => {
           action.execute(undefined);
