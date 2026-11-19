@@ -861,6 +861,20 @@ historia laboral (ficha 17.13). Tablas, reglas y rutas en
 | Historia laboral y salario restringidos  | El expediente exige `hr.file.read`; el salario exacto, `hr.salary.read` (Talento humano, Dirección y Contador). Sin ellos la API responde `null`                                                              |
 | Solo lo propio                           | Con `hr.employee.read` limitado a lo propio, la persona ve solo su ficha; lo ajeno responde 404                                                                                                               |
 
+### Novedades, desempeño y retiro (B36)
+
+| Regla                                 | Cómo se cumple                                                                                                                                                                                    |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| El jefe decide lo de su equipo (15.4) | Las rutas de decisión exigen `hr.employee.read` y el caso de uso revisa que quien decide sea el jefe designado al radicar (`approver_id`) o tenga el permiso sobre todos; nunca lo propio         |
+| Vacaciones con saldo                  | 15 días hábiles por año trabajado (`laborRulesOn()`), contados con el horario y los festivos (`workCalendarBetween()`); el colaborador no pide más de lo disponible                               |
+| Horas extras previas y con topes      | Se piden para hoy o después; al pedir y al autorizar se revisan los topes por día y por semana; solo se reporta lo autorizado (`hr_overtime_report_check`)                                        |
+| Mes de nómina cerrado no cambia       | Los disparadores `hr_payroll_novelties_period_open` y `hr_payroll_periods_stay_closed` lo impiden en la base; lo que llega tarde va al siguiente mes abierto (`openPeriodFrom()`)                 |
+| Archivo para nómina                   | `POST /v1/hr/payroll-novelties/periods/{period}/export` solo de un mes cerrado, CSV con punto y coma y coma decimal, sin fórmulas; la descarga queda auditada                                     |
+| Disciplinario con debido proceso      | Pasos en orden (restricciones `hr_disciplinary_cases_*_check`); hechos, descargos y motivación cifrados con `FieldCipher`; cada lectura deja `hr.disciplinary.read`                               |
+| El retiro revoca accesos              | `applyTermination()` desactiva la cuenta y cierra las sesiones (`revokeEmployeeAccess()` de Identidad), pasa el colaborador a «Retirado», anota la novedad `RETIRO` y emite `employee.terminated` |
+| Activos por devolver                  | La lista del retiro pregunta a Activos (`assetsHeldBy()`); la devolución de activos no se marca hecha mientras quede alguno                                                                       |
+| Trabajo diario                        | `hr.daily-work` (0:05): ausencias aprobadas que terminaron pasan a «disfrutada» y los retiros cuyo último día pasó desactivan la cuenta                                                           |
+
 ## Flujos y tareas (B15, módulo `src/modules/wf`)
 
 Motor de flujos definido por datos (ficha 17.5, numeral 13.2, ADR-011). Las tablas están en
