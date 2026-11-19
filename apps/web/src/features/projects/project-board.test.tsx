@@ -55,7 +55,7 @@ describe('tablero', () => {
     expect(within(testing).getByText('#2 Consultar facturas')).toBeVisible();
     expect(screen.getByText(/Iteración 1/u)).toBeVisible();
     await userEvent.click(
-      screen.getByRole('button', { name: 'Mover #2 Consultar facturas a otra columna' }),
+      screen.getByRole('button', { name: 'Mover a otra columna: #2 Consultar facturas' }),
     );
     const options = (await screen.findAllByRole('menuitem')).map((option) => option.textContent);
     expect(options).toEqual(['Pendiente', 'En curso', 'En revisión', 'Terminado']);
@@ -69,7 +69,7 @@ describe('tablero', () => {
     });
     await openTab('Tablero');
     await userEvent.click(
-      await screen.findByRole('button', { name: 'Mover #2 Consultar facturas a otra columna' }),
+      await screen.findByRole('button', { name: 'Mover a otra columna: #2 Consultar facturas' }),
     );
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Terminado' }));
     const dialog = await screen.findByRole('dialog');
@@ -102,7 +102,7 @@ describe('terminar con revisión', () => {
     });
     await openTab('Tablero');
     await userEvent.click(
-      await screen.findByRole('button', { name: 'Mover #2 Consultar facturas a otra columna' }),
+      await screen.findByRole('button', { name: 'Mover a otra columna: #2 Consultar facturas' }),
     );
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Terminado' }));
     const dialog = await screen.findByRole('dialog');

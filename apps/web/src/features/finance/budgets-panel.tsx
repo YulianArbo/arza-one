@@ -188,7 +188,7 @@ function BudgetActions({ budget }: { readonly budget: BudgetDetail }): JSX.Eleme
     <ActionButton
       label="Aprobar presupuesto"
       pendingLabel="Aprobando…"
-      ariaLabel={`Aprobar el presupuesto ${String(budget.year)}`}
+      ariaLabel={`Aprobar presupuesto ${String(budget.year)}`}
       run={(csrfToken) =>
         api.post(`/v1/finance/budgets/${budget.id}/approval`, {
           body: {},

@@ -59,10 +59,13 @@ function UserButton({
     <Button
       {...trigger}
       variant="ghost"
-      aria-label="Menú del usuario"
       className={cn('h-10 gap-2 rounded-full border px-1', compact ? null : 'lg:pr-3')}
     >
-      <Avatar name={name} src={photo} size="sm" />
+      {/* El nombre accesible incluye el texto visible (WCAG 2.5.3, etiqueta en el nombre). */}
+      <span className="sr-only">Menú del usuario</span>
+      <span aria-hidden="true">
+        <Avatar name={name} src={photo} size="sm" />
+      </span>
       <span
         className={cn(
           'hidden max-w-40 flex-col items-start leading-tight',

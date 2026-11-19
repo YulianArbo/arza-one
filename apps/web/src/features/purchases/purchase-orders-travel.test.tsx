@@ -65,7 +65,7 @@ async function nonConformingReceipt(): Promise<void> {
     [`POST /v1/purchase-orders/${ORDER_ID}/receipts`]: () => json({ id: ORDER_ID }, 201),
   });
   show(<OrdersPanel />);
-  const open = 'Registrar la recepción de la orden OC-2026-0001';
+  const open = 'Registrar recepción de la orden OC-2026-0001';
   await userEvent.click(await screen.findByRole('button', { name: open }));
   const dialog = await screen.findByRole('dialog');
   await userEvent.type(within(dialog).getByLabelText('Fecha de recepción'), '2026-11-11');
@@ -165,7 +165,7 @@ async function legalizesTravel(): Promise<void> {
   });
   show(<TravelPanel />);
   await userEvent.click(
-    await screen.findByRole('button', { name: 'Legalizar el viaje SV-2026-0001' }),
+    await screen.findByRole('button', { name: 'Legalizar viaje SV-2026-0001' }),
   );
   const dialog = await screen.findByRole('dialog');
   expect(within(dialog).getByText('Hotel de prueba')).toBeVisible();
@@ -173,7 +173,7 @@ async function legalizesTravel(): Promise<void> {
   await userEvent.click(within(dialog).getByRole('button', { name: 'Agregar gasto' }));
   expect(await within(dialog).findByText('Adjunte el soporte.')).toBeVisible();
   await userEvent.click(
-    within(dialog).getByRole('button', { name: 'Legalizar el viaje SV-2026-0001' }),
+    within(dialog).getByRole('button', { name: 'Legalizar viaje SV-2026-0001' }),
   );
   await vi.waitFor(() => {
     const call = sent.find((request) => request.path.endsWith('/legalization'));

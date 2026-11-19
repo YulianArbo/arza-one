@@ -93,7 +93,7 @@ describe('pantalla de presupuesto (B32)', () => {
     await openBudget();
     expect(await screen.findByText('25,0 %')).toBeVisible();
     await addLine(sent);
-    await userEvent.click(screen.getByRole('button', { name: 'Aprobar el presupuesto 2026' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Aprobar presupuesto 2026' }));
     await vi.waitFor(() => {
       expect(sent.some((request) => request.path.endsWith('/approval'))).toBe(true);
     });

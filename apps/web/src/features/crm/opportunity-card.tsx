@@ -36,7 +36,7 @@ function MoveMenu(props: OpportunityCardProps): JSX.Element {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" aria-label={`Mover ${opportunity.code} a otra etapa`}>
+        <Button variant="ghost" size="sm" aria-label={`Mover a otra etapa: ${opportunity.code}`}>
           Mover a
           <ChevronDown aria-hidden="true" />
         </Button>

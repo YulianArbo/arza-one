@@ -50,7 +50,7 @@ function MoveMenu(props: ItemCardProps): JSX.Element {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" aria-label={`Mover ${itemLabel(item)} a otra columna`}>
+        <Button variant="ghost" size="sm" aria-label={`Mover a otra columna: ${itemLabel(item)}`}>
           Mover a
           <ChevronDown aria-hidden="true" />
         </Button>
