@@ -26,6 +26,8 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
+import { currentSubmodule } from './submodules';
+
 export const APP_HOME = '/app';
 
 export interface NavigationItem {
@@ -264,12 +266,29 @@ export function parentModuleFor(pathname: string): NavigationItem | undefined {
   return findNavigationItem(slug);
 }
 
-/** Ruta de navegación de la barra superior: Inicio › módulo actual. */
-export function breadcrumbFor(pathname: string): NavigationItem[] {
+/** Un paso de la ruta de navegación. */
+export interface Crumb {
+  readonly href: string;
+  readonly label: string;
+}
+
+function crumbOf(item: NavigationItem): Crumb {
+  return { href: hrefFor(item), label: item.label };
+}
+
+/** Ruta de navegación de la barra superior: Inicio › módulo › submódulo (B22B). */
+export function breadcrumbFor(pathname: string): Crumb[] {
   const [, , slug] = pathname.split('/');
   const home = findNavigationItem('');
   const current = slug ? findNavigationItem(slug) : undefined;
-  return [home, current].filter((item): item is NavigationItem => item !== undefined);
+  const crumbs = [home, current]
+    .filter((item): item is NavigationItem => item !== undefined)
+    .map(crumbOf);
+  const sub = current ? currentSubmodule(current.slug, pathname) : undefined;
+  if (current && sub && sub.href !== hrefFor(current)) {
+    crumbs.push({ href: sub.href, label: sub.label });
+  }
+  return crumbs;
 }
 
 /** Todos los permisos que pide el menú. */

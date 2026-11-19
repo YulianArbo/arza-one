@@ -13,6 +13,8 @@ import {
   type NavigationGroup,
   type NavigationItem,
 } from './navigation';
+import { SubmoduleList } from './submodule-list';
+import { inVisibleSubmodule } from './submodules';
 import { useCollapsedGroups } from './use-collapsed-groups';
 
 export interface NavigationListProps {
@@ -31,7 +33,8 @@ export function NavigationList({
 }: NavigationListProps): JSX.Element {
   const pathname = usePathname();
   const { isCollapsed, toggle } = useCollapsedGroups();
-  const groups = visibleNavigation(new Set(permissions));
+  const granted = new Set(permissions);
+  const groups = visibleNavigation(granted);
   return (
     <div className="flex flex-col gap-3">
       {groups.map((group) => {
@@ -41,6 +44,7 @@ export function NavigationList({
             key={group.key}
             group={group}
             pathname={pathname}
+            granted={granted}
             open={hasActive || !isCollapsed(group.key)}
             collapsible={collapsible}
             onToggle={() => {
@@ -57,6 +61,7 @@ export function NavigationList({
 interface NavigationSectionProps {
   group: NavigationGroup;
   pathname: string;
+  granted: ReadonlySet<string>;
   open: boolean;
   collapsible: boolean;
   onToggle: () => void;
@@ -67,6 +72,7 @@ interface NavigationSectionProps {
 function NavigationSection({
   group,
   pathname,
+  granted,
   open,
   collapsible,
   onToggle,
@@ -89,18 +95,58 @@ function NavigationSection({
       <ul id={listId} className={cn('flex flex-col gap-0.5', !open && collapsible && 'lg:hidden')}>
         {showItems
           ? group.items.map((item) => (
-              <li key={item.slug}>
-                <NavigationLink
-                  item={item}
-                  active={isActive(item, pathname)}
-                  collapsible={collapsible}
-                  {...(onNavigate ? { onNavigate } : {})}
-                />
-              </li>
+              <ModuleEntry
+                key={item.slug}
+                item={item}
+                pathname={pathname}
+                granted={granted}
+                collapsible={collapsible}
+                {...(onNavigate ? { onNavigate } : {})}
+              />
             ))
           : null}
       </ul>
     </div>
+  );
+}
+
+interface ModuleEntryProps {
+  item: NavigationItem;
+  pathname: string;
+  granted: ReadonlySet<string>;
+  collapsible: boolean;
+  onNavigate?: () => void;
+}
+
+/** Un módulo del menú y, si es el actual, sus submódulos. */
+function ModuleEntry({
+  item,
+  pathname,
+  granted,
+  collapsible,
+  onNavigate,
+}: ModuleEntryProps): JSX.Element {
+  const active = isActive(item, pathname);
+  const navigate = onNavigate ? { onNavigate } : {};
+  return (
+    <li>
+      <NavigationLink
+        item={item}
+        active={active}
+        inSubmodule={inVisibleSubmodule(item.slug, pathname, granted)}
+        collapsible={collapsible}
+        {...navigate}
+      />
+      {active ? (
+        <SubmoduleList
+          slug={item.slug}
+          granted={granted}
+          pathname={pathname}
+          collapsible={collapsible}
+          {...navigate}
+        />
+      ) : null}
+    </li>
   );
 }
 
@@ -144,6 +190,8 @@ function GroupHeader({
 interface NavigationLinkProps {
   item: NavigationItem;
   active: boolean;
+  /** La página actual es un submódulo: ese lleva «página actual» y el módulo, «aquí está». */
+  inSubmodule: boolean;
   collapsible: boolean;
   onNavigate?: () => void;
 }
@@ -151,6 +199,7 @@ interface NavigationLinkProps {
 function NavigationLink({
   item,
   active,
+  inSubmodule,
   collapsible,
   onNavigate,
 }: NavigationLinkProps): JSX.Element {
@@ -158,7 +207,7 @@ function NavigationLink({
   const link = (
     <Link
       href={hrefFor(item)}
-      aria-current={active ? 'page' : undefined}
+      aria-current={active ? (inSubmodule ? 'true' : 'page') : undefined}
       {...(onNavigate ? { onClick: onNavigate } : {})}
       className={cn(
         'flex items-center gap-2.5 rounded-lg px-3 py-2 text-nav font-medium text-foreground hover-invert',

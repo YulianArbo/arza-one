@@ -16,6 +16,7 @@ export default defineConfig({
         'src/lib/**/*.{ts,tsx}',
         'src/features/**/*.{ts,tsx}',
         'src/components/app-shell/navigation.ts',
+        'src/components/app-shell/submodules.ts',
       ],
       exclude: ['src/**/*.test.{ts,tsx}'],
       // Umbral del capítulo 21.1.
