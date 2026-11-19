@@ -65,3 +65,4 @@ export {
   type TermsVersion,
 } from './application/portal-terms.js';
 export { InvitationUseCase } from './application/invitation.js';
+export { revokeEmployeeAccess, type AccessRevocation } from './application/offboarding-access.js';
