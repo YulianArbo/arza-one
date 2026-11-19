@@ -14,7 +14,7 @@ import { lockKey } from './hr-support.js';
 // al siguiente mes abierto: lo cerrado no cambia (la base de datos también lo impide).
 
 /** El mes siguiente, AAAA-MM. */
-export function nextPeriod(period: string): string {
+function nextPeriod(period: string): string {
   const [year = 0, month = 0] = period.split('-').map(Number);
   return month === 12
     ? `${String(year + 1)}-01`
@@ -31,7 +31,7 @@ async function closedPeriods(tx: TenantTransaction): Promise<Set<string>> {
 }
 
 /** El mes donde cae una novedad: el suyo si sigue abierto, o el siguiente abierto. */
-export async function openPeriodFrom(tx: TenantTransaction, desired: string): Promise<string> {
+async function openPeriodFrom(tx: TenantTransaction, desired: string): Promise<string> {
   const closed = await closedPeriods(tx);
   let period = desired;
   while (closed.has(period)) period = nextPeriod(period);

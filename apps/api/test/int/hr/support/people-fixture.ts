@@ -19,7 +19,7 @@ export interface Staff {
   readonly peerEmployeeId: string;
 }
 
-export interface Positions {
+interface Positions {
   readonly boss: string;
   readonly worker: string;
 }
@@ -78,7 +78,7 @@ async function signedContract(tx: Tx, tenantId: string, employeeId: string, day:
 }
 
 /** Colaborador activo con contrato firmado, ligado a la cuenta y con el cargo dado. */
-export async function activeEmployee(
+async function activeEmployee(
   tx: Tx,
   link: { readonly tenantId: string; readonly userId: string; readonly positionId: string },
   hireDate: string,
