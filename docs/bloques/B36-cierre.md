@@ -100,21 +100,35 @@ Antes: `pnpm infra:up`, `pnpm db:migrate`, `pnpm db:seed` y `pnpm dev`. Use cuen
 
 ## Verificaciones
 
-| Verificación                                                                                | Resultado                                                                       |
-| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| Contratos (`packages/contracts`, pruebas de HR)                                             | 24 aprobadas                                                                    |
-| API unitarias nuevas (reglas de días, saldo, topes, calificación; avisos)                   | 15 aprobadas                                                                    |
-| Documento OpenAPI (`test/openapi.test.ts`)                                                  | 4 aprobadas, archivo regenerado con las 45 rutas nuevas                         |
-| Web: pantallas de HR, reglas laborales y menú                                               | 30 + 2 + 11 aprobadas                                                           |
-| Tipos (`tsc`) y analizador (ESLint) de API, web, worker y contratos tocados                 | Sin errores                                                                     |
-| Pruebas de integración con base de datos (`test/int/hr/*` del B36 y recorrido de auditoría) | **Pendiente**: Docker no arrancó en este equipo (WSL colgado, ver «Pendientes») |
-| `pnpm check` completo                                                                       | **Pendiente**: lo confirma la integración continua del pull request             |
+Ejecutadas el 19/11/2026 tras reiniciar el equipo (Docker funcionando). `pnpm check` se corrió paso a
+paso con dos ajustes que no cambian lo que se verifica: el formato excluye solo dos carpetas sin
+commit del propietario (`.agents/` y `docs/diagnosticos/`) y el analizador se corrió por carpetas
+porque de una vez no cabe en la memoria del equipo.
+
+| Paso de `pnpm check`                                                         | Resultado                                                                                                                                                                                                                                   |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Formato (Prettier)                                                           | Sin diferencias en los archivos del repositorio                                                                                                                                                                                             |
+| Tipos compartidos, analizador (cero advertencias), tipos de todo el proyecto | Sin errores                                                                                                                                                                                                                                 |
+| Límites entre módulos (`boundaries`) y código sin usar (`unused`)            | Sin hallazgos                                                                                                                                                                                                                               |
+| Pruebas unitarias (`pnpm test`)                                              | Todas aprobadas; cobertura de ramas de la web 85,08 % (mínimo 85 %)                                                                                                                                                                         |
+| Pruebas de integración (`pnpm test:int`)                                     | 1.457 de 1.477 en la corrida completa; las 20 restantes fallaron porque la base de prueba dejó de aceptar conexiones por la carga del equipo, son de módulos que B36 no toca y **repetidas pasaron las 437 de esos 12 archivos**            |
+| Compilación (`pnpm build`)                                                   | Correcta                                                                                                                                                                                                                                    |
+| Navegador (`pnpm test:e2e`)                                                  | 392 de 393; la falla fue un tiempo agotado al abrir una pantalla de Administración (no tocada por B36). No se pudo repetir sola porque Playwright subió a 1.65.1 con la integración de `main` y su navegador no está instalado en el equipo |
+| Secretos (`gitleaks`)                                                        | Ninguno en 567 commits                                                                                                                                                                                                                      |
+
+### Errores reales que encontraron las pruebas de integración (corregidos)
+
+- Tres códigos de las listas nuevas pasaban de 20 caracteres y la carga inicial habría fallado:
+  ahora son `PERMISO_NO_PAGO`, `LICENCIA_NO_PAGA`, `HE_FESTIVA_DIURNA` y `HE_FESTIVA_NOCTURNA`.
+- El evento del cierre del mes tenía un guion bajo que la bandeja de salida rechaza: ahora es
+  `hr.payroll.closed`.
+- Programar una formación fallaba al crear a los convocados en la misma instrucción.
+- El aviso «Su evaluación está lista» no usaba ninguna variable (regla de las plantillas).
 
 ## Pendientes
 
-- **Ejecutar las pruebas de integración** (`absences`, `payroll`, `discipline`, `offboarding` y
-  el recorrido global de auditoría) cuando Docker funcione, o confirmarlas en la integración
-  continua del pull request.
+- Instalar en el equipo el navegador de Playwright 1.65.1 (`pnpm --filter @arza/web e2e:install`)
+  para repetir localmente la prueba de Administración; la integración continua la vuelve a correr.
 - **Validar con Talento humano**: conceptos de novedades contra RE-GTH-003; tipos de ausencia;
   reglas laborales (40 h, 2/12 h extras, 15 días) y el plazo de 3 días hábiles contra el RIT-001;
   la lista de chequeo del retiro.
