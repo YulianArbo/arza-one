@@ -105,7 +105,11 @@ export const registerNoveltySchema = z.strictObject({
   note: textSchema(1, 500).nullable().default(null),
 });
 
+/** Mes de nómina, AAAA-MM. */
+export const payrollMonthSchema = periodSchema;
+
 export const closePayrollPeriodSchema = z.strictObject({
+  period: periodSchema,
   confirm: z.literal(true, 'Marque la casilla para cerrar el mes.'),
 });
 

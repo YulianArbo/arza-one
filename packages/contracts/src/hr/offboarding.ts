@@ -105,9 +105,6 @@ export const completeOffboardingItemSchema = z.strictObject({
 });
 
 export const cancelOffboardingSchema = z.strictObject({ reason: textSchema(3, 1000) });
-export const clearOffboardingSchema = z.strictObject({
-  confirm: z.literal(true, 'Marque la casilla para emitir el paz y salvo.'),
-});
 
 export type Offboarding = z.infer<typeof offboardingSchema>;
 export type OffboardingChecklistEntry = z.infer<typeof offboardingChecklistEntrySchema>;

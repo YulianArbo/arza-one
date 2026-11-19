@@ -12,6 +12,7 @@ import { decideDisciplinarySchema, openDisciplinarySchema } from './discipline.j
 import { DEFAULT_LABOR_RULES, laborRulesSchema } from './labor-rules.js';
 import { OFFBOARDING_ITEMS, startOffboardingSchema } from './offboarding.js';
 import { registerNoveltySchema } from './payroll.js';
+import { NOVELTY_FILE_COLUMNS, noveltiesCsv, noveltiesFileName } from './payroll-file.js';
 
 const ID = '01900000-0000-7000-8000-000000000001';
 
@@ -134,5 +135,32 @@ describe('retiro', () => {
     expect(
       startOffboardingSchema.safeParse({ employee_id: ID, reason: 'resignation' }).success,
     ).toBe(false);
+  });
+});
+
+describe('archivo de novedades para nómina (decisión 6)', () => {
+  it('sale en CSV con punto y coma, coma decimal, fechas dd/mm/aaaa y sin fórmulas', () => {
+    const csv = noveltiesCsv([
+      {
+        period: '2026-12',
+        idNumber: '1000000001',
+        employee: 'Ana Prueba',
+        concept: 'HE_NOCTURNA',
+        conceptLabel: 'Hora extra nocturna',
+        quantity: '1.50',
+        unit: 'hours',
+        amount: null,
+        startsOn: '2026-12-03',
+        endsOn: '2026-12-03',
+        source: 'overtime',
+        note: '=SUMA(A1)',
+      },
+    ]);
+    const [header, line] = csv.replace('﻿', '').split('\r\n');
+    expect(header).toBe(NOVELTY_FILE_COLUMNS.join(';'));
+    expect(line).toBe(
+      "2026-12;1000000001;Ana Prueba;HE_NOCTURNA;Hora extra nocturna;1,50;Horas;;03/12/2026;03/12/2026;Horas extras;'=SUMA(A1)",
+    );
+    expect(noveltiesFileName('2026-12')).toBe('novedades-nomina-2026-12.csv');
   });
 });

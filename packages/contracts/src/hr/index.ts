@@ -7,3 +7,4 @@ export * from './development.js';
 export * from './discipline.js';
 export * from './offboarding.js';
 export * from './self-service.js';
+export * from './payroll-file.js';
