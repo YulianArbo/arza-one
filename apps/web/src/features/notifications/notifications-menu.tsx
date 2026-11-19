@@ -53,7 +53,7 @@ export function NotificationsMenu(): JSX.Element {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label={unreadLabel(count)} className="relative">
+        <Button variant="outline" size="icon" aria-label={unreadLabel(count)} className="relative">
           <Bell aria-hidden="true" />
           {count === 0 ? null : (
             <span

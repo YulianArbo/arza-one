@@ -1,11 +1,19 @@
 'use client';
 
 import { cn, Tooltip, TooltipContent, TooltipTrigger } from '@arza/ui';
+import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import type { JSX } from 'react';
+import { useId, type JSX } from 'react';
 
-import { hrefFor, isActive, visibleNavigation, type NavigationItem } from './navigation';
+import {
+  hrefFor,
+  isActive,
+  visibleNavigation,
+  type NavigationGroup,
+  type NavigationItem,
+} from './navigation';
+import { useCollapsedGroups } from './use-collapsed-groups';
 
 export interface NavigationListProps {
   /** Permisos del usuario; los iconos no viajan desde el servidor, el menú se arma aquí. */
@@ -15,28 +23,72 @@ export interface NavigationListProps {
   onNavigate?: () => void;
 }
 
-/** Lista de módulos del menú lateral. El módulo actual se marca con color y con aria-current. */
+/** Menú por grupos (B22B). El módulo actual se marca con color y con aria-current. */
 export function NavigationList({
   permissions,
   collapsible = false,
   onNavigate,
 }: NavigationListProps): JSX.Element {
   const pathname = usePathname();
+  const { isCollapsed, toggle } = useCollapsedGroups();
   const groups = visibleNavigation(new Set(permissions));
   return (
-    <div className="flex flex-col gap-4">
-      {groups.map((group) => (
-        <div key={group.label} className="flex flex-col gap-1">
-          <h2
-            className={cn(
-              'px-3 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase',
-              collapsible && 'sr-only lg:not-sr-only',
-            )}
-          >
-            {group.label}
-          </h2>
-          <ul className="flex flex-col gap-0.5">
-            {group.items.map((item) => (
+    <div className="flex flex-col gap-3">
+      {groups.map((group) => {
+        const hasActive = group.items.some((item) => isActive(item, pathname));
+        return (
+          <NavigationSection
+            key={group.key}
+            group={group}
+            pathname={pathname}
+            open={hasActive || !isCollapsed(group.key)}
+            collapsible={collapsible}
+            onToggle={() => {
+              toggle(group.key);
+            }}
+            {...(onNavigate ? { onNavigate } : {})}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+interface NavigationSectionProps {
+  group: NavigationGroup;
+  pathname: string;
+  open: boolean;
+  collapsible: boolean;
+  onToggle: () => void;
+  onNavigate?: () => void;
+}
+
+/** Un grupo del menú: su encabezado, que lo abre o lo cierra, y sus módulos. */
+function NavigationSection({
+  group,
+  pathname,
+  open,
+  collapsible,
+  onToggle,
+  onNavigate,
+}: NavigationSectionProps): JSX.Element {
+  const listId = useId();
+  // En tableta los grupos no se contraen: se ven todos los iconos.
+  const showItems = open || collapsible;
+  return (
+    <div className="flex flex-col gap-0.5">
+      {group.icon ? (
+        <GroupHeader
+          group={group}
+          open={open}
+          listId={listId}
+          collapsible={collapsible}
+          onToggle={onToggle}
+        />
+      ) : null}
+      <ul id={listId} className={cn('flex flex-col gap-0.5', !open && collapsible && 'lg:hidden')}>
+        {showItems
+          ? group.items.map((item) => (
               <li key={item.slug}>
                 <NavigationLink
                   item={item}
@@ -45,11 +97,47 @@ export function NavigationList({
                   {...(onNavigate ? { onNavigate } : {})}
                 />
               </li>
-            ))}
-          </ul>
-        </div>
-      ))}
+            ))
+          : null}
+      </ul>
     </div>
+  );
+}
+
+interface GroupHeaderProps {
+  group: NavigationGroup;
+  open: boolean;
+  listId: string;
+  collapsible: boolean;
+  onToggle: () => void;
+}
+
+/** Encabezado del grupo: ícono, nombre y flecha. En tableta se oculta y quedan los iconos. */
+function GroupHeader({
+  group,
+  open,
+  listId,
+  collapsible,
+  onToggle,
+}: GroupHeaderProps): JSX.Element {
+  const Icon = group.icon ?? ChevronDown;
+  return (
+    <h2 className={cn(collapsible && 'hidden lg:block')}>
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={listId}
+        onClick={onToggle}
+        className="flex w-full items-center gap-2.5 rounded-md px-3 pt-2 pb-1 text-xs font-medium text-muted-foreground transition-colors duration-200 hover:text-foreground"
+      >
+        <Icon aria-hidden="true" className="size-4 shrink-0" />
+        <span className="flex-1 text-left">{group.label}</span>
+        <ChevronDown
+          aria-hidden="true"
+          className={cn('size-3.5 transition-transform duration-200', !open && '-rotate-90')}
+        />
+      </button>
+    </h2>
   );
 }
 
@@ -73,12 +161,15 @@ function NavigationLink({
       aria-current={active ? 'page' : undefined}
       {...(onNavigate ? { onClick: onNavigate } : {})}
       className={cn(
-        'flex items-center gap-3 rounded-lg border border-transparent px-3 py-2 text-sm text-muted-foreground hover-invert',
-        active && 'border-border bg-muted font-medium text-foreground',
+        'flex items-center gap-2.5 rounded-lg px-3 py-2 text-nav font-medium text-foreground hover-invert',
+        active && 'bg-primary/10 text-primary',
         collapsible && 'justify-center lg:justify-start',
       )}
     >
-      <Icon aria-hidden="true" className="size-5 shrink-0" />
+      <Icon
+        aria-hidden="true"
+        className={cn('size-[18px] shrink-0', active ? 'text-primary' : 'text-muted-foreground')}
+      />
       <span className={cn(collapsible && 'sr-only lg:not-sr-only')}>{item.label}</span>
     </Link>
   );
