@@ -1,46 +1,19 @@
 'use client';
 
 import type { TaskSummary } from '@arza/contracts';
-import { BarChart, Badge, EmptyState, StatCard } from '@arza/ui';
+import { BarChart, EmptyState, StatCard } from '@arza/ui';
 import { ListTodo } from 'lucide-react';
-import Link from 'next/link';
 import type { JSX } from 'react';
 
-import { formatDateTime } from '../../lib/format/date-time';
 import { QueryState } from '../administration/query-state';
-import { PRIORITY_LABELS, PRIORITY_TONES, WF_PATHS } from '../workflows/labels';
 import { useMyTasks } from '../workflows/queries';
 import { dueToday, tasksByWorkflow } from './dashboard-model';
 import { Panel } from './panel';
 
-// Tareas del tablero de Inicio (16.3): cifras, las próximas a vencer y cuántas hay por flujo.
+// Tareas del tablero de Inicio (16.3): cifras y cuántas hay por flujo. Las próximas a vencer
+// están en «Requieren su atención» (B22B).
 // shortcut: cuenta solo la primera página de la bandeja; si alguien llega a tener más, pedir un
 // resumen a la API.
-
-const SHOWN = 5;
-
-function TaskList({ tasks }: { readonly tasks: readonly TaskSummary[] }): JSX.Element {
-  return (
-    <ul className="flex flex-col divide-y">
-      {tasks.slice(0, SHOWN).map((task) => (
-        <li key={task.id} className="flex items-start justify-between gap-3 py-3 first:pt-0">
-          <div className="flex min-w-0 flex-col">
-            <Link
-              className="truncate font-medium text-primary underline"
-              href={WF_PATHS.task(task.id)}
-            >
-              {task.title}
-            </Link>
-            <span className="text-xs text-muted-foreground">
-              {task.instance.workflow_name} · vence {formatDateTime(task.due_at)}
-            </span>
-          </div>
-          <Badge tone={PRIORITY_TONES[task.priority]}>{PRIORITY_LABELS[task.priority]}</Badge>
-        </li>
-      ))}
-    </ul>
-  );
-}
 
 function TaskStats(props: { readonly open: readonly TaskSummary[] }): JSX.Element {
   const overdue = useMyTasks('overdue').data?.data.length;
@@ -58,19 +31,12 @@ function TaskStats(props: { readonly open: readonly TaskSummary[] }): JSX.Elemen
   );
 }
 
+/** La lista de tareas va arriba, en «Requieren su atención»; aquí queda su reparto por flujo. */
 function TaskPanels({ tasks }: { readonly tasks: readonly TaskSummary[] }): JSX.Element {
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      <Panel title="Mis tareas">
-        <TaskList tasks={tasks} />
-        <Link className="text-sm text-primary underline" href={WF_PATHS.inbox}>
-          Ver todas sus tareas
-        </Link>
-      </Panel>
-      <Panel title="Tareas abiertas por flujo">
-        <BarChart title="Tareas abiertas por flujo" items={tasksByWorkflow(tasks)} />
-      </Panel>
-    </div>
+    <Panel title="Tareas abiertas por flujo">
+      <BarChart title="Tareas abiertas por flujo" items={tasksByWorkflow(tasks)} />
+    </Panel>
   );
 }
 

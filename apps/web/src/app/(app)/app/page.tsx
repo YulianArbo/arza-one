@@ -1,12 +1,12 @@
 import type { JSX } from 'react';
 
-import { PageHeader } from '../../../components/app-shell/page-header';
 import { HomeDashboard } from '../../../features/home/home-dashboard';
+import { HomeHeader } from '../../../features/home/home-header';
 
 export default function HomePage(): JSX.Element {
   return (
     <>
-      <PageHeader title="Inicio" description="Su resumen del día." />
+      <HomeHeader />
       <HomeDashboard />
     </>
   );

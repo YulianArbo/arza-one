@@ -3,6 +3,8 @@
 import type { JSX, ReactNode } from 'react';
 
 import { usePermissions } from '../../features/session/permissions';
+import { useSession } from '../../features/session/session-provider';
+import { useRememberModule } from './recent-modules';
 import { Sidebar } from './sidebar';
 import { TopBar } from './top-bar';
 
@@ -13,6 +15,7 @@ import { TopBar } from './top-bar';
 export function AppShell({ children }: { children: ReactNode }): JSX.Element {
   // Mientras llegan los permisos, el menú muestra solo lo que no los necesita.
   const permissions = [...usePermissions().granted];
+  useRememberModule(useSession().session.user.id);
   return (
     <div className="flex min-h-dvh text-sm">
       <a

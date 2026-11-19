@@ -10,10 +10,12 @@ import { QueryState } from '../administration/query-state';
 import { useNotifications } from '../notifications/queries';
 import { usePermissions } from '../session/permissions';
 import { CrmOverview } from './crm-overview';
+import { AttentionPanel, ContinuePanel } from './journey-panels';
 import { Panel } from './panel';
 import { TaskOverview } from './task-overview';
 
-// Tablero de Inicio según el rol (16.3, B22A): cada bloque aparece si la persona puede verlo.
+// Tablero de Inicio según el rol (16.3, B22A y B22B): cada bloque aparece si la persona puede
+// verlo. Arriba, lo que requiere atención y los módulos recientes; debajo, cifras y avisos.
 
 function RecentNotices(): JSX.Element {
   return (
@@ -57,6 +59,10 @@ export function HomeDashboard(): JSX.Element {
   const crm = permissions.can('crm.report.read');
   return (
     <div className="flex flex-col gap-6">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)]">
+        {tasks ? <AttentionPanel /> : null}
+        <ContinuePanel />
+      </div>
       {tasks ? <TaskOverview /> : null}
       {crm ? <CrmOverview /> : null}
       {tasks || crm ? null : (
