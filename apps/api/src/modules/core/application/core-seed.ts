@@ -1,4 +1,4 @@
-import { PQRSF_DEFAULT_TERMS } from '@arza/contracts';
+import { DEFAULT_LABOR_RULES, PQRSF_DEFAULT_TERMS } from '@arza/contracts';
 
 import type { Prisma } from '../../../generated/prisma/client.js';
 import type { Clock } from '../../../platform/clock/clock.js';
@@ -123,6 +123,10 @@ const STEPS: readonly (readonly [action: string, step: SeedStep])[] = [
   [
     'core.parameter.seed',
     parameterOf('purchase.approval_tiers', PURCHASE_APPROVAL_TIERS, WORK_SCHEDULE_VALID_FROM),
+  ],
+  [
+    'core.parameter.seed',
+    parameterOf('hr.labor_rules', DEFAULT_LABOR_RULES, WORK_SCHEDULE_VALID_FROM),
   ],
   ...CATALOGS.map((catalog) => ['core.catalog.seed', catalogOf(catalog)] as const),
   ['core.org_unit.seed', processes],

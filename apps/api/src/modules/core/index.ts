@@ -18,9 +18,12 @@ export {
   businessHoursDeadline,
   businessMinutesElapsed,
   nextBusinessMoment,
+  workCalendarBetween,
 } from './application/calendar.js';
+export { isBusinessDay, type WorkCalendar } from './domain/business-days.js';
 export {
   discountCapOn,
+  laborRulesOn,
   pqrsfTermsOn,
   purchaseTiersOn,
   workScheduleOn,
@@ -31,9 +34,19 @@ export {
   type CompanyIdentity,
 } from './application/company-identity.js';
 export { superiorPositionId } from './application/positions.js';
-export { catalogLabels, isActiveCatalogCode } from './application/catalogs.js';
+export {
+  activeCatalogOptions,
+  catalogLabels,
+  isActiveCatalogCode,
+} from './application/catalogs.js';
 export { activeCostCenters, costCenterRefs } from './application/cost-centers.js';
-export { addDays, bogotaToday, fromCalendarDate, toCalendarDate } from './domain/calendar-date.js';
+export {
+  addDays,
+  bogotaToday,
+  fromCalendarDate,
+  isoWeekday,
+  toCalendarDate,
+} from './domain/calendar-date.js';
 export {
   currentAndScheduled,
   previousValidTo,

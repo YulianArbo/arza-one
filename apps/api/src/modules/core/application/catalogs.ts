@@ -69,6 +69,18 @@ export async function isActiveCatalogCode(
   return count > 0;
 }
 
+/** Opciones activas de un catálogo, en su orden, para las listas de selección de otros módulos. */
+export async function activeCatalogOptions(
+  tx: TenantTransaction,
+  key: string,
+): Promise<{ readonly code: string; readonly label: string }[]> {
+  return tx.catalogItem.findMany({
+    where: { isActive: true, deletedAt: null, catalog: { key, deletedAt: null } },
+    select: { code: true, label: true },
+    orderBy: [{ sortOrder: 'asc' }, { label: 'asc' }],
+  });
+}
+
 /** Nombre de cada opción de un catálogo, también de las inactivas que guardan los registros. */
 export async function catalogLabels(
   tx: TenantTransaction,

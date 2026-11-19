@@ -7,7 +7,7 @@ import { CLOCK, type Clock } from '../../../platform/clock/clock.js';
 import { DatabaseService } from '../../../platform/database/database.service.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
-import { addBusinessDays } from '../domain/business-days.js';
+import { addBusinessDays, type WorkCalendar } from '../domain/business-days.js';
 import {
   addBusinessHours,
   businessMinutesBetween,
@@ -48,6 +48,29 @@ export async function businessDeadline(
     workdays: new Set(schedule?.days ?? DEFAULT_WORKDAYS),
     holidays: await holidaysFrom(tx, from),
   });
+}
+
+/**
+ * Días laborales y festivos para contar días hábiles entre `from` y `to` (B36): las vacaciones se
+ * cuentan en días hábiles con el horario vigente al empezar y los festivos de la empresa.
+ */
+export async function workCalendarBetween(
+  tx: TenantTransaction,
+  from: string,
+  to: string,
+): Promise<WorkCalendar> {
+  const schedule = await workScheduleOn(tx, from);
+  const holidays = await tx.holiday.findMany({
+    where: {
+      deletedAt: null,
+      holidayDate: { gte: fromCalendarDate(from), lte: fromCalendarDate(to) },
+    },
+    select: { holidayDate: true },
+  });
+  return {
+    workdays: new Set(schedule?.days ?? DEFAULT_WORKDAYS),
+    holidays: new Set(holidays.map((holiday) => toCalendarDate(holiday.holidayDate))),
+  };
 }
 
 /** Festivos desde el año de `from`: 365 días hábiles caben en menos de dos años de calendario. */
