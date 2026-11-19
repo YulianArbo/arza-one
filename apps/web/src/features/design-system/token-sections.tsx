@@ -56,10 +56,12 @@ export function TypographySection(): JSX.Element {
         <CardDescription>Alojadas en el propio servidor, sin llamadas a terceros.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
-        <p className="text-2xl font-semibold tracking-tight">Montserrat 600 · Título de página</p>
-        <p className="text-lg font-semibold">Montserrat 600 · Título de sección</p>
+        <p className="text-title font-semibold">Título de página · 29 a 46 px</p>
+        <p className="text-card-title font-semibold">Título de bloque · 22 px</p>
+        <p className="text-section font-semibold">Sección de la vitrina · 23 a 32 px</p>
         <p>Montserrat 400 · Texto de la aplicación, base de 14 px.</p>
-        <p className="font-medium">Montserrat 500 · Etiquetas y datos destacados.</p>
+        <p className="font-medium">Montserrat 500 · Navegación, controles y datos destacados.</p>
+        <p className="text-nav font-medium">Montserrat 500 · Menú lateral, 13 px.</p>
       </CardContent>
     </Card>
   );

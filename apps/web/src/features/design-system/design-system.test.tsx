@@ -1,9 +1,10 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
 import { ChartSection } from './chart-sections';
 import { ButtonSection, FeedbackSection, FormSection } from './component-sections';
+import { HierarchySection } from './hierarchy-section';
 import { StateSection } from './state-section';
 import { ColorSection, TypographySection } from './token-sections';
 
@@ -46,6 +47,21 @@ describe('muestrario del sistema de diseño', () => {
     render(<StateSection />);
     await userEvent.click(screen.getByRole('button', { name: 'Reintentar' }));
     expect(screen.getByText('0192f3a1-7c2e-7b11-9a55-2d1c6f0e4a10')).toBeVisible();
+  });
+});
+
+describe('jerarquía de pantallas del muestrario (B22B)', () => {
+  it('presenta etapas, tarjeta destacada, pendientes y accesos', () => {
+    render(<HierarchySection />);
+    expect(screen.getByRole('region', { name: 'Jerarquía de pantallas' })).toBeVisible();
+    const stages = screen.getByRole('navigation', { name: 'Etapas de compras (ejemplo)' });
+    expect(within(stages).getByRole('link', { name: /Evaluar la necesidad/ })).toHaveAttribute(
+      'aria-current',
+      'step',
+    );
+    const pending = screen.getByRole('region', { name: 'Requieren su atención' });
+    expect(within(pending).getAllByRole('link')).toHaveLength(3);
+    expect(screen.getByRole('region', { name: 'También en Compras' })).toBeVisible();
   });
 });
 

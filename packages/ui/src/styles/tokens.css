@@ -131,6 +131,28 @@
   --font-weight-bold: 600;
 
   /*
+   * Escala de jerarquía (B22B). Los títulos crecen con el ancho de la pantalla y se quedan en su
+   * máximo a 1440 px. Texto de la plataforma en 14 px (manual 16.2) y menú lateral en 13 px.
+   */
+  --text-display: clamp(2.0625rem, 4.4vw, 3.9375rem);
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.035em;
+  --text-title: clamp(1.8125rem, 3.4vw, 2.875rem);
+  --text-title--line-height: 1.1;
+  --text-title--letter-spacing: -0.035em;
+  --text-title-access: clamp(1.8125rem, 3vw, 2.6875rem);
+  --text-title-access--line-height: 1.1;
+  --text-title-access--letter-spacing: -0.03em;
+  --text-section: clamp(1.4375rem, 2.2vw, 2rem);
+  --text-section--line-height: 1.2;
+  --text-section--letter-spacing: -0.02em;
+  --text-card-title: 1.375rem;
+  --text-card-title--line-height: 1.25;
+  --text-card-title--letter-spacing: -0.02em;
+  --text-nav: 0.8125rem;
+  --text-nav--line-height: 1.25rem;
+
+  /*
    * Radio de 8 px y una sola sombra suave. El espaciado de Tailwind ya es de 4 px por paso.
    * B20A: las superficies se separan con borde fino; la sombra queda para lo que flota
    * (menús, diálogos, hojas). Radios: 4 px etiquetas, 8 px controles y tarjetas, 12 px diálogos.
