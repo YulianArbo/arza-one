@@ -12,7 +12,17 @@ export {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from './components/alert-dialog.js';
+export {
+  AttentionList,
+  type AttentionItem,
+  type AttentionListProps,
+} from './components/attention-list.js';
 export { Avatar, type AvatarProps } from './components/avatar.js';
+export { HighlightCard, type HighlightCardProps } from './components/highlight-card.js';
+export { PageHeader, type PageHeaderProps } from './components/page-header.js';
+export { QuickLinks, type QuickLink, type QuickLinksProps } from './components/quick-links.js';
+export { StageSummary, type Stage, type StageSummaryProps } from './components/stage-summary.js';
+export type { LinkComponent, LinkProps } from './lib/link.js';
 export { Badge, type BadgeProps } from './components/badge.js';
 export { BarChart, type BarItem } from './charts/bar-chart.js';
 export { DonutChart, type DonutItem } from './charts/donut-chart.js';

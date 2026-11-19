@@ -8,6 +8,7 @@ import {
   FormSection,
 } from '../../../../features/design-system/component-sections';
 import { ChartSection } from '../../../../features/design-system/chart-sections';
+import { HierarchySection } from '../../../../features/design-system/hierarchy-section';
 import { StateSection } from '../../../../features/design-system/state-section';
 import { ColorSection, TypographySection } from '../../../../features/design-system/token-sections';
 
@@ -23,6 +24,7 @@ export default function DesignSystemPage(): JSX.Element {
       />
       <ColorSection />
       <TypographySection />
+      <HierarchySection />
       <ButtonSection />
       <FeedbackSection />
       <FormSection />
