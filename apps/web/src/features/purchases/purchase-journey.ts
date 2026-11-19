@@ -3,7 +3,7 @@ import type { PurchaseOrder, PurchaseRequest } from '@arza/contracts';
 // Recorrido de Compras por etapas (B22B, boceto 07), calculado con lo que ya entrega la API: las
 // solicitudes con su estado y las órdenes con el suyo.
 
-export type JourneyStageKey = 'need' | 'compare' | 'order' | 'receive';
+type JourneyStageKey = 'need' | 'compare' | 'order' | 'receive';
 
 export interface JourneyStage {
   readonly key: JourneyStageKey;
