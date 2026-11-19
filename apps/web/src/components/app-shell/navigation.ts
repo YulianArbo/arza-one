@@ -3,24 +3,31 @@ import {
   BadgeCheck,
   BookUser,
   BriefcaseBusiness,
+  Building2,
+  CalendarClock,
   ChartColumn,
   FileSignature,
   FileText,
   FolderKanban,
+  Handshake,
   Headset,
   House,
   Landmark,
   ListTodo,
   Paperclip,
   Palette,
+  Scale,
   ScrollText,
   Settings,
   ShieldCheck,
   ShoppingCart,
+  Sun,
   UserRound,
   Users,
   type LucideIcon,
 } from 'lucide-react';
+
+import { currentSubmodule } from './submodules';
 
 export const APP_HOME = '/app';
 
@@ -36,11 +43,15 @@ export interface NavigationItem {
 }
 
 export interface NavigationGroup {
+  /** Identificador estable del grupo, para recordar si la persona lo contrajo. */
+  key: string;
   label: string;
+  /** Sin ícono, el grupo no lleva encabezado: es el caso de Inicio. */
+  icon?: LucideIcon;
   items: readonly NavigationItem[];
 }
 
-// Módulos del menú lateral, en el orden de la figura 16.3.
+// Módulos del menú lateral (16.3), en los grupos de los bocetos de B22B.
 const MODULES: readonly NavigationItem[] = [
   { slug: '', label: 'Inicio', icon: House, permissions: [] },
   {
@@ -182,9 +193,45 @@ const PLATFORM: readonly NavigationItem[] = [
   { slug: 'sistema-de-diseno', label: 'Sistema de diseño', icon: Palette, permissions: [] },
 ];
 
+const ITEMS = [...MODULES, ...PLATFORM];
+
+function pick(...slugs: readonly string[]): NavigationItem[] {
+  return slugs.flatMap((slug) => ITEMS.filter((item) => item.slug === slug));
+}
+
 const APP_NAVIGATION: readonly NavigationGroup[] = [
-  { label: 'Módulos', items: MODULES },
-  { label: 'Plataforma', items: PLATFORM },
+  { key: 'inicio', label: 'Inicio', items: pick('') },
+  { key: 'trabajo', label: 'Trabajo diario', icon: Sun, items: pick('mis-tareas', 'mi-espacio') },
+  {
+    key: 'clientes',
+    label: 'Clientes y operación',
+    icon: Handshake,
+    items: pick('terceros', 'comercial', 'contratos', 'proyectos', 'servicio'),
+  },
+  {
+    key: 'gestion',
+    label: 'Gestión interna',
+    icon: Building2,
+    items: pick('compras', 'finanzas', 'talento-y-sst', 'documentos', 'archivos'),
+  },
+  {
+    key: 'gobierno',
+    label: 'Gobierno',
+    icon: Scale,
+    items: pick(
+      'privacidad',
+      'administracion',
+      'auditoria',
+      'estado-del-sistema',
+      'sistema-de-diseno',
+    ),
+  },
+  {
+    key: 'posteriores',
+    label: 'Bloques posteriores',
+    icon: CalendarClock,
+    items: ITEMS.filter((item) => item.block !== undefined),
+  },
 ];
 
 const ALL_ITEMS = APP_NAVIGATION.flatMap((group) => group.items);
@@ -202,7 +249,7 @@ export function canSee(item: NavigationItem, granted: ReadonlySet<string>): bool
 
 export function visibleNavigation(granted: ReadonlySet<string>): NavigationGroup[] {
   return APP_NAVIGATION.map((group) => ({
-    label: group.label,
+    ...group,
     items: group.items.filter((item) => canSee(item, granted)),
   })).filter((group) => group.items.length > 0);
 }
@@ -217,12 +264,38 @@ export function isActive(item: NavigationItem, pathname: string): boolean {
   return pathname === href || (item.slug !== '' && pathname.startsWith(`${href}/`));
 }
 
-/** Ruta de navegación de la barra superior: Inicio › módulo actual. */
-export function breadcrumbFor(pathname: string): NavigationItem[] {
+/** Módulo de una página interna, para el enlace «Volver a [módulo]». En el módulo, ninguno. */
+export function parentModuleFor(pathname: string): NavigationItem | undefined {
+  const [, , slug, ...rest] = pathname.split('/');
+  if (!slug || rest.filter(Boolean).length === 0) {
+    return undefined;
+  }
+  return findNavigationItem(slug);
+}
+
+/** Un paso de la ruta de navegación. */
+export interface Crumb {
+  readonly href: string;
+  readonly label: string;
+}
+
+function crumbOf(item: NavigationItem): Crumb {
+  return { href: hrefFor(item), label: item.label };
+}
+
+/** Ruta de navegación de la barra superior: Inicio › módulo › submódulo (B22B). */
+export function breadcrumbFor(pathname: string): Crumb[] {
   const [, , slug] = pathname.split('/');
   const home = findNavigationItem('');
   const current = slug ? findNavigationItem(slug) : undefined;
-  return [home, current].filter((item): item is NavigationItem => item !== undefined);
+  const crumbs = [home, current]
+    .filter((item): item is NavigationItem => item !== undefined)
+    .map(crumbOf);
+  const sub = current ? currentSubmodule(current.slug, pathname) : undefined;
+  if (current && sub && sub.href !== hrefFor(current)) {
+    crumbs.push({ href: sub.href, label: sub.label });
+  }
+  return crumbs;
 }
 
 /** Todos los permisos que pide el menú. */

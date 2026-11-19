@@ -7,6 +7,7 @@ import {
   hrefFor,
   isActive,
   navigationPermissions,
+  parentModuleFor,
   visibleNavigation,
   type NavigationItem,
 } from './navigation';
@@ -50,7 +51,7 @@ describe('menú por permisos (permiso denegado, 16.3)', () => {
 
   it('un grupo sin módulos visibles no se muestra', () => {
     const groups = visibleNavigation(new Set()).map((group) => group.label);
-    expect(groups).toEqual(['Módulos', 'Plataforma']);
+    expect(groups).toEqual(['Inicio', 'Gobierno']);
     const onlyModules = visibleNavigation(new Set(['contract.read']));
     expect(onlyModules.every((group) => group.items.length > 0)).toBe(true);
   });
@@ -73,6 +74,38 @@ describe('menú por permisos (permiso denegado, 16.3)', () => {
   });
 });
 
+describe('grupos del menú (B22B)', () => {
+  it('agrupa los módulos como los bocetos de B22B, cada uno en un solo grupo', () => {
+    const groups = visibleNavigation(navigationPermissions()).map((group) => ({
+      label: group.label,
+      slugs: group.items.map((entry) => entry.slug),
+    }));
+    expect(groups).toEqual([
+      { label: 'Inicio', slugs: [''] },
+      { label: 'Trabajo diario', slugs: ['mis-tareas', 'mi-espacio'] },
+      {
+        label: 'Clientes y operación',
+        slugs: ['terceros', 'comercial', 'contratos', 'proyectos', 'servicio'],
+      },
+      {
+        label: 'Gestión interna',
+        slugs: ['compras', 'finanzas', 'talento-y-sst', 'documentos', 'archivos'],
+      },
+      {
+        label: 'Gobierno',
+        slugs: [
+          'privacidad',
+          'administracion',
+          'auditoria',
+          'estado-del-sistema',
+          'sistema-de-diseno',
+        ],
+      },
+      { label: 'Bloques posteriores', slugs: ['calidad', 'indicadores'] },
+    ]);
+  });
+});
+
 describe('direcciones y ruta de navegación', () => {
   it('Inicio es /app y los módulos cuelgan de /app', () => {
     expect(hrefFor(item(''))).toBe('/app');
@@ -85,6 +118,15 @@ describe('direcciones y ruta de navegación', () => {
     expect(isActive(item('comercial'), '/app/comercialx')).toBe(false);
     expect(isActive(item(''), '/app')).toBe(true);
     expect(isActive(item(''), '/app/comercial')).toBe(false);
+  });
+
+  it('«Volver a» lleva al módulo solo desde sus páginas internas', () => {
+    expect(parentModuleFor('/app/compras/solicitudes')?.label).toBe('Compras');
+    expect(parentModuleFor('/app/compras/activos/mantenimientos')?.label).toBe('Compras');
+    expect(parentModuleFor('/app/compras')).toBeUndefined();
+    expect(parentModuleFor('/app/compras/')).toBeUndefined();
+    expect(parentModuleFor('/app')).toBeUndefined();
+    expect(parentModuleFor('/app/no-existe/algo')).toBeUndefined();
   });
 
   it('la ruta muestra Inicio y el módulo actual', () => {

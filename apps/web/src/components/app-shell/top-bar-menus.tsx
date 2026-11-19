@@ -24,7 +24,7 @@ export function HelpMenu(): JSX.Element {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Ayuda">
+        <Button variant="outline" size="icon" aria-label="Ayuda">
           <CircleHelp aria-hidden="true" />
         </Button>
       </DropdownMenuTrigger>

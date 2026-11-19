@@ -76,7 +76,7 @@ for (const theme of ['light', 'dark'] as const) {
       await page.goto('/app');
       await page.getByRole('link', { name: 'Compras', exact: true }).click();
       await expect(page.getByRole('heading', { name: 'Compras', level: 1 })).toBeVisible();
-      await expect(page.getByRole('link', { name: /^Activos/u })).toBeVisible();
+      await expect(page.getByRole('main').getByRole('link', { name: /^Activos/u })).toBeVisible();
     });
   });
 }
