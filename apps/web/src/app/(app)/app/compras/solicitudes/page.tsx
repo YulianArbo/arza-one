@@ -6,10 +6,16 @@ import { RequirePermission } from '../../../../../features/session/permissions';
 
 export const metadata: Metadata = { title: 'Solicitudes de compra' };
 
-export default function Page(): JSX.Element {
+interface RequestsPageProps {
+  searchParams: Promise<{ nueva?: string }>;
+}
+
+/** `?nueva=1` abre el formulario de una solicitud nueva (botón de la portada, B22B). */
+export default async function Page({ searchParams }: RequestsPageProps): Promise<JSX.Element> {
+  const { nueva } = await searchParams;
   return (
     <RequirePermission anyOf={['purchase.read', 'purchase.request.create']}>
-      <RequestsPanel />
+      <RequestsPanel startNew={nueva === '1'} />
     </RequirePermission>
   );
 }

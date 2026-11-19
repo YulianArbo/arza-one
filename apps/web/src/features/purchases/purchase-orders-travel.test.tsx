@@ -21,6 +21,7 @@ import {
   OPTIONS,
   ORDER,
   ORDER_ID,
+  REQUEST,
   RECEIPT,
   SUPPLIER_ID,
   TRAVEL,
@@ -207,16 +208,74 @@ describe('viajes y legalizaciones (B33)', () => {
   });
 });
 
-describe('portada de Compras (B33)', () => {
+describe('portada de Compras (B33, B22B)', () => {
   it('muestra lo que cada permiso deja ver, incluidos los activos (B34)', async () => {
     serve(['purchase.request.create', 'asset.read']);
     show(<PurchasesHome />);
-    expect(await screen.findByRole('link', { name: /Solicitudes de compra/u })).toBeVisible();
-    expect(screen.queryByRole('link', { name: /Órdenes de compra/u })).toBeNull();
-    expect(screen.queryByRole('link', { name: /Viajes y legalizaciones/u })).toBeNull();
-    expect(screen.queryByText('Activos: disponible pronto')).toBeNull();
-    const assets = screen.getByRole('link', { name: /^Activos/u });
-    expect(assets).toHaveAttribute('href', '/app/compras/activos');
-    expect(screen.getByRole('link', { name: /Mantenimientos de activos/u })).toBeVisible();
+    const also = await screen.findByRole('region', { name: 'También en Compras' });
+    expect(within(also).getByRole('link', { name: 'Solicitudes' })).toBeVisible();
+    expect(within(also).queryByRole('link', { name: 'Órdenes' })).toBeNull();
+    // Sin «purchase.read» no se piden las compras de toda la empresa ni se ven las etapas.
+    expect(screen.queryByRole('navigation', { name: 'Etapas de compras' })).toBeNull();
+    const resources = screen.getByRole('region', { name: 'Gestión de recursos' });
+    expect(within(resources).getByRole('link', { name: /^Activos/u })).toHaveAttribute(
+      'href',
+      '/app/compras/activos',
+    );
+    expect(within(resources).getByRole('link', { name: /^Mantenimientos/u })).toBeVisible();
+    expect(within(resources).queryByRole('link', { name: /^Viajes/u })).toBeNull();
+  });
+
+  it('con «purchase.read» recorre las etapas y destaca la que pide atención', async () => {
+    serve(['purchase.read'], {
+      'GET /v1/purchase-requests': () => json({ data: [REQUEST] }),
+      'GET /v1/purchase-orders': () => json({ data: [ORDER] }),
+    });
+    show(<PurchasesHome />);
+    const stages = await screen.findByRole('navigation', { name: 'Etapas de compras' });
+    expect(within(stages).getByRole('link', { name: /Evaluar la necesidad/u })).toHaveAttribute(
+      'aria-current',
+      'step',
+    );
+    const stage = screen.getByRole('region', { name: 'Evaluar la necesidad' });
+    expect(within(stage).getByText('1 registro requiere atención en esta etapa.')).toBeVisible();
+    expect(within(stage).getByRole('link', { name: /^SC-2026-0001/u })).toHaveAttribute(
+      'href',
+      '/app/compras/solicitudes',
+    );
+    expect(within(stage).getByRole('link', { name: 'Abrir solicitudes' })).toBeVisible();
+    expect(screen.getByRole('region', { name: 'Gestión de recursos' })).toBeVisible();
+  });
+});
+
+describe('«Nueva solicitud» en la portada de Compras (B22B)', () => {
+  it('lleva al formulario de una solicitud nueva a quien puede pedir compras', async () => {
+    serve(['purchase.request.create']);
+    show(<PurchasesHome />);
+    expect(await screen.findByRole('link', { name: 'Nueva solicitud' })).toHaveAttribute(
+      'href',
+      '/app/compras/solicitudes?nueva=1',
+    );
+  });
+
+  it('no lo ofrece a quien no puede pedir compras', async () => {
+    serve(['asset.read']);
+    show(<PurchasesHome />);
+    expect(await screen.findByRole('region', { name: 'Gestión de recursos' })).toBeVisible();
+    expect(screen.queryByRole('link', { name: 'Nueva solicitud' })).toBeNull();
+  });
+});
+
+describe('portada de Compras cuando el recorrido no carga (B22B)', () => {
+  it('muestra el error con reintento y deja a la vista los recursos', async () => {
+    serve(['purchase.read'], {
+      'GET /v1/purchase-requests': () => json({ data: [] }),
+      'GET /v1/purchase-orders': () =>
+        new Response(JSON.stringify({ title: 'Falla', status: 500 }), { status: 500 }),
+    });
+    show(<PurchasesHome />);
+    expect(await screen.findByRole('button', { name: /Reintentar/u })).toBeVisible();
+    expect(screen.getByRole('region', { name: 'Gestión de recursos' })).toBeVisible();
+    expect(screen.queryByRole('navigation', { name: 'Etapas de compras' })).toBeNull();
   });
 });

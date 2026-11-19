@@ -209,12 +209,19 @@ export function NewRecord(props: {
   readonly label: string;
   readonly title: string;
   readonly description: string;
+  /** Abre el formulario al llegar a la pantalla. */
+  readonly startOpen?: boolean;
   readonly children: (close: () => void) => ReactNode;
 }): JSX.Element | null {
   if (!props.allowed) return null;
   return (
     <div>
-      <RecordDialog triggerLabel={props.label} title={props.title} description={props.description}>
+      <RecordDialog
+        triggerLabel={props.label}
+        title={props.title}
+        description={props.description}
+        {...(props.startOpen === undefined ? {} : { startOpen: props.startOpen })}
+      >
         {props.children}
       </RecordDialog>
     </div>
