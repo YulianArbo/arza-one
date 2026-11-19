@@ -17,6 +17,7 @@ import {
   Settings,
   ShieldCheck,
   ShoppingCart,
+  UserRound,
   Users,
   type LucideIcon,
 } from 'lucide-react';
@@ -47,6 +48,12 @@ const MODULES: readonly NavigationItem[] = [
     label: 'Mis tareas',
     icon: ListTodo,
     permissions: ['wf.task.work', 'wf.task.read_all'],
+  },
+  {
+    slug: 'mi-espacio',
+    label: 'Mi espacio',
+    icon: UserRound,
+    permissions: ['hr.employee.read'],
   },
   { slug: 'terceros', label: 'Terceros', icon: BookUser, permissions: ['party.read'] },
   {

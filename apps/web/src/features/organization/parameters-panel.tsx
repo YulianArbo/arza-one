@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  isLaborRules,
   isPqrsfTerms,
   isPurchaseTiers,
   isWorkSchedule,
@@ -25,6 +26,7 @@ import { formatDate, formatDateTime } from '../../lib/format/date-time';
 import { QueryState } from '../administration/query-state';
 import { usePermissions } from '../session/permissions';
 import { DiscountCapForm } from './discount-cap-form';
+import { describeLaborRules, LaborRulesForm } from './labor-rules-form';
 import { describePqrsfTerms, PqrsfTermsForm } from './pqrsf-terms-form';
 import { describePurchaseTiers, PurchaseTiersForm } from './purchase-tiers-form';
 import { ScheduleForm } from './schedule-form';
@@ -57,6 +59,7 @@ export function describeValue(value: ParameterValue): string {
   if (isWorkSchedule(value)) return describeSchedule(value);
   if (isPqrsfTerms(value)) return describePqrsfTerms(value);
   if (isPurchaseTiers(value)) return describePurchaseTiers(value);
+  if (isLaborRules(value)) return describeLaborRules(value);
   return `Hasta ${value.percent.replace(/\.00$/u, '').replace('.', ',')} % por ítem sin aprobación de la Dirección.`;
 }
 
@@ -127,6 +130,10 @@ function ParameterForm(props: {
   if (props.parameterKey === 'purchase.approval_tiers') {
     const initial = props.initial !== null && isPurchaseTiers(props.initial) ? props.initial : null;
     return <PurchaseTiersForm {...props} initial={initial} />;
+  }
+  if (props.parameterKey === 'hr.labor_rules') {
+    const initial = props.initial !== null && isLaborRules(props.initial) ? props.initial : null;
+    return <LaborRulesForm {...props} initial={initial} />;
   }
   const initial = props.initial !== null && 'percent' in props.initial ? props.initial : null;
   return <DiscountCapForm {...props} initial={initial} />;

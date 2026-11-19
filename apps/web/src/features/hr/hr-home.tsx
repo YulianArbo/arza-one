@@ -8,6 +8,7 @@ import {
   employeeListResponseSchema,
   vacancyListResponseSchema,
 } from '@arza/contracts';
+import { QuickLinks, type QuickLink } from '@arza/ui';
 import Link from 'next/link';
 import type { JSX } from 'react';
 
@@ -19,11 +20,43 @@ import { useHrQuery } from './hr-queries';
 import { CandidateActions, NewCandidate } from './candidate-forms';
 import { CloseVacancy, NewVacancy } from './vacancy-forms';
 
+/** Accesos a las demás funciones del módulo (B36), según los permisos de cada persona. */
+const MODULE_LINKS: readonly (QuickLink & { readonly permissions: readonly string[] })[] = [
+  { href: '/app/mi-espacio', label: 'Mi espacio', permissions: ['hr.employee.read'] },
+  {
+    href: '/app/talento-y-sst/ausencias',
+    label: 'Permisos, vacaciones y horas extras',
+    permissions: ['hr.leave.approve', 'hr.overtime.authorize'],
+  },
+  {
+    href: '/app/talento-y-sst/nomina',
+    label: 'Novedades de nómina',
+    permissions: ['hr.payroll_novelty.close'],
+  },
+  {
+    href: '/app/talento-y-sst/desempeno',
+    label: 'Desempeño y formación',
+    permissions: ['hr.performance.manage', 'hr.training.manage'],
+  },
+  {
+    href: '/app/talento-y-sst/disciplinarios',
+    label: 'Procesos disciplinarios',
+    permissions: ['hr.disciplinary.manage'],
+  },
+  { href: '/app/talento-y-sst/retiros', label: 'Retiros', permissions: ['hr.offboarding.manage'] },
+];
+
 export function HrHome(): JSX.Element {
   const { can } = usePermissions();
+  const links = MODULE_LINKS.filter((link) => link.permissions.some((code) => can(code)));
   return (
     <div className="flex flex-col gap-8">
       <PageHeader title="Talento Humano" />
+      <QuickLinks
+        title="También en Talento humano"
+        links={links.map(({ href, label }) => ({ href, label }))}
+        linkAs={Link}
+      />
       {can('hr.vacancy.manage') ? <Vacancies /> : null}
       {can('hr.candidate.manage') ? <Candidates /> : null}
       {can('hr.employee.read') ? <Employees /> : null}
