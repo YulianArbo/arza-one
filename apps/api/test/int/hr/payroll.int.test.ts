@@ -163,3 +163,65 @@ it('otra empresa no ve los meses ni las novedades', async () => {
   );
   expect(detail.data).toEqual([]);
 });
+
+it('una novedad repetida con la misma clave no se duplica y se retira del mes abierto', async () => {
+  const staff = await staffFixture(scenario, 'nomina-reintento');
+  const body = {
+    period: pastMonth(8),
+    employee_id: staff.workerEmployeeId,
+    concept: 'AUXILIO',
+    quantity: '2',
+    unit: 'units',
+  };
+  const key = uuidv7();
+  const send = (payload: object) =>
+    scenario
+      .post('/v1/hr/payroll-novelties', staff.hr.session, payload)
+      .set('Idempotency-Key', key);
+  const { id } = hrCreatedResponseSchema.parse((await send(body)).body);
+  expect(hrCreatedResponseSchema.parse((await send(body)).body).id).toBe(id);
+  expect((await send({ ...body, quantity: '3' })).status).toBe(409);
+  const withdraw = (target: string, version: number) =>
+    scenario
+      .post(`/v1/hr/payroll-novelties/${target}/actions/withdraw`, staff.hr.session)
+      .set('If-Match', `"${String(version)}"`);
+  expect((await withdraw('01900000-0000-7000-8000-00000000dead', 1)).status).toBe(404);
+  expect((await withdraw(id, 5)).status).toBe(409);
+  expect((await withdraw(id, 1)).status).toBe(204);
+});
+
+it('no acepta conceptos desconocidos ni retira novedades automáticas', async () => {
+  const staff = await staffFixture(scenario, 'nomina-automatica');
+  const body = {
+    period: pastMonth(9),
+    employee_id: staff.workerEmployeeId,
+    concept: 'AUXILIO',
+    quantity: '2',
+    unit: 'units',
+  };
+  const withdraw = (target: string, version: number) =>
+    scenario
+      .post(`/v1/hr/payroll-novelties/${target}/actions/withdraw`, staff.hr.session)
+      .set('If-Match', `"${String(version)}"`);
+  const unknown = await scenario
+    .post('/v1/hr/payroll-novelties', staff.hr.session, { ...body, concept: 'NO_EXISTE' })
+    .set('Idempotency-Key', uuidv7());
+  expect(unknown.status).toBe(422);
+  const automatic = await scenario.inTenant((tx) =>
+    tx.hrPayrollNovelty.create({
+      data: {
+        tenantId: scenario.tenant.id,
+        period: body.period,
+        employeeId: staff.workerEmployeeId,
+        concept: 'RETIRO',
+        quantity: '1',
+        unit: 'units',
+        sourceEntity: 'offboarding',
+        sourceId: uuidv7(),
+      },
+    }),
+  );
+  expect((await withdraw(automatic.id, 1)).status).toBe(409);
+  const bad = await scenario.get('/v1/hr/payroll-novelties/periods/2026-99', staff.hr.session);
+  expect(bad.status).toBe(422);
+});

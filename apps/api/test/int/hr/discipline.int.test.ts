@@ -144,3 +144,33 @@ it('otra empresa no ve los procesos', async () => {
     data: [],
   });
 });
+
+it('abrir con la misma clave no duplica el caso y no deja reutilizarla para otra persona', async () => {
+  const staff = await staffFixture(scenario, 'disciplina-reintento');
+  const key = uuidv7();
+  const open = (employeeId: string) =>
+    scenario
+      .post('/v1/hr/disciplinary-cases', staff.hr.session, {
+        employee_id: employeeId,
+        facts: FACTS,
+      })
+      .set('Idempotency-Key', key);
+  const { id } = hrCreatedResponseSchema.parse((await open(staff.workerEmployeeId)).body);
+  expect(hrCreatedResponseSchema.parse((await open(staff.workerEmployeeId)).body).id).toBe(id);
+  expect((await open(staff.peerEmployeeId)).status).toBe(409);
+  expect(
+    (await step(staff.hr, id, 'cite', 9, { hearing_on: weekdayAfter(scenario, 10) })).status,
+  ).toBe(409);
+  const missing = '01900000-0000-7000-8000-00000000dead';
+  expect(
+    (await scenario.post(`/v1/hr/disciplinary-cases/${missing}/read`, staff.hr.session)).status,
+  ).toBe(404);
+  expect(
+    (
+      await step(staff.hr, id, 'cite', 1, {
+        hearing_on: weekdayAfter(scenario, 10),
+        citation_file_id: uuidv7(),
+      })
+    ).status,
+  ).toBe(422);
+});
