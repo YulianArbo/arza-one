@@ -104,7 +104,7 @@ export const DEFAULT_TEMPLATES: Readonly<Record<NotificationKind, TemplateText>>
   },
   hr_review_update: {
     subject: 'Su evaluación de desempeño está lista',
-    body: 'Su jefe calificó su evaluación de desempeño. Revísela y acéptela en ARZA ONE › Mi espacio.',
+    body: '{{nombre}}, su jefe calificó su evaluación de desempeño. Revísela y acéptela en ARZA ONE › Mi espacio.',
     urgent: false,
   },
   // Sin el contenido del caso: la persona lo consulta en la plataforma (información restringida).

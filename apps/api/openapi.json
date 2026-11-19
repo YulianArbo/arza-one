@@ -96472,7 +96472,7 @@
         "properties": {
           "type": {
             "type": "string",
-            "pattern": "^[A-Z][A-Z0-9_]{1,39}$"
+            "pattern": "^[A-Z0-9][A-Z0-9_-]{0,19}$"
           },
           "starts_on": {
             "type": "string",
@@ -97078,7 +97078,7 @@
           },
           "concept": {
             "type": "string",
-            "pattern": "^[A-Z][A-Z0-9_]{1,39}$"
+            "pattern": "^[A-Z0-9][A-Z0-9_-]{0,19}$"
           },
           "quantity": {
             "type": "string",
@@ -98736,7 +98736,7 @@
         "properties": {
           "type": {
             "type": "string",
-            "pattern": "^[A-Z][A-Z0-9_]{1,39}$"
+            "pattern": "^[A-Z0-9][A-Z0-9_-]{0,19}$"
           },
           "starts_on": {
             "type": "string",
