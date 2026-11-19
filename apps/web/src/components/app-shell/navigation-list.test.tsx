@@ -31,8 +31,40 @@ describe('menú por grupos (B22B)', () => {
     const group = screen.getByRole('button', { name: 'Clientes y operación' });
     expect(group).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByRole('link', { name: 'Comercial' })).toHaveAttribute('aria-current', 'page');
+    // Sin «crm.opportunity.read» el embudo no aparece entre los submódulos.
+    expect(screen.queryByRole('link', { name: 'Embudo' })).toBeNull();
+    expect(screen.getByRole('link', { name: 'Prospectos' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Terceros' })).not.toHaveAttribute('aria-current');
     expect(screen.getByRole('link', { name: 'Inicio' })).toBeVisible();
+  });
+});
+
+describe('submódulos en el menú (B22B)', () => {
+  it('abre los submódulos del módulo actual y marca la página', () => {
+    route.pathname = '/app/compras/solicitudes/12';
+    renderMenu();
+    expect(screen.getByRole('link', { name: 'Compras' })).toHaveAttribute('aria-current', 'true');
+    expect(screen.getByRole('link', { name: 'Solicitudes' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    expect(screen.getByRole('link', { name: 'Órdenes' })).not.toHaveAttribute('aria-current');
+    // Activos pide «asset.read», que esta persona no tiene.
+    expect(screen.queryByRole('link', { name: 'Activos' })).toBeNull();
+  });
+
+  it('en la portada del módulo el módulo es la página actual', () => {
+    route.pathname = '/app/compras';
+    renderMenu();
+    expect(screen.getByRole('link', { name: 'Compras' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Solicitudes' })).not.toHaveAttribute('aria-current');
+  });
+
+  it('los módulos sin submódulos no abren lista', () => {
+    route.pathname = '/app/terceros';
+    renderMenu();
+    expect(screen.getByRole('link', { name: 'Terceros' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.queryByRole('link', { name: 'Solicitudes' })).toBeNull();
   });
 });
 

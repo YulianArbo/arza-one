@@ -61,7 +61,10 @@ for (const theme of ['light', 'dark'] as const) {
       await useTheme(page, theme);
       await mockApi(page, API);
       await page.goto('/app/compras');
-      await page.getByRole('link', { name: /^Activos/u }).click();
+      await page
+        .getByRole('main')
+        .getByRole('link', { name: /^Activos/u })
+        .click();
       await expect(page.getByRole('heading', { name: 'Activos', level: 1 })).toBeVisible();
       await expect(page.getByText('Comodato CT-ADM-001-2026-0001 firmado')).toBeVisible();
     });
