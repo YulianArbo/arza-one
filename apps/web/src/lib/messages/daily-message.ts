@@ -100,6 +100,11 @@ export function messageAt(index: number): string {
   return `${observation} ${invitation}`;
 }
 
+/** Mensaje al azar del banco, para el acceso, donde aún no se sabe quién es la persona (B22B). */
+export function randomMessage(random: () => number = Math.random): string {
+  return messageAt(Math.floor(random() * MESSAGE_COUNT));
+}
+
 /** Resumen numérico estable de un texto (FNV-1a de 32 bits). */
 function hashOf(text: string): number {
   let hash = 0x811c9dc5;

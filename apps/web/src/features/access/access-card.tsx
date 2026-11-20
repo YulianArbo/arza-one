@@ -14,7 +14,7 @@ export function AccessCard({ title, description, children }: AccessCardProps): J
       className="flex w-full max-w-sm flex-col gap-6 animate-enter"
     >
       <header className="flex flex-col gap-1.5">
-        <h1 id="acceso-titulo" className="text-2xl font-semibold tracking-tight">
+        <h1 id="acceso-titulo" className="font-heading text-title-access font-semibold">
           {title}
         </h1>
         <p className="text-sm text-muted-foreground">{description}</p>

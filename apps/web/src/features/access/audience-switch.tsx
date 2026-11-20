@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@arza/ui';
-import { Building2, Users } from 'lucide-react';
+import { LogIn, Users } from 'lucide-react';
 import type { JSX } from 'react';
 
 export type Audience = 'empresa' | 'clientes';
@@ -13,7 +13,7 @@ export const AUDIENCE_DESCRIPTIONS: Record<Audience, string> = {
 };
 
 const OPTIONS = [
-  { value: 'empresa', label: 'Plataforma empresarial', Icon: Building2 },
+  { value: 'empresa', label: 'Ingreso plataforma', Icon: LogIn },
   { value: 'clientes', label: 'Portal de clientes', Icon: Users },
 ] as const;
 
