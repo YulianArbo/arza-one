@@ -1,39 +1,35 @@
 import type { Metadata } from 'next';
 import { buttonVariants } from '@arza/ui';
+import { ListChecks } from 'lucide-react';
 import Link from 'next/link';
 import type { JSX } from 'react';
 
 import { PageHeader } from '../../../../components/app-shell/page-header';
 import { DocumentExplorer } from '../../../../features/documents/document-explorer';
-import { MASTER_LIST_PATH, REQUESTS_PATH } from '../../../../features/documents/labels';
-import { RetentionLinks } from '../../../../features/documents/retention-links';
-import { FORMS_PATH } from '../../../../features/forms/labels';
+import { DocumentsAlso } from '../../../../features/documents/documents-also';
+import { MASTER_LIST_PATH } from '../../../../features/documents/labels';
 import { RequirePermission } from '../../../../features/session/permissions';
 
 export const metadata: Metadata = { title: 'Documentos' };
 
+/** Documentos (B22B, boceto 13): el explorador de carpetas y las demás funciones del módulo. */
 export default function DocumentsPage(): JSX.Element {
   return (
     <RequirePermission anyOf={['doc.document.read']}>
-      <PageHeader
-        title="Explorador de expedientes"
-        description="Documentos del Sistema de Gestión de Calidad y expedientes de terceros. Cada documento muestra su versión vigente."
-        action={
-          <div className="flex flex-wrap gap-2">
+      <div className="flex flex-col gap-6">
+        <PageHeader
+          title="Documentos"
+          description="Abra una carpeta para consultar los documentos y sus versiones vigentes."
+          action={
             <Link href={MASTER_LIST_PATH} className={buttonVariants({ variant: 'outline' })}>
+              <ListChecks aria-hidden="true" />
               Listado Maestro
             </Link>
-            <Link href={REQUESTS_PATH} className={buttonVariants({ variant: 'outline' })}>
-              Solicitudes
-            </Link>
-            <Link href={FORMS_PATH} className={buttonVariants({ variant: 'outline' })}>
-              Formatos digitales
-            </Link>
-            <RetentionLinks />
-          </div>
-        }
-      />
-      <DocumentExplorer />
+          }
+        />
+        <DocumentExplorer />
+        <DocumentsAlso />
+      </div>
     </RequirePermission>
   );
 }

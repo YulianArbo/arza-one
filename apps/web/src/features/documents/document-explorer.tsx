@@ -5,6 +5,7 @@ import {
   Badge,
   buttonVariants,
   EmptyState,
+  HighlightCard,
   Pager,
   SimpleTable,
   TableCell,
@@ -184,14 +185,13 @@ export function DocumentExplorer(): JSX.Element {
         return (
           <div className="flex flex-col gap-6">
             <ExplorerActions folder={folder} onCreated={setSelected} />
-            <div className="grid gap-6 md:grid-cols-[18rem_1fr]">
-              <FolderTree folders={data.data} selected={selected} onSelect={setSelected} />
-              <section aria-label={folder?.name ?? 'Todos los documentos'}>
-                <h2 className="mb-3 text-lg font-semibold">
-                  {folder?.name ?? 'Todos los documentos'}
-                </h2>
+            <div className="grid items-start gap-5 md:grid-cols-[18rem_minmax(0,1fr)]">
+              <HighlightCard title="Carpetas">
+                <FolderTree folders={data.data} selected={selected} onSelect={setSelected} />
+              </HighlightCard>
+              <HighlightCard title={folder?.name ?? 'Todos los documentos'}>
                 <DocumentPanel key={selected ?? 'todos'} folderId={selected} />
-              </section>
+              </HighlightCard>
             </div>
           </div>
         );

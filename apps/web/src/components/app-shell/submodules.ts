@@ -1,4 +1,5 @@
 import {
+  Archive,
   BookOpen,
   Building,
   CalendarDays,
@@ -27,6 +28,7 @@ import {
   SlidersHorizontal,
   Smile,
   Tags,
+  Trash2,
   Truck,
   UserCheck,
   UserCog,
@@ -41,7 +43,13 @@ import {
 import { ADMIN_PATHS } from '../../features/administration/labels';
 import { AUDIT_PATHS } from '../../features/audit/labels';
 import { CRM_PATHS } from '../../features/crm/labels';
-import { OUTPUT_TEMPLATES_PATH } from '../../features/forms/labels';
+import {
+  DISPOSITIONS_PATH,
+  MASTER_LIST_PATH,
+  REQUESTS_PATH,
+  RETENTION_PATH,
+} from '../../features/documents/labels';
+import { FORMS_PATH, OUTPUT_TEMPLATES_PATH, RECORDS_PATH } from '../../features/forms/labels';
 import { NTF_PATHS } from '../../features/notifications/labels';
 import { PRIVACY_PATHS } from '../../features/privacy/labels';
 import { SERVICE_PATHS } from '../../features/service/labels';
@@ -101,6 +109,15 @@ const PURCHASES = [
   sub('/app/compras/viajes', 'Viajes', Plane, 'purchase.read', 'purchase.travel.request'),
   sub('/app/compras/activos', 'Activos', Package, 'asset.read'),
   sub('/app/compras/activos/mantenimientos', 'Mantenimientos', Wrench, 'asset.read'),
+];
+
+const DOCUMENTS = [
+  sub(MASTER_LIST_PATH, 'Listado maestro', ListChecks, 'doc.document.read'),
+  sub(RECORDS_PATH, 'Registros', ClipboardList, 'doc.document.read'),
+  sub(FORMS_PATH, 'Formatos', LayoutTemplate, 'doc.document.read'),
+  sub(REQUESTS_PATH, 'Solicitudes', FilePlus, 'doc.document.read'),
+  sub(RETENTION_PATH, 'Retención', Archive, 'doc.retention.manage'),
+  sub(DISPOSITIONS_PATH, 'Disposición', Trash2, 'doc.disposition.approve'),
 ];
 
 const FINANCE = [
@@ -181,6 +198,7 @@ const SUBMODULES: Readonly<Record<string, readonly Submodule[]>> = {
   comercial: COMMERCIAL,
   servicio: SERVICE,
   compras: PURCHASES,
+  documentos: DOCUMENTS,
   finanzas: FINANCE,
   'talento-y-sst': TALENT,
   privacidad: PRIVACY,
