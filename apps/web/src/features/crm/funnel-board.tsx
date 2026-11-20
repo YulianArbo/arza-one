@@ -65,12 +65,14 @@ interface ColumnProps {
 
 function ColumnHeader(props: ColumnProps & { readonly headingId: string }): JSX.Element {
   return (
-    <header className="flex items-baseline justify-between gap-2 px-1">
-      <h2 id={props.headingId} className="text-sm font-semibold">
+    <header className="flex flex-col gap-1 px-1">
+      <h2 id={props.headingId} className="font-heading text-base font-semibold">
         {OPPORTUNITY_STAGES[props.stage]}{' '}
-        <span className="text-muted-foreground">({props.opportunities.length})</span>
+        <span className="text-sm font-medium text-primary tabular-nums">
+          ({props.opportunities.length})
+        </span>
       </h2>
-      <span className="text-xs tabular-nums text-muted-foreground">
+      <span className="text-sm tabular-nums text-muted-foreground">
         {formatPesos(sumOf(props.opportunities))}
       </span>
     </header>
@@ -89,7 +91,7 @@ function Column(props: ColumnProps): JSX.Element {
   });
   return (
     <section aria-labelledby={headingId} className="flex min-w-60 flex-1">
-      <div ref={zone} className="flex flex-1 flex-col gap-2 rounded-md border bg-muted/30 p-2">
+      <div ref={zone} className="flex flex-1 flex-col gap-3 rounded-xl bg-muted p-3">
         <ColumnHeader {...props} headingId={headingId} />
         <ul className="flex flex-col gap-2">
           {props.opportunities.map((opportunity) => (

@@ -12,12 +12,14 @@ export function CrmScreen(props: {
   readonly anyOf: readonly string[];
   readonly title: string;
   readonly description: string;
+  /** Acción del encabezado, por ejemplo «Cotizaciones» en el embudo (B22B). */
+  readonly action?: ReactNode;
   readonly children: ReactNode;
 }): JSX.Element {
   return (
     <RequirePermission anyOf={props.anyOf}>
-      <div className="flex flex-col gap-4">
-        <PageHeader title={props.title} description={props.description} />
+      <div className="flex flex-col gap-5">
+        <PageHeader title={props.title} description={props.description} action={props.action} />
         <CrmNav />
         {props.children}
       </div>
