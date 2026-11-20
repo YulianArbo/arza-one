@@ -8,6 +8,7 @@ import { ThemeMenu } from '../../../components/theme-menu';
 import { PortalCompany } from '../../../features/portal/portal-company';
 import { PortalGate } from '../../../features/portal/portal-gate';
 import { PortalTabs } from '../../../features/portal/portal-tabs';
+import { PortalTrail } from '../../../features/portal/portal-trail';
 import { FormDraftRestore } from '../../../features/session/form-draft-restore';
 import { RequireSession } from '../../../features/session/session-provider';
 
@@ -18,20 +19,25 @@ export const metadata: Metadata = {
 };
 
 /**
- * Encabezado del portal (B22A): logo a la izquierda, pestañas al centro y, a la derecha, la
- * apariencia, la empresa cliente y la persona. En celular las pestañas pasan a una segunda fila
- * que se desliza.
+ * Encabezado del portal (B22B, bocetos 24 a 26): logo a la izquierda, dónde está la persona al
+ * centro y, a la derecha, la apariencia, la empresa cliente y la persona. En celular, la ruta pasa
+ * a una segunda fila.
  */
 function PortalHeader(): JSX.Element {
   return (
     <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur">
       <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5">
-        <Link href="/portal" className="flex shrink-0 items-center gap-2 text-foreground">
+        <Link
+          href="/portal"
+          aria-label="ARZA ONE, inicio del portal"
+          className="flex shrink-0 items-center text-foreground"
+        >
           <BrandLogo className="h-6 w-auto" />
-          <span className="rounded-full border px-2 text-xs text-muted-foreground">Clientes</span>
         </Link>
-        <PortalTabs className="order-last w-full xl:order-none xl:mx-auto xl:w-auto" />
-        <div className="ml-auto flex items-center gap-1 xl:ml-0">
+        <div className="order-last w-full md:order-none md:mx-auto md:w-auto">
+          <PortalTrail />
+        </div>
+        <div className="ml-auto flex items-center gap-1 md:ml-0">
           <ThemeMenu className="mx-1 hidden sm:inline-flex" />
           <div className="hidden sm:block">
             <PortalCompany />
@@ -53,6 +59,7 @@ export default function PortalLayout({ children }: { children: ReactNode }): JSX
           id="contenido"
           className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-8 animate-enter"
         >
+          <PortalTabs />
           <PortalGate>{children}</PortalGate>
         </main>
       </div>
