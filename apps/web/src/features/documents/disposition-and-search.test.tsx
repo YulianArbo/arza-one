@@ -119,7 +119,12 @@ describe('ficha de la propuesta: decisión de Dirección', () => {
       });
     });
     await userEvent.click(screen.getByRole('button', { name: 'Aprobar' }));
-    await userEvent.click(await screen.findByRole('button', { name: 'Sí, aprobar' }));
+    const confirm = await screen.findByRole('alertdialog');
+    await userEvent.type(
+      within(confirm).getByLabelText('Para confirmar, escriba el código DIS-2026-0001'),
+      'DIS-2026-0001',
+    );
+    await userEvent.click(within(confirm).getByRole('button', { name: 'Sí, aprobar' }));
     await vi.waitFor(() => {
       expect(sent.some((r) => r.path.endsWith('/actions/approve'))).toBe(true);
     });

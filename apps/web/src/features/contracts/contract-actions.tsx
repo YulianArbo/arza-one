@@ -11,6 +11,7 @@ import { Button, buttonVariants } from '@arza/ui';
 import Link from 'next/link';
 import type { JSX } from 'react';
 
+import { CodeConfirmation } from '../../components/code-confirmation';
 import { useApiClient } from '../../lib/api/api-provider';
 import { FormError } from '../access/form-alert';
 import { save } from '../audit/audit-export-button';
@@ -227,7 +228,9 @@ function TerminateDialog({ contract }: Props): JSX.Element {
       description="Terminación anticipada. El contrato queda terminado desde la fecha que indique."
     >
       {(close) => (
-        <NoteAction contract={contract} action="terminate" onDone={close} spec={TERMINATE_SPEC} />
+        <CodeConfirmation code={contract.code}>
+          <NoteAction contract={contract} action="terminate" onDone={close} spec={TERMINATE_SPEC} />
+        </CodeConfirmation>
       )}
     </StepDialog>
   );
