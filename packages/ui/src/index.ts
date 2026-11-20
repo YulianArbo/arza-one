@@ -23,6 +23,7 @@ export { PageHeader, type PageHeaderProps } from './components/page-header.js';
 export { QuickLinks, type QuickLink, type QuickLinksProps } from './components/quick-links.js';
 export { SectionTabs, type SectionTab } from './components/section-tabs.js';
 export { StageSummary, type Stage, type StageSummaryProps } from './components/stage-summary.js';
+export { ToastProvider, useToast } from './components/toast.js';
 export type { LinkComponent, LinkProps } from './lib/link.js';
 export { Badge, type BadgeProps } from './components/badge.js';
 export { BarChart, type BarItem } from './charts/bar-chart.js';
