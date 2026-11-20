@@ -53,12 +53,44 @@ describe('lista de proyectos', () => {
       </Screen>,
     );
     expect(await screen.findByRole('link', { name: 'PRY-2026-0001' })).toBeVisible();
-    expect(screen.getByText('50 %')).toBeVisible();
+    expect(
+      within(screen.getByRole('table', { name: 'Proyectos' })).getByText('50 %'),
+    ).toBeVisible();
     expect(screen.getByRole('link', { name: 'Nuevo proyecto' })).toBeVisible();
     const create = await screen.findByRole('link', {
       name: 'Crear el proyecto del contrato CTR-2026-0002',
     });
     expect(create).toHaveAttribute('href', `/app/proyectos/nuevo?contrato=${CONTRACT_ID}`);
+  });
+});
+
+describe('cartera activa de Proyectos (B22B)', () => {
+  it('destaca el primer proyecto en ejecución con su avance y lo enlaza', async () => {
+    const sent = serveProjects(PROJECT_LEADER);
+    renderWithApi(
+      <Screen>
+        <ProjectList />
+      </Screen>,
+    );
+    const portfolio = await screen.findByRole('region', { name: 'Cartera activa' });
+    expect(within(portfolio).getAllByRole('link').length).toBeGreaterThan(0);
+    const meter = await screen.findByRole('meter', { name: /^Avance de / });
+    expect(meter).toHaveAttribute('aria-valuenow', '50');
+    expect(screen.getByRole('link', { name: 'Ver el proyecto PRY-2026-0001' })).toBeVisible();
+    expect(sent.some((request) => request.search.includes('status=in_progress'))).toBe(true);
+  });
+
+  it('sin proyectos en ejecución no ocupa lugar', async () => {
+    serveProjects(PROJECT_READER, {
+      'GET /v1/projects': () => json({ data: [], next_cursor: null }),
+    });
+    renderWithApi(
+      <Screen>
+        <ProjectList />
+      </Screen>,
+    );
+    expect(await screen.findByText('Todavía no hay proyectos')).toBeVisible();
+    expect(screen.queryByRole('region', { name: 'Cartera activa' })).toBeNull();
   });
 });
 
