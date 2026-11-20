@@ -30,10 +30,10 @@ test('lo pendiente dice «Disponible pronto» y no hay formularios simulados', a
   await expect(page.locator('main input')).toHaveCount(0);
 });
 
-test('el botón «Plataforma empresarial» lleva al acceso', async ({ page }) => {
+test('el botón «Iniciar sesión» lleva al acceso', async ({ page }) => {
   await mockSession(page, 'none');
   await page.goto('/');
-  await page.getByRole('banner').getByRole('link', { name: 'Plataforma empresarial' }).click();
+  await page.getByRole('banner').getByRole('link', { name: 'Iniciar sesión' }).click();
   await expect(page).toHaveURL(/\/iniciar-sesion$/);
 });
 

@@ -1,6 +1,8 @@
 // Contenido de la vitrina (B22A, boceto final aprobado). Los datos de la empresa entre corchetes
 // los entrega el dueño del producto antes de publicar el sitio (B41); no se inventan.
 
+import { BriefcaseBusiness, FolderKanban, Megaphone, Monitor, SquareUser } from 'lucide-react';
+
 export const COMPANY = {
   legalName: 'ARZA TECH S.A.S.',
   taxId: '[NIT]',
@@ -49,12 +51,13 @@ export const SOCIAL_NETWORKS: readonly SocialNetwork[] = [
   { name: 'TikTok', url: null, icon: 'M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5M14 3c.5 2.5 2.5 4.5 5 5' },
 ];
 
+/** Secciones del menú de la vitrina, cada una con su ícono (B22B, boceto 01). */
 export const SITE_NAV = [
-  { href: '/#servicios', label: 'Servicios' },
-  { href: '/#plataforma', label: 'Plataforma' },
-  { href: '/#proyectos', label: 'Proyectos' },
-  { href: '/#noticias', label: 'Noticias' },
-  { href: '/#contacto', label: 'Contacto' },
+  { href: '/#servicios', label: 'Servicios', icon: BriefcaseBusiness },
+  { href: '/#plataforma', label: 'Plataforma', icon: Monitor },
+  { href: '/#proyectos', label: 'Proyectos', icon: FolderKanban },
+  { href: '/#noticias', label: 'Noticias', icon: Megaphone },
+  { href: '/#contacto', label: 'Contacto', icon: SquareUser },
 ] as const;
 
 export const SERVICES = [

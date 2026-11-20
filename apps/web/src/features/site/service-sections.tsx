@@ -1,11 +1,13 @@
 import { Button } from '@arza/ui';
 import {
   FileSearch,
+  LogIn,
   Mail,
   MapPin,
   MessageCircle,
   MessagesSquare,
   Phone,
+  SquareUser,
   type LucideIcon,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -157,19 +159,25 @@ export function AccessBand(): JSX.Element {
       aria-labelledby="clientes-titulo"
       className="mx-auto grid w-full max-w-6xl gap-4 px-4 py-16 lg:grid-cols-[1.4fr_1fr]"
     >
-      <div className="flex flex-col gap-4 rounded-xl bg-invert p-8 text-invert-foreground">
+      <div className="flex flex-col gap-4 rounded-xl border-2 border-primary bg-card p-8">
         <h2 id="clientes-titulo" className="text-2xl font-semibold">
           ¿Ya trabaja con nosotros?
         </h2>
-        <p className="text-invert-muted">
+        <p className="text-muted-foreground">
           Ingrese para seguir sus proyectos, firmar documentos y pedir soporte.
         </p>
         <div className="flex flex-wrap gap-3">
-          <Button asChild variant="outline" className="text-foreground">
-            <Link href="/iniciar-sesion">Plataforma empresarial</Link>
+          <Button asChild variant="outline">
+            <Link href="/iniciar-sesion">
+              <LogIn aria-hidden="true" />
+              Iniciar sesión
+            </Link>
           </Button>
-          <Button asChild variant="outline" className="text-foreground">
-            <Link href="/iniciar-sesion">Portal de clientes</Link>
+          <Button asChild variant="outline">
+            <Link href="/iniciar-sesion">
+              <SquareUser aria-hidden="true" />
+              Portal de clientes
+            </Link>
           </Button>
         </div>
       </div>
