@@ -23,6 +23,7 @@ import Link from 'next/link';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
 import { PageHeader } from '../../components/app-shell/page-header';
+import { ProjectPortfolio } from './project-portfolio';
 import { formatDate } from '../../lib/format/date-time';
 import { QueryState } from '../administration/query-state';
 import { formatPesos, optionsOf } from '../crm/labels';
@@ -179,10 +180,10 @@ export function ProjectList(): JSX.Element {
   const options = useProjectOptions(canCreate);
   const [filters, setFilters] = useState(NO_FILTERS);
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader
         title="Proyectos"
-        description="Proyectos de software: equipo, hitos, tablero, horas, entregables y su control."
+        description="Elija un proyecto para revisar su avance; abajo están todos, con búsqueda y filtros."
         action={
           <div className="flex flex-wrap gap-2">
             {can('project.time.log') ? (
@@ -198,7 +199,9 @@ export function ProjectList(): JSX.Element {
           </div>
         }
       />
+      <ProjectPortfolio />
       {options.data === undefined ? null : <PendingContracts options={options.data} />}
+      <h2 className="font-heading text-card-title font-semibold">Todos los proyectos</h2>
       <SearchForm onApply={setFilters} />
       {/* Con otros filtros, la lista vuelve a la primera página. */}
       <Results key={`${filters.q}|${filters.status}`} filters={filters} />
