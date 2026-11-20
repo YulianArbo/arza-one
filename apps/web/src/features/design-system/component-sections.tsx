@@ -24,8 +24,10 @@ import {
   SelectField,
   Textarea,
 } from '@arza/ui';
-import { CircleCheck, Info, Plus, TriangleAlert } from 'lucide-react';
+import { CircleCheck, Info, TriangleAlert } from 'lucide-react';
 import type { JSX } from 'react';
+
+import { ActionIcon } from '../../lib/ui/action-icon';
 
 export function ButtonSection(): JSX.Element {
   return (
@@ -35,14 +37,20 @@ export function ButtonSection(): JSX.Element {
       </CardHeader>
       <CardContent className="flex flex-wrap gap-3">
         <Button>
-          <Plus aria-hidden="true" />
+          <ActionIcon label="Crear registro" />
           Crear registro
         </Button>
-        <Button variant="secondary">Guardar borrador</Button>
+        <Button variant="secondary">
+          <ActionIcon label="Guardar borrador" />
+          Guardar borrador
+        </Button>
         <Button variant="outline">Cancelar</Button>
         <Button variant="ghost">Ver más</Button>
         <Button variant="link">Abrir procedimiento</Button>
-        <Button disabled>Enviar a aprobación</Button>
+        <Button disabled>
+          <ActionIcon label="Enviar a aprobación" />
+          Enviar a aprobación
+        </Button>
         <ConfirmationExample />
       </CardContent>
     </Card>
@@ -54,7 +62,10 @@ function ConfirmationExample(): JSX.Element {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="destructive">Anular registro</Button>
+        <Button variant="destructive">
+          <ActionIcon label="Anular registro" />
+          Anular registro
+        </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogTitle>¿Anular el registro EJ-2026-0001?</AlertDialogTitle>

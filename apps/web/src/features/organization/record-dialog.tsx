@@ -14,6 +14,8 @@ import {
 } from '@arza/ui';
 import { useState, type ComponentProps, type JSX, type ReactNode } from 'react';
 
+import { ActionIcon } from '../../lib/ui/action-icon';
+
 // Piezas comunes de las pantallas de datos maestros (B12).
 
 interface RecordDialogProps {
@@ -41,6 +43,7 @@ export function RecordDialog(props: RecordDialogProps): JSX.Element {
           size={props.variant === 'outline' ? 'sm' : 'md'}
           aria-label={props.triggerAriaLabel}
         >
+          <ActionIcon label={props.triggerLabel} />
           {props.triggerLabel}
         </Button>
       </DialogTrigger>
