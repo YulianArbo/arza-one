@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { HighlightCard } from '@arza/ui';
 import type { JSX } from 'react';
 
 import { PageHeader } from '../../../../components/app-shell/page-header';
@@ -14,7 +15,9 @@ export default function PartiesPage(): JSX.Element {
         title="Terceros"
         description="Clientes, proveedores, colaboradores, contactos y candidatos: un solo registro de cada uno."
       />
-      <PartyList />
+      <HighlightCard title="Directorio de personas y organizaciones">
+        <PartyList />
+      </HighlightCard>
     </RequirePermission>
   );
 }
