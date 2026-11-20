@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
 
 import { Screen } from '../../test-support/core-fixtures';
@@ -47,4 +47,26 @@ it('muestra la ficha propia sin consultar vacantes ni candidaturas', async () =>
   expect(screen.queryByRole('heading', { name: 'Vacantes' })).not.toBeInTheDocument();
   expect(screen.queryByRole('heading', { name: 'Candidaturas' })).not.toBeInTheDocument();
   expect(requests.map(({ path }) => path)).not.toContain('/v1/hr/candidates');
+});
+
+it('ofrece Mi espacio y solo los accesos del módulo que la persona puede abrir (B22B)', async () => {
+  mockApi({
+    'GET /v1/auth/session': () => json(SESSION),
+    'GET /v1/me/permissions': () =>
+      json(permissionsOf(['hr.employee.read', 'hr.offboarding.manage'])),
+    'GET /v1/hr/employees': () => json({ data: [] }),
+  });
+  renderWithApi(
+    <Screen>
+      <HrHome />
+    </Screen>,
+  );
+  expect(await screen.findByRole('heading', { level: 1, name: 'Talento y SST' })).toBeVisible();
+  const also = await screen.findByRole('region', { name: 'También en Talento y SST' });
+  expect(within(also).getByRole('link', { name: 'Mi espacio' })).toHaveAttribute(
+    'href',
+    '/app/mi-espacio',
+  );
+  expect(within(also).getByRole('link', { name: 'Retiros' })).toBeVisible();
+  expect(within(also).queryByRole('link', { name: 'Novedades de nómina' })).toBeNull();
 });

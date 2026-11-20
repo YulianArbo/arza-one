@@ -4,7 +4,7 @@ import type { JSX } from 'react';
 import { HrHome } from '../../../../features/hr/hr-home';
 import { RequirePermission } from '../../../../features/session/permissions';
 
-export const metadata: Metadata = { title: 'Talento Humano' };
+export const metadata: Metadata = { title: 'Talento y SST' };
 
 export default function Page(): JSX.Element {
   return (

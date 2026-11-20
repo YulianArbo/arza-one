@@ -211,6 +211,8 @@ export function NewRecord(props: {
   readonly description: string;
   /** Abre el formulario al llegar a la pantalla. */
   readonly startOpen?: boolean;
+  /** «outline» cuando la pantalla ya tiene otra acción principal (una sola, B22A). */
+  readonly variant?: 'primary' | 'outline';
   readonly children: (close: () => void) => ReactNode;
 }): JSX.Element | null {
   if (!props.allowed) return null;
@@ -221,6 +223,7 @@ export function NewRecord(props: {
         title={props.title}
         description={props.description}
         {...(props.startOpen === undefined ? {} : { startOpen: props.startOpen })}
+        {...(props.variant === undefined ? {} : { variant: props.variant })}
       >
         {props.children}
       </RecordDialog>

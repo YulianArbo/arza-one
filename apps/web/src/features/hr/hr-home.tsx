@@ -8,11 +8,12 @@ import {
   employeeListResponseSchema,
   vacancyListResponseSchema,
 } from '@arza/contracts';
-import { QuickLinks, type QuickLink } from '@arza/ui';
+import { HighlightCard, QuickLinks, type QuickLink } from '@arza/ui';
 import Link from 'next/link';
 import type { JSX } from 'react';
 
 import { PageHeader } from '../../components/app-shell/page-header';
+import { visibleSubmodules } from '../../components/app-shell/submodules';
 import { formatDate } from '../../lib/format/date-time';
 import { QueryState } from '../administration/query-state';
 import { usePermissions } from '../session/permissions';
@@ -20,46 +21,34 @@ import { useHrQuery } from './hr-queries';
 import { CandidateActions, NewCandidate } from './candidate-forms';
 import { CloseVacancy, NewVacancy } from './vacancy-forms';
 
-/** Accesos a las demás funciones del módulo (B36), según los permisos de cada persona. */
-const MODULE_LINKS: readonly (QuickLink & { readonly permissions: readonly string[] })[] = [
-  { href: '/app/mi-espacio', label: 'Mi espacio', permissions: ['hr.employee.read'] },
-  {
-    href: '/app/talento-y-sst/ausencias',
-    label: 'Permisos, vacaciones y horas extras',
-    permissions: ['hr.leave.approve', 'hr.overtime.authorize'],
-  },
-  {
-    href: '/app/talento-y-sst/nomina',
-    label: 'Novedades de nómina',
-    permissions: ['hr.payroll_novelty.close'],
-  },
-  {
-    href: '/app/talento-y-sst/desempeno',
-    label: 'Desempeño y formación',
-    permissions: ['hr.performance.manage', 'hr.training.manage'],
-  },
-  {
-    href: '/app/talento-y-sst/disciplinarios',
-    label: 'Procesos disciplinarios',
-    permissions: ['hr.disciplinary.manage'],
-  },
-  { href: '/app/talento-y-sst/retiros', label: 'Retiros', permissions: ['hr.offboarding.manage'] },
-];
+// Mi espacio no es parte de Talento, pero quien ve colaboradores lo usa a diario (B36).
+const MY_SPACE: QuickLink = { href: '/app/mi-espacio', label: 'Mi espacio' };
 
+/** Portada de Talento y SST (B22B, boceto 12): selección arriba, colaboradores y accesos debajo. */
 export function HrHome(): JSX.Element {
-  const { can } = usePermissions();
-  const links = MODULE_LINKS.filter((link) => link.permissions.some((code) => can(code)));
+  const { can, granted, grantedAll } = usePermissions();
+  const links: QuickLink[] = [
+    ...(can('hr.employee.read') ? [MY_SPACE] : []),
+    ...visibleSubmodules('talento-y-sst', granted, grantedAll).map((entry) => ({
+      href: entry.href,
+      label: entry.label,
+      icon: <entry.icon />,
+    })),
+  ];
   return (
-    <div className="flex flex-col gap-8">
-      <PageHeader title="Talento Humano" />
-      <QuickLinks
-        title="También en Talento humano"
-        links={links.map(({ href, label }) => ({ href, label }))}
-        linkAs={Link}
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Talento y SST"
+        description="Pase de las vacantes abiertas a la selección y la activación del expediente laboral."
       />
-      {can('hr.vacancy.manage') ? <Vacancies /> : null}
-      {can('hr.candidate.manage') ? <Candidates /> : null}
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+        {can('hr.vacancy.manage') ? <Vacancies /> : null}
+        {can('hr.candidate.manage') ? <Candidates /> : null}
+      </div>
       {can('hr.employee.read') ? <Employees /> : null}
+      {links.length > 0 ? (
+        <QuickLinks title="También en Talento y SST" links={links} linkAs={Link} />
+      ) : null}
     </div>
   );
 }
@@ -67,19 +56,16 @@ export function HrHome(): JSX.Element {
 function Vacancies(): JSX.Element {
   const query = useHrQuery('/v1/hr/vacancies', vacancyListResponseSchema);
   return (
-    <section aria-labelledby="vacancies-title" className="space-y-3">
-      <h2 id="vacancies-title" className="text-lg font-semibold">
-        Vacantes
-      </h2>
+    <HighlightCard title="Vacantes">
       <NewVacancy />
       <QueryState query={query} loadingLabel="Cargando vacantes">
         {({ data }) =>
           data.length === 0 ? (
             <p>No hay vacantes registradas.</p>
           ) : (
-            <ul className="divide-y rounded-md border">
+            <ul className="divide-y">
               {data.map((vacancy) => (
-                <li key={vacancy.id} className="flex flex-wrap justify-between gap-2 p-3">
+                <li key={vacancy.id} className="flex flex-wrap justify-between gap-2 py-3">
                   <span>
                     <strong>{vacancy.position.name}</strong> · {vacancy.code}
                   </span>
@@ -93,26 +79,23 @@ function Vacancies(): JSX.Element {
           )
         }
       </QueryState>
-    </section>
+    </HighlightCard>
   );
 }
 
 function Candidates(): JSX.Element {
   const query = useHrQuery('/v1/hr/candidates', candidateListResponseSchema);
   return (
-    <section aria-labelledby="candidates-title" className="space-y-3">
-      <h2 id="candidates-title" className="text-lg font-semibold">
-        Candidaturas
-      </h2>
+    <HighlightCard title="Candidaturas" highlighted>
       <NewCandidate />
       <QueryState query={query} loadingLabel="Cargando candidaturas">
         {({ data }) =>
           data.length === 0 ? (
             <p>No hay candidaturas registradas.</p>
           ) : (
-            <ul className="divide-y rounded-md border">
+            <ul className="divide-y">
               {data.map((candidate) => (
-                <li key={candidate.id} className="flex flex-wrap justify-between gap-2 p-3">
+                <li key={candidate.id} className="flex flex-wrap justify-between gap-2 py-3">
                   <span>
                     <strong>{candidate.name}</strong> · {candidate.vacancy.position}
                   </span>
@@ -129,25 +112,22 @@ function Candidates(): JSX.Element {
           )
         }
       </QueryState>
-    </section>
+    </HighlightCard>
   );
 }
 
 function Employees(): JSX.Element {
   const query = useHrQuery('/v1/hr/employees', employeeListResponseSchema);
   return (
-    <section aria-labelledby="employees-title" className="space-y-3">
-      <h2 id="employees-title" className="text-lg font-semibold">
-        Colaboradores
-      </h2>
+    <HighlightCard title="Colaboradores">
       <QueryState query={query} loadingLabel="Cargando colaboradores">
         {({ data }) =>
           data.length === 0 ? (
             <p>No hay colaboradores visibles.</p>
           ) : (
-            <ul className="divide-y rounded-md border">
+            <ul className="divide-y">
               {data.map((employee) => (
-                <li key={employee.id} className="flex flex-wrap justify-between gap-2 p-3">
+                <li key={employee.id} className="flex flex-wrap justify-between gap-2 py-3">
                   <Link
                     className="font-semibold underline"
                     href={`/app/talento-y-sst/colaboradores/${employee.id}`}
@@ -163,6 +143,6 @@ function Employees(): JSX.Element {
           )
         }
       </QueryState>
-    </section>
+    </HighlightCard>
   );
 }

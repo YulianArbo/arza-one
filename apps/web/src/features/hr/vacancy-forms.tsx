@@ -21,6 +21,7 @@ export function NewVacancy(): JSX.Element {
   return (
     <NewRecord
       allowed
+      variant="outline"
       label="Registrar vacante"
       title="Registrar vacante"
       description="Seleccione el cargo y el motivo de apertura."
