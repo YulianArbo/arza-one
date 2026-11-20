@@ -62,12 +62,12 @@ function MoveMenu(props: OpportunityCardProps): JSX.Element {
 export function OpportunityCard(props: OpportunityCardProps): JSX.Element {
   const { opportunity } = props;
   return (
-    <li className="flex flex-col gap-1 rounded-md border bg-card p-3 text-sm">
+    <li className="flex flex-col gap-1.5 rounded-xl border bg-card p-4 text-sm">
       <Link
         href={CRM_PATHS.opportunity(opportunity.id)}
         draggable={props.canMove}
         onDragStart={startDrag(OPPORTUNITY_DRAG, opportunity.id)}
-        className="font-medium text-primary underline-offset-4 hover:underline"
+        className="font-semibold text-foreground underline-offset-4 hover:underline"
       >
         {opportunity.title}
       </Link>
