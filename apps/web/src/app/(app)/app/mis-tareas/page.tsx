@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { HighlightCard } from '@arza/ui';
 import type { JSX } from 'react';
 
 import { PageHeader } from '../../../../components/app-shell/page-header';
@@ -14,7 +15,9 @@ export default function MyTasksPage(): JSX.Element {
         title="Mis tareas"
         description="Las tareas de todos los procesos en un solo lugar: primero las vencidas, luego las que vencen antes."
       />
-      <TaskInbox />
+      <HighlightCard title="Bandeja de tareas">
+        <TaskInbox />
+      </HighlightCard>
     </RequirePermission>
   );
 }

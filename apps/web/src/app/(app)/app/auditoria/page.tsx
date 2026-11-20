@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { HighlightCard } from '@arza/ui';
 import type { JSX } from 'react';
 
 import { PageHeader } from '../../../../components/app-shell/page-header';
@@ -16,7 +17,9 @@ export default function AuditPage(): JSX.Element {
         description="Quién hizo qué y cuándo en ARZA ONE. Consultar la auditoría también queda registrado."
       />
       <AuditSections />
-      <AuditEvents />
+      <HighlightCard title="Consulta de eventos">
+        <AuditEvents />
+      </HighlightCard>
     </RequirePermission>
   );
 }

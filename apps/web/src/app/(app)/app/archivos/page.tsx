@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { HighlightCard } from '@arza/ui';
 import type { JSX } from 'react';
 
 import { PageHeader } from '../../../../components/app-shell/page-header';
@@ -14,7 +15,9 @@ export default function FilesPage(): JSX.Element {
         title="Archivos"
         description="Cada archivo pasa por el antivirus antes de quedar disponible. Las descargas usan un enlace que vence a los cinco minutos y quedan registradas."
       />
-      <FileList />
+      <HighlightCard title="Archivos de la empresa">
+        <FileList />
+      </HighlightCard>
     </RequirePermission>
   );
 }

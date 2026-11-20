@@ -6,6 +6,7 @@ import {
   Button,
   EmptyState,
   FormField,
+  HighlightCard,
   Pager,
   SelectField,
   SimpleTable,
@@ -147,27 +148,28 @@ export function ContractList(): JSX.Element {
   const { can } = usePermissions();
   const [filters, setFilters] = useState(NO_FILTERS);
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader
         title="Contratos"
         description="Contratos, acuerdos de confidencialidad y órdenes de servicio."
         action={
-          can('contract.create') ? (
-            <Link href={CONTRACT_PATHS.create} className={buttonVariants()}>
-              Nuevo contrato
+          <div className="flex flex-wrap gap-2">
+            <Link href={CONTRACT_PATHS.clauses} className={buttonVariants({ variant: 'outline' })}>
+              Biblioteca de cláusulas
             </Link>
-          ) : null
+            {can('contract.create') ? (
+              <Link href={CONTRACT_PATHS.create} className={buttonVariants()}>
+                Nuevo contrato
+              </Link>
+            ) : null}
+          </div>
         }
       />
-      <Link
-        href={CONTRACT_PATHS.clauses}
-        className="text-sm text-primary underline-offset-4 hover:underline"
-      >
-        Biblioteca de cláusulas
-      </Link>
-      <SearchForm onApply={setFilters} />
-      {/* Con otros filtros, la lista vuelve a la primera página. */}
-      <Results key={`${filters.q}|${filters.status}`} filters={filters} />
+      <HighlightCard title="Todos los contratos">
+        <SearchForm onApply={setFilters} />
+        {/* Con otros filtros, la lista vuelve a la primera página. */}
+        <Results key={`${filters.q}|${filters.status}`} filters={filters} />
+      </HighlightCard>
     </div>
   );
 }
