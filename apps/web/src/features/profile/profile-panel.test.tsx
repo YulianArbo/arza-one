@@ -110,19 +110,6 @@ describe('cambiar la contraseña: errores', () => {
     expect(navigation.replace).not.toHaveBeenCalled();
   });
 
-  it('si la sesión venció, pide iniciar sesión de nuevo', async () => {
-    mockApi({
-      'GET /v1/auth/session': () => json(SESSION),
-      'GET /v1/me': () => json(ME),
-      'POST /v1/me/password': () => apiError(401, 'UNAUTHENTICATED', 'Debe iniciar sesión.'),
-    });
-    renderProfile();
-    await changePassword('mango biche con sal y limon');
-    await vi.waitFor(() => {
-      expect(navigation.replace).toHaveBeenCalledWith('/iniciar-sesion?motivo=sesion-vencida');
-    });
-  });
-
   it('pide la contraseña actual antes de enviar', async () => {
     const sent = mockApi({
       'GET /v1/auth/session': () => json(SESSION),
@@ -134,5 +121,26 @@ describe('cambiar la contraseña: errores', () => {
       .click(await screen.findByRole('button', { name: 'Cambiar contraseña' }));
     expect(screen.getByText('Escriba su contraseña actual.')).toBeVisible();
     expect(sent.some((request) => request.method === 'POST')).toBe(false);
+  });
+});
+
+describe('cambiar la contraseña: sesión vencida', () => {
+  it('si la sesión venció, pide iniciar sesión de nuevo', async () => {
+    mockApi({
+      'GET /v1/auth/session': () => json(SESSION),
+      'GET /v1/me': () => json(ME),
+      'POST /v1/me/password': () => apiError(401, 'UNAUTHENTICATED', 'Debe iniciar sesión.'),
+    });
+    window.history.pushState(null, '', '/app/perfil');
+    renderProfile();
+    await changePassword('mango biche con sal y limon');
+    // Vuelve a la misma pantalla al entrar, y la contraseña nunca queda en el borrador (B22B F4d).
+    await vi.waitFor(() => {
+      expect(navigation.replace).toHaveBeenCalledWith(
+        '/iniciar-sesion?motivo=sesion-vencida&volver=%2Fapp%2Fperfil',
+      );
+    });
+    expect(window.sessionStorage.getItem('arza.form-draft')).toBeNull();
+    window.history.pushState(null, '', '/');
   });
 });

@@ -7,7 +7,8 @@ import {
   REQUEST,
   TRAVEL,
 } from '../src/features/purchases/purchase-fixtures';
-import { mockApi, type ApiRoutes } from './support/api-mock';
+import { apiError, fulfillJson, mockApi, mockSession, type ApiRoutes } from './support/api-mock';
+import { E2E_API_URL } from './support/environment';
 import { accessibilityViolations, expect, test, useTheme } from './support/fixtures';
 
 // Compras, proveedores y viajes (B33): cada pantalla y su formulario principal, sin violaciones de
@@ -88,5 +89,31 @@ test.describe('portada de Compras (B22B)', () => {
     await page.getByRole('main').getByRole('link', { name: 'Nueva solicitud' }).click();
     await expect(page).toHaveURL(/\/app\/compras\/solicitudes\?nueva=1$/u);
     await expect(page.getByRole('dialog', { name: 'Nueva solicitud de compra' })).toBeVisible();
+  });
+});
+
+test.describe('sesión vencida en un formulario (B22B F4d)', () => {
+  test('al volver a entrar, encuentra lo que estaba escribiendo', async ({ page }) => {
+    await mockApi(page, API);
+    await page.route(`${E2E_API_URL}/v1/purchase-requests`, async (route) => {
+      if (route.request().method() !== 'POST') return route.fallback();
+      await mockSession(page, 'none');
+      return fulfillJson(route, 401, apiError('UNAUTHENTICATED', 'Debe iniciar sesión.', 'c-1'));
+    });
+    await page.goto('/app/compras/solicitudes?nueva=1');
+    const dialog = page.getByRole('dialog', { name: 'Nueva solicitud de compra' });
+    await dialog.getByLabel('Centro de costo').selectOption({ label: 'CC-ADM · Administración' });
+    await dialog.getByLabel('Descripción').fill('Portátiles para el equipo nuevo');
+    await dialog.getByLabel('Valor estimado').fill('4500000');
+    await dialog.getByRole('button', { name: 'Crear solicitud' }).click();
+    await expect(page).toHaveURL(/motivo=sesion-vencida&volver=%2Fapp%2Fcompras%2Fsolicitudes/u);
+    await mockSession(page, 'internal');
+    await page.goto('/app/compras/solicitudes');
+    await expect(page.getByText(/Guardamos lo que estaba escribiendo/u)).toBeVisible();
+    await page.getByRole('button', { name: 'Nueva solicitud' }).click();
+    const reopened = page.getByRole('dialog', { name: 'Nueva solicitud de compra' });
+    await expect(reopened.getByLabel('Descripción')).toHaveValue('Portátiles para el equipo nuevo');
+    await expect(reopened.getByLabel('Valor estimado')).toHaveValue('4500000');
+    await expect(reopened.getByLabel('Centro de costo')).not.toHaveValue('');
   });
 });
