@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import type { JSX, ReactNode } from 'react';
 
 import { AppShell } from '../../../components/app-shell/app-shell';
-import { FormDraftRestore } from '../../../features/session/form-draft';
+import { FormDraftRestore } from '../../../features/session/form-draft-restore';
 import { RequireSession } from '../../../features/session/session-provider';
 
 // Aplicación interna: nunca indexable (numeral 15.6).

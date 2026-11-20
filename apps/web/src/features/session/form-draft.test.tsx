@@ -3,7 +3,8 @@ import { render, screen } from '@testing-library/react';
 import { useState, type JSX } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { FormDraftRestore, saveFormDraft } from './form-draft';
+import { saveFormDraft } from './form-draft';
+import { FormDraftRestore } from './form-draft-restore';
 
 const PATH = '/app/compras/solicitudes';
 vi.mock('next/navigation', () => ({ usePathname: () => PATH }));
