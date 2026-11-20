@@ -101,5 +101,6 @@ export type AnnouncementRequest = z.infer<typeof announcementRequestSchema>;
 export type AnnouncementRequestInput = z.input<typeof announcementRequestSchema>;
 export type Announcement = z.infer<typeof announcementSchema>;
 export type AnnouncementListResponse = z.infer<typeof announcementListResponseSchema>;
+export type PublicAnnouncementListResponse = z.infer<typeof publicAnnouncementListResponseSchema>;
 export type PublicAnnouncement = z.infer<typeof publicAnnouncementSchema>;
 export type PublicAnnouncementQuery = z.infer<typeof publicAnnouncementQuerySchema>;

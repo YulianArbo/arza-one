@@ -1,6 +1,6 @@
 # Cierre del bloque B36 — Talento humano: novedades, desempeño y retiro
 
-- Estado: **En revisión** (pull request abierto; ver «Verificaciones»).
+- Estado: **Terminado** (PR #64 unido a `main`).
 - Rama: `feat/b36-talento-humano-novedades-desem`, creada desde `main` (53d211b, ya con B35 y la
   etapa F0 de B22B).
 - Plan aprobado por el propietario el 19/11/2026 («Apruebo todo»), con las 12 decisiones de abajo.

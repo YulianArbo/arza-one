@@ -14,7 +14,8 @@ import {
 } from '../session/access-routes';
 import { SESSION_QUERY_KEY } from '../session/session-provider';
 import { AccessCard } from './access-card';
-import { AUDIENCE_DESCRIPTIONS, AudienceSwitch, type Audience } from './audience-switch';
+import { useAudience } from './audience-context';
+import { AUDIENCE_DESCRIPTIONS, AudienceSwitch } from './audience-switch';
 import { AccessLink } from './access-links';
 import { EmailField } from './email-field';
 import { FormError, FormSuccess } from './form-alert';
@@ -47,7 +48,7 @@ function isComplete(email: string, password: string): boolean {
 
 /** Encabezado del inicio de sesión con el selector de tipo de acceso (B22A). */
 function LoginCard({ children }: { readonly children: ReactNode }): JSX.Element {
-  const [audience, setAudience] = useState<Audience>('empresa');
+  const { audience, setAudience } = useAudience();
   return (
     <AccessCard title="Iniciar sesión" description={AUDIENCE_DESCRIPTIONS[audience]}>
       <AudienceSwitch value={audience} onChange={setAudience} />

@@ -532,6 +532,16 @@ módulo o en Administración › Consecutivos), y calcule los vencimientos con
 las tablas `core_` directamente. Un parámetro nuevo se agrega a `PARAMETER_DEFINITIONS` y a
 `parameterValueSchema` en `packages/contracts/src/core/calendar.ts`.
 
+### Comunicados del acceso (B36A)
+
+| Regla                                             | Cómo se cumple                                                                                                                                                              |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Los administra solo quien tiene el permiso        | `core.announcement.manage`: Dirección y Administrador de plataforma                                                                                                         |
+| Vigencia de una fecha a otra, en hora de Colombia | `announcementStatus()` (dominio): programado, vigente, vencido o terminado. La base exige fin ≥ inicio; crear o editar con fin pasado responde 422 `CORE_ANNOUNCEMENT_PAST` |
+| Nunca se borran                                   | `POST /v1/announcements/{id}/end` los termina antes de tiempo; uno terminado no se edita (409 `CORE_ANNOUNCEMENT_ENDED`). Cada cambio queda en la auditoría                 |
+| Imagen opcional segura                            | La misma carga de la foto de perfil (`PROFILE_IMAGES`): PNG o JPG de hasta 2 MB, propia y revisada por el antivirus                                                         |
+| La lectura pública no expone más de lo necesario  | `GET /v1/public/announcements?audience=staff\|clients`: sin sesión, 60 por minuto, solo los vigentes hoy de la empresa de `PUBLIC_SITE_TAX_ID`, máximo 10, sin autor        |
+
 `pnpm db:seed` carga en cada empresa: los festivos de 2025 a 2030, el horario laboral, el catálogo
 de tipos de documento y el organigrama **provisional** (`core-seed-data.ts`). La semilla solo crea
 lo que falta: nunca deshace lo que la empresa cambió.

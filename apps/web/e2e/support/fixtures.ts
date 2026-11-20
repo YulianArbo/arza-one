@@ -51,6 +51,8 @@ const EMPTY_LISTS: Readonly<Record<string, unknown>> = {
   '/v1/comments': { items: [] },
   '/v1/attachments': { items: [] },
   '/v1/files': { data: [] },
+  // El acceso pide los comunicados vigentes (B36A); sin comunicados, no muestra nada.
+  '/v1/public/announcements': { data: [] },
 };
 
 interface Fixtures {
