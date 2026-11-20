@@ -36,6 +36,7 @@ describe('submódulos por permiso (B22B)', () => {
       'comercial',
       'servicio',
       'compras',
+      'documentos',
       'finanzas',
       'privacidad',
       'administracion',
@@ -44,7 +45,7 @@ describe('submódulos por permiso (B22B)', () => {
     const all = slugs.flatMap((slug) => visibleSubmodules(slug, EVERYTHING));
     expect(all.every((entry) => entry.anyOf.length > 0)).toBe(true);
     expect(new Set(all.map((entry) => entry.href)).size).toBe(all.length);
-    expect(all).toHaveLength(51);
+    expect(all).toHaveLength(57);
   });
 });
 
