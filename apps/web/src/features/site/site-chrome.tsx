@@ -1,14 +1,22 @@
 import { Button } from '@arza/ui';
-import { ArrowRight } from 'lucide-react';
+import {
+  FileCheck,
+  FileText,
+  LogIn,
+  MessagesSquare,
+  Scale,
+  Search,
+  SquareUser,
+} from 'lucide-react';
 import Link from 'next/link';
-import type { JSX } from 'react';
+import { createElement, type JSX } from 'react';
 
 import { BrandLogo } from '../../components/brand-logo';
 import { ThemeMenu } from '../../components/theme-menu';
 import { COMPANY, LEGAL_TEXTS, SITE_NAV, SOCIAL_NETWORKS, legalPath } from './site-content';
 
-// Encabezado y pie de la vitrina (B22A): logo a la izquierda, secciones a la derecha y el botón
-// «Plataforma empresarial» arriba a la derecha; el pie identifica a la empresa (ficha 17.18).
+// Encabezado y pie de la vitrina (B22A; B22B, boceto 01): logo a la izquierda, secciones con
+// ícono y el botón «Iniciar sesión» arriba a la derecha; el pie identifica a la empresa (17.18).
 
 export function SiteHeader(): JSX.Element {
   return (
@@ -26,8 +34,9 @@ export function SiteHeader(): JSX.Element {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className="block rounded-md px-2.5 py-1.5 text-sm text-muted-foreground hover:text-foreground"
+                  className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-muted-foreground hover:text-foreground"
                 >
+                  {createElement(item.icon, { 'aria-hidden': true, className: 'size-4' })}
                   {item.label}
                 </Link>
               </li>
@@ -38,8 +47,8 @@ export function SiteHeader(): JSX.Element {
           <ThemeMenu className="hidden sm:inline-flex" />
           <Button asChild size="sm">
             <Link href="/iniciar-sesion">
-              Plataforma empresarial
-              <ArrowRight aria-hidden="true" />
+              <LogIn aria-hidden="true" />
+              Iniciar sesión
             </Link>
           </Button>
         </div>
@@ -102,33 +111,32 @@ function SocialLinks(): JSX.Element {
 const FOOTER_COLUMNS = [
   {
     title: 'Empresa',
-    links: [
-      { href: '/#servicios', label: 'Servicios' },
-      { href: '/#proyectos', label: 'Proyectos' },
-      { href: '/#noticias', label: 'Noticias' },
-      { href: '/#contacto', label: 'Contacto' },
-    ],
+    links: [...SITE_NAV.filter((item) => item.label !== 'Plataforma')],
   },
   {
     title: 'Plataforma',
     links: [
-      { href: '/iniciar-sesion', label: 'Plataforma empresarial' },
-      { href: '/iniciar-sesion', label: 'Portal de clientes' },
-      { href: '/verificar', label: 'Verificar documento' },
+      { href: '/iniciar-sesion', label: 'Iniciar sesión', icon: LogIn },
+      { href: '/iniciar-sesion', label: 'Portal de clientes', icon: SquareUser },
+      { href: '/verificar', label: 'Verificar documento', icon: FileCheck },
     ],
   },
   {
     title: 'Atención',
     links: [
-      { href: '/#cotizar', label: 'Solicitar cotización' },
-      { href: '/pqrsf', label: 'Radicar una PQRSF' },
-      { href: '/pqrsf/consulta', label: 'Consultar una PQRSF' },
-      { href: '/#contacto', label: 'Contacto' },
+      { href: '/#cotizar', label: 'Solicitar cotización', icon: FileText },
+      { href: '/pqrsf', label: 'Radicar una PQRSF', icon: MessagesSquare },
+      { href: '/pqrsf/consulta', label: 'Consultar una PQRSF', icon: Search },
+      { href: '/#contacto', label: 'Contacto', icon: SquareUser },
     ],
   },
   {
     title: 'Legal',
-    links: LEGAL_TEXTS.map((text) => ({ href: legalPath(text), label: text.title })),
+    links: LEGAL_TEXTS.map((text) => ({
+      href: legalPath(text),
+      label: text.title,
+      icon: Scale,
+    })),
   },
 ] as const;
 
@@ -142,8 +150,9 @@ function FooterColumns(): JSX.Element {
             <Link
               key={link.label}
               href={link.href}
-              className="text-muted-foreground hover:text-foreground"
+              className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
             >
+              {createElement(link.icon, { 'aria-hidden': true, className: 'size-4 shrink-0' })}
               {link.label}
             </Link>
           ))}
