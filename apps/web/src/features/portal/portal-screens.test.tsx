@@ -128,6 +128,8 @@ describe('proyectos', () => {
   it('lista los proyectos con su avance y abre la ficha sin dinero', async () => {
     servePortal(CLIENT_ADMIN);
     show(<PortalProjectsPage />);
+    expect(await screen.findByRole('heading', { name: 'Proyectos' })).toBeVisible();
+    expect(await screen.findByText('40 % de avance · próximo hito el 01/12/2026')).toBeVisible();
     expect(await screen.findByRole('progressbar', { name: 'Avance' })).toHaveAttribute(
       'aria-valuenow',
       '40',

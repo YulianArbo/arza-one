@@ -8,7 +8,7 @@ import {
   type PortalPqrsf,
   type PortalTicketSummary,
 } from '@arza/contracts';
-import { Card, CardContent, EmptyState, FormField } from '@arza/ui';
+import { EmptyState, FormField, HighlightCard } from '@arza/ui';
 import { BookOpen, LifeBuoy, MessageSquareWarning } from 'lucide-react';
 import { useState, type JSX } from 'react';
 
@@ -99,15 +99,11 @@ function PqrsfList(): JSX.Element {
             description="Si tiene una petición, queja, reclamo, sugerencia o felicitación, radíquela aquí."
           />
         ) : (
-          <Card>
-            <CardContent className="p-4">
-              <ul className="flex flex-col divide-y" aria-label="Sus PQRSF">
-                {data.data.map((pqrsf) => (
-                  <PqrsfItem key={pqrsf.id} pqrsf={pqrsf} />
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
+          <ul className="flex flex-col divide-y" aria-label="Sus PQRSF">
+            {data.data.map((pqrsf) => (
+              <PqrsfItem key={pqrsf.id} pqrsf={pqrsf} />
+            ))}
+          </ul>
         )
       }
     </QueryState>
@@ -165,27 +161,20 @@ export function PortalSupportPage(): JSX.Element {
         description="Sus solicitudes, sus PQRSF y artículos de ayuda."
         action={canCreate ? <NewTicket /> : undefined}
       />
-      <section className="flex flex-col gap-3" aria-labelledby="solicitudes">
-        <h2 id="solicitudes" className="font-heading text-lg font-semibold">
-          Solicitudes
-        </h2>
+      <HighlightCard title="Solicitudes">
         <Tickets />
-      </section>
-      <section className="flex flex-col gap-3" aria-labelledby="pqrsf">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 id="pqrsf" className="font-heading text-lg font-semibold">
-            Peticiones, quejas, reclamos, sugerencias y felicitaciones
-          </h2>
-          {canCreate ? <NewPqrsf /> : null}
-        </div>
+      </HighlightCard>
+      <HighlightCard title="Peticiones, quejas, reclamos, sugerencias y felicitaciones">
+        {canCreate ? (
+          <div className="self-start">
+            <NewPqrsf />
+          </div>
+        ) : null}
         <PqrsfList />
-      </section>
-      <section className="flex flex-col gap-3" aria-labelledby="ayuda">
-        <h2 id="ayuda" className="font-heading text-lg font-semibold">
-          Ayuda
-        </h2>
+      </HighlightCard>
+      <HighlightCard title="Ayuda">
         <Articles />
-      </section>
+      </HighlightCard>
     </>
   );
 }

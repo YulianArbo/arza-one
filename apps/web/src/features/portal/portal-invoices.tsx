@@ -1,7 +1,7 @@
 'use client';
 
 import type { PortalInvoice } from '@arza/contracts';
-import { Badge, Button, Card, CardContent, EmptyState } from '@arza/ui';
+import { Badge, Button, EmptyState, HighlightCard } from '@arza/ui';
 import { ReceiptText } from 'lucide-react';
 import type { JSX } from 'react';
 
@@ -121,15 +121,13 @@ export function PortalInvoicesPage(): JSX.Element {
               description="Aquí aparecerán sus facturas cuando el equipo registre el documento fiscal."
             />
           ) : (
-            <Card>
-              <CardContent className="p-4">
-                <ul className="flex flex-col divide-y" aria-label="Facturas">
-                  {data.data.map((invoice) => (
-                    <InvoiceRow key={invoice.id} invoice={invoice} />
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+            <HighlightCard title="Sus facturas">
+              <ul className="flex flex-col divide-y" aria-label="Facturas">
+                {data.data.map((invoice) => (
+                  <InvoiceRow key={invoice.id} invoice={invoice} />
+                ))}
+              </ul>
+            </HighlightCard>
           )
         }
       </QueryState>
