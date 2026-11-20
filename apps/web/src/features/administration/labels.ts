@@ -45,6 +45,7 @@ export const ADMIN_PATHS = {
   parameters: '/app/administracion/parametros',
   sequences: '/app/administracion/consecutivos',
   holidays: '/app/administracion/festivos',
+  announcements: '/app/administracion/comunicados',
 } as const;
 
 export function userPath(id: string): string {

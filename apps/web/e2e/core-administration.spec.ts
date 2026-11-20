@@ -82,6 +82,26 @@ const CORE_API: ApiRoutes = {
     },
   },
   '/v1/cost-centers': { body: { data: [] } },
+  '/v1/announcements': {
+    body: {
+      data: [
+        {
+          id: DIRECTOR,
+          title: 'Mantenimiento del sábado',
+          body: 'La plataforma estará en mantenimiento de 6 a 8 a. m.',
+          link_url: null,
+          audience: 'both',
+          starts_on: '2026-11-20',
+          ends_on: '2026-11-30',
+          image_file_id: null,
+          status: 'active',
+          ended_at: null,
+          created_at: '2026-11-20T13:00:00.000Z',
+          version: 1,
+        },
+      ],
+    },
+  },
   '/v1/catalogs': { body: { data: [CATALOG] } },
   '/v1/catalogs/identification_types': {
     body: {
@@ -129,6 +149,7 @@ const PAGES = [
   { path: '/app/administracion/parametros', ready: 'Sigue vigente' },
   { path: '/app/administracion/consecutivos', ready: 'Todavía no hay consecutivos' },
   { path: '/app/administracion/festivos', ready: 'Día de la Independencia' },
+  { path: '/app/administracion/comunicados', ready: 'Mantenimiento del sábado' },
 ] as const;
 
 for (const theme of ['light', 'dark'] as const) {
@@ -145,6 +166,16 @@ for (const theme of ['light', 'dark'] as const) {
     }
   });
 }
+
+test('el formulario de un comunicado no tiene violaciones de accesibilidad (B36A)', async ({
+  page,
+}) => {
+  await mockApi(page, CORE_API);
+  await page.goto('/app/administracion/comunicados');
+  await page.getByRole('button', { name: 'Crear comunicado' }).click();
+  await expect(page.getByRole('dialog').getByLabel('Para quién')).toBeVisible();
+  expect(await accessibilityViolations(page)).toEqual([]);
+});
 
 test.describe('quien solo consulta los datos maestros', () => {
   const READER = {
