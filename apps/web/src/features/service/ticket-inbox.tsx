@@ -40,6 +40,7 @@ import {
 } from './labels';
 import { useTickets } from './queries';
 import { ServiceNav } from './service-nav';
+import { ServiceOverview } from './service-overview';
 
 // Bandeja de tiquetes (B28, numeral 16.4, patrón de listado): por vista (míos, sin asignar, por
 // vencer, vencidos, en espera), lo que vence primero arriba, con el reloj de cada uno. Quien solo
@@ -188,35 +189,24 @@ function Results({ filters }: { readonly filters: Filters }): JSX.Element {
 }
 
 export function TicketInbox(): JSX.Element {
-  const { can, canAll } = usePermissions();
+  const { can } = usePermissions();
   const [filters, setFilters] = useState(START);
   return (
-    <div className="flex flex-col gap-4">
-      <ServiceNav current="tickets" />
+    <div className="flex flex-col gap-6">
       <PageHeader
         title="Mesa de ayuda"
         description="Tiquetes de soporte con su acuerdo de tiempo: el reloj se pausa mientras se espera al cliente."
         action={
-          <div className="flex flex-wrap gap-2">
-            {canAll('service.ticket.read') ? (
-              <Link
-                href={SERVICE_PATHS.warranties}
-                className={buttonVariants({ variant: 'outline' })}
-              >
-                Garantías
-              </Link>
-            ) : null}
-            <Link href={SERVICE_PATHS.policies} className={buttonVariants({ variant: 'outline' })}>
-              Acuerdos de tiempo
+          can('service.ticket.create') ? (
+            <Link href={SERVICE_PATHS.create} className={buttonVariants()}>
+              Nuevo tiquete
             </Link>
-            {can('service.ticket.create') ? (
-              <Link href={SERVICE_PATHS.create} className={buttonVariants()}>
-                Nuevo tiquete
-              </Link>
-            ) : null}
-          </div>
+          ) : null
         }
       />
+      <ServiceNav current="tickets" />
+      {can('service.ticket.read') ? <ServiceOverview /> : null}
+      <h2 className="font-heading text-card-title font-semibold">Todos los tiquetes</h2>
       <SearchForm onApply={setFilters} />
       <Results key={`${filters.view}|${filters.q}|${filters.priority}`} filters={filters} />
     </div>

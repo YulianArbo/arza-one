@@ -18,6 +18,8 @@ export interface PermissionView {
   /** Ya llegaron los permisos. Mientras no, nada se muestra como permitido. */
   readonly ready: boolean;
   readonly granted: ReadonlySet<string>;
+  /** Permisos sobre toda la empresa, no solo sobre lo propio. */
+  readonly grantedAll: ReadonlySet<string>;
   readonly roles: MyPermissionsResponse['roles'];
   /** Tiene el permiso, al menos sobre lo propio. */
   readonly can: (code: string) => boolean;
@@ -34,6 +36,7 @@ export function permissionViewOf(data: MyPermissionsResponse | undefined): Permi
   return {
     ready: data !== undefined,
     granted,
+    grantedAll: all,
     roles: data?.roles ?? [],
     can: (code) => granted.has(code),
     canAll: (code) => all.has(code),

@@ -44,7 +44,7 @@ describe('submódulos por permiso (B22B)', () => {
     const all = slugs.flatMap((slug) => visibleSubmodules(slug, EVERYTHING));
     expect(all.every((entry) => entry.anyOf.length > 0)).toBe(true);
     expect(new Set(all.map((entry) => entry.href)).size).toBe(all.length);
-    expect(all).toHaveLength(49);
+    expect(all).toHaveLength(51);
   });
 });
 
@@ -82,5 +82,15 @@ describe('submódulo visible (B22B)', () => {
     expect(inVisibleSubmodule('compras', '/app/compras/ordenes/3', buyer)).toBe(true);
     expect(inVisibleSubmodule('compras', '/app/compras/activos', buyer)).toBe(false);
     expect(inVisibleSubmodule('compras', '/app/compras', buyer)).toBe(false);
+  });
+});
+
+describe('submódulos que piden toda la empresa (B22B)', () => {
+  it('quien solo ve sus propios tiquetes no ve Garantías, Acuerdos ni Encuestas', () => {
+    const own = new Set(['service.ticket.read']);
+    const ownLabels = visibleSubmodules('servicio', own, new Set()).map((entry) => entry.label);
+    expect(ownLabels).toEqual(['Tiquetes']);
+    const allLabels = visibleSubmodules('servicio', own, own).map((entry) => entry.label);
+    expect(allLabels).toEqual(['Tiquetes', 'Garantías', 'Acuerdos', 'Encuestas y NPS']);
   });
 });

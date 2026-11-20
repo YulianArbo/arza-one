@@ -54,10 +54,17 @@ export interface Submodule {
   readonly icon: LucideIcon;
   /** Basta con uno. Los mismos permisos que exige la pantalla; la API sigue siendo la barrera. */
   readonly anyOf: readonly string[];
+  /** Pide el permiso sobre toda la empresa: quien solo ve lo propio no lo ve. */
+  readonly wholeCompany?: boolean;
 }
 
 function sub(href: string, label: string, icon: LucideIcon, ...anyOf: string[]): Submodule {
   return { href, label, icon, anyOf };
+}
+
+/** Submódulo que pide el permiso sobre toda la empresa, no solo sobre lo propio. */
+function companySub(href: string, label: string, icon: LucideIcon, code: string): Submodule {
+  return { href, label, icon, anyOf: [code], wholeCompany: true };
 }
 
 const COMMERCIAL = [
@@ -73,7 +80,9 @@ const COMMERCIAL = [
 const SERVICE = [
   sub(SERVICE_PATHS.inbox, 'Tiquetes', Inbox, 'service.ticket.read'),
   sub(SERVICE_PATHS.pqrsfInbox, 'PQRSF', MessageSquareWarning, 'service.pqrsf.read'),
-  sub(SERVICE_PATHS.surveys, 'Encuestas y NPS', Smile, 'service.ticket.read'),
+  companySub(SERVICE_PATHS.warranties, 'Garantías', ShieldCheck, 'service.ticket.read'),
+  companySub(SERVICE_PATHS.policies, 'Acuerdos', Handshake, 'service.ticket.read'),
+  companySub(SERVICE_PATHS.surveys, 'Encuestas y NPS', Smile, 'service.ticket.read'),
   sub(SERVICE_PATHS.knowledge, 'Base de conocimiento', BookOpen, 'service.kb.read'),
 ];
 
@@ -179,9 +188,19 @@ const SUBMODULES: Readonly<Record<string, readonly Submodule[]>> = {
   auditoria: AUDIT,
 };
 
-/** Submódulos de un módulo que la persona puede abrir. */
-export function visibleSubmodules(slug: string, granted: ReadonlySet<string>): Submodule[] {
-  return (SUBMODULES[slug] ?? []).filter((entry) => entry.anyOf.some((code) => granted.has(code)));
+/**
+ * Submódulos de un módulo que la persona puede abrir. `grantedAll` son los permisos sobre toda la
+ * empresa; sin él, se toman los mismos de `granted`.
+ */
+export function visibleSubmodules(
+  slug: string,
+  granted: ReadonlySet<string>,
+  grantedAll: ReadonlySet<string> = granted,
+): Submodule[] {
+  return (SUBMODULES[slug] ?? []).filter((entry) => {
+    const pool = entry.wholeCompany === true ? grantedAll : granted;
+    return entry.anyOf.some((code) => pool.has(code));
+  });
 }
 
 function matches(href: string, pathname: string): boolean {
@@ -200,7 +219,8 @@ export function inVisibleSubmodule(
   slug: string,
   pathname: string,
   granted: ReadonlySet<string>,
+  grantedAll: ReadonlySet<string> = granted,
 ): boolean {
   const current = currentSubmodule(slug, pathname);
-  return current !== undefined && visibleSubmodules(slug, granted).includes(current);
+  return current !== undefined && visibleSubmodules(slug, granted, grantedAll).includes(current);
 }

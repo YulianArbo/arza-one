@@ -72,8 +72,8 @@ function InvoicesAction(): JSX.Element {
 }
 
 export function FinanceHome(): JSX.Element {
-  const { can, granted } = usePermissions();
-  const submodules = visibleSubmodules('finanzas', granted);
+  const { can, granted, grantedAll } = usePermissions();
+  const submodules = visibleSubmodules('finanzas', granted, grantedAll);
   const allowed = new Set(submodules.map((entry) => entry.href));
   const others = submodules
     .filter((entry) => OTHERS.has(entry.href))

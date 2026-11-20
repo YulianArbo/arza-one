@@ -41,6 +41,22 @@ function show(ui: ReactNode): void {
   renderWithApi(<Screen>{ui}</Screen>);
 }
 
+describe('parte de arriba de la bandeja (B22B)', () => {
+  it('muestra los tiquetes por vencer, la primera respuesta y las demás funciones', async () => {
+    const sent = serveService(SERVICE_AGENT);
+    show(<TicketInbox />);
+    const inbox = await screen.findByRole('region', { name: 'Bandeja de atención' });
+    expect(await within(inbox).findAllByRole('link')).not.toHaveLength(0);
+    expect(sent.some((request) => request.search.includes('view=at_risk'))).toBe(true);
+    expect(screen.getByRole('region', { name: 'Primera respuesta' })).toBeVisible();
+    const also = screen.getByRole('region', { name: 'También en Servicio' });
+    expect(within(also).getByRole('link', { name: 'Acuerdos' })).toHaveAttribute(
+      'href',
+      '/app/servicio/acuerdos',
+    );
+  });
+});
+
 describe('bandeja', () => {
   it('lista los tiquetes con su reloj y filtra por vista', async () => {
     const sent = serveService(SERVICE_AGENT);
