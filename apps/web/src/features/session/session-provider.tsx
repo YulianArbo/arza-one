@@ -17,6 +17,7 @@ import {
 import { ApiError, CLIENT_ERROR_MESSAGES } from '../../lib/api/api-error';
 import { useApiClient } from '../../lib/api/api-provider';
 import { homeFor, loginPath, secondFactorPath, type LoginNotice } from './access-routes';
+import { saveFormDraft } from './form-draft';
 
 export const SESSION_QUERY_KEY = ['session'] as const;
 const SESSION_PATH = '/v1/auth/session';
@@ -58,13 +59,18 @@ function useSessionActions(session: SessionResponse | undefined) {
   const api = useApiClient();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const userId = session?.user.id;
   const endSession = useCallback(
     (notice: LoginNotice) => {
+      const expired = notice === 'sesion-vencida' && userId !== undefined;
+      // Al vencer, se conserva lo escrito y se vuelve a la misma pantalla (16.5, B22B F4d).
+      const here = `${window.location.pathname}${window.location.search}`;
+      if (expired) saveFormDraft(userId, window.location.pathname);
       queryClient.removeQueries({ queryKey: SESSION_QUERY_KEY });
       queryClient.clear();
-      router.replace(loginPath(notice));
+      router.replace(expired ? loginPath(notice, here) : loginPath(notice));
     },
-    [queryClient, router],
+    [queryClient, router, userId],
   );
   const csrfToken = session?.csrf_token ?? '';
   const logout = useCallback(async () => {

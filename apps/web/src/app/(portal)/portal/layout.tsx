@@ -8,6 +8,7 @@ import { ThemeMenu } from '../../../components/theme-menu';
 import { PortalCompany } from '../../../features/portal/portal-company';
 import { PortalGate } from '../../../features/portal/portal-gate';
 import { PortalTabs } from '../../../features/portal/portal-tabs';
+import { FormDraftRestore } from '../../../features/session/form-draft';
 import { RequireSession } from '../../../features/session/session-provider';
 
 // Portal del cliente: nunca indexable (numeral 15.6). Se diseña primero para celular (16.6).
@@ -45,6 +46,7 @@ function PortalHeader(): JSX.Element {
 export default function PortalLayout({ children }: { children: ReactNode }): JSX.Element {
   return (
     <RequireSession kind="portal">
+      <FormDraftRestore />
       <div className="flex min-h-dvh flex-col">
         <PortalHeader />
         <main
