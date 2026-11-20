@@ -244,7 +244,7 @@ export const PORTAL_API: ApiRoutes = {
 
 /** Cada sección del portal y el texto que indica que ya cargó. */
 export const PORTAL_PAGES = [
-  { path: '/portal', ready: 'Bienvenido, Demo Uno S.A.S.' },
+  { path: '/portal', ready: 'Su espacio de cliente' },
   { path: '/portal/proyectos', ready: 'Portal de autogestión para clientes' },
   { path: `/portal/proyectos/${PORTAL_PROJECT}`, ready: 'Módulo de facturas' },
   { path: '/portal/por-aprobar', ready: 'Acta de entrega del módulo de facturas' },
