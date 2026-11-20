@@ -11,7 +11,13 @@ import { NavigationList } from './navigation-list';
  * borde fino, distinto del fondo del contenido (decisión del dueño, 19/11/2026). Completo en
  * escritorio, contraído a iconos en tableta y oculto en celular, donde se abre desde la barra.
  */
-export function Sidebar({ permissions }: { permissions: readonly string[] }): JSX.Element {
+export function Sidebar({
+  permissions,
+  permissionsAll,
+}: {
+  permissions: readonly string[];
+  permissionsAll: readonly string[];
+}): JSX.Element {
   return (
     <aside className="sticky top-0 hidden h-dvh shrink-0 flex-col border-r bg-card md:flex md:w-16 lg:w-60">
       <Link
@@ -23,7 +29,7 @@ export function Sidebar({ permissions }: { permissions: readonly string[] }): JS
       </Link>
       <nav aria-label="Menú principal" className="flex-1 overflow-y-auto px-2 pb-6 lg:px-3">
         <TooltipProvider delayDuration={200}>
-          <NavigationList permissions={permissions} collapsible />
+          <NavigationList permissions={permissions} permissionsAll={permissionsAll} collapsible />
         </TooltipProvider>
       </nav>
     </aside>

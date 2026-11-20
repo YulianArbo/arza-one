@@ -30,9 +30,11 @@ function entriesOf(group: ShortcutGroup, visible: ReadonlyMap<string, Submodule>
  * que la persona puede abrir. Sin ninguno, explica que no tiene acceso (16.5).
  */
 export function ShortcutGroups({ slug, groups, label }: ShortcutGroupsProps): JSX.Element | null {
-  const { ready, granted } = usePermissions();
+  const { ready, granted, grantedAll } = usePermissions();
   if (!ready) return null;
-  const visible = new Map(visibleSubmodules(slug, granted).map((entry) => [entry.href, entry]));
+  const visible = new Map(
+    visibleSubmodules(slug, granted, grantedAll).map((entry) => [entry.href, entry]),
+  );
   const shown = groups
     .map((group) => ({ title: group.title, entries: entriesOf(group, visible) }))
     .filter((group) => group.entries.length > 0);

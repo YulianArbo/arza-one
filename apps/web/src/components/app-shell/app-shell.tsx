@@ -14,7 +14,9 @@ import { TopBar } from './top-bar';
  */
 export function AppShell({ children }: { children: ReactNode }): JSX.Element {
   // Mientras llegan los permisos, el menú muestra solo lo que no los necesita.
-  const permissions = [...usePermissions().granted];
+  const view = usePermissions();
+  const permissions = [...view.granted];
+  const permissionsAll = [...view.grantedAll];
   useRememberModule(useSession().session.user.id);
   return (
     <div className="flex min-h-dvh text-sm">
@@ -24,9 +26,9 @@ export function AppShell({ children }: { children: ReactNode }): JSX.Element {
       >
         Saltar al contenido
       </a>
-      <Sidebar permissions={permissions} />
+      <Sidebar permissions={permissions} permissionsAll={permissionsAll} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar permissions={permissions} />
+        <TopBar permissions={permissions} permissionsAll={permissionsAll} />
         <main
           id="contenido"
           tabIndex={-1}

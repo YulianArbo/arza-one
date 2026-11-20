@@ -8,7 +8,13 @@ import { BrandLogo } from '../brand-logo';
 import { NavigationList } from './navigation-list';
 
 /** Menú en celular: un botón en la barra superior abre el panel con los módulos (16.3). */
-export function MobileNavigation({ permissions }: { permissions: readonly string[] }): JSX.Element {
+export function MobileNavigation({
+  permissions,
+  permissionsAll,
+}: {
+  permissions: readonly string[];
+  permissionsAll: readonly string[];
+}): JSX.Element {
   const [open, setOpen] = useState(false);
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -25,6 +31,7 @@ export function MobileNavigation({ permissions }: { permissions: readonly string
         <nav aria-label="Menú principal">
           <NavigationList
             permissions={permissions}
+            permissionsAll={permissionsAll}
             onNavigate={() => {
               setOpen(false);
             }}

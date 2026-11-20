@@ -20,6 +20,8 @@ import { useCollapsedGroups } from './use-collapsed-groups';
 export interface NavigationListProps {
   /** Permisos del usuario; los iconos no viajan desde el servidor, el menú se arma aquí. */
   permissions: readonly string[];
+  /** Permisos sobre toda la empresa; sin ellos, se toman los mismos de «permissions». */
+  permissionsAll?: readonly string[];
   /** En tableta el menú se contrae a solo iconos; el nombre aparece al enfocar (16.3). */
   collapsible?: boolean;
   onNavigate?: () => void;
@@ -28,12 +30,14 @@ export interface NavigationListProps {
 /** Menú por grupos (B22B). El módulo actual se marca con color y con aria-current. */
 export function NavigationList({
   permissions,
+  permissionsAll,
   collapsible = false,
   onNavigate,
 }: NavigationListProps): JSX.Element {
   const pathname = usePathname();
   const { isCollapsed, toggle } = useCollapsedGroups();
   const granted = new Set(permissions);
+  const grantedAll = new Set(permissionsAll ?? permissions);
   const groups = visibleNavigation(granted);
   return (
     <div className="flex flex-col gap-3">
@@ -45,6 +49,7 @@ export function NavigationList({
             group={group}
             pathname={pathname}
             granted={granted}
+            grantedAll={grantedAll}
             open={hasActive || !isCollapsed(group.key)}
             collapsible={collapsible}
             onToggle={() => {
@@ -62,6 +67,7 @@ interface NavigationSectionProps {
   group: NavigationGroup;
   pathname: string;
   granted: ReadonlySet<string>;
+  grantedAll: ReadonlySet<string>;
   open: boolean;
   collapsible: boolean;
   onToggle: () => void;
@@ -71,12 +77,10 @@ interface NavigationSectionProps {
 /** Un grupo del menú: su encabezado, que lo abre o lo cierra, y sus módulos. */
 function NavigationSection({
   group,
-  pathname,
-  granted,
   open,
   collapsible,
   onToggle,
-  onNavigate,
+  ...entry
 }: NavigationSectionProps): JSX.Element {
   const listId = useId();
   // En tableta los grupos no se contraen: se ven todos los iconos.
@@ -95,14 +99,7 @@ function NavigationSection({
       <ul id={listId} className={cn('flex flex-col gap-0.5', !open && collapsible && 'lg:hidden')}>
         {showItems
           ? group.items.map((item) => (
-              <ModuleEntry
-                key={item.slug}
-                item={item}
-                pathname={pathname}
-                granted={granted}
-                collapsible={collapsible}
-                {...(onNavigate ? { onNavigate } : {})}
-              />
+              <ModuleEntry key={item.slug} item={item} collapsible={collapsible} {...entry} />
             ))
           : null}
       </ul>
@@ -114,6 +111,7 @@ interface ModuleEntryProps {
   item: NavigationItem;
   pathname: string;
   granted: ReadonlySet<string>;
+  grantedAll: ReadonlySet<string>;
   collapsible: boolean;
   onNavigate?: () => void;
 }
@@ -123,6 +121,7 @@ function ModuleEntry({
   item,
   pathname,
   granted,
+  grantedAll,
   collapsible,
   onNavigate,
 }: ModuleEntryProps): JSX.Element {
@@ -133,7 +132,7 @@ function ModuleEntry({
       <NavigationLink
         item={item}
         active={active}
-        inSubmodule={inVisibleSubmodule(item.slug, pathname, granted)}
+        inSubmodule={inVisibleSubmodule(item.slug, pathname, granted, grantedAll)}
         collapsible={collapsible}
         {...navigate}
       />
@@ -141,6 +140,7 @@ function ModuleEntry({
         <SubmoduleList
           slug={item.slug}
           granted={granted}
+          grantedAll={grantedAll}
           pathname={pathname}
           collapsible={collapsible}
           {...navigate}

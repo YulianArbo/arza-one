@@ -9,6 +9,7 @@ import { currentSubmodule, visibleSubmodules, type Submodule } from './submodule
 export interface SubmoduleListProps {
   readonly slug: string;
   readonly granted: ReadonlySet<string>;
+  readonly grantedAll: ReadonlySet<string>;
   readonly pathname: string;
   /** En tableta el menú solo muestra iconos de módulos: los submódulos se ven desde escritorio. */
   readonly collapsible: boolean;
@@ -22,11 +23,12 @@ export interface SubmoduleListProps {
 export function SubmoduleList({
   slug,
   granted,
+  grantedAll,
   pathname,
   collapsible,
   onNavigate,
 }: SubmoduleListProps): JSX.Element | null {
-  const entries = visibleSubmodules(slug, granted);
+  const entries = visibleSubmodules(slug, granted, grantedAll);
   if (entries.length === 0) {
     return null;
   }
