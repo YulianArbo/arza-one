@@ -31,6 +31,12 @@ test('las pestañas llevan a cada sección y marcan la actual', async ({ page })
   await tabs.getByRole('link', { name: 'Soporte' }).click();
   await expect(page).toHaveURL(/\/portal\/soporte$/);
   await expect(tabs.getByRole('link', { name: 'Soporte' })).toHaveAttribute('aria-current', 'page');
+  // B22B: en una sección, la ruta arriba ofrece volver al inicio del portal.
+  await expect(page.getByRole('navigation', { name: 'Ruta de navegación' })).toHaveText(
+    'Portal de clientes / Soporte',
+  );
+  await page.getByRole('link', { name: 'Volver al portal' }).click();
+  await expect(page).toHaveURL(/\/portal$/);
 });
 
 test('el primer ingreso pide aceptar los términos vigentes', async ({ page }) => {
