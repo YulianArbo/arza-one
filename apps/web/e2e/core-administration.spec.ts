@@ -121,7 +121,7 @@ const CORE_API: ApiRoutes = {
 };
 
 const PAGES = [
-  { path: '/app/administracion', ready: 'Festivos y días hábiles' },
+  { path: '/app/administracion', ready: 'Identidad y acceso' },
   { path: '/app/administracion/empresa', ready: 'Sede norte' },
   { path: '/app/administracion/procesos-y-cargos', ready: 'es provisional' },
   { path: '/app/administracion/centros-de-costo', ready: 'Todavía no hay centros de costo' },

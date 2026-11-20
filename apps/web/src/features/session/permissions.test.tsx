@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { JSX } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -89,6 +89,9 @@ describe('administración y módulos según el permiso', () => {
     const sections = await screen.findByRole('list', { name: 'Secciones de administración' });
     expect(sections).toHaveTextContent('Delegaciones');
     expect(sections).not.toHaveTextContent('Usuarios');
+    // B22B: solo se muestran los grupos con algún acceso permitido.
+    expect(within(sections).getByRole('region', { name: 'Identidad y acceso' })).toBeVisible();
+    expect(within(sections).queryByRole('region', { name: 'Organización' })).toBeNull();
   });
 
   it('sin ninguna sección, Administración dice que no tiene acceso', async () => {

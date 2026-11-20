@@ -114,7 +114,7 @@ describe('entrada de privacidad', () => {
   it('muestra solo las secciones permitidas', async () => {
     servePrivacy(privacyPermissions(['privacy.consent.read']));
     render(<PrivacyHome />);
-    expect(await screen.findByRole('link', { name: /Autorizaciones/ })).toBeVisible();
-    expect(screen.queryByRole('link', { name: /Encargados/ })).toBeNull();
+    expect(await screen.findByRole('link', { name: 'Abrir autorizaciones' })).toBeVisible();
+    expect(screen.queryByRole('link', { name: 'Abrir encargados' })).toBeNull();
   });
 });
