@@ -1,71 +1,83 @@
 'use client';
 
-import { Card, CardDescription, CardHeader, CardTitle, EmptyState } from '@arza/ui';
-import { Construction } from 'lucide-react';
+import { AttentionList, buttonVariants, EmptyState, HighlightCard, QuickLinks } from '@arza/ui';
+import { Construction, FileText, Receipt } from 'lucide-react';
 import Link from 'next/link';
 import type { JSX } from 'react';
 
 import { PageHeader } from '../../components/app-shell/page-header';
+import { visibleSubmodules } from '../../components/app-shell/submodules';
 import { RequirePermission, usePermissions } from '../session/permissions';
+import { BudgetExecutionCard } from './budget-execution-card';
 
-// Portada de Finanzas. B23 dejó los parámetros tributarios, B31 la facturación y los recaudos y
-// B32 el presupuesto, los gastos, la caja menor, la conciliación, la certificación de costos y el
-// cierre con exportación contable. La cartera avanzada sigue pendiente de reglas («Disponible
-// pronto», B22A).
+// Portada de Finanzas (B22B, boceto 11). B23 dejó los parámetros tributarios, B31 la facturación y
+// los recaudos y B32 el presupuesto, los gastos, la caja menor, la conciliación, la certificación
+// de costos y el cierre con exportación contable. La cartera avanzada sigue pendiente de reglas
+// («Disponible pronto», B22A).
 
-const LINKS = [
-  {
-    href: '/app/finanzas/parametros-tributarios',
-    title: 'Parámetros tributarios',
-    description: 'Tarifas de impuestos vigentes, con su fundamento legal y su historial.',
-    anyOf: ['finance.tax_parameter.manage'],
-  },
-  {
-    href: '/app/finanzas/facturas',
-    title: 'Facturas y recaudos',
-    description: 'Solicitudes, documentos fiscales emitidos, notas crédito y pagos recibidos.',
-    anyOf: ['finance.invoice.read'],
-  },
-  {
-    href: '/app/finanzas/presupuesto',
-    title: 'Presupuesto',
-    description: 'Lo planeado por centro de costo y rubro contra lo ejecutado.',
-    anyOf: ['finance.budget.read'],
-  },
-  {
-    href: '/app/finanzas/gastos',
-    title: 'Gastos',
-    description: 'Gastos con soporte y su aprobación.',
-    anyOf: ['finance.ledger.read', 'finance.expense.manage'],
-  },
-  {
-    href: '/app/finanzas/caja-menor',
-    title: 'Caja menor',
-    description: 'Fondo, vales y reembolsos con su saldo.',
-    anyOf: ['finance.ledger.read'],
-  },
+const INVOICES_PATH = '/app/finanzas/facturas';
+
+// Operaciones de cierre: lo que se revisa al terminar el mes.
+const CLOSING = [
   {
     href: '/app/finanzas/conciliaciones',
     title: 'Conciliación bancaria',
-    description: 'Saldo en libros contra el banco, con sus partidas.',
-    anyOf: ['finance.ledger.read'],
+    description: 'Compare los movimientos con el extracto.',
   },
   {
     href: '/app/finanzas/certificaciones',
     title: 'Certificación de costos',
     description: 'Horas aprobadas y valor de los proyectos de desarrollo.',
-    anyOf: ['finance.ledger.read'],
   },
   {
     href: '/app/finanzas/cierre',
     title: 'Cierre y exportación contable',
     description: 'Cierre de meses y archivo para el Contador.',
-    anyOf: ['finance.ledger.read'],
   },
 ] as const;
 
+const OTHERS = new Set([
+  '/app/finanzas/presupuesto',
+  '/app/finanzas/gastos',
+  '/app/finanzas/caja-menor',
+  '/app/finanzas/parametros-tributarios',
+]);
+
+function ClosingCard({ allowed }: { readonly allowed: ReadonlySet<string> }): JSX.Element | null {
+  const items = CLOSING.filter((entry) => allowed.has(entry.href));
+  if (items.length === 0) return null;
+  return (
+    <HighlightCard title="Operaciones de cierre">
+      <AttentionList
+        linkAs={Link}
+        items={items.map((entry) => ({
+          id: entry.href,
+          title: entry.title,
+          meta: entry.description,
+          href: entry.href,
+          icon: <FileText />,
+        }))}
+      />
+    </HighlightCard>
+  );
+}
+
+function InvoicesAction(): JSX.Element {
+  return (
+    <Link href={INVOICES_PATH} className={buttonVariants({ variant: 'outline' })}>
+      <Receipt aria-hidden="true" />
+      Facturas y recaudos
+    </Link>
+  );
+}
+
 export function FinanceHome(): JSX.Element {
-  const { can } = usePermissions();
+  const { can, granted } = usePermissions();
+  const submodules = visibleSubmodules('finanzas', granted);
+  const allowed = new Set(submodules.map((entry) => entry.href));
+  const others = submodules
+    .filter((entry) => OTHERS.has(entry.href))
+    .map((entry) => ({ href: entry.href, label: entry.label, icon: <entry.icon /> }));
   return (
     <RequirePermission
       anyOf={[
@@ -76,16 +88,19 @@ export function FinanceHome(): JSX.Element {
         'finance.expense.manage',
       ]}
     >
-      <div className="flex flex-col gap-4">
-        <PageHeader title="Finanzas" />
-        {LINKS.filter((link) => link.anyOf.some((code) => can(code))).map((link) => (
-          <FinanceLink
-            key={link.href}
-            href={link.href}
-            title={link.title}
-            description={link.description}
-          />
-        ))}
+      <div className="flex flex-col gap-6">
+        <PageHeader
+          title="Finanzas"
+          description="Compare la ejecución del presupuesto y abra el proceso que necesita revisar."
+          action={allowed.has(INVOICES_PATH) ? <InvoicesAction /> : null}
+        />
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)]">
+          {can('finance.budget.read') ? <BudgetExecutionCard /> : null}
+          <ClosingCard allowed={allowed} />
+        </div>
+        {others.length > 0 ? (
+          <QuickLinks title="También en Finanzas" links={others} linkAs={Link} />
+        ) : null}
         <EmptyState
           icon={<Construction />}
           title="Cartera por edades: disponible pronto"
@@ -93,25 +108,5 @@ export function FinanceHome(): JSX.Element {
         />
       </div>
     </RequirePermission>
-  );
-}
-
-function FinanceLink(props: {
-  readonly href: string;
-  readonly title: string;
-  readonly description: string;
-}): JSX.Element {
-  return (
-    <Link
-      href={props.href}
-      className="rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-    >
-      <Card className="h-full hover-invert">
-        <CardHeader>
-          <CardTitle className="text-base">{props.title}</CardTitle>
-          <CardDescription>{props.description}</CardDescription>
-        </CardHeader>
-      </Card>
-    </Link>
   );
 }

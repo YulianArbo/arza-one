@@ -154,3 +154,76 @@ describe('finanzas: tarifas programadas', () => {
     });
   });
 });
+
+const BUDGET = {
+  id: '01999a00-0000-7000-8000-0000000e0101',
+  year: 2026,
+  status: 'approved',
+  planned_total: '84000000.00',
+  line_count: 2,
+  mine: false,
+  approved_at: '2026-01-10T15:00:00.000Z',
+  version: 2,
+};
+
+const CENTER = { id: '01999a00-0000-7000-8000-0000000e0201', code: 'CC-01', name: 'Operaciones' };
+const OTHER_CENTER = { ...CENTER, id: '01999a00-0000-7000-8000-0000000e0202', code: 'CC-02' };
+
+function serveBudget(budgets: readonly object[]) {
+  return mockApi({
+    'GET /v1/auth/session': () => json(SESSION),
+    'GET /v1/me/permissions': () => json(permissionsOf(['finance.budget.read'])),
+    'GET /v1/finance/budgets': () => json({ data: budgets }),
+    [`GET /v1/finance/budgets/${BUDGET.id}/execution`]: () =>
+      json({
+        data: {
+          year: 2026,
+          rows: [],
+          by_cost_center: [
+            { cost_center: CENTER, planned: '50000000.00', executed: '34000000.00' },
+            { cost_center: OTHER_CENTER, planned: '34000000.00', executed: '20000000.00' },
+          ],
+        },
+      }),
+  });
+}
+
+describe('finanzas: ejecución presupuestal en la portada (B22B)', () => {
+  it('muestra lo disponible del presupuesto aprobado y cuánto se ha ejecutado', async () => {
+    serveBudget([
+      { ...BUDGET, id: '01999a00-0000-7000-8000-0000000e0102', status: 'draft' },
+      BUDGET,
+    ]);
+    renderWithApi(
+      <Screen>
+        <FinanceHome />
+      </Screen>,
+    );
+    const card = await screen.findByRole('region', { name: 'Ejecución presupuestal' });
+    expect(await within(card).findByText('$ 30.000.000')).toBeVisible();
+    expect(
+      within(card).getByText(/Disponible de \$ 84\.000\.000 presupuestados en 2026/u),
+    ).toBeVisible();
+    expect(within(card).getByRole('meter', { name: 'Presupuesto ejecutado' })).toHaveAttribute(
+      'aria-valuenow',
+      '64',
+    );
+    expect(within(card).getByText(/Ejecutado \$ 54\.000\.000 \(64 %\)/u)).toBeVisible();
+    expect(within(card).getByRole('link', { name: 'Abrir presupuesto' })).toHaveAttribute(
+      'href',
+      '/app/finanzas/presupuesto',
+    );
+  });
+
+  it('sin presupuesto aprobado lo dice y ofrece abrir el presupuesto', async () => {
+    serveBudget([{ ...BUDGET, status: 'draft' }]);
+    renderWithApi(
+      <Screen>
+        <FinanceHome />
+      </Screen>,
+    );
+    const card = await screen.findByRole('region', { name: 'Ejecución presupuestal' });
+    expect(await within(card).findByText(/Todavía no hay un presupuesto aprobado/u)).toBeVisible();
+    expect(within(card).queryByRole('meter')).toBeNull();
+  });
+});
