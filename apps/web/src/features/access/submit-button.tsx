@@ -4,6 +4,7 @@ import { Button } from '@arza/ui';
 import type { JSX } from 'react';
 
 import { useHydrated } from '../../lib/hydration/use-hydrated';
+import { ActionIcon } from '../../lib/ui/action-icon';
 
 interface SubmitButtonProps {
   readonly label: string;
@@ -26,6 +27,7 @@ export function SubmitButton({
   const hydrated = useHydrated();
   return (
     <Button type="submit" className={className} disabled={!hydrated || pending || done}>
+      {pending ? null : <ActionIcon label={label} />}
       {pending ? pendingLabel : label}
     </Button>
   );

@@ -13,6 +13,8 @@ import {
 } from '@arza/ui';
 import type { JSX } from 'react';
 
+import { ActionIcon } from '../lib/ui/action-icon';
+
 interface ConfirmActionButtonProps {
   readonly label: string;
   /** Nombra lo que se cambia (16.5: el diálogo nombra el registro y la consecuencia). */
@@ -39,6 +41,7 @@ export function ConfirmActionButton({
     <AlertDialog>
       <AlertDialogTrigger asChild>
         <Button type="button" variant={variant} className="self-start" disabled={disabled}>
+          <ActionIcon label={label} />
           {label}
         </Button>
       </AlertDialogTrigger>

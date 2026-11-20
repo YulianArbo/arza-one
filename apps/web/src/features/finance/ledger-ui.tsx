@@ -7,6 +7,7 @@ import { useState, type JSX, type ReactNode } from 'react';
 import type { z } from 'zod';
 
 import { useApiClient } from '../../lib/api/api-provider';
+import { ActionIcon } from '../../lib/ui/action-icon';
 import { FormError } from '../access/form-alert';
 import { useAdminAction, type AdminAction } from '../administration/admin-action';
 import { RecordDialog } from '../organization/record-dialog';
@@ -140,6 +141,7 @@ export function ActionButton(props: {
           action.execute(undefined);
         }}
       >
+        {action.pending ? null : <ActionIcon label={props.label} />}
         {action.pending ? props.pendingLabel : props.label}
       </Button>
       {action.error === null ? null : <FormError error={action.error} />}

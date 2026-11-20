@@ -7,6 +7,7 @@ import { useState, type JSX } from 'react';
 import { z } from 'zod';
 
 import { useApiClient } from '../../lib/api/api-provider';
+import { ActionIcon } from '../../lib/ui/action-icon';
 import { FormError } from '../access/form-alert';
 import { SubmitButton } from '../access/submit-button';
 import { useAdminAction, type AdminAction } from '../administration/admin-action';
@@ -68,6 +69,7 @@ export function PurchaseButton(props: {
           action.execute(undefined);
         }}
       >
+        {action.pending ? null : <ActionIcon label={props.label} />}
         {action.pending ? props.pendingLabel : props.label}
       </Button>
       {action.error === null ? null : <FormError error={action.error} />}
