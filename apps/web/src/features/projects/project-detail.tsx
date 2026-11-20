@@ -2,7 +2,6 @@
 
 import type { ProjectDetail } from '@arza/contracts';
 import { Alert, AlertDescription, Badge } from '@arza/ui';
-import Link from 'next/link';
 import type { JSX } from 'react';
 
 import { PageHeader } from '../../components/app-shell/page-header';
@@ -22,7 +21,6 @@ import { IndicatorsPanel } from './indicators-panel';
 import {
   AUTHORIZATION_STATUSES,
   PROJECT_METHODOLOGIES,
-  PROJECT_PATHS,
   PROJECT_STATUSES,
   PROJECT_STATUS_TONES,
   PROJECT_TYPES,
@@ -144,15 +142,16 @@ function Detail({ project }: Props): JSX.Element {
   const message = statusMessage(project);
   return (
     <>
-      <PageHeader title={project.code} description={`${project.name} · ${project.party.name}`} />
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge tone={PROJECT_STATUS_TONES[project.status]}>
-          {PROJECT_STATUSES[project.status]}
-        </Badge>
-        <span className="text-sm text-muted-foreground">
-          Avance {String(project.progress.percent)} %
-        </span>
-      </div>
+      <PageHeader title={project.code} description={`${project.name} · ${project.party.name}`}>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge tone={PROJECT_STATUS_TONES[project.status]}>
+            {PROJECT_STATUSES[project.status]}
+          </Badge>
+          <span className="text-sm text-muted-foreground">
+            Avance {String(project.progress.percent)} %
+          </span>
+        </div>
+      </PageHeader>
       {message === null ? null : (
         <Alert
           tone={['planning', 'closing', 'closed'].includes(project.status) ? 'info' : 'warning'}
@@ -169,13 +168,8 @@ function Detail({ project }: Props): JSX.Element {
 export function ProjectDetailPanel({ id }: { readonly id: string }): JSX.Element {
   const project = useProject(id);
   return (
-    <div className="flex flex-col gap-4">
-      <Link
-        href={PROJECT_PATHS.list}
-        className="text-sm text-primary underline-offset-4 hover:underline"
-      >
-        ← Volver a los proyectos
-      </Link>
+    <div className="flex flex-col gap-6">
+      {/* «Volver a Proyectos» está en la barra superior (B22B). */}
       <QueryState query={project} loadingLabel="Cargando el proyecto">
         {(data) => <Detail project={data} />}
       </QueryState>

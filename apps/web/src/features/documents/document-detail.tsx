@@ -13,7 +13,6 @@ import { DocumentLinks } from './document-links';
 import { ReadingPanel } from './reading-panel';
 import { RetentionPanel } from './retention-panel';
 import {
-  DOCUMENTS_PATH,
   DOCUMENT_STATUS_LABELS,
   DOCUMENT_STATUS_TONES,
   newRequestFor,
@@ -161,15 +160,13 @@ function DocumentView({ document }: { readonly document: Document }): JSX.Elemen
         title={`${document.code} · ${document.title}`}
         description="Solo hay una versión vigente. Una versión vigente no se modifica: los cambios van en una versión nueva."
         action={<HeaderActions document={document} />}
-      />
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge tone={DOCUMENT_STATUS_TONES[document.status]}>
-          {DOCUMENT_STATUS_LABELS[document.status]}
-        </Badge>
-        <Link href={DOCUMENTS_PATH} className="text-sm text-primary hover:underline">
-          Volver al explorador
-        </Link>
-      </div>
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge tone={DOCUMENT_STATUS_TONES[document.status]}>
+            {DOCUMENT_STATUS_LABELS[document.status]}
+          </Badge>
+        </div>
+      </PageHeader>
       <QueryState query={versions} loadingLabel="Cargando las versiones">
         {(data) => <DocumentTabs document={document} versions={data.data} />}
       </QueryState>
