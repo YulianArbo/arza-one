@@ -158,6 +158,10 @@ describe('contrato vigente', () => {
     });
     await userEvent.click(screen.getByRole('button', { name: 'Terminar' }));
     dialog = await screen.findByRole('dialog');
+    await userEvent.type(
+      within(dialog).getByLabelText('Para confirmar, escriba el código CTR-2026-0001'),
+      'CTR-2026-0001',
+    );
     await userEvent.type(within(dialog).getByLabelText('Fecha de terminación'), '2026-12-01');
     await userEvent.type(
       within(dialog).getByLabelText('Motivo de la terminación'),

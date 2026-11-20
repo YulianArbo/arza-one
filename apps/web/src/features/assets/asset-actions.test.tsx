@@ -119,6 +119,12 @@ async function retiresAsset(): Promise<void> {
   show(<AssetsPanel />);
   const dialog = await openDialog('Dar de baja ACT-2026-0001');
   await userEvent.click(within(dialog).getByRole('button', { name: 'Dar de baja' }));
+  expect(await within(dialog).findByText(/Escriba el código ACT-2026-0001/u)).toBeVisible();
+  await userEvent.type(
+    within(dialog).getByLabelText('Para confirmar, escriba el código ACT-2026-0001'),
+    'act-2026-0001',
+  );
+  await userEvent.click(within(dialog).getByRole('button', { name: 'Dar de baja' }));
   expect(await within(dialog).findAllByText('Escriba la fecha.')).not.toHaveLength(0);
   await userEvent.type(within(dialog).getByLabelText('Fecha de baja'), '2026-11-12');
   await userEvent.selectOptions(within(dialog).getByLabelText('Motivo'), 'obsolescence');

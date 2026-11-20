@@ -171,6 +171,10 @@ async function approveAndVoid(sent: SentRequest[]): Promise<void> {
   });
   await userEvent.click(screen.getByRole('button', { name: 'Anular' }));
   const dialog = await screen.findByRole('dialog');
+  await userEvent.type(
+    within(dialog).getByLabelText('Para confirmar, escriba el código FAC-2026-0001'),
+    'FAC-2026-0001',
+  );
   await userEvent.click(within(dialog).getByRole('button', { name: 'Anular factura' }));
   expect(
     within(dialog).getByText('Escriba el motivo de la anulación (mínimo 3 caracteres).'),

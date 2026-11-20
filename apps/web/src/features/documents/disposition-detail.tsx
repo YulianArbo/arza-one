@@ -105,6 +105,7 @@ function ConfirmStep(props: {
         description={text.description}
         confirmLabel={`Sí, ${text.label.toLowerCase()}`}
         disabled={action.pending}
+        {...(props.step === 'approve' ? { confirmCode: props.proposal.code } : {})}
         onConfirm={() => {
           const { id, version } = props.proposal;
           action.execute({ id, version, step: props.step, comment: null });

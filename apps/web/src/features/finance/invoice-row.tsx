@@ -4,6 +4,7 @@ import type { InvoiceSummary } from '@arza/contracts';
 import { Badge } from '@arza/ui';
 import type { JSX } from 'react';
 
+import { CodeConfirmation } from '../../components/code-confirmation';
 import { formatPesos } from '../crm/labels';
 import { RecordDialog } from '../organization/record-dialog';
 import { usePermissions } from '../session/permissions';
@@ -75,7 +76,11 @@ function VoidAction({ invoice }: { readonly invoice: InvoiceSummary }): JSX.Elem
       description="La solicitud quedará anulada; una factura emitida se corrige con nota crédito."
       variant="outline"
     >
-      {(close) => <VoidInvoiceForm invoice={invoice} onDone={close} />}
+      {(close) => (
+        <CodeConfirmation code={invoice.code}>
+          <VoidInvoiceForm invoice={invoice} onDone={close} />
+        </CodeConfirmation>
+      )}
     </RecordDialog>
   );
 }

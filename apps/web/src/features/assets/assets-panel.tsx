@@ -11,6 +11,7 @@ import { Badge, Button, EmptyState, SimpleTable } from '@arza/ui';
 import { Download, Laptop } from 'lucide-react';
 import type { JSX } from 'react';
 
+import { CodeConfirmation } from '../../components/code-confirmation';
 import { PageHeader } from '../../components/app-shell/page-header';
 import type { DownloadedFile } from '../../lib/api/api-client';
 import { useApiClient } from '../../lib/api/api-provider';
@@ -233,7 +234,11 @@ function ManageActions({ asset }: { readonly asset: Asset }): JSX.Element {
       ) : null}
       {asset.status === 'available' && can('asset.retire') ? (
         <RecordDialog {...dialogOf(asset, 'Dar de baja', 'Dar de baja', 'La baja no se deshace.')}>
-          {(close) => <RetireForm asset={asset} onDone={close} />}
+          {(close) => (
+            <CodeConfirmation code={asset.code}>
+              <RetireForm asset={asset} onDone={close} />
+            </CodeConfirmation>
+          )}
         </RecordDialog>
       ) : null}
     </>
