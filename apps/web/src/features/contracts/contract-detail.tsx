@@ -2,7 +2,6 @@
 
 import type { ContractDetail } from '@arza/contracts';
 import { Alert, AlertDescription, Badge, Card, CardContent } from '@arza/ui';
-import Link from 'next/link';
 import type { JSX } from 'react';
 
 import { PageHeader } from '../../components/app-shell/page-header';
@@ -19,7 +18,6 @@ import {
   CLAUSE_ORIGINS,
   CLAUSE_ORIGIN_TONES,
   CONTRACT_KINDS,
-  CONTRACT_PATHS,
   CONTRACT_RENEWALS,
   CONTRACT_STATUSES,
   CONTRACT_STATUS_TONES,
@@ -201,16 +199,16 @@ function Detail({ contract }: Props): JSX.Element {
   const message = statusMessage(contract);
   return (
     <>
-      <PageHeader
-        title={contract.code}
-        description={`${contract.title} · ${contract.party.name}`}
-      />
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge tone={CONTRACT_STATUS_TONES[contract.status]}>
-          {CONTRACT_STATUSES[contract.status]}
-        </Badge>
-        {contract.has_modified_clauses ? <Badge tone="warning">Cláusulas modificadas</Badge> : null}
-      </div>
+      <PageHeader title={contract.code} description={`${contract.title} · ${contract.party.name}`}>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge tone={CONTRACT_STATUS_TONES[contract.status]}>
+            {CONTRACT_STATUSES[contract.status]}
+          </Badge>
+          {contract.has_modified_clauses ? (
+            <Badge tone="warning">Cláusulas modificadas</Badge>
+          ) : null}
+        </div>
+      </PageHeader>
       {message === null ? null : (
         <Alert
           tone={
@@ -229,13 +227,8 @@ function Detail({ contract }: Props): JSX.Element {
 export function ContractDetailPanel({ id }: { readonly id: string }): JSX.Element {
   const contract = useContract(id);
   return (
-    <div className="flex flex-col gap-4">
-      <Link
-        href={CONTRACT_PATHS.list}
-        className="text-sm text-primary underline-offset-4 hover:underline"
-      >
-        ← Volver a los contratos
-      </Link>
+    <div className="flex flex-col gap-6">
+      {/* «Volver a Contratos» está en la barra superior (B22B). */}
       <QueryState query={contract} loadingLabel="Cargando el contrato">
         {(data) => <Detail contract={data} />}
       </QueryState>

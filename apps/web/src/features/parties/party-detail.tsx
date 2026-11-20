@@ -101,13 +101,14 @@ function Detail({ party }: { readonly party: PartyDetail }): JSX.Element {
       <PageHeader
         title={party.name}
         description={`${KIND_LABELS[party.kind]} · ${identification(party)}`}
-      />
-      <div className="flex flex-wrap gap-2">
-        <Badge tone={STATUS_TONES[party.status]}>{STATUS_LABELS[party.status]}</Badge>
-        <Badge tone={DUE_DILIGENCE_TONES[party.due_diligence.state]}>
-          {DUE_DILIGENCE_LABELS[party.due_diligence.state]}
-        </Badge>
-      </div>
+      >
+        <div className="flex flex-wrap gap-2">
+          <Badge tone={STATUS_TONES[party.status]}>{STATUS_LABELS[party.status]}</Badge>
+          <Badge tone={DUE_DILIGENCE_TONES[party.due_diligence.state]}>
+            {DUE_DILIGENCE_LABELS[party.due_diligence.state]}
+          </Badge>
+        </div>
+      </PageHeader>
       <Actions party={party} />
       <PartyLogo party={party} />
       <SectionTabs label={`Ficha de ${party.name}`} tabs={tabsOf(party, canSeeAccounts)} />

@@ -152,16 +152,17 @@ function Detail({ ticket }: Props): JSX.Element {
   const message = clockMessage(ticket);
   return (
     <>
-      <PageHeader title={ticket.code} description={ticket.subject} />
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge tone={TICKET_STATUS_TONES[ticket.status]}>{TICKET_STATUSES[ticket.status]}</Badge>
-        <Badge tone={PRIORITY_TONES[ticket.priority]}>
-          Prioridad {TICKET_PRIORITIES[ticket.priority].toLowerCase()}
-        </Badge>
-        <Badge tone={CLOCK_TONES[ticket.clock]}>{CLOCK_STATES[ticket.clock]}</Badge>
-        <span className="text-sm text-muted-foreground">Nivel {String(ticket.level)}</span>
-        {ticket.in_warranty ? <Badge tone="success">En garantía</Badge> : null}
-      </div>
+      <PageHeader title={ticket.code} description={ticket.subject}>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge tone={TICKET_STATUS_TONES[ticket.status]}>{TICKET_STATUSES[ticket.status]}</Badge>
+          <Badge tone={PRIORITY_TONES[ticket.priority]}>
+            Prioridad {TICKET_PRIORITIES[ticket.priority].toLowerCase()}
+          </Badge>
+          <Badge tone={CLOCK_TONES[ticket.clock]}>{CLOCK_STATES[ticket.clock]}</Badge>
+          <span className="text-sm text-muted-foreground">Nivel {String(ticket.level)}</span>
+          {ticket.in_warranty ? <Badge tone="success">En garantía</Badge> : null}
+        </div>
+      </PageHeader>
       {message === null ? null : (
         <Alert tone={message.tone}>
           <AlertDescription>{message.text}</AlertDescription>
