@@ -65,7 +65,7 @@ test('abre la ficha laboral y registra el estado de un soporte', async ({
   const state: SupportState = { status: 'pending', version: 1 };
   await mockEmployeeFile(page, state);
   await page.goto('/app/talento-y-sst');
-  await expect(page.getByRole('heading', { name: 'Talento Humano', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Talento y SST', level: 1 })).toBeVisible();
   await page.getByRole('link', { name: 'Ana Prueba' }).click();
   await expect(page.getByRole('heading', { name: 'Historia laboral' })).toBeVisible();
   await page.getByRole('button', { name: 'Editar Certificados de estudio' }).click();
