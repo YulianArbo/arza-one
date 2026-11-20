@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { MESSAGE_COUNT, messageAt, personalMessage } from './daily-message';
+import { MESSAGE_COUNT, messageAt, personalMessage, randomMessage } from './daily-message';
 
 const ALL = Array.from({ length: MESSAGE_COUNT }, (_, index) => messageAt(index));
 
@@ -45,5 +45,14 @@ describe('mensaje personal del día (B22B)', () => {
       personalMessage(`usuario-${String(index)}`, '2026-11-19'),
     );
     expect(new Set(people).size).toBeGreaterThan(25);
+  });
+});
+
+describe('mensaje al azar del acceso (B22B)', () => {
+  it('toma cualquier mensaje del banco, del primero al último', () => {
+    expect(randomMessage(() => 0)).toBe(messageAt(0));
+    expect(randomMessage(() => 0.999999)).toBe(messageAt(MESSAGE_COUNT - 1));
+    const seen = new Set(Array.from({ length: 50 }, () => randomMessage()));
+    expect(seen.size).toBeGreaterThan(40);
   });
 });

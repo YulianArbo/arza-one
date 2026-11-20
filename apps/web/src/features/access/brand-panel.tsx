@@ -1,26 +1,29 @@
 'use client';
 
 import Link from 'next/link';
-import type { JSX } from 'react';
+import { useMemo, type JSX } from 'react';
 
 import { BrandLogo } from '../../components/brand-logo';
 import { useHydrated } from '../../lib/hydration/use-hydrated';
-import { DEFAULT_MESSAGE, dailyMessage } from './daily-message';
+import { randomMessage } from '../../lib/messages/daily-message';
 
-/** Mensaje del día; antes de cargar en el navegador muestra el lema, para no desentonar. */
+/** Lema que se ve antes de cargar en el navegador, para no desentonar. */
+const DEFAULT_MESSAGE = 'Su trabajo diario, en un solo lugar.';
+
+/** Mensaje del día al azar del banco, uno por visita (B22B, decisión 2 del dueño). */
 function Message(): JSX.Element {
   const hydrated = useHydrated();
-  const message = hydrated ? dailyMessage(new Date()) : { day: '', text: DEFAULT_MESSAGE };
+  const text = useMemo(() => (hydrated ? randomMessage() : DEFAULT_MESSAGE), [hydrated]);
   return (
     <div className="flex max-w-lg flex-col gap-3">
       <span className="self-start rounded-full border border-brand-panel-muted/30 px-2.5 py-0.5 font-mono text-[11px] tracking-wide text-brand-panel-muted uppercase">
-        Mensaje del día{message.day ? ` · ${message.day}` : ''}
+        Mensaje del día
       </span>
       <p
-        key={message.text}
+        key={text}
         className="text-3xl font-semibold tracking-tight text-brand-panel-foreground animate-enter"
       >
-        {message.text}
+        {text}
       </p>
       <span className="text-sm text-brand-panel-muted">
         ARZA ONE, la plataforma de ARZA TECH S.A.S.

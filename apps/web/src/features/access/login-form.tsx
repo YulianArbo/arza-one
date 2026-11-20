@@ -104,8 +104,8 @@ export function LoginForm(): JSX.Element {
 function InvitationHelp(): JSX.Element {
   return (
     <p className="text-sm text-muted-foreground">
-      Si te acaban de invitar, primero abre el enlace que recibiste por correo y crea tu contraseña.
-      Si no encuentras la invitación, pide que te la reenvíen.
+      Si acaba de recibir una invitación, abra primero el enlace del correo y cree su contraseña. Si
+      no encuentra la invitación, pida que se la reenvíen.
     </p>
   );
 }
