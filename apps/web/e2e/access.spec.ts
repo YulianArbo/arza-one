@@ -152,3 +152,69 @@ test('las pantallas de acceso no se indexan', async ({ page }) => {
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
   }
 });
+
+// Comunicados del acceso (B36A): los de la pestaña elegida, uno a la vez, sin violaciones.
+const ANNOUNCEMENTS = {
+  staff: [
+    {
+      id: '01999a00-0000-7000-8000-0000000aa001',
+      title: 'Mantenimiento del sábado',
+      body: 'La plataforma estará en mantenimiento de 6 a 8 a. m.',
+      link_url: null,
+      has_image: false,
+    },
+    {
+      id: '01999a00-0000-7000-8000-0000000aa002',
+      title: 'Pausa activa',
+      body: 'A las 3 p. m. hacemos la pausa activa.',
+      link_url: null,
+      has_image: false,
+    },
+  ],
+  clients: [
+    {
+      id: '01999a00-0000-7000-8000-0000000aa003',
+      title: 'Nuevo horario de soporte',
+      body: 'Desde diciembre atendemos de 7 a. m. a 7 p. m.',
+      link_url: null,
+      has_image: false,
+    },
+  ],
+};
+
+async function serveAnnouncements(page: Page): Promise<void> {
+  await page.route(`${E2E_API_URL}/v1/public/announcements?**`, async (route) => {
+    const tab = new URL(route.request().url()).searchParams.get('audience');
+    await fulfillJson(route, 200, {
+      data: tab === 'clients' ? ANNOUNCEMENTS.clients : ANNOUNCEMENTS.staff,
+    });
+  });
+}
+
+test.describe('comunicados en el acceso', () => {
+  test('cambian con la pestaña y se recorren con las flechas', async ({ page }) => {
+    await mockSession(page, 'none');
+    await serveAnnouncements(page);
+    await page.goto('/iniciar-sesion');
+    const panel = page.getByRole('region', { name: 'Comunicados' }).first();
+    await expect(panel.getByRole('heading', { name: 'Mantenimiento del sábado' })).toBeVisible();
+    await panel.getByRole('button', { name: 'Comunicado siguiente' }).click();
+    await expect(panel.getByRole('heading', { name: 'Pausa activa' })).toBeVisible();
+    expect(await accessibilityViolations(page)).toEqual([]);
+    await page.getByRole('button', { name: 'Portal de clientes' }).click();
+    await expect(panel.getByRole('heading', { name: 'Nuevo horario de soporte' })).toBeVisible();
+  });
+
+  test('en celular van debajo del formulario, sin desbordar', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await mockSession(page, 'none');
+    await serveAnnouncements(page);
+    await page.goto('/iniciar-sesion');
+    await expect(page.getByRole('heading', { name: 'Mantenimiento del sábado' })).toBeVisible();
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(0);
+    expect(await accessibilityViolations(page)).toEqual([]);
+  });
+});

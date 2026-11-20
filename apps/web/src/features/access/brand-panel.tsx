@@ -6,6 +6,7 @@ import { useMemo, type JSX } from 'react';
 import { BrandLogo } from '../../components/brand-logo';
 import { useHydrated } from '../../lib/hydration/use-hydrated';
 import { randomMessage } from '../../lib/messages/daily-message';
+import { AccessAnnouncements } from './access-announcements';
 
 /** Lema que se ve antes de cargar en el navegador, para no desentonar. */
 const DEFAULT_MESSAGE = 'Su trabajo diario, en un solo lugar.';
@@ -61,7 +62,8 @@ export function BrandPanel(): JSX.Element {
       <Link href="/" className="relative self-start text-brand-panel-foreground">
         <BrandLogo onDark className="h-7 w-auto" />
       </Link>
-      <div className="relative">
+      <div className="relative flex flex-col gap-6">
+        <AccessAnnouncements tone="dark" className="max-w-lg" />
         <Message />
       </div>
     </aside>
