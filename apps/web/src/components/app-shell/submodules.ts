@@ -146,12 +146,34 @@ const AUDIT = [
   sub(AUDIT_PATHS.integrity, 'Verificación de integridad', ShieldCheck, 'audit.chain.verify'),
 ];
 
+// Talento humano (B36): las páginas de la segunda parte del módulo, cada una con su permiso.
+const TALENT = [
+  sub(
+    '/app/talento-y-sst/ausencias',
+    'Permisos y vacaciones',
+    CalendarDays,
+    'hr.leave.approve',
+    'hr.overtime.authorize',
+  ),
+  sub('/app/talento-y-sst/nomina', 'Novedades de nómina', Wallet, 'hr.payroll_novelty.close'),
+  sub(
+    '/app/talento-y-sst/desempeno',
+    'Desempeño y formación',
+    ChartLine,
+    'hr.performance.manage',
+    'hr.training.manage',
+  ),
+  sub('/app/talento-y-sst/disciplinarios', 'Disciplinarios', Scale, 'hr.disciplinary.manage'),
+  sub('/app/talento-y-sst/retiros', 'Retiros', UserCheck, 'hr.offboarding.manage'),
+];
+
 /** Submódulos por módulo (slug del menú). Los módulos que no figuran se abren desde su portada. */
 const SUBMODULES: Readonly<Record<string, readonly Submodule[]>> = {
   comercial: COMMERCIAL,
   servicio: SERVICE,
   compras: PURCHASES,
   finanzas: FINANCE,
+  'talento-y-sst': TALENT,
   privacidad: PRIVACY,
   administracion: ADMINISTRATION,
   auditoria: AUDIT,

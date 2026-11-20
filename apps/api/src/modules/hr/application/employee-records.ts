@@ -298,14 +298,18 @@ async function downloadableContract(
 ): Promise<{ readonly contract: HrContract; readonly envelopeId: string }> {
   const employee = await tx.hrEmployee.findFirst({
     where: { ...scope(viewer), id },
-    select: { id: true },
+    select: { id: true, userId: true },
   });
   if (employee === null) throw notFound();
   const contract = await latestContract(tx, id);
   if (contract === null) throw notFound();
   const envelopeId = contract.envelopeId;
   if (envelopeId === null) throw notFound();
+  // Lo descargan Talento humano, quien firma por la empresa y el propio colaborador (B36,
+  // decisión 11): el contrato firmado es suyo.
+  const own = employee.userId === viewer.principal.userId && contract.status === 'signed';
   if (
+    !own &&
     !hasUnconditionalPermission(viewer.ability, 'hr.file.read') &&
     !(
       hasUnconditionalPermission(viewer.ability, 'hr.salary.read') &&

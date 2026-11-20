@@ -3,5 +3,5 @@
 // aquí qué activos debe devolver un colaborador. Se publica también como «@arza/api/asset» para el
 // worker, que envía los comodatos a firma y cierra las asignaciones.
 export { AssetModule } from './interface/asset.module.js';
-export { assetsHeldBy } from './application/asset-holders.js';
+export { assetsHeldBy, type HeldAsset } from './application/asset-holders.js';
 export { followLoans, type LoanWorkResult } from './application/loan-work.js';

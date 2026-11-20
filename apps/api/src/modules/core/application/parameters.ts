@@ -2,13 +2,16 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   PARAMETER_DEFINITIONS,
   PARAMETER_VALUE_SCHEMAS,
+  DEFAULT_LABOR_RULES,
   discountCapSchema,
   isParameterKey,
+  laborRulesSchema,
   pqrsfTermsSchema,
   purchaseTiersSchema,
   workScheduleSchema,
   type CreateParameterVersionRequest,
   type DiscountCap,
+  type LaborRules,
   type PqrsfTerms,
   type PurchaseTiers,
   type ParameterHistoryResponse,
@@ -226,4 +229,17 @@ export async function purchaseTiersOn(
   const versions = await versionsOf(tx, 'purchase.approval_tiers');
   const { current } = currentAndScheduled(versions, date);
   return current === null ? null : purchaseTiersSchema.parse(current.row.value);
+}
+
+/**
+ * Reglas laborales vigentes ese día (B36): jornada, topes de horas extras, vacaciones por año y
+ * plazo de la citación a descargos. Si la empresa aún no tiene el parámetro, rigen los valores
+ * iniciales aprobados (decisiones 4, 5 y 8).
+ */
+export async function laborRulesOn(tx: TenantTransaction, date: string): Promise<LaborRules> {
+  const versions = await versionsOf(tx, 'hr.labor_rules');
+  const { current } = currentAndScheduled(versions, date);
+  return current === null
+    ? laborRulesSchema.parse(DEFAULT_LABOR_RULES)
+    : laborRulesSchema.parse(current.row.value);
 }

@@ -14,7 +14,8 @@ export type SessionRevokeReason =
   | 'mfa_failures'
   | 'mfa_changed'
   | 'mfa_reset'
-  | 'account_locked';
+  | 'account_locked'
+  | 'offboarding';
 
 export async function loadUser(
   transaction: TenantTransaction,

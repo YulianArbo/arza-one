@@ -78,6 +78,26 @@ export const NOTIFICATION_KINDS = {
     label: 'Le corresponde una tarea de inducción',
     variables: ['nombre', 'tarea', 'vence'],
   },
+  hr_leave_update: {
+    label: 'Novedad de una solicitud de ausencia',
+    variables: ['nombre', 'novedad'],
+  },
+  hr_overtime_update: {
+    label: 'Novedad de una solicitud de horas extras',
+    variables: ['nombre', 'novedad'],
+  },
+  hr_review_update: {
+    label: 'Su evaluación de desempeño está lista',
+    variables: ['nombre'],
+  },
+  hr_disciplinary_notice: {
+    label: 'Citación de Talento humano',
+    variables: ['nombre', 'fecha'],
+  },
+  hr_offboarding_task: {
+    label: 'Le corresponde una tarea de un retiro',
+    variables: ['nombre', 'tarea', 'fecha'],
+  },
 } as const satisfies Record<string, { label: string; variables: readonly string[] }>;
 
 export type NotificationKind = keyof typeof NOTIFICATION_KINDS;

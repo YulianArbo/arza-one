@@ -22,6 +22,7 @@ import {
   ShieldCheck,
   ShoppingCart,
   Sun,
+  UserRound,
   Users,
   type LucideIcon,
 } from 'lucide-react';
@@ -58,6 +59,12 @@ const MODULES: readonly NavigationItem[] = [
     label: 'Mis tareas',
     icon: ListTodo,
     permissions: ['wf.task.work', 'wf.task.read_all'],
+  },
+  {
+    slug: 'mi-espacio',
+    label: 'Mi espacio',
+    icon: UserRound,
+    permissions: ['hr.employee.read'],
   },
   { slug: 'terceros', label: 'Terceros', icon: BookUser, permissions: ['party.read'] },
   {
@@ -194,7 +201,7 @@ function pick(...slugs: readonly string[]): NavigationItem[] {
 
 const APP_NAVIGATION: readonly NavigationGroup[] = [
   { key: 'inicio', label: 'Inicio', items: pick('') },
-  { key: 'trabajo', label: 'Trabajo diario', icon: Sun, items: pick('mis-tareas') },
+  { key: 'trabajo', label: 'Trabajo diario', icon: Sun, items: pick('mis-tareas', 'mi-espacio') },
   {
     key: 'clientes',
     label: 'Clientes y operación',

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { laborRulesSchema, type LaborRules } from '../hr/labor-rules.js';
 import { purchaseTiersSchema, type PurchaseTiers } from '../purchase/tiers.js';
 import { recordNameSchema } from './org.js';
 
@@ -67,6 +68,11 @@ export const PARAMETER_DEFINITIONS = {
     description:
       'Topes por monto de una compra: cuántas cotizaciones exige cada tramo y desde qué valor la aprueba la Dirección (ficha 17.12).',
   },
+  'hr.labor_rules': {
+    label: 'Reglas laborales',
+    description:
+      'Jornada semanal, topes de horas extras, días de vacaciones por año y días hábiles mínimos entre la citación y los descargos (ficha 17.13).',
+  },
 } as const;
 
 export type ParameterKey = keyof typeof PARAMETER_DEFINITIONS;
@@ -110,6 +116,7 @@ export const PARAMETER_VALUE_SCHEMAS = {
   'crm.discount_cap': discountCapSchema,
   'service.pqrsf_terms': pqrsfTermsSchema,
   'purchase.approval_tiers': purchaseTiersSchema,
+  'hr.labor_rules': laborRulesSchema,
 } as const satisfies Record<ParameterKey, z.ZodType>;
 
 const parameterValueSchema = z.union([
@@ -117,11 +124,17 @@ const parameterValueSchema = z.union([
   discountCapSchema,
   pqrsfTermsSchema,
   purchaseTiersSchema,
+  laborRulesSchema,
 ]);
 
 /** El valor son los topes de aprobación de compras (B33). */
 export function isPurchaseTiers(value: ParameterValue): value is PurchaseTiers {
   return 'low_limit' in value;
+}
+
+/** El valor son las reglas laborales de Talento humano (B36). */
+export function isLaborRules(value: ParameterValue): value is LaborRules {
+  return 'vacation_days_per_year' in value;
 }
 
 /** El valor son los plazos de respuesta de PQRSF (B29). */

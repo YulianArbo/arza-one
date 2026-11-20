@@ -128,6 +128,15 @@ model Tenant {
   hrContracts             HrContract[]
   hrOnboardingTasks       HrOnboardingTask[]
   hrFileChecklist         HrFileChecklistItem[]
+  hrLeaveRequests         HrLeaveRequest[]
+  hrOvertime              HrOvertime[]
+  hrPayrollPeriods        HrPayrollPeriod[]
+  hrPayrollNovelties      HrPayrollNovelty[]
+  hrPerformanceReviews    HrPerformanceReview[]
+  hrTrainings             HrTraining[]
+  hrTrainingAttendance    HrTrainingAttendance[]
+  hrDisciplinaryCases     HrDisciplinaryCase[]
+  hrOffboardings          HrOffboarding[]
   ctrClauses              CtrClause[]
   ctrTemplates            CtrTemplate[]
   ctrTemplateClauses      CtrTemplateClause[]
@@ -4160,34 +4169,41 @@ model HrSelectionEvaluation {
 
 /// Colaboradores: «por vincular» mientras se firma el contrato; «activo» desde que se vincula.
 model HrEmployee {
-  id              String                @id @default(uuid(7)) @db.Uuid
-  tenantId        String                @map("tenant_id") @db.Uuid
-  partyId         String                @map("party_id") @db.Uuid
-  candidateId     String?               @map("candidate_id") @db.Uuid
-  positionId      String                @map("position_id") @db.Uuid
-  hireDate        DateTime              @map("hire_date") @db.Date
-  terminationDate DateTime?             @map("termination_date") @db.Date
-  contractType    String                @map("contract_type")
-  workMode        String                @map("work_mode")
-  status          String                @default("pending")
-  workEmail       String                @map("work_email")
+  id              String                 @id @default(uuid(7)) @db.Uuid
+  tenantId        String                 @map("tenant_id") @db.Uuid
+  partyId         String                 @map("party_id") @db.Uuid
+  candidateId     String?                @map("candidate_id") @db.Uuid
+  positionId      String                 @map("position_id") @db.Uuid
+  hireDate        DateTime               @map("hire_date") @db.Date
+  terminationDate DateTime?              @map("termination_date") @db.Date
+  contractType    String                 @map("contract_type")
+  workMode        String                 @map("work_mode")
+  status          String                 @default("pending")
+  workEmail       String                 @map("work_email")
   /// La cuenta del colaborador (Identidad); la crea la vinculación.
-  userId          String?               @map("user_id") @db.Uuid
-  activatedAt     DateTime?             @map("activated_at") @db.Timestamptz(6)
-  activatedBy     String?               @map("activated_by") @db.Uuid
-  closedReason    String?               @map("closed_reason")
-  requestKey      String                @map("request_key")
-  createdAt       DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
-  createdBy       String?               @map("created_by") @db.Uuid
-  updatedAt       DateTime              @default(now()) @map("updated_at") @db.Timestamptz(6)
-  updatedBy       String?               @map("updated_by") @db.Uuid
-  version         Int                   @default(1)
-  deletedAt       DateTime?             @map("deleted_at") @db.Timestamptz(6)
-  tenant          Tenant                @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  candidate       HrCandidate?          @relation(fields: [tenantId, candidateId], references: [tenantId, id], onDelete: Restrict)
+  userId          String?                @map("user_id") @db.Uuid
+  activatedAt     DateTime?              @map("activated_at") @db.Timestamptz(6)
+  activatedBy     String?                @map("activated_by") @db.Uuid
+  closedReason    String?                @map("closed_reason")
+  requestKey      String                 @map("request_key")
+  createdAt       DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?                @map("created_by") @db.Uuid
+  updatedAt       DateTime               @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy       String?                @map("updated_by") @db.Uuid
+  version         Int                    @default(1)
+  deletedAt       DateTime?              @map("deleted_at") @db.Timestamptz(6)
+  tenant          Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  candidate       HrCandidate?           @relation(fields: [tenantId, candidateId], references: [tenantId, id], onDelete: Restrict)
   contracts       HrContract[]
   onboardingTasks HrOnboardingTask[]
   fileChecklist   HrFileChecklistItem[]
+  leaveRequests   HrLeaveRequest[]
+  overtime        HrOvertime[]
+  novelties       HrPayrollNovelty[]
+  reviews         HrPerformanceReview[]
+  trainings       HrTrainingAttendance[]
+  disciplinary    HrDisciplinaryCase[]
+  offboardings    HrOffboarding[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, requestKey])
@@ -4286,4 +4302,280 @@ model HrFileChecklistItem {
   @@unique([tenantId, id])
   @@unique([tenantId, employeeId, item])
   @@map("hr_file_checklist")
+}
+
+/// Permisos, licencias y vacaciones (B36, ficha 17.13): radicada → aprobada o rechazada → disfrutada.
+model HrLeaveRequest {
+  id            String     @id @default(uuid(7)) @db.Uuid
+  tenantId      String     @map("tenant_id") @db.Uuid
+  employeeId    String     @map("employee_id") @db.Uuid
+  type          String
+  startsOn      DateTime   @map("starts_on") @db.Date
+  endsOn        DateTime   @map("ends_on") @db.Date
+  days          Int
+  status        String     @default("requested")
+  note          String?
+  /// Jefe inmediato al radicar; vacío si decide Talento humano.
+  approverId    String?    @map("approver_id") @db.Uuid
+  requestedBy   String     @map("requested_by") @db.Uuid
+  decidedBy     String?    @map("decided_by") @db.Uuid
+  decidedAt     DateTime?  @map("decided_at") @db.Timestamptz(6)
+  decisionNote  String?    @map("decision_note")
+  supportFileId String?    @map("support_file_id") @db.Uuid
+  requestKey    String     @map("request_key")
+  createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?    @map("created_by") @db.Uuid
+  updatedAt     DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?    @map("updated_by") @db.Uuid
+  version       Int        @default(1)
+  deletedAt     DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee      HrEmployee @relation(fields: [tenantId, employeeId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, employeeId])
+  @@index([tenantId, approverId, status])
+  @@index([tenantId, status])
+  @@map("hr_leave_requests")
+}
+
+/// Horas extras con autorización previa (B36, ficha 17.13).
+model HrOvertime {
+  id            String     @id @default(uuid(7)) @db.Uuid
+  tenantId      String     @map("tenant_id") @db.Uuid
+  employeeId    String     @map("employee_id") @db.Uuid
+  workDate      DateTime   @map("work_date") @db.Date
+  kind          String
+  hours         Decimal    @db.Decimal(4, 2)
+  reportedHours Decimal?   @map("reported_hours") @db.Decimal(4, 2)
+  reason        String
+  status        String     @default("requested")
+  approverId    String?    @map("approver_id") @db.Uuid
+  requestedBy   String     @map("requested_by") @db.Uuid
+  decidedBy     String?    @map("decided_by") @db.Uuid
+  decidedAt     DateTime?  @map("decided_at") @db.Timestamptz(6)
+  decisionNote  String?    @map("decision_note")
+  reportedAt    DateTime?  @map("reported_at") @db.Timestamptz(6)
+  requestKey    String     @map("request_key")
+  createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?    @map("created_by") @db.Uuid
+  updatedAt     DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?    @map("updated_by") @db.Uuid
+  version       Int        @default(1)
+  deletedAt     DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee      HrEmployee @relation(fields: [tenantId, employeeId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, employeeId, workDate])
+  @@index([tenantId, approverId, status])
+  @@map("hr_overtime")
+}
+
+/// Mes de novedades de nómina; cerrado ya no cambia (B36, decisión 6).
+model HrPayrollPeriod {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  tenantId  String    @map("tenant_id") @db.Uuid
+  period    String
+  status    String    @default("open")
+  closedAt  DateTime? @map("closed_at") @db.Timestamptz(6)
+  closedBy  String?   @map("closed_by") @db.Uuid
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy String?   @map("created_by") @db.Uuid
+  updatedAt DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy String?   @map("updated_by") @db.Uuid
+  version   Int       @default(1)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, period])
+  @@map("hr_payroll_periods")
+}
+
+/// Novedad de nómina del mes, para el software de nómina (B36, ficha 17.13).
+model HrPayrollNovelty {
+  id           String     @id @default(uuid(7)) @db.Uuid
+  tenantId     String     @map("tenant_id") @db.Uuid
+  period       String
+  employeeId   String     @map("employee_id") @db.Uuid
+  concept      String
+  quantity     Decimal    @db.Decimal(10, 2)
+  unit         String
+  amount       Decimal?   @db.Decimal(18, 2)
+  startsOn     DateTime?  @map("starts_on") @db.Date
+  endsOn       DateTime?  @map("ends_on") @db.Date
+  sourceEntity String     @map("source_entity")
+  sourceId     String?    @map("source_id") @db.Uuid
+  note         String?
+  requestKey   String?    @map("request_key")
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy    String?    @map("created_by") @db.Uuid
+  updatedAt    DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy    String?    @map("updated_by") @db.Uuid
+  version      Int        @default(1)
+  deletedAt    DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant       Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee     HrEmployee @relation(fields: [tenantId, employeeId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, period])
+  @@index([tenantId, employeeId])
+  @@index([tenantId, sourceEntity, sourceId], map: "hr_payroll_novelties_tenant_id_source_idx")
+  @@map("hr_payroll_novelties")
+}
+
+/// Evaluación de desempeño con objetivos ponderados (B36, decisión 7).
+model HrPerformanceReview {
+  id              String     @id @default(uuid(7)) @db.Uuid
+  tenantId        String     @map("tenant_id") @db.Uuid
+  employeeId      String     @map("employee_id") @db.Uuid
+  period          String
+  objectives      Json
+  score           Decimal?   @db.Decimal(3, 2)
+  status          String     @default("draft")
+  reviewerId      String?    @map("reviewer_id") @db.Uuid
+  reviewerComment String?    @map("reviewer_comment")
+  scoredAt        DateTime?  @map("scored_at") @db.Timestamptz(6)
+  employeeComment String?    @map("employee_comment")
+  agreedOn        DateTime?  @map("agreed_on") @db.Date
+  requestKey      String     @map("request_key")
+  createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?    @map("created_by") @db.Uuid
+  updatedAt       DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy       String?    @map("updated_by") @db.Uuid
+  version         Int        @default(1)
+  deletedAt       DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant          Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee        HrEmployee @relation(fields: [tenantId, employeeId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, employeeId])
+  @@map("hr_performance_reviews")
+}
+
+/// Formación y bienestar (B36, ficha 17.13).
+model HrTraining {
+  id             String                 @id @default(uuid(7)) @db.Uuid
+  tenantId       String                 @map("tenant_id") @db.Uuid
+  code           String
+  title          String
+  kind           String
+  scheduledOn    DateTime               @map("scheduled_on") @db.Date
+  hours          Decimal                @db.Decimal(5, 2)
+  facilitator    String?
+  description    String?
+  status         String                 @default("scheduled")
+  evidenceFileId String?                @map("evidence_file_id") @db.Uuid
+  cancelReason   String?                @map("cancel_reason")
+  requestKey     String                 @map("request_key")
+  createdAt      DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy      String?                @map("created_by") @db.Uuid
+  updatedAt      DateTime               @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy      String?                @map("updated_by") @db.Uuid
+  version        Int                    @default(1)
+  deletedAt      DateTime?              @map("deleted_at") @db.Timestamptz(6)
+  tenant         Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  attendance     HrTrainingAttendance[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, requestKey])
+  @@map("hr_trainings")
+}
+
+/// Asistencia y calificación de cada persona a una formación.
+model HrTrainingAttendance {
+  id         String     @id @default(uuid(7)) @db.Uuid
+  tenantId   String     @map("tenant_id") @db.Uuid
+  trainingId String     @map("training_id") @db.Uuid
+  employeeId String     @map("employee_id") @db.Uuid
+  attended   Boolean?
+  evaluation Int?
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?    @map("created_by") @db.Uuid
+  updatedAt  DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?    @map("updated_by") @db.Uuid
+  version    Int        @default(1)
+  deletedAt  DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  training   HrTraining @relation(fields: [tenantId, trainingId], references: [tenantId, id], onDelete: Restrict)
+  employee   HrEmployee @relation(fields: [tenantId, employeeId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, trainingId, employeeId])
+  @@index([tenantId, employeeId])
+  @@map("hr_training_attendance")
+}
+
+/// Proceso disciplinario: información restringida, con los textos cifrados (B36, decisión 8).
+model HrDisciplinaryCase {
+  id                  String     @id @default(uuid(7)) @db.Uuid
+  tenantId            String     @map("tenant_id") @db.Uuid
+  code                String
+  employeeId          String     @map("employee_id") @db.Uuid
+  status              String     @default("opened")
+  factsEncrypted      String     @map("facts_encrypted")
+  openedOn            DateTime   @map("opened_on") @db.Date
+  citedOn             DateTime?  @map("cited_on") @db.Date
+  hearingOn           DateTime?  @map("hearing_on") @db.Date
+  citationFileId      String?    @map("citation_file_id") @db.Uuid
+  statementEncrypted  String?    @map("statement_encrypted")
+  hearingRecordFileId String?    @map("hearing_record_file_id") @db.Uuid
+  decision            String?
+  suspensionDays      Int?       @map("suspension_days")
+  reasoningEncrypted  String?    @map("reasoning_encrypted")
+  decisionFileId      String?    @map("decision_file_id") @db.Uuid
+  decidedOn           DateTime?  @map("decided_on") @db.Date
+  requestKey          String     @map("request_key")
+  createdAt           DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy           String?    @map("created_by") @db.Uuid
+  updatedAt           DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy           String?    @map("updated_by") @db.Uuid
+  version             Int        @default(1)
+  deletedAt           DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant              Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee            HrEmployee @relation(fields: [tenantId, employeeId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, employeeId])
+  @@map("hr_disciplinary_cases")
+}
+
+/// Retiro con su lista de chequeo y el paz y salvo (B36, decisiones 9 y 10).
+model HrOffboarding {
+  id                    String     @id @default(uuid(7)) @db.Uuid
+  tenantId              String     @map("tenant_id") @db.Uuid
+  employeeId            String     @map("employee_id") @db.Uuid
+  reason                String
+  lastDay               DateTime   @map("last_day") @db.Date
+  note                  String?
+  status                String     @default("in_progress")
+  checklist             Json
+  /// Soporte de la entrevista de retiro (Archivos).
+  exitInterviewRecordId String?    @map("exit_interview_record_id") @db.Uuid
+  accountDeactivatedAt  DateTime?  @map("account_deactivated_at") @db.Timestamptz(6)
+  clearedOn             DateTime?  @map("cleared_on") @db.Date
+  clearedBy             String?    @map("cleared_by") @db.Uuid
+  cancelReason          String?    @map("cancel_reason")
+  requestKey            String     @map("request_key")
+  createdAt             DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy             String?    @map("created_by") @db.Uuid
+  updatedAt             DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy             String?    @map("updated_by") @db.Uuid
+  version               Int        @default(1)
+  deletedAt             DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant                Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee              HrEmployee @relation(fields: [tenantId, employeeId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, status])
+  @@map("hr_offboardings")
 }

@@ -117,6 +117,7 @@ describe('enrutador de trabajos de documentos y avisos', () => {
       JOBS.prjAcceptanceWork,
       JOBS.astLoanWork,
       JOBS.hrRetention,
+      JOBS.hrDailyWork,
       JOBS.svcSlaWork,
       JOBS.svcCareWork,
     ]) {

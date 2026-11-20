@@ -14,6 +14,8 @@ import { DOC_REQUEST_ROUTE_CALLS } from './doc-request-route-calls.js';
 import { DOC_RETENTION_ROUTE_CALLS } from './doc-retention-route-calls.js';
 import { DOC_ROUTE_CALLS } from './doc-route-calls.js';
 import { FINANCE_ROUTE_CALLS } from './finance-route-calls.js';
+import { HR_ABSENCE_ROUTE_CALLS } from './hr-absence-route-calls.js';
+import { HR_PEOPLE_ROUTE_CALLS } from './hr-people-route-calls.js';
 import { HR_ROUTE_CALLS } from './hr-route-calls.js';
 import { LEDGER_ROUTE_CALLS } from './ledger-route-calls.js';
 import { MEDIA_ROUTE_CALLS } from './media-route-calls.js';
@@ -44,6 +46,8 @@ export const WRITE_ROUTE_CALLS: Readonly<Record<string, RouteCall>> = {
   ...AUTH_ROUTE_CALLS,
   ...ACCESS_ROUTE_CALLS,
   ...HR_ROUTE_CALLS,
+  ...HR_ABSENCE_ROUTE_CALLS,
+  ...HR_PEOPLE_ROUTE_CALLS,
   ...CORE_CALLS,
   ...PARTY_ROUTE_CALLS,
   ...DOC_ROUTE_CALLS,

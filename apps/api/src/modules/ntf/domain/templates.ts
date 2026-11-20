@@ -88,7 +88,34 @@ export const DEFAULT_TEMPLATES: Readonly<Record<NotificationKind, TemplateText>>
   // B35: a cada responsable de una tarea de inducción de un colaborador nuevo (decisión 6).
   hr_onboarding_task: {
     subject: 'Tarea de inducción: {{tarea}}',
-    body: 'Ingresa un colaborador nuevo y a usted le corresponde la tarea «{{tarea}}», con fecha {{vence}}. Cuando la termine, avísele a Talento humano.',
+    body: 'Ingresa un colaborador nuevo y a usted le corresponde la tarea «{{tarea}}», con fecha {{vence}}. Cuando la termine, márquela como hecha en ARZA ONE › Mi espacio.',
+    urgent: false,
+  },
+  // B36: al jefe (o a Talento humano) cuando le piden algo y al colaborador cuando le responden.
+  hr_leave_update: {
+    subject: 'Ausencia: {{novedad}}',
+    body: '{{novedad}}. Revísela en ARZA ONE › Mi espacio.',
+    urgent: false,
+  },
+  hr_overtime_update: {
+    subject: 'Horas extras: {{novedad}}',
+    body: '{{novedad}}. Revísela en ARZA ONE › Mi espacio.',
+    urgent: false,
+  },
+  hr_review_update: {
+    subject: 'Su evaluación de desempeño está lista',
+    body: '{{nombre}}, su jefe calificó su evaluación de desempeño. Revísela y acéptela en ARZA ONE › Mi espacio.',
+    urgent: false,
+  },
+  // Sin el contenido del caso: la persona lo consulta en la plataforma (información restringida).
+  hr_disciplinary_notice: {
+    subject: 'Citación de Talento humano',
+    body: 'Talento humano le envió una citación para el {{fecha}}. Consúltela en ARZA ONE › Mi espacio.',
+    urgent: false,
+  },
+  hr_offboarding_task: {
+    subject: 'Tarea de un retiro: {{tarea}}',
+    body: 'Un colaborador se retira y a usted le corresponde «{{tarea}}», con último día laborado el {{fecha}}. Márquela como hecha en ARZA ONE › Mi espacio.',
     urgent: false,
   },
 };
