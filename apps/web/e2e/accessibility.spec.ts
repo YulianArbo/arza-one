@@ -38,7 +38,7 @@ const PAGES = [
   { path: '/app/estado-del-sistema', ready: 'Todo funciona' },
   { path: '/app/sistema-de-diseno', ready: 'Estados de pantalla' },
   { path: '/app/calidad', ready: 'Este módulo está en construcción' },
-  { path: '/portal', ready: 'Bienvenido, Demo Uno S.A.S.', session: 'portal', api: PORTAL_API },
+  { path: '/portal', ready: 'Su espacio de cliente', session: 'portal', api: PORTAL_API },
   { path: '/iniciar-sesion', ready: '¿Olvidó su contraseña?', session: 'none' },
   { path: '/recuperar-contrasena', ready: 'Enviar enlace', session: 'none' },
   { path: `/activar-cuenta#token=${TOKEN}`, ready: 'Activar cuenta', session: 'none' },

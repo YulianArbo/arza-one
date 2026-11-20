@@ -55,7 +55,7 @@ test('el primer ingreso pide aceptar los términos vigentes', async ({ page }) =
   expect(await accessibilityViolations(page)).toEqual([]);
   await page.getByLabel(/Leí y acepto/u).check();
   await page.getByRole('button', { name: 'Aceptar y continuar' }).click();
-  await expect(page.getByText('Bienvenido, Demo Uno S.A.S.')).toBeVisible();
+  await expect(page.getByText('Su espacio de cliente')).toBeVisible();
 });
 
 // Como en la aplicación interna (shell.spec.ts): la pantalla de carga ya salió con código 200, así

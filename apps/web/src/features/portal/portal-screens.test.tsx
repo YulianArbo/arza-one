@@ -87,10 +87,20 @@ describe('inicio', () => {
   it('muestra lo pendiente según el rol y los próximos hitos', async () => {
     servePortal(CLIENT_ADMIN);
     show(<PortalHomePage />);
-    expect(
-      await screen.findByRole('heading', { name: 'Bienvenido, Demo Uno S.A.S.' }),
-    ).toBeVisible();
-    expect(await screen.findByText('Actas por aprobar')).toBeVisible();
+    expect(await screen.findByRole('heading', { name: 'Su espacio de cliente' })).toBeVisible();
+    expect(screen.getByText('Demo Uno S.A.S.')).toBeVisible();
+    expect(await screen.findByRole('heading', { name: 'Portal de autogestión' })).toBeVisible();
+    expect(screen.getByText('40 %', { selector: 'p' })).toBeVisible();
+    expect(screen.getByText('Entrega 1 prevista el 01/12/2026.')).toBeVisible();
+    expect(screen.getByRole('link', { name: '1 acta de entrega por aprobar' })).toHaveAttribute(
+      'href',
+      '/portal/por-aprobar',
+    );
+    expect(screen.getByRole('link', { name: '1 documento por firmar' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Consultar soporte' })).toHaveAttribute(
+      'href',
+      '/portal/soporte',
+    );
     expect(screen.getByRole('link', { name: /Entrega 1/u })).toHaveAttribute(
       'href',
       `/portal/proyectos/${PROJECT_ID}`,
@@ -109,8 +119,8 @@ describe('inicio', () => {
     });
     show(<PortalHomePage />);
     expect(await screen.findByText('Sin hitos próximos')).toBeVisible();
-    expect(await screen.findByText('Proyectos')).toBeVisible();
-    expect(screen.queryByText('Actas por aprobar')).toBeNull();
+    expect(await screen.findByText('No tiene nada pendiente por revisar.')).toBeVisible();
+    expect(screen.queryByRole('link', { name: 'Abrir aprobaciones' })).toBeNull();
   });
 });
 

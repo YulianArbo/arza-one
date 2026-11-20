@@ -6,7 +6,7 @@ import { PORTAL_API } from './support/portal-api';
 const MOBILE_PAGES = [
   { path: '/', ready: 'ARZA TECH S.A.S.', session: 'none' },
   { path: '/iniciar-sesion', ready: '¿Olvidó su contraseña?', session: 'none' },
-  { path: '/portal', ready: 'Bienvenido, Demo Uno S.A.S.', session: 'portal' },
+  { path: '/portal', ready: 'Su espacio de cliente', session: 'portal' },
 ] as const;
 
 test.describe('superficies en celular', () => {
