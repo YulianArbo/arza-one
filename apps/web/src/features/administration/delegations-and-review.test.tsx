@@ -112,6 +112,8 @@ describe('retirar delegaciones', () => {
     await vi.waitFor(() => {
       expect(sent.some((request) => request.path.endsWith('/actions/revoke'))).toBe(true);
     });
+    // B22B: al terminar bien aparece el aviso breve de éxito (16.5).
+    expect(await screen.findByText('Los cambios quedaron guardados.')).toBeVisible();
   });
 });
 
