@@ -89,8 +89,9 @@ describe('todas las rutas reales de la API declaran su acceso', () => {
       // El enlace de la cotización (B23, decisión 8) y la página de firma (B25): la llave va en el
       // cuerpo de la petición. La verificación pública (B25, numeral 19.3) no revela el contenido.
       // PQRSF y encuesta (B29): radicar, consultar con radicado y correo, y la encuesta con su llave.
+      // Comunicados del acceso (B36A): solo los vigentes de la empresa del sitio, que son públicos.
       expect(path).toMatch(
-        /^\/(health|version|v1\/auth\/(login|password\/\w+|invitation\/accept)|v1\/files\/(uploads|downloads)\/:token|v1\/public\/quotes\/(view|pdf|accept|reject)|v1\/public\/signatures\/(open|code|verify-code|document|sign|reject)|v1\/public\/verifications|v1\/public\/pqrsf(\/status)?|v1\/public\/surveys\/(view|answer))$/,
+        /^\/(health|version|v1\/auth\/(login|password\/\w+|invitation\/accept)|v1\/files\/(uploads|downloads)\/:token|v1\/public\/quotes\/(view|pdf|accept|reject)|v1\/public\/signatures\/(open|code|verify-code|document|sign|reject)|v1\/public\/verifications|v1\/public\/pqrsf(\/status)?|v1\/public\/surveys\/(view|answer)|v1\/public\/announcements(\/:id\/image)?)$/,
       );
     }
   });

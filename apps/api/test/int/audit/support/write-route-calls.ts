@@ -6,6 +6,7 @@ import { ASSET_ROUTE_CALLS } from './asset-route-calls.js';
 import { AUTH_ROUTE_CALLS } from './auth-route-calls.js';
 import { CARE_ROUTE_CALLS } from './care-route-calls.js';
 import { CONTRACT_ROUTE_CALLS } from './contract-route-calls.js';
+import { ANNOUNCEMENT_CALLS } from './announcement-route-calls.js';
 import { CORE_CALLS } from './core-route-calls.js';
 import { CRM_ROUTE_CALLS } from './crm-route-calls.js';
 import { DOC_DOCUMENT_ROUTE_CALLS } from './doc-document-route-calls.js';
@@ -49,6 +50,7 @@ export const WRITE_ROUTE_CALLS: Readonly<Record<string, RouteCall>> = {
   ...HR_ABSENCE_ROUTE_CALLS,
   ...HR_PEOPLE_ROUTE_CALLS,
   ...CORE_CALLS,
+  ...ANNOUNCEMENT_CALLS,
   ...PARTY_ROUTE_CALLS,
   ...DOC_ROUTE_CALLS,
   ...DOC_DOCUMENT_ROUTE_CALLS,

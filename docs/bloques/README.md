@@ -41,6 +41,7 @@ Un bloque a la vez, en orden. Actualice la columna Estado al cerrar cada uno.
 | B35 | F7 | Talento humano: colaboradores, selección y vinculación | B25 · B17 | Sí | Terminado |
 | B22B | Transversal, después de B35 y antes de B36 | Nueva jerarquía visual de las tres superficies | B22A · B35 | — | Terminado |
 | B36 | F7 | Talento humano: novedades, desempeño y retiro | B35 | — | En revisión |
+| B36A | Transversal, después de B36 y antes de B37 | Comunicados en el acceso | B22B · B14 · B16 | — | Pendiente |
 | B37 | F7 | Seguridad y salud en el trabajo | B36 | — | Pendiente |
 | B38 | F7 | Calidad: procesos, riesgos, no conformidades y acciones | B15 | — | Pendiente |
 | B39 | F7 | Calidad: auditorías, indicadores y revisión por la dirección | B38 | — | Pendiente |

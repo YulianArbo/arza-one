@@ -163,6 +163,7 @@ const ADMINISTRATION = [
   sub(ADMIN_PATHS.parameters, 'Parámetros', SlidersHorizontal, 'core.parameter.read'),
   sub(ADMIN_PATHS.sequences, 'Consecutivos', ListChecks, 'core.sequence.manage'),
   sub(ADMIN_PATHS.holidays, 'Festivos', CalendarDays, 'core.parameter.read'),
+  sub(ADMIN_PATHS.announcements, 'Comunicados', Megaphone, 'core.announcement.manage'),
 ];
 
 const AUDIT = [

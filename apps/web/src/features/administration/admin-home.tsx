@@ -40,6 +40,7 @@ const GROUPS: readonly ShortcutGroup[] = [
       WF_PATHS.definitions,
       NTF_PATHS.templates,
       OUTPUT_TEMPLATES_PATH,
+      ADMIN_PATHS.announcements,
     ],
   },
 ];

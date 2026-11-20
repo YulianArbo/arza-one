@@ -17,6 +17,7 @@ export const CORE_PERMISSION_GROUPS = [
       ['core.parameter.read', 'read', 'Ver los parámetros y el estado del sistema'],
       ['core.parameter.manage', 'write', 'Cambiar los parámetros'],
       ['core.sequence.manage', 'write', 'Administrar los consecutivos'],
+      ['core.announcement.manage', 'write', 'Administrar los comunicados del acceso'],
     ],
   },
   {
