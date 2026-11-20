@@ -1,7 +1,7 @@
 'use client';
 
 import type { PortalDeliverable, PortalProjectDetail, PortalProjectSummary } from '@arza/contracts';
-import { Card, CardContent, EmptyState } from '@arza/ui';
+import { EmptyState, HighlightCard } from '@arza/ui';
 import { FolderKanban } from 'lucide-react';
 import type { JSX } from 'react';
 
@@ -22,7 +22,7 @@ import {
 import { usePortalProject, usePortalProjects } from './portal-queries';
 import { PORTAL_PATHS } from './portal-sections';
 
-// Mis proyectos (B30, ficha 17.10): avance, próximos hitos y entregables con su acta. Nunca horas,
+// Proyectos del cliente (B30, ficha 17.10): avance, próximos hitos y entregables con su acta. Nunca horas,
 // dinero ni notas del equipo; el usuario del cliente ve solo los que su administrador le asignó.
 
 function ProjectCard({ project }: { readonly project: PortalProjectSummary }): JSX.Element {
@@ -48,11 +48,20 @@ function ProjectCard({ project }: { readonly project: PortalProjectSummary }): J
   );
 }
 
+/** Resumen bajo el título (boceto 25): con un proyecto, su avance y su próximo hito. */
+function projectsSummary(projects: readonly PortalProjectSummary[]): string {
+  const [only] = projects;
+  if (projects.length !== 1 || only === undefined) return 'Avance, hitos y entregables.';
+  const next = only.next_milestone;
+  const pct = `${String(only.progress_pct)} % de avance`;
+  return next === null ? pct : `${pct} · próximo hito el ${formatDate(next.due_on)}`;
+}
+
 export function PortalProjectsPage(): JSX.Element {
   const projects = usePortalProjects();
   return (
     <>
-      <PageHeader title="Mis proyectos" description="Avance, hitos y entregables." />
+      <PageHeader title="Proyectos" description={projectsSummary(projects.data?.data ?? [])} />
       <QueryState query={projects} loadingLabel="Cargando sus proyectos">
         {(data) =>
           data.data.length === 0 ? (
@@ -108,74 +117,60 @@ function DeliverableItem({
 
 function MilestoneSection({ project }: { readonly project: PortalProjectDetail }): JSX.Element {
   return (
-    <section className="flex flex-col gap-2" aria-labelledby="hitos">
-      <h2 id="hitos" className="font-heading text-lg font-semibold">
-        Hitos
-      </h2>
-      <Card>
-        <CardContent className="p-4">
-          {project.milestones.length === 0 ? (
-            <p className="text-sm text-muted-foreground">El proyecto no tiene hitos todavía.</p>
-          ) : (
-            <ol className="flex flex-col divide-y">
-              {project.milestones.map((milestone) => (
-                <li
-                  key={milestone.id}
-                  className="flex flex-wrap items-center justify-between gap-2 py-2"
-                >
-                  <span>
-                    {milestone.name}
-                    <span className="block text-sm text-muted-foreground">
-                      {formatDate(milestone.due_on)}
-                    </span>
-                  </span>
-                  <StatusBadge status={milestone.status} labels={MILESTONE_STATUSES} />
-                </li>
-              ))}
-            </ol>
-          )}
-        </CardContent>
-      </Card>
-    </section>
+    <HighlightCard title="Hitos">
+      {project.milestones.length === 0 ? (
+        <p className="text-sm text-muted-foreground">El proyecto no tiene hitos todavía.</p>
+      ) : (
+        <ol className="flex flex-col divide-y">
+          {project.milestones.map((milestone) => (
+            <li
+              key={milestone.id}
+              className="flex flex-wrap items-center justify-between gap-2 py-2"
+            >
+              <span>
+                {milestone.name}
+                <span className="block text-sm text-muted-foreground">
+                  {formatDate(milestone.due_on)}
+                </span>
+              </span>
+              <StatusBadge status={milestone.status} labels={MILESTONE_STATUSES} />
+            </li>
+          ))}
+        </ol>
+      )}
+    </HighlightCard>
   );
 }
 
 function DeliverableSection({ project }: { readonly project: PortalProjectDetail }): JSX.Element {
   return (
-    <section className="flex flex-col gap-2" aria-labelledby="entregables">
-      <h2 id="entregables" className="font-heading text-lg font-semibold">
-        Entregables
-      </h2>
-      <Card>
-        <CardContent className="p-4">
-          {project.deliverables.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Aún no hay entregables entregados.</p>
-          ) : (
-            <ul className="flex flex-col divide-y">
-              {project.deliverables.map((deliverable) => (
-                <DeliverableItem key={deliverable.id} deliverable={deliverable} />
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
-    </section>
+    <HighlightCard title="Entregables">
+      {project.deliverables.length === 0 ? (
+        <p className="text-sm text-muted-foreground">Aún no hay entregables entregados.</p>
+      ) : (
+        <ul className="flex flex-col divide-y">
+          {project.deliverables.map((deliverable) => (
+            <DeliverableItem key={deliverable.id} deliverable={deliverable} />
+          ))}
+        </ul>
+      )}
+    </HighlightCard>
   );
 }
 
 function ProjectDetailView({ project }: { readonly project: PortalProjectDetail }): JSX.Element {
   return (
     <>
-      <BackLink href={PORTAL_PATHS.projects} label="Volver a mis proyectos" />
+      <BackLink href={PORTAL_PATHS.projects} label="Volver a proyectos" />
       <PageHeader title={project.name} description={project.description ?? project.code} />
-      <Card>
-        <CardContent className="flex flex-col gap-3 p-4">
+      <HighlightCard title="Avance" highlighted>
+        <span className="self-start">
           <StatusBadge status={project.status} labels={PROJECT_STATUSES} />
-          <Progress percent={project.progress_pct} label="Avance de las tareas" />
-          <Fact label="Desde">{formatDate(project.starts_on)}</Fact>
-          <Fact label="Hasta">{formatDate(project.ends_on)}</Fact>
-        </CardContent>
-      </Card>
+        </span>
+        <Progress percent={project.progress_pct} label="Avance de las tareas" />
+        <Fact label="Desde">{formatDate(project.starts_on)}</Fact>
+        <Fact label="Hasta">{formatDate(project.ends_on)}</Fact>
+      </HighlightCard>
       <MilestoneSection project={project} />
       <DeliverableSection project={project} />
     </>

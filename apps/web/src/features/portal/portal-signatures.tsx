@@ -6,7 +6,7 @@ import {
   type PortalContract,
   type PortalSignature,
 } from '@arza/contracts';
-import { Button, Card, CardContent, EmptyState } from '@arza/ui';
+import { Button, Card, CardContent, EmptyState, HighlightCard } from '@arza/ui';
 import { FileSignature, FileText } from 'lucide-react';
 import type { JSX } from 'react';
 
@@ -231,10 +231,7 @@ export function PortalSignaturesPage(): JSX.Element {
         title="Contratos y firmas"
         description="Sus contratos y lo que requiere su firma."
       />
-      <section className="flex flex-col gap-3" aria-labelledby="por-firmar">
-        <h2 id="por-firmar" className="font-heading text-lg font-semibold">
-          Por firmar
-        </h2>
+      <HighlightCard title="Por firmar">
         <QueryState query={signatures} loadingLabel="Cargando lo que requiere su firma">
           {(data) => (
             <SignatureList
@@ -244,13 +241,10 @@ export function PortalSignaturesPage(): JSX.Element {
             />
           )}
         </QueryState>
-      </section>
-      <section className="flex flex-col gap-3" aria-labelledby="contratos">
-        <h2 id="contratos" className="font-heading text-lg font-semibold">
-          Contratos
-        </h2>
+      </HighlightCard>
+      <HighlightCard title="Contratos">
         <Contracts />
-      </section>
+      </HighlightCard>
     </>
   );
 }

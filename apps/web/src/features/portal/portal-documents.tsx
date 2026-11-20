@@ -1,7 +1,7 @@
 'use client';
 
 import { PORTAL_DOCUMENT_LABELS, type PortalDocument } from '@arza/contracts';
-import { Badge, Button, Card, CardContent, EmptyState } from '@arza/ui';
+import { Badge, Button, EmptyState, HighlightCard } from '@arza/ui';
 import { FolderOpen } from 'lucide-react';
 import type { JSX } from 'react';
 
@@ -70,15 +70,13 @@ export function PortalDocumentsPage(): JSX.Element {
               description="Aquí aparecerán los documentos firmados y lo que el equipo comparta con usted."
             />
           ) : (
-            <Card>
-              <CardContent className="p-4">
-                <ul className="flex flex-col divide-y" aria-label="Documentos">
-                  {data.data.map((document) => (
-                    <DocumentRow key={`${document.kind}-${document.id}`} document={document} />
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+            <HighlightCard title="Sus documentos">
+              <ul className="flex flex-col divide-y" aria-label="Documentos">
+                {data.data.map((document) => (
+                  <DocumentRow key={`${document.kind}-${document.id}`} document={document} />
+                ))}
+              </ul>
+            </HighlightCard>
           )
         }
       </QueryState>

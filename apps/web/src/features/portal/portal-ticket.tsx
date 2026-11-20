@@ -7,7 +7,16 @@ import {
   type PortalTicketDetail,
   type PortalTicketMessage,
 } from '@arza/contracts';
-import { Alert, AlertDescription, Badge, Button, Card, CardContent, TextareaField } from '@arza/ui';
+import {
+  Alert,
+  AlertDescription,
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  TextareaField,
+  HighlightCard,
+} from '@arza/ui';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
 import { PageHeader } from '../../components/app-shell/page-header';
@@ -105,10 +114,7 @@ function TicketView({ ticket }: { readonly ticket: PortalTicketDetail }): JSX.El
         </Alert>
       ) : null}
       <TicketFacts ticket={ticket} />
-      <section className="flex flex-col gap-3" aria-labelledby="conversacion">
-        <h2 id="conversacion" className="font-heading text-lg font-semibold">
-          Conversación
-        </h2>
+      <HighlightCard title="Conversación">
         {ticket.messages.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             Aún no hay mensajes del equipo de soporte.
@@ -121,7 +127,7 @@ function TicketView({ ticket }: { readonly ticket: PortalTicketDetail }): JSX.El
           </ol>
         )}
         {ticket.can_reply ? <Reply ticket={ticket} /> : null}
-      </section>
+      </HighlightCard>
     </>
   );
 }
