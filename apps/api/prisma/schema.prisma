@@ -48,6 +48,7 @@ model Tenant {
   orgUnits                OrgUnit[]
   positions               Position[]
   costCenters             CostCenter[]
+  announcements           Announcement[]
   catalogs                Catalog[]
   catalogItems            CatalogItem[]
   sequences               Sequence[]
@@ -690,6 +691,32 @@ model CostCenter {
   @@unique([tenantId, code])
   @@index([tenantId, orgUnitId])
   @@map("core_cost_centers")
+}
+
+/// Comunicados del acceso (B36A): vigentes de una fecha a otra, para el personal, los clientes o ambos.
+model Announcement {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  tenantId    String    @map("tenant_id") @db.Uuid
+  title       String
+  body        String
+  linkUrl     String?   @map("link_url")
+  audience    String
+  startsOn    DateTime  @map("starts_on") @db.Date
+  endsOn      DateTime  @map("ends_on") @db.Date
+  imageFileId String?   @map("image_file_id") @db.Uuid
+  endedAt     DateTime? @map("ended_at") @db.Timestamptz(6)
+  endedBy     String?   @map("ended_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?   @map("created_by") @db.Uuid
+  updatedAt   DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?   @map("updated_by") @db.Uuid
+  version     Int       @default(1)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, startsOn, endsOn])
+  @@map("core_announcements")
 }
 
 /// Catálogos administrables: la lista la define el sistema, sus opciones la empresa.

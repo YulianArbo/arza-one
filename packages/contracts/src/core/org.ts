@@ -16,6 +16,8 @@ export const CORE_ERROR_CODES = {
   parameterValidFromInvalid: 'CORE_PARAMETER_VALID_FROM_INVALID',
   sequenceUnknown: 'CORE_SEQUENCE_UNKNOWN',
   holidayTaken: 'CORE_HOLIDAY_TAKEN',
+  announcementPast: 'CORE_ANNOUNCEMENT_PAST',
+  announcementEnded: 'CORE_ANNOUNCEMENT_ENDED',
 } as const;
 
 export const recordNameSchema = z.string().trim().min(2).max(120);

@@ -1,3 +1,4 @@
+import { CORE_PATHS } from './api-paths-core.js';
 import { FINANCE_PATHS } from './api-paths-finance.js';
 import { HR_PATHS } from './api-paths-hr.js';
 import { PORTAL_PATHS } from './api-paths-portal.js';
@@ -27,10 +28,6 @@ const PLATFORM_PATHS = [
   '/v1/auth/reauthenticate',
   '/v1/auth/session',
   '/v1/business-days',
-  '/v1/catalogs',
-  '/v1/catalogs/{key}',
-  '/v1/catalogs/{key}/items',
-  '/v1/catalogs/{key}/items/{id}',
   '/v1/change-requests',
   '/v1/change-requests/{id}',
   '/v1/change-requests/{id}/actions/{step}',
@@ -59,8 +56,6 @@ const PLATFORM_PATHS = [
   '/v1/contracts/{id}/obligations/{obligationId}',
   '/v1/contracts/{id}/obligations/{obligationId}/actions/complete',
   '/v1/contracts/{id}/pdf',
-  '/v1/cost-centers',
-  '/v1/cost-centers/{id}',
   '/v1/crm/activities',
   '/v1/crm/activities/{id}',
   '/v1/crm/activities/{id}/actions/complete',
@@ -303,4 +298,4 @@ const PLATFORM_PATHS = [
 
 const MODULE_PATHS = [FINANCE_PATHS, SERVICE_PATHS, PORTAL_PATHS, PURCHASE_PATHS, HR_PATHS];
 
-export const API_PATHS = PLATFORM_PATHS.concat(...MODULE_PATHS).sort();
+export const API_PATHS = PLATFORM_PATHS.concat(...MODULE_PATHS, CORE_PATHS).sort();

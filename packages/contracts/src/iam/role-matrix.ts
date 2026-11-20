@@ -64,7 +64,13 @@ const EXTRAS: Readonly<Partial<Record<InternalRoleCode, readonly PermissionCode[
   // Las compras del tramo alto las aprueba solo la Dirección (decisión 2 del B33).
   // El salario exacto lo ven Talento humano, la Dirección y el Contador (ficha 17.13, decisión 7
   // del B35).
-  DIRECCION: ['party.due_diligence.approve', 'purchase.request.approve_high', 'hr.salary.read'],
+  // Los comunicados del acceso los publica también la Dirección (decisión del dueño, B36A).
+  DIRECCION: [
+    'party.due_diligence.approve',
+    'purchase.request.approve_high',
+    'hr.salary.read',
+    'core.announcement.manage',
+  ],
   // Las cuentas bancarias de terceros se registran y aprueban en finanzas (doble aprobación).
   ADMIN_FINANCIERO: [
     'party.bank_account.read',

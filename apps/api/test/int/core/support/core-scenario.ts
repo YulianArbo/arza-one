@@ -49,6 +49,18 @@ export class CoreScenario extends AccessScenario {
     return call;
   }
 
+  /** Acción sin cuerpo con la versión vista, como terminar un comunicado (B36A). */
+  postWithVersion(path: string, session: SignedIn, version: number): request.Test {
+    return request(this.app.getHttpServer())
+      .post(path)
+      .set('Origin', WEB_ORIGIN)
+      .set('X-Forwarded-For', freshIp())
+      .set('Cookie', session.cookie)
+      .set('X-CSRF-Token', session.session.csrf_token)
+      .set('If-Match', `"${String(version)}"`)
+      .send({});
+  }
+
   /** Crea por la API y devuelve el identificador. */
   async create(path: string, person: Person, body: object): Promise<string> {
     const response = await this.post(path, person.session, body);

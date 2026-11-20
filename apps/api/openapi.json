@@ -6561,6 +6561,658 @@
         ]
       }
     },
+    "/v1/announcements": {
+      "get": {
+        "operationId": "AnnouncementsController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Lista",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnouncementListResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Comunicados, los más recientes primero, con su estado",
+        "tags": [
+          "Comunicados"
+        ]
+      },
+      "post": {
+        "description": "Se ve en el acceso del primer al último día, en hora de Colombia.",
+        "operationId": "AnnouncementsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnnouncementRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoreCreatedResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, código repetido o registro en uso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Crear un comunicado",
+        "tags": [
+          "Comunicados"
+        ]
+      }
+    },
+    "/v1/announcements/uploads": {
+      "post": {
+        "description": "PNG o JPG de hasta 2 MB.",
+        "operationId": "AnnouncementsController_requestUpload",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnnouncementImageUploadRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Enlace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnouncementUploadLinkResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Pedir el enlace para subir la imagen",
+        "tags": [
+          "Comunicados"
+        ]
+      }
+    },
+    "/v1/announcements/{id}": {
+      "patch": {
+        "operationId": "AnnouncementsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnnouncementRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Comunicado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnouncementResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, código repetido o registro en uso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Editar un comunicado que no esté terminado",
+        "tags": [
+          "Comunicados"
+        ]
+      }
+    },
+    "/v1/announcements/{id}/end": {
+      "post": {
+        "operationId": "AnnouncementsController_end",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Terminado"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, código repetido o registro en uso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla del negocio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Terminar un comunicado antes de su fecha de fin",
+        "tags": [
+          "Comunicados"
+        ]
+      }
+    },
+    "/v1/announcements/{id}/image": {
+      "get": {
+        "operationId": "AnnouncementsController_image",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "La imagen"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sin imagen",
+            "content": {
+              "image/png": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnouncementErrorResponse_Output"
+                }
+              },
+              "image/jpeg": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnouncementErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Imagen del comunicado",
+        "tags": [
+          "Comunicados"
+        ]
+      }
+    },
+    "/v1/public/announcements": {
+      "get": {
+        "operationId": "PublicAnnouncementsController_list",
+        "parameters": [
+          {
+            "name": "audience",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "staff",
+                "clients"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicAnnouncementListResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Comunicados vigentes para el personal o para los clientes",
+        "tags": [
+          "Sitio público"
+        ]
+      }
+    },
+    "/v1/public/announcements/{id}/image": {
+      "get": {
+        "operationId": "PublicAnnouncementsController_image",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "La imagen"
+          },
+          "404": {
+            "description": "Sin imagen, vencido o terminado",
+            "content": {
+              "image/png": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicAnnouncementErrorResponse_Output"
+                }
+              },
+              "image/jpeg": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicAnnouncementErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Imagen de un comunicado vigente",
+        "tags": [
+          "Sitio público"
+        ]
+      }
+    },
     "/v1/parties": {
       "get": {
         "operationId": "PartiesController_list",
@@ -60042,6 +60694,502 @@
           "from",
           "days",
           "date"
+        ],
+        "additionalProperties": false
+      },
+      "AnnouncementListResponse_Output": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "body": {
+                  "type": "string"
+                },
+                "link_url": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "audience": {
+                  "type": "string",
+                  "enum": [
+                    "staff",
+                    "clients",
+                    "both"
+                  ]
+                },
+                "starts_on": {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                },
+                "ends_on": {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                },
+                "image_file_id": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "scheduled",
+                    "active",
+                    "expired",
+                    "ended"
+                  ]
+                },
+                "ended_at": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                },
+                "version": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "description": "Versión para la cabecera If-Match"
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "body",
+                "link_url",
+                "audience",
+                "starts_on",
+                "ends_on",
+                "image_file_id",
+                "status",
+                "ended_at",
+                "created_at",
+                "version"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "AnnouncementRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 80
+          },
+          "body": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 400
+          },
+          "link_url": {
+            "default": null,
+            "description": "Enlace opcional para ver más",
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500,
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "audience": {
+            "type": "string",
+            "enum": [
+              "staff",
+              "clients",
+              "both"
+            ]
+          },
+          "starts_on": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Primer día en que se ve (hora de Colombia)"
+          },
+          "ends_on": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Último día en que se ve (hora de Colombia)"
+          },
+          "image_file_id": {
+            "default": null,
+            "description": "Imagen PNG o JPG ya revisada",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "title",
+          "body",
+          "audience",
+          "starts_on",
+          "ends_on"
+        ],
+        "additionalProperties": false
+      },
+      "AnnouncementImageUploadRequest": {
+        "type": "object",
+        "properties": {
+          "file_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "pattern": "^[^/\\\\\\p{Cc}]+$",
+            "description": "Nombre del archivo, con su extensión"
+          },
+          "mime_type": {
+            "type": "string",
+            "enum": [
+              "application/pdf",
+              "image/png",
+              "image/jpeg",
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            ],
+            "description": "PDF, PNG, JPEG, Word (.docx) o Excel (.xlsx)"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 20971520,
+            "description": "Tamaño en bytes"
+          }
+        },
+        "required": [
+          "file_name",
+          "mime_type",
+          "size_bytes"
+        ],
+        "additionalProperties": false
+      },
+      "AnnouncementUploadLinkResponse_Output": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "description": "Identificador del archivo"
+          },
+          "upload_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Enlace de subida (PUT, un solo uso)"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "id",
+          "upload_url",
+          "expires_at"
+        ],
+        "additionalProperties": false
+      },
+      "AnnouncementResponse_Output": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "link_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "audience": {
+            "type": "string",
+            "enum": [
+              "staff",
+              "clients",
+              "both"
+            ]
+          },
+          "starts_on": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          },
+          "ends_on": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          },
+          "image_file_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "scheduled",
+              "active",
+              "expired",
+              "ended"
+            ]
+          },
+          "ended_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          },
+          "version": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "description": "Versión para la cabecera If-Match"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "body",
+          "link_url",
+          "audience",
+          "starts_on",
+          "ends_on",
+          "image_file_id",
+          "status",
+          "ended_at",
+          "created_at",
+          "version"
+        ],
+        "additionalProperties": false
+      },
+      "AnnouncementErrorResponse_Output": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "Código estable del error, por ejemplo QUOTE_EXPIRED"
+              },
+              "message": {
+                "type": "string",
+                "description": "Mensaje para la persona, en español"
+              },
+              "details": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field": {
+                      "type": "string",
+                      "description": "Campo con el problema, en notación de puntos"
+                    },
+                    "issue": {
+                      "type": "string",
+                      "description": "Código del problema, por ejemplo too_small o invalid_type"
+                    }
+                  },
+                  "required": [
+                    "field",
+                    "issue"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "correlation_id": {
+                "type": "string",
+                "description": "Identificador de la petición en los registros"
+              }
+            },
+            "required": [
+              "code",
+              "message",
+              "details",
+              "correlation_id"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "additionalProperties": false
+      },
+      "PublicAnnouncementListResponse_Output": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "body": {
+                  "type": "string"
+                },
+                "link_url": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "has_image": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "body",
+                "link_url",
+                "has_image"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "PublicAnnouncementErrorResponse_Output": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "Código estable del error, por ejemplo QUOTE_EXPIRED"
+              },
+              "message": {
+                "type": "string",
+                "description": "Mensaje para la persona, en español"
+              },
+              "details": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field": {
+                      "type": "string",
+                      "description": "Campo con el problema, en notación de puntos"
+                    },
+                    "issue": {
+                      "type": "string",
+                      "description": "Código del problema, por ejemplo too_small o invalid_type"
+                    }
+                  },
+                  "required": [
+                    "field",
+                    "issue"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "correlation_id": {
+                "type": "string",
+                "description": "Identificador de la petición en los registros"
+              }
+            },
+            "required": [
+              "code",
+              "message",
+              "details",
+              "correlation_id"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "error"
         ],
         "additionalProperties": false
       },

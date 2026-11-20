@@ -13,8 +13,8 @@ permisos de una persona son la suma de sus roles vigentes.
 
 | Rol | Código | Para | Permisos | Solo lo propio |
 | --- | --- | --- | --- | --- |
-| Dirección | `DIRECCION` | Interno | 74 | 1 |
-| Administrador de plataforma | `ADMIN_PLATAFORMA` | Interno | 33 | 1 |
+| Dirección | `DIRECCION` | Interno | 75 | 1 |
+| Administrador de plataforma | `ADMIN_PLATAFORMA` | Interno | 34 | 1 |
 | Calidad | `CALIDAD` | Interno | 65 | 1 |
 | Comercial | `COMERCIAL` | Interno | 52 | 9 |
 | Líder técnico | `LIDER_TECNICO` | Interno | 47 | 8 |
@@ -32,9 +32,9 @@ permisos de una persona son la suma de sus roles vigentes.
 
 ## Dirección (`DIRECCION`)
 
-Director General. Lectura transversal, aprobaciones de alto nivel, firma de contratos, tableros. 74 permisos.
+Director General. Lectura transversal, aprobaciones de alto nivel, firma de contratos, tableros. 75 permisos.
 
-- **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
+- **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema · Administrar los comunicados del acceso
 - **Identidad y acceso (M01):** Ver los usuarios y sus roles · Ver los roles y sus permisos · Ver el informe de revisión de accesos
 - **Terceros (M02):** Ver terceros · Aprobar el conocimiento del tercero
 - **Gestión documental (M03):** Ver documentos · Revisar versiones · Aprobar versiones · Publicar versiones · Declarar obsoleta una versión · Decidir solicitudes de cambio · Aprobar formatos diligenciados · Aprobar la disposición final de documentos
@@ -56,9 +56,9 @@ Director General. Lectura transversal, aprobaciones de alto nivel, firma de cont
 
 ## Administrador de plataforma (`ADMIN_PLATAFORMA`)
 
-Responsable técnico. Usuarios, roles, parámetros, flujos y catálogos, sin acceso al contenido restringido por el solo hecho de administrar. 33 permisos.
+Responsable técnico. Usuarios, roles, parámetros, flujos y catálogos, sin acceso al contenido restringido por el solo hecho de administrar. 34 permisos.
 
-- **Núcleo (M00):** Ver los datos de la empresa · Cambiar los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Administrar sedes, procesos, cargos y centros de costo · Administrar los catálogos · Ver los parámetros y el estado del sistema · Cambiar los parámetros · Administrar los consecutivos
+- **Núcleo (M00):** Ver los datos de la empresa · Cambiar los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Administrar sedes, procesos, cargos y centros de costo · Administrar los catálogos · Ver los parámetros y el estado del sistema · Cambiar los parámetros · Administrar los consecutivos · Administrar los comunicados del acceso
 - **Identidad y acceso (M01):** Ver los usuarios y sus roles · Invitar usuarios · Cambiar los datos de un usuario · Bloquear y desbloquear usuarios · Reiniciar el segundo factor de otra persona · Ver los roles y sus permisos · Crear y editar roles personalizados · Asignar y retirar roles · Cerrar las sesiones de otras personas · Delegar aprobaciones · Ver el informe de revisión de accesos
 - **Terceros (M02):** Ver terceros
 - **Gestión documental (M03):** Ver documentos

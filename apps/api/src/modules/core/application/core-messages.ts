@@ -6,6 +6,24 @@ import type { ValidFromProblem } from '../domain/parameter-policy.js';
 
 // Mensajes del núcleo (B12): claros, en español y con trato de usted.
 
+/** Un comunicado que ya no se vería nunca: su fecha de fin quedó en el pasado. */
+export function announcementPast(): AppError {
+  return new AppError(
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    CORE_ERROR_CODES.announcementPast,
+    'La fecha de fin ya pasó: el comunicado no se vería. Elija una fecha de hoy en adelante.',
+  );
+}
+
+/** Un comunicado terminado ya no se edita ni se vuelve a terminar. */
+export function announcementEnded(): AppError {
+  return new AppError(
+    HttpStatus.CONFLICT,
+    CORE_ERROR_CODES.announcementEnded,
+    'El comunicado ya está terminado. Si necesita publicarlo otra vez, cree uno nuevo.',
+  );
+}
+
 export function recordNotFound(what: string): AppError {
   return new AppError(HttpStatus.NOT_FOUND, CORE_ERROR_CODES.notFound, `${what} no existe.`);
 }
