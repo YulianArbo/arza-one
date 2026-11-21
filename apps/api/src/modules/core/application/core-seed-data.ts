@@ -1,5 +1,6 @@
 import type { DiscountCap, PurchaseTiers, WorkSchedule } from '@arza/contracts';
 
+import type { SeedCatalog } from './seed-catalog.js';
 import { SST_CATALOGS } from './sst-seed-catalogs.js';
 
 // Datos semilla del núcleo (B12, capítulo 12.1).
@@ -34,13 +35,6 @@ export const PURCHASE_APPROVAL_TIERS: PurchaseTiers = {
   quotes_mid: 2,
   quotes_high: 3,
 };
-
-export interface SeedCatalog {
-  readonly key: string;
-  readonly name: string;
-  readonly description: string;
-  readonly items: readonly (readonly [code: string, label: string])[];
-}
 
 export const CATALOGS: readonly SeedCatalog[] = [
   {

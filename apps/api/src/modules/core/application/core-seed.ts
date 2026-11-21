@@ -16,8 +16,8 @@ import {
   PURCHASE_APPROVAL_TIERS,
   WORK_SCHEDULE,
   WORK_SCHEDULE_VALID_FROM,
-  type SeedCatalog,
 } from './core-seed-data.js';
+import type { SeedCatalog } from './seed-catalog.js';
 
 // Semilla del núcleo (capítulo 12.1): crea lo que falta y nunca deshace lo que la empresa cambió,
 // así que se puede repetir. Transacciones cortas (nota de B10), cada una con su evento de

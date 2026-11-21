@@ -1,4 +1,4 @@
-import type { SeedCatalog } from './core-seed-data.js';
+import type { SeedCatalog } from './seed-catalog.js';
 
 // Catálogos con los que nace Seguridad y salud en el trabajo (B37): los elementos de protección y
 // las listas de chequeo de cada tipo de inspección. SST los ajusta en Administración › Catálogos.
