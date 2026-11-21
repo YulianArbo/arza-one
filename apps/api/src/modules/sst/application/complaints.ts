@@ -36,7 +36,7 @@ import {
 const TABLE = 'sst_coexistence_complaints';
 const COMPLAINTS = { name: 'Quejas de convivencia laboral', prefix: 'CCL', padding: 4 };
 
-export function ownComplaint(row: SstCoexistenceComplaint): OwnComplaint {
+function ownComplaint(row: SstCoexistenceComplaint): OwnComplaint {
   return {
     id: row.id,
     code: row.code,

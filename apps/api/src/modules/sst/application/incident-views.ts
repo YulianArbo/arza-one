@@ -64,7 +64,7 @@ export function incidentSummary(row: SstIncident, names: Names, now: Date): SstI
   };
 }
 
-export function actionView(action: SstInvestigationAction, names: Names): InvestigationAction {
+function actionView(action: SstInvestigationAction, names: Names): InvestigationAction {
   return {
     id: action.id,
     description: action.description,

@@ -1,7 +1,7 @@
 import { SST_PATHS } from './api-paths-sst.js';
 
 // Rutas de Talento humano (M12, B35 y B36) que publica la API. Se suman a API_PATHS.
-export const HR_PATHS = [
+const HR_PATHS = [
   '/v1/hr/candidates',
   '/v1/hr/candidates/authorization-notices',
   '/v1/hr/candidates/{id}/actions/advance',
