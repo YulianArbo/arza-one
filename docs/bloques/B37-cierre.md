@@ -133,7 +133,7 @@ Use cuentas de prueba: una con el rol **SST**, un colaborador vinculado (B35) y 
 
 ## Verificaciones
 
-Ejecutadas localmente el 20/11/2026:
+Ejecutadas localmente el 20 y el 21/11/2026. En el PR #86 la verificación automática pasó migraciones, unitarias, integración con cobertura, navegador y despliegue de ensayo.
 
 | Verificación                     | Resultado                                                                                                                             |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
