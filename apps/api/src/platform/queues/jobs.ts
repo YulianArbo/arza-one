@@ -139,6 +139,7 @@ const prjAcceptanceWorkJobSchema = z.object({});
 const astLoanWorkJobSchema = z.object({});
 const hrRetentionJobSchema = z.object({});
 const hrDailyWorkJobSchema = z.object({});
+const sstDailyWorkJobSchema = z.object({});
 const svcSlaWorkJobSchema = z.object({});
 /**
  * Correos y plazos de las PQRSF y las encuestas (B29): acuse, respuesta, invitación a la encuesta y
@@ -265,6 +266,11 @@ export const JOBS = {
     name: 'hr.daily-work',
     schema: hrDailyWorkJobSchema,
   },
+  sstDailyWork: {
+    queue: QUEUES.platform,
+    name: 'sst.daily-work',
+    schema: sstDailyWorkJobSchema,
+  },
   svcSlaWork: {
     queue: QUEUES.platform,
     name: 'svc.sla-work',
@@ -325,6 +331,9 @@ export const SCHEDULED_JOBS = [
   // Cada día a las 0:05: las ausencias que terminaron quedan disfrutadas y la cuenta de quien se
   // retiró se desactiva apenas termina su último día laborado (B36, numeral 15.1).
   { id: 'hr.daily-work.daily', job: JOBS.hrDailyWork, pattern: '5 0 * * *' },
+  // Cada día a las 6:00: SST recibe el recordatorio de cada accidente sin reportar a la ARL, las
+  // evaluaciones médicas que vencen en 30 días y las actividades vencidas del plan (B37).
+  { id: 'sst.daily-work.daily', job: JOBS.sstDailyWork, pattern: '0 6 * * *' },
   // Cada 5 minutos: la alerta del 80 % y la del plazo vencido llegan a lo sumo cinco minutos tarde,
   // y los tiquetes resueltos que nadie reabrió se cierran (B28).
   { id: 'svc.sla-work.every-5-minutes', job: JOBS.svcSlaWork, pattern: '*/5 * * * *' },
