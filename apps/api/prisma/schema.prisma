@@ -151,6 +151,13 @@ model Tenant {
   sstCommitteeMinutes      SstCommitteeMinute[]
   sstCoexistenceComplaints SstCoexistenceComplaint[]
   sstStandardsAssessments  SstStandardsAssessment[]
+  qmsProcesses             QmsProcess[]
+  qmsContextItems          QmsContextItem[]
+  qmsStakeholders          QmsStakeholder[]
+  qmsRisks                 QmsRisk[]
+  qmsNonconformities       QmsNonconformity[]
+  qmsActions               QmsAction[]
+  qmsLessons               QmsLesson[]
   ctrClauses               CtrClause[]
   ctrTemplates             CtrTemplate[]
   ctrTemplateClauses       CtrTemplateClause[]
@@ -4967,4 +4974,209 @@ model SstStandardsAssessment {
   @@unique([tenantId, id])
   @@unique([tenantId, year, standard])
   @@map("sst_standards_assessments")
+}
+
+/// Caracterización de un proceso del núcleo (B38, M14).
+model QmsProcess {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  tenantId    String    @map("tenant_id") @db.Uuid
+  orgUnitId   String    @map("org_unit_id") @db.Uuid
+  processType String    @map("process_type")
+  objective   String
+  scope       String?
+  inputs      String?
+  outputs     String?
+  documentId  String?   @map("document_id") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?   @map("created_by") @db.Uuid
+  updatedAt   DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?   @map("updated_by") @db.Uuid
+  version     Int       @default(1)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, orgUnitId])
+  @@map("qms_processes")
+}
+
+/// Contexto DOFA-PESTEL (FT-DG-001).
+model QmsContextItem {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  tenantId     String    @map("tenant_id") @db.Uuid
+  kind         String
+  pestelFactor String?   @map("pestel_factor")
+  description  String
+  impact       String
+  year         Int
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy    String?   @map("created_by") @db.Uuid
+  updatedAt    DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy    String?   @map("updated_by") @db.Uuid
+  version      Int       @default(1)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, year])
+  @@map("qms_context_items")
+}
+
+/// Partes interesadas (FT-DG-002).
+model QmsStakeholder {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  tenantId        String    @map("tenant_id") @db.Uuid
+  name            String
+  stakeholderType String    @map("stakeholder_type")
+  needs           String
+  expectations    String
+  monitoring      String?
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?   @map("created_by") @db.Uuid
+  updatedAt       DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy       String?   @map("updated_by") @db.Uuid
+  version         Int       @default(1)
+  deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@map("qms_stakeholders")
+}
+
+/// Riesgos y oportunidades (FT-SGC-003).
+model QmsRisk {
+  id            String      @id @default(uuid(7)) @db.Uuid
+  tenantId      String      @map("tenant_id") @db.Uuid
+  code          String
+  kind          String
+  processId     String      @map("process_id") @db.Uuid
+  description   String
+  causes        String?
+  probability   Int
+  impact        Int
+  score         Int
+  level         String
+  treatment     String
+  treatmentPlan String?     @map("treatment_plan")
+  ownerId       String      @map("owner_id") @db.Uuid
+  reviewOn      DateTime    @map("review_on") @db.Date
+  status        String      @default("active")
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?     @map("created_by") @db.Uuid
+  updatedAt     DateTime    @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?     @map("updated_by") @db.Uuid
+  version       Int         @default(1)
+  deletedAt     DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  actions       QmsAction[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@index([tenantId, score(sort: Desc)])
+  @@map("qms_risks")
+}
+
+/// No conformidades y salidas no conformes (FT-SGC-004).
+model QmsNonconformity {
+  id             String      @id @default(uuid(7)) @db.Uuid
+  tenantId       String      @map("tenant_id") @db.Uuid
+  code           String
+  source         String
+  originId       String?     @map("origin_id") @db.Uuid
+  originCode     String?     @map("origin_code")
+  processId      String?     @map("process_id") @db.Uuid
+  description    String
+  classification String?
+  detectedOn     DateTime    @map("detected_on") @db.Date
+  reportedBy     String      @map("reported_by") @db.Uuid
+  status         String      @default("detected")
+  containment    String?
+  containedOn    DateTime?   @map("contained_on") @db.Date
+  containedBy    String?     @map("contained_by") @db.Uuid
+  analysis       Json?
+  rootCause      String?     @map("root_cause")
+  analyzedBy     String?     @map("analyzed_by") @db.Uuid
+  closeNote      String?     @map("close_note")
+  closedOn       DateTime?   @map("closed_on") @db.Date
+  closedBy       String?     @map("closed_by") @db.Uuid
+  reopenReason   String?     @map("reopen_reason")
+  createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy      String?     @map("created_by") @db.Uuid
+  updatedAt      DateTime    @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy      String?     @map("updated_by") @db.Uuid
+  version        Int         @default(1)
+  deletedAt      DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  tenant         Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  actions        QmsAction[]
+  lessons        QmsLesson[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, source, originId])
+  @@index([tenantId, reportedBy])
+  @@map("qms_nonconformities")
+}
+
+/// Acciones correctivas y de mejora (FT-SGC-005) y su bitácora (RE-SGC-002).
+model QmsAction {
+  id               String            @id @default(uuid(7)) @db.Uuid
+  tenantId         String            @map("tenant_id") @db.Uuid
+  code             String
+  originType       String            @map("origin_type")
+  nonconformityId  String?           @map("nonconformity_id") @db.Uuid
+  riskId           String?           @map("risk_id") @db.Uuid
+  processId        String?           @map("process_id") @db.Uuid
+  actionType       String            @map("action_type")
+  description      String
+  responsibleId    String            @map("responsible_id") @db.Uuid
+  dueOn            DateTime          @map("due_on") @db.Date
+  status           String            @default("open")
+  executedOn       DateTime?         @map("executed_on") @db.Date
+  executedBy       String?           @map("executed_by") @db.Uuid
+  evidenceNote     String?           @map("evidence_note")
+  evidenceFileId   String?           @map("evidence_file_id") @db.Uuid
+  verifiedOn       DateTime?         @map("verified_on") @db.Date
+  verifiedBy       String?           @map("verified_by") @db.Uuid
+  verificationNote String?           @map("verification_note")
+  notes            String?
+  escalatedOn      DateTime?         @map("escalated_on") @db.Date
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy        String?           @map("created_by") @db.Uuid
+  updatedAt        DateTime          @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy        String?           @map("updated_by") @db.Uuid
+  version          Int               @default(1)
+  deletedAt        DateTime?         @map("deleted_at") @db.Timestamptz(6)
+  tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  nonconformity    QmsNonconformity? @relation(fields: [tenantId, nonconformityId], references: [tenantId, id], onDelete: Restrict)
+  risk             QmsRisk?          @relation(fields: [tenantId, riskId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@index([tenantId, nonconformityId])
+  @@index([tenantId, riskId])
+  @@index([tenantId, responsibleId])
+  @@map("qms_actions")
+}
+
+/// Lecciones aprendidas.
+model QmsLesson {
+  id              String            @id @default(uuid(7)) @db.Uuid
+  tenantId        String            @map("tenant_id") @db.Uuid
+  title           String
+  context         String
+  lesson          String
+  processId       String?           @map("process_id") @db.Uuid
+  nonconformityId String?           @map("nonconformity_id") @db.Uuid
+  createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?           @map("created_by") @db.Uuid
+  updatedAt       DateTime          @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy       String?           @map("updated_by") @db.Uuid
+  version         Int               @default(1)
+  deletedAt       DateTime?         @map("deleted_at") @db.Timestamptz(6)
+  tenant          Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  nonconformity   QmsNonconformity? @relation(fields: [tenantId, nonconformityId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, nonconformityId])
+  @@map("qms_lessons")
 }
