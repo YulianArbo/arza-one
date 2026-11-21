@@ -36,11 +36,7 @@ import {
 const TABLE = 'sst_medical_exams';
 const DUE_SOON_DAYS = 30;
 
-export function examSummary(
-  row: SstMedicalExam,
-  employeeName: string,
-  today: string,
-): MedicalExamSummary {
+function examSummary(row: SstMedicalExam, employeeName: string, today: string): MedicalExamSummary {
   const next = dateOf(row.nextDueOn);
   return {
     id: row.id,
@@ -57,7 +53,7 @@ export function examSummary(
 }
 
 /** El registro completo con las restricciones; quien lo llama deja la consulta en la auditoría. */
-export function fullExam(
+function fullExam(
   cipher: FieldCipher,
   row: SstMedicalExam,
   employeeName: string,

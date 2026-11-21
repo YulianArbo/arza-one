@@ -141,12 +141,6 @@ export function dateOf(value: Date | null): string | null {
   return value === null ? null : toCalendarDate(value);
 }
 
-/** dd/mm/aaaa, como se muestran las fechas en Colombia. */
-export function shown(date: string): string {
-  const [year = '', month = '', day = ''] = date.split('-');
-  return `${day}/${month}/${year}`;
-}
-
 /** Contexto del cifrado de un campo: liga el texto a su tabla, empresa, registro y columna. */
 export function cipherContext(table: string, tenantId: string, id: string, field: string): string {
   return `${table}:${tenantId}:${id}:${field}`;
