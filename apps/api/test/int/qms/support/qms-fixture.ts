@@ -93,7 +93,7 @@ export async function reported(s: AccessScenario, person: Person): Promise<strin
   return coded(await s.post('/v1/qms/nonconformities', person.session, body)).id;
 }
 
-export const ANALYSIS = {
+const ANALYSIS = {
   analysis: { method: 'five_whys', whys: ['No se revisó', 'No había quién revisara'] },
   root_cause: 'El procedimiento no asigna quién revisa el informe.',
 };
@@ -153,7 +153,7 @@ export async function plannedNonconformity(
   return { id, actionId };
 }
 
-export const EXECUTION = {
+const EXECUTION = {
   evidence_note: 'Se actualizó el procedimiento y se socializó con el equipo.',
 };
 

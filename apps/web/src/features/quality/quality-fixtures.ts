@@ -13,7 +13,7 @@ export const QMS_ID = (n: number): string =>
 
 export const ANA = { id: QMS_ID(1), name: 'Ana Prueba' };
 export const LUIS = { id: QMS_ID(2), name: 'Luis Calidad' };
-export const PROCESS_REF = { id: QMS_ID(3), name: 'SAC · Servicio al Cliente' };
+const PROCESS_REF = { id: QMS_ID(3), name: 'SAC · Servicio al Cliente' };
 
 export const ORG_PROCESS = {
   id: QMS_ID(3),

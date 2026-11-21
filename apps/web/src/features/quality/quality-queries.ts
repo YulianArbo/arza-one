@@ -8,7 +8,7 @@ import { useApiClient } from '../../lib/api/api-provider';
 
 // Consultas de Calidad y mejora continua (B38) y las listas de sus formularios.
 
-export const QMS_KEY = ['qms'] as const;
+const QMS_KEY = ['qms'] as const;
 /** Lo que se refresca después de guardar en Calidad. */
 export const QMS_REFRESH = [QMS_KEY] as const;
 

@@ -40,10 +40,7 @@ interface Step {
   readonly changes: Prisma.InputJsonObject;
 }
 
-export async function findNonconformity(
-  tx: TenantTransaction,
-  id: string,
-): Promise<QmsNonconformity> {
+async function findNonconformity(tx: TenantTransaction, id: string): Promise<QmsNonconformity> {
   const row = await tx.qmsNonconformity.findFirst({ where: { id, deletedAt: null } });
   if (row === null) throw qmsNotFound('La no conformidad no existe.');
   return row;

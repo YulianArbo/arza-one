@@ -4,4 +4,3 @@
 export { QmsModule } from './interface/qms.module.js';
 export { runQmsDailyWork } from './application/daily-work.js';
 export { openNonconformityFromPqrsf } from './application/nonconformity-origins.js';
-export type { QmsActor } from './application/qms-support.js';
