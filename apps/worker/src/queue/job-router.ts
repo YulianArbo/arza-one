@@ -1,5 +1,6 @@
 import { JOBS } from '@arza/api/platform';
 import { expireRecruitmentData, runHrDailyWork } from '@arza/api/hr';
+import { runQmsDailyWork } from '@arza/api/qms';
 import { runSstDailyWork } from '@arza/api/sst';
 import { UnrecoverableError } from 'bullmq';
 
@@ -121,6 +122,7 @@ function handlers(deps: JobDependencies): ReadonlyMap<string, JobHandler> {
     [JOBS.hrRetention.name, withoutData(async () => expireRecruitmentData(deps))],
     [JOBS.hrDailyWork.name, withoutData(async () => runHrDailyWork(deps))],
     [JOBS.sstDailyWork.name, withoutData(async () => runSstDailyWork(deps))],
+    [JOBS.qmsDailyWork.name, withoutData(async () => runQmsDailyWork(deps))],
     [JOBS.svcSlaWork.name, withoutData(async () => processSlaWork(deps))],
     [JOBS.svcCareWork.name, withoutData(async () => processCareWork(deps))],
   ]);

@@ -59,6 +59,10 @@
     "./sst": {
       "types": "./dist/modules/sst/index.d.ts",
       "default": "./dist/modules/sst/index.js"
+    },
+    "./qms": {
+      "types": "./dist/modules/qms/index.d.ts",
+      "default": "./dist/modules/qms/index.js"
     }
   },
   "scripts": {

@@ -2,3 +2,4 @@
 // «@arza/api/sst» para el worker.
 export { SstModule } from './interface/sst.module.js';
 export { runSstDailyWork } from './application/daily-work.js';
+export { incidentRefForQuality } from './application/quality-link.js';

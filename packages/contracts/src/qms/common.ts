@@ -26,6 +26,7 @@ export function qmsEnumOf<T extends Record<string, unknown>>(
 
 /** Una persona o un proceso, con el nombre para mostrar. */
 export const qmsRefSchema = z.object({ id: qmsIdSchema, name: z.string() });
+export const qmsRefListResponseSchema = z.object({ data: z.array(qmsRefSchema) });
 export const qmsCreatedResponseSchema = z.object({ id: qmsIdSchema });
 export const qmsCodeResponseSchema = z.object({ id: qmsIdSchema, code: z.string() });
 
