@@ -17,7 +17,7 @@ import { points } from './sst-standards';
 // Portada de Seguridad y salud en el trabajo (B37): lo abierto, el cumplimiento del plan y el
 // puntaje de estándares mínimos, con acceso a cada parte del SG-SST.
 
-export const SST_LINKS = [
+const SST_LINKS = [
   { href: '/app/talento-y-sst/sst/incidentes', label: 'Incidentes y reportes' },
   { href: '/app/talento-y-sst/sst/peligros', label: 'Matriz de peligros' },
   { href: '/app/talento-y-sst/sst/plan', label: 'Plan anual de trabajo' },
