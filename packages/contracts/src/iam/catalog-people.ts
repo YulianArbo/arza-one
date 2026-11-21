@@ -51,6 +51,8 @@ export const PEOPLE_PERMISSION_GROUPS = [
     label: 'Calidad',
     module: 'M14',
     entries: [
+      ['qms.read', 'read', 'Ver el módulo de Calidad'],
+      ['qms.lesson.read', 'read', 'Ver las lecciones aprendidas'],
       ['qms.process.manage', 'manage', 'Administrar procesos y su contexto'],
       ['qms.risk.manage', 'manage', 'Gestionar riesgos'],
       ['qms.nonconformity.create', 'write', 'Reportar no conformidades', OWN],
