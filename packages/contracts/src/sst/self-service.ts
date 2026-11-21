@@ -15,17 +15,28 @@ export const pendingHomeInspectionSchema = inspectionSchema.extend({
   checklist: z.array(checklistItemSchema),
 });
 
+/** Una acción de una investigación que le corresponde a la persona. */
+export const myInvestigationActionSchema = z.object({
+  id: z.uuid(),
+  incident_code: z.string(),
+  description: z.string(),
+  due_on: z.iso.date(),
+  version: z.number().int().positive(),
+});
+
 export const mySstSchema = z.object({
   is_employee: z.boolean(),
   reports: z.array(ownReportSchema),
   complaints: z.array(ownComplaintSchema),
   ppe: z.array(ppeDeliverySchema),
   home_inspections: z.array(pendingHomeInspectionSchema),
+  actions: z.array(myInvestigationActionSchema),
   committees: z.array(committeeSchema),
 });
 
 export const myMedicalExamsSchema = z.object({ data: z.array(medicalExamSchema) });
 
 export type PendingHomeInspection = z.infer<typeof pendingHomeInspectionSchema>;
+export type MyInvestigationAction = z.infer<typeof myInvestigationActionSchema>;
 export type MySst = z.infer<typeof mySstSchema>;
 export type MyMedicalExams = z.infer<typeof myMedicalExamsSchema>;

@@ -98,6 +98,27 @@ export const NOTIFICATION_KINDS = {
     label: 'Le corresponde una tarea de un retiro',
     variables: ['nombre', 'tarea', 'fecha'],
   },
+  // Seguridad y salud en el trabajo (B37).
+  sst_report_received: {
+    label: 'Llegó un reporte de seguridad y salud',
+    variables: ['nombre', 'reporte', 'lugar'],
+  },
+  sst_arl_due: {
+    label: 'Accidente de trabajo por reportar a la ARL',
+    variables: ['nombre', 'codigo', 'fecha'],
+  },
+  sst_exam_due: {
+    label: 'Evaluación médica ocupacional por vencer',
+    variables: ['nombre', 'fecha'],
+  },
+  sst_task_assigned: {
+    label: 'Le corresponde una tarea de seguridad y salud',
+    variables: ['nombre', 'tarea', 'fecha'],
+  },
+  sst_complaint_received: {
+    label: 'Queja nueva para el Comité de Convivencia',
+    variables: ['nombre', 'codigo'],
+  },
 } as const satisfies Record<string, { label: string; variables: readonly string[] }>;
 
 export type NotificationKind = keyof typeof NOTIFICATION_KINDS;

@@ -6,6 +6,7 @@ export const SST_ERROR_CODES = {
   recordNotFound: 'SST_RECORD_NOT_FOUND',
   recordInvalid: 'SST_RECORD_INVALID',
   statusInvalid: 'SST_STATUS_INVALID',
+  notCommitteeMember: 'SST_NOT_COMMITTEE_MEMBER',
 } as const;
 
 export const sstIdSchema = z.uuid();

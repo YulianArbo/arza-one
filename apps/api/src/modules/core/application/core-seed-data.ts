@@ -1,5 +1,7 @@
 import type { DiscountCap, PurchaseTiers, WorkSchedule } from '@arza/contracts';
 
+import { SST_CATALOGS } from './sst-seed-catalogs.js';
+
 // Datos semilla del núcleo (B12, capítulo 12.1).
 //
 // ORGANIGRAMA PROVISIONAL: el documento DC-SGC-001 no está en el repositorio. Esta estructura se
@@ -166,6 +168,7 @@ export const CATALOGS: readonly SeedCatalog[] = [
       ['OTRO', 'Otra novedad'],
     ],
   },
+  ...SST_CATALOGS,
   {
     key: 'crm_lead_sources',
     name: 'Orígenes de los prospectos',
