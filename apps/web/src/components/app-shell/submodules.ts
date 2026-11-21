@@ -1,5 +1,6 @@
 import {
   Archive,
+  HardHat,
   BookOpen,
   Building,
   CalendarDays,
@@ -192,6 +193,8 @@ const TALENT = [
   ),
   sub('/app/talento-y-sst/disciplinarios', 'Disciplinarios', Scale, 'hr.disciplinary.manage'),
   sub('/app/talento-y-sst/retiros', 'Retiros', UserCheck, 'hr.offboarding.manage'),
+  // Seguridad y salud en el trabajo (B37): la portada lleva a cada parte del SG-SST.
+  sub('/app/talento-y-sst/sst', 'Seguridad y salud', HardHat, 'sst.read'),
 ];
 
 /** Submódulos por módulo (slug del menú). Los módulos que no figuran se abren desde su portada. */

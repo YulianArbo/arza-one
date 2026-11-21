@@ -6,7 +6,7 @@ import type { z } from 'zod';
 import { useApiClient } from '../../lib/api/api-provider';
 import { useAdminAction, type AdminAction } from '../administration/admin-action';
 
-const HR_KEY = ['hr'] as const;
+export const HR_QUERY_ROOT = ['hr'] as const;
 
 export function useHrQuery<T>(
   path: string,
@@ -15,7 +15,7 @@ export function useHrQuery<T>(
 ): UseQueryResult<T> {
   const api = useApiClient();
   return useQuery({
-    queryKey: [...HR_KEY, path],
+    queryKey: [...HR_QUERY_ROOT, path],
     queryFn: ({ signal }) => api.get(path, { schema, signal }),
     enabled,
   });
@@ -27,7 +27,7 @@ export function useHrAction<T, R = unknown>(
 ): AdminAction<T, R> {
   return useAdminAction({
     run,
-    invalidate: [HR_KEY],
+    invalidate: [HR_QUERY_ROOT],
     reason: 'Los cambios quedan registrados en la auditoría.',
     ...(onSuccess === undefined ? {} : { onSuccess }),
   });

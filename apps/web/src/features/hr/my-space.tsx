@@ -17,6 +17,7 @@ import { QueryState } from '../administration/query-state';
 import { HrActionButton } from './hr-dialog';
 import { useHrQuery } from './hr-queries';
 import { MyLeaves, MyOvertime } from './my-space-absences';
+import { MySst } from '../sst/my-sst';
 import { MyCitations, MyNovelties, MyReviews, MyTasks, MyTrainings } from './my-space-records';
 
 // «Mi espacio» (B36, autoservicio del colaborador, ficha 17.13). Del salario solo se muestra la
@@ -104,6 +105,7 @@ export function MySpace(): JSX.Element {
           ) : (
             <>
               <Summary employment={employment} />
+              <MySst />
               <MyCitations />
               <MyTasks />
               <MyLeaves />
