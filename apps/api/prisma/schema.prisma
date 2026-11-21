@@ -16,164 +16,177 @@ datasource db {
 
 /// Empresas inquilinas (M00). La fila de una empresa solo es visible dentro de su propio contexto.
 model Tenant {
-  id                      String                   @id @default(uuid(7)) @db.Uuid
-  legalName               String                   @map("legal_name")
-  tradeName               String?                  @map("trade_name")
-  taxId                   String                   @unique @map("tax_id")
-  status                  String                   @default("active")
-  settings                Json                     @default("{}")
-  createdAt               DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
-  createdBy               String?                  @map("created_by") @db.Uuid
-  updatedAt               DateTime                 @default(now()) @map("updated_at") @db.Timestamptz(6)
-  updatedBy               String?                  @map("updated_by") @db.Uuid
-  version                 Int                      @default(1)
-  deletedAt               DateTime?                @map("deleted_at") @db.Timestamptz(6)
-  outboxEvents            OutboxEvent[]
-  users                   User[]
-  sessions                Session[]
-  tokens                  Token[]
-  loginAttempts           LoginAttempt[]
-  mfaFactors              MfaFactor[]
-  recoveryCodes           RecoveryCode[]
-  knownDevices            KnownDevice[]
-  roles                   Role[]
-  rolePermissions         RolePermission[]
-  userRoles               UserRole[]
-  delegations             Delegation[]
-  auditEvents             AuditEvent[]
-  auditChainHead          AuditChainHead?
-  auditExports            AuditExport[]
-  securityEvents          SecurityEvent[]
-  sites                   Site[]
-  orgUnits                OrgUnit[]
-  positions               Position[]
-  costCenters             CostCenter[]
-  announcements           Announcement[]
-  catalogs                Catalog[]
-  catalogItems            CatalogItem[]
-  sequences               Sequence[]
-  parameters              Parameter[]
-  holidays                Holiday[]
-  parties                 Party[]
-  partyRoles              PartyRole[]
-  contacts                Contact[]
-  bankAccounts            BankAccount[]
-  dueDiligence            DueDiligence[]
-  files                   File[]
-  wfDefinitions           WorkflowDefinition[]
-  wfStates                WorkflowState[]
-  wfTransitions           WorkflowTransition[]
-  wfInstances             WorkflowInstance[]
-  wfHistory               WorkflowHistory[]
-  wfTasks                 WorkflowTask[]
-  wfApprovals             WorkflowApproval[]
-  ntfTemplates            NotificationTemplate[]
-  notifications           Notification[]
-  ntfDeliveries           NotificationDelivery[]
-  ntfPreferences          NotificationPreference[]
-  comments                Comment[]
-  attachments             Attachment[]
-  prvNotices              PrivacyNotice[]
-  prvConsents             PrivacyConsent[]
-  prvActivities           ProcessingActivity[]
-  prvProcessors           DataProcessor[]
-  prvActivityProcessors   ActivityProcessor[]
-  docFolders              DocFolder[]
-  docDocuments            DocDocument[]
-  docVersions             DocVersion[]
-  docLinks                DocLink[]
-  docAccessLog            DocAccessLog[]
-  docChangeRequests       DocChangeRequest[]
-  docAcknowledgements     DocAcknowledgement[]
-  docOutputTemplates      DocOutputTemplate[]
-  docFormTemplates        DocFormTemplate[]
-  docFormRecords          DocFormRecord[]
-  docRetentionRules       DocRetentionRule[]
-  docDispositionProposals DocDispositionProposal[]
-  docDispositions         DocDisposition[]
-  docVersionTexts         DocVersionText[]
-  crmCampaigns            CrmCampaign[]
-  crmLeads                CrmLead[]
-  crmOpportunities        CrmOpportunity[]
-  crmActivities           CrmActivity[]
-  crmServices             CrmService[]
-  crmQuotes               CrmQuote[]
-  crmQuoteItems           CrmQuoteItem[]
-  finTaxParameters        FinTaxParameter[]
-  finInvoices             FinInvoice[]
-  finInvoiceItems         FinInvoiceItem[]
-  finCreditNotes          FinCreditNote[]
-  finPayments             FinPayment[]
-  finBudgets              FinBudget[]
-  finBudgetLines          FinBudgetLine[]
-  finExpenses             FinExpense[]
-  finPettyCash            FinPettyCash[]
-  finBankReconciliations  FinBankReconciliation[]
-  finCostCertifications   FinCostCertification[]
-  finPeriods              FinPeriod[]
-  finExportBatches        FinExportBatch[]
-  purRequests             PurRequest[]
-  purQuotes               PurQuote[]
-  purOrders               PurOrder[]
-  purReceipts             PurReceipt[]
-  purSupplierEvaluations  PurSupplierEvaluation[]
-  purTravelRequests       PurTravelRequest[]
-  purTravelExpenses       PurTravelExpense[]
-  astAssets               AstAsset[]
-  astAssignments          AstAssignment[]
-  astMaintenance          AstMaintenance[]
-  hrVacancies             HrVacancy[]
-  hrCandidates            HrCandidate[]
-  hrSelectionEvaluations  HrSelectionEvaluation[]
-  hrEmployees             HrEmployee[]
-  hrContracts             HrContract[]
-  hrOnboardingTasks       HrOnboardingTask[]
-  hrFileChecklist         HrFileChecklistItem[]
-  hrLeaveRequests         HrLeaveRequest[]
-  hrOvertime              HrOvertime[]
-  hrPayrollPeriods        HrPayrollPeriod[]
-  hrPayrollNovelties      HrPayrollNovelty[]
-  hrPerformanceReviews    HrPerformanceReview[]
-  hrTrainings             HrTraining[]
-  hrTrainingAttendance    HrTrainingAttendance[]
-  hrDisciplinaryCases     HrDisciplinaryCase[]
-  hrOffboardings          HrOffboarding[]
-  ctrClauses              CtrClause[]
-  ctrTemplates            CtrTemplate[]
-  ctrTemplateClauses      CtrTemplateClause[]
-  ctrContracts            CtrContract[]
-  ctrContractClauses      CtrContractClause[]
-  ctrObligations          CtrObligation[]
-  ctrAmendments           CtrAmendment[]
-  sigEnvelopes            SigEnvelope[]
-  sigSigners              SigSigner[]
-  sigEvents               SigEvent[]
-  sigVerifications        SigVerification[]
-  prjProjects             PrjProject[]
-  prjMembers              PrjMember[]
-  prjMilestones           PrjMilestone[]
-  prjSprints              PrjSprint[]
-  prjItems                PrjItem[]
-  prjExternalLinks        PrjExternalLink[]
-  prjTimeEntries          PrjTimeEntry[]
-  prjDeliverables         PrjDeliverable[]
-  prjAcceptances          PrjAcceptance[]
-  prjRisks                PrjRisk[]
-  prjReleases             PrjRelease[]
-  prjCodeReviews          PrjCodeReview[]
-  prjIncidents            PrjIncident[]
-  slaPolicies             SlaPolicy[]
-  svcTickets              SvcTicket[]
-  svcTicketMessages       SvcTicketMessage[]
-  svcWarranties           SvcWarranty[]
-  svcCompensations        SvcCompensation[]
-  svcPqrsf                SvcPqrsf[]
-  svcSurveys              SvcSurvey[]
-  svcSurveyResponses      SvcSurveyResponse[]
-  svcKbArticles           SvcKbArticle[]
-  iamTermsAcceptances     TermsAcceptance[]
-  prjClientAccess         PrjClientAccess[]
-  prjSharedFiles          PrjSharedFile[]
+  id                       String                    @id @default(uuid(7)) @db.Uuid
+  legalName                String                    @map("legal_name")
+  tradeName                String?                   @map("trade_name")
+  taxId                    String                    @unique @map("tax_id")
+  status                   String                    @default("active")
+  settings                 Json                      @default("{}")
+  createdAt                DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy                String?                   @map("created_by") @db.Uuid
+  updatedAt                DateTime                  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy                String?                   @map("updated_by") @db.Uuid
+  version                  Int                       @default(1)
+  deletedAt                DateTime?                 @map("deleted_at") @db.Timestamptz(6)
+  outboxEvents             OutboxEvent[]
+  users                    User[]
+  sessions                 Session[]
+  tokens                   Token[]
+  loginAttempts            LoginAttempt[]
+  mfaFactors               MfaFactor[]
+  recoveryCodes            RecoveryCode[]
+  knownDevices             KnownDevice[]
+  roles                    Role[]
+  rolePermissions          RolePermission[]
+  userRoles                UserRole[]
+  delegations              Delegation[]
+  auditEvents              AuditEvent[]
+  auditChainHead           AuditChainHead?
+  auditExports             AuditExport[]
+  securityEvents           SecurityEvent[]
+  sites                    Site[]
+  orgUnits                 OrgUnit[]
+  positions                Position[]
+  costCenters              CostCenter[]
+  announcements            Announcement[]
+  catalogs                 Catalog[]
+  catalogItems             CatalogItem[]
+  sequences                Sequence[]
+  parameters               Parameter[]
+  holidays                 Holiday[]
+  parties                  Party[]
+  partyRoles               PartyRole[]
+  contacts                 Contact[]
+  bankAccounts             BankAccount[]
+  dueDiligence             DueDiligence[]
+  files                    File[]
+  wfDefinitions            WorkflowDefinition[]
+  wfStates                 WorkflowState[]
+  wfTransitions            WorkflowTransition[]
+  wfInstances              WorkflowInstance[]
+  wfHistory                WorkflowHistory[]
+  wfTasks                  WorkflowTask[]
+  wfApprovals              WorkflowApproval[]
+  ntfTemplates             NotificationTemplate[]
+  notifications            Notification[]
+  ntfDeliveries            NotificationDelivery[]
+  ntfPreferences           NotificationPreference[]
+  comments                 Comment[]
+  attachments              Attachment[]
+  prvNotices               PrivacyNotice[]
+  prvConsents              PrivacyConsent[]
+  prvActivities            ProcessingActivity[]
+  prvProcessors            DataProcessor[]
+  prvActivityProcessors    ActivityProcessor[]
+  docFolders               DocFolder[]
+  docDocuments             DocDocument[]
+  docVersions              DocVersion[]
+  docLinks                 DocLink[]
+  docAccessLog             DocAccessLog[]
+  docChangeRequests        DocChangeRequest[]
+  docAcknowledgements      DocAcknowledgement[]
+  docOutputTemplates       DocOutputTemplate[]
+  docFormTemplates         DocFormTemplate[]
+  docFormRecords           DocFormRecord[]
+  docRetentionRules        DocRetentionRule[]
+  docDispositionProposals  DocDispositionProposal[]
+  docDispositions          DocDisposition[]
+  docVersionTexts          DocVersionText[]
+  crmCampaigns             CrmCampaign[]
+  crmLeads                 CrmLead[]
+  crmOpportunities         CrmOpportunity[]
+  crmActivities            CrmActivity[]
+  crmServices              CrmService[]
+  crmQuotes                CrmQuote[]
+  crmQuoteItems            CrmQuoteItem[]
+  finTaxParameters         FinTaxParameter[]
+  finInvoices              FinInvoice[]
+  finInvoiceItems          FinInvoiceItem[]
+  finCreditNotes           FinCreditNote[]
+  finPayments              FinPayment[]
+  finBudgets               FinBudget[]
+  finBudgetLines           FinBudgetLine[]
+  finExpenses              FinExpense[]
+  finPettyCash             FinPettyCash[]
+  finBankReconciliations   FinBankReconciliation[]
+  finCostCertifications    FinCostCertification[]
+  finPeriods               FinPeriod[]
+  finExportBatches         FinExportBatch[]
+  purRequests              PurRequest[]
+  purQuotes                PurQuote[]
+  purOrders                PurOrder[]
+  purReceipts              PurReceipt[]
+  purSupplierEvaluations   PurSupplierEvaluation[]
+  purTravelRequests        PurTravelRequest[]
+  purTravelExpenses        PurTravelExpense[]
+  astAssets                AstAsset[]
+  astAssignments           AstAssignment[]
+  astMaintenance           AstMaintenance[]
+  hrVacancies              HrVacancy[]
+  hrCandidates             HrCandidate[]
+  hrSelectionEvaluations   HrSelectionEvaluation[]
+  hrEmployees              HrEmployee[]
+  hrContracts              HrContract[]
+  hrOnboardingTasks        HrOnboardingTask[]
+  hrFileChecklist          HrFileChecklistItem[]
+  hrLeaveRequests          HrLeaveRequest[]
+  hrOvertime               HrOvertime[]
+  hrPayrollPeriods         HrPayrollPeriod[]
+  hrPayrollNovelties       HrPayrollNovelty[]
+  hrPerformanceReviews     HrPerformanceReview[]
+  hrTrainings              HrTraining[]
+  hrTrainingAttendance     HrTrainingAttendance[]
+  hrDisciplinaryCases      HrDisciplinaryCase[]
+  hrOffboardings           HrOffboarding[]
+  sstHazards               SstHazard[]
+  sstWorkPlanItems         SstWorkPlanItem[]
+  sstIncidents             SstIncident[]
+  sstInvestigations        SstInvestigation[]
+  sstInvestigationActions  SstInvestigationAction[]
+  sstUnsafeReports         SstUnsafeReport[]
+  sstInspections           SstInspection[]
+  sstMedicalExams          SstMedicalExam[]
+  sstPpeDeliveries         SstPpeDelivery[]
+  sstCommitteeMembers      SstCommitteeMember[]
+  sstCommitteeMinutes      SstCommitteeMinute[]
+  sstCoexistenceComplaints SstCoexistenceComplaint[]
+  sstStandardsAssessments  SstStandardsAssessment[]
+  ctrClauses               CtrClause[]
+  ctrTemplates             CtrTemplate[]
+  ctrTemplateClauses       CtrTemplateClause[]
+  ctrContracts             CtrContract[]
+  ctrContractClauses       CtrContractClause[]
+  ctrObligations           CtrObligation[]
+  ctrAmendments            CtrAmendment[]
+  sigEnvelopes             SigEnvelope[]
+  sigSigners               SigSigner[]
+  sigEvents                SigEvent[]
+  sigVerifications         SigVerification[]
+  prjProjects              PrjProject[]
+  prjMembers               PrjMember[]
+  prjMilestones            PrjMilestone[]
+  prjSprints               PrjSprint[]
+  prjItems                 PrjItem[]
+  prjExternalLinks         PrjExternalLink[]
+  prjTimeEntries           PrjTimeEntry[]
+  prjDeliverables          PrjDeliverable[]
+  prjAcceptances           PrjAcceptance[]
+  prjRisks                 PrjRisk[]
+  prjReleases              PrjRelease[]
+  prjCodeReviews           PrjCodeReview[]
+  prjIncidents             PrjIncident[]
+  slaPolicies              SlaPolicy[]
+  svcTickets               SvcTicket[]
+  svcTicketMessages        SvcTicketMessage[]
+  svcWarranties            SvcWarranty[]
+  svcCompensations         SvcCompensation[]
+  svcPqrsf                 SvcPqrsf[]
+  svcSurveys               SvcSurvey[]
+  svcSurveyResponses       SvcSurveyResponse[]
+  svcKbArticles            SvcKbArticle[]
+  iamTermsAcceptances      TermsAcceptance[]
+  prjClientAccess          PrjClientAccess[]
+  prjSharedFiles           PrjSharedFile[]
 
   @@map("core_tenants")
 }
@@ -4196,41 +4209,45 @@ model HrSelectionEvaluation {
 
 /// Colaboradores: «por vincular» mientras se firma el contrato; «activo» desde que se vincula.
 model HrEmployee {
-  id              String                 @id @default(uuid(7)) @db.Uuid
-  tenantId        String                 @map("tenant_id") @db.Uuid
-  partyId         String                 @map("party_id") @db.Uuid
-  candidateId     String?                @map("candidate_id") @db.Uuid
-  positionId      String                 @map("position_id") @db.Uuid
-  hireDate        DateTime               @map("hire_date") @db.Date
-  terminationDate DateTime?              @map("termination_date") @db.Date
-  contractType    String                 @map("contract_type")
-  workMode        String                 @map("work_mode")
-  status          String                 @default("pending")
-  workEmail       String                 @map("work_email")
+  id               String                 @id @default(uuid(7)) @db.Uuid
+  tenantId         String                 @map("tenant_id") @db.Uuid
+  partyId          String                 @map("party_id") @db.Uuid
+  candidateId      String?                @map("candidate_id") @db.Uuid
+  positionId       String                 @map("position_id") @db.Uuid
+  hireDate         DateTime               @map("hire_date") @db.Date
+  terminationDate  DateTime?              @map("termination_date") @db.Date
+  contractType     String                 @map("contract_type")
+  workMode         String                 @map("work_mode")
+  status           String                 @default("pending")
+  workEmail        String                 @map("work_email")
   /// La cuenta del colaborador (Identidad); la crea la vinculación.
-  userId          String?                @map("user_id") @db.Uuid
-  activatedAt     DateTime?              @map("activated_at") @db.Timestamptz(6)
-  activatedBy     String?                @map("activated_by") @db.Uuid
-  closedReason    String?                @map("closed_reason")
-  requestKey      String                 @map("request_key")
-  createdAt       DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
-  createdBy       String?                @map("created_by") @db.Uuid
-  updatedAt       DateTime               @default(now()) @map("updated_at") @db.Timestamptz(6)
-  updatedBy       String?                @map("updated_by") @db.Uuid
-  version         Int                    @default(1)
-  deletedAt       DateTime?              @map("deleted_at") @db.Timestamptz(6)
-  tenant          Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  candidate       HrCandidate?           @relation(fields: [tenantId, candidateId], references: [tenantId, id], onDelete: Restrict)
-  contracts       HrContract[]
-  onboardingTasks HrOnboardingTask[]
-  fileChecklist   HrFileChecklistItem[]
-  leaveRequests   HrLeaveRequest[]
-  overtime        HrOvertime[]
-  novelties       HrPayrollNovelty[]
-  reviews         HrPerformanceReview[]
-  trainings       HrTrainingAttendance[]
-  disciplinary    HrDisciplinaryCase[]
-  offboardings    HrOffboarding[]
+  userId           String?                @map("user_id") @db.Uuid
+  activatedAt      DateTime?              @map("activated_at") @db.Timestamptz(6)
+  activatedBy      String?                @map("activated_by") @db.Uuid
+  closedReason     String?                @map("closed_reason")
+  requestKey       String                 @map("request_key")
+  createdAt        DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy        String?                @map("created_by") @db.Uuid
+  updatedAt        DateTime               @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy        String?                @map("updated_by") @db.Uuid
+  version          Int                    @default(1)
+  deletedAt        DateTime?              @map("deleted_at") @db.Timestamptz(6)
+  tenant           Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  candidate        HrCandidate?           @relation(fields: [tenantId, candidateId], references: [tenantId, id], onDelete: Restrict)
+  contracts        HrContract[]
+  onboardingTasks  HrOnboardingTask[]
+  fileChecklist    HrFileChecklistItem[]
+  leaveRequests    HrLeaveRequest[]
+  overtime         HrOvertime[]
+  novelties        HrPayrollNovelty[]
+  reviews          HrPerformanceReview[]
+  trainings        HrTrainingAttendance[]
+  disciplinary     HrDisciplinaryCase[]
+  offboardings     HrOffboarding[]
+  sstIncidents     SstIncident[]
+  sstInspections   SstInspection[]
+  sstMedicalExams  SstMedicalExam[]
+  sstPpeDeliveries SstPpeDelivery[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, requestKey])
@@ -4605,4 +4622,349 @@ model HrOffboarding {
   @@unique([tenantId, requestKey])
   @@index([tenantId, status])
   @@map("hr_offboardings")
+}
+
+model SstHazard {
+  id               String    @id @default(uuid(7)) @db.Uuid
+  tenantId         String    @map("tenant_id") @db.Uuid
+  processId        String    @map("process_id") @db.Uuid
+  activity         String
+  routine          Boolean   @default(true)
+  hazardClass      String    @map("hazard_class")
+  hazard           String
+  effects          String
+  existingControls String?   @map("existing_controls")
+  deficiency       Int
+  exposure         Int
+  consequence      Int
+  probability      Int
+  risk             Int
+  riskLevel        String    @map("risk_level")
+  proposedControls String?   @map("proposed_controls")
+  reviewOn         DateTime  @map("review_on") @db.Date
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy        String?   @map("created_by") @db.Uuid
+  updatedAt        DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy        String?   @map("updated_by") @db.Uuid
+  version          Int       @default(1)
+  deletedAt        DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant           Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, risk(sort: Desc)])
+  @@map("sst_hazards")
+}
+
+model SstWorkPlanItem {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  tenantId        String    @map("tenant_id") @db.Uuid
+  year            Int
+  activity        String
+  responsibleId   String    @map("responsible_id") @db.Uuid
+  dueOn           DateTime  @map("due_on") @db.Date
+  doneOn          DateTime? @map("done_on") @db.Date
+  doneBy          String?   @map("done_by") @db.Uuid
+  evidenceFileId  String?   @map("evidence_file_id") @db.Uuid
+  overdueNoticeOn DateTime? @map("overdue_notice_on") @db.Date
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?   @map("created_by") @db.Uuid
+  updatedAt       DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy       String?   @map("updated_by") @db.Uuid
+  version         Int       @default(1)
+  deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, year, dueOn])
+  @@map("sst_work_plan_items")
+}
+
+model SstIncident {
+  id                 String            @id @default(uuid(7)) @db.Uuid
+  tenantId           String            @map("tenant_id") @db.Uuid
+  code               String
+  kind               String
+  status             String            @default("reported")
+  occurredAt         DateTime          @map("occurred_at") @db.Timestamptz(6)
+  location           String
+  description        String
+  photoFileId        String?           @map("photo_file_id") @db.Uuid
+  affected           String
+  affectedEmployeeId String?           @map("affected_employee_id") @db.Uuid
+  reportedBy         String            @map("reported_by") @db.Uuid
+  arlDueOn           DateTime?         @map("arl_due_on") @db.Date
+  arlReportedOn      DateTime?         @map("arl_reported_on") @db.Date
+  arlFilingNumber    String?           @map("arl_filing_number")
+  arlReportedBy      String?           @map("arl_reported_by") @db.Uuid
+  closedAt           DateTime?         @map("closed_at") @db.Timestamptz(6)
+  closedBy           String?           @map("closed_by") @db.Uuid
+  requestKey         String            @map("request_key")
+  createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy          String?           @map("created_by") @db.Uuid
+  updatedAt          DateTime          @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy          String?           @map("updated_by") @db.Uuid
+  version            Int               @default(1)
+  deletedAt          DateTime?         @map("deleted_at") @db.Timestamptz(6)
+  tenant             Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  affectedEmployee   HrEmployee?       @relation(fields: [tenantId, affectedEmployeeId], references: [tenantId, id], onDelete: Restrict)
+  investigation      SstInvestigation?
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, reportedBy])
+  @@map("sst_incidents")
+}
+
+model SstInvestigation {
+  id              String                   @id @default(uuid(7)) @db.Uuid
+  tenantId        String                   @map("tenant_id") @db.Uuid
+  incidentId      String                   @map("incident_id") @db.Uuid
+  team            String
+  startedOn       DateTime                 @map("started_on") @db.Date
+  immediateCauses String?                  @map("immediate_causes")
+  rootCauses      String?                  @map("root_causes")
+  plannedOn       DateTime?                @map("planned_on") @db.Date
+  conclusion      String?
+  closedOn        DateTime?                @map("closed_on") @db.Date
+  createdAt       DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?                  @map("created_by") @db.Uuid
+  updatedAt       DateTime                 @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy       String?                  @map("updated_by") @db.Uuid
+  version         Int                      @default(1)
+  deletedAt       DateTime?                @map("deleted_at") @db.Timestamptz(6)
+  tenant          Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  incident        SstIncident              @relation(fields: [tenantId, incidentId], references: [tenantId, id], onDelete: Restrict)
+  actions         SstInvestigationAction[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, incidentId])
+  @@map("sst_investigations")
+}
+
+model SstInvestigationAction {
+  id              String           @id @default(uuid(7)) @db.Uuid
+  tenantId        String           @map("tenant_id") @db.Uuid
+  investigationId String           @map("investigation_id") @db.Uuid
+  description     String
+  responsibleId   String           @map("responsible_id") @db.Uuid
+  dueOn           DateTime         @map("due_on") @db.Date
+  doneOn          DateTime?        @map("done_on") @db.Date
+  doneBy          String?          @map("done_by") @db.Uuid
+  note            String?
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?          @map("created_by") @db.Uuid
+  updatedAt       DateTime         @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy       String?          @map("updated_by") @db.Uuid
+  version         Int              @default(1)
+  deletedAt       DateTime?        @map("deleted_at") @db.Timestamptz(6)
+  tenant          Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  investigation   SstInvestigation @relation(fields: [tenantId, investigationId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, investigationId])
+  @@index([tenantId, responsibleId])
+  @@map("sst_investigation_actions")
+}
+
+model SstUnsafeReport {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  tenantId    String    @map("tenant_id") @db.Uuid
+  code        String
+  kind        String
+  description String
+  location    String
+  photoFileId String?   @map("photo_file_id") @db.Uuid
+  reportedBy  String    @map("reported_by") @db.Uuid
+  status      String    @default("reported")
+  response    String?
+  handledBy   String?   @map("handled_by") @db.Uuid
+  requestKey  String    @map("request_key")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?   @map("created_by") @db.Uuid
+  updatedAt   DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?   @map("updated_by") @db.Uuid
+  version     Int       @default(1)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, reportedBy])
+  @@map("sst_unsafe_reports")
+}
+
+model SstInspection {
+  id          String      @id @default(uuid(7)) @db.Uuid
+  tenantId    String      @map("tenant_id") @db.Uuid
+  kind        String
+  status      String
+  place       String?
+  employeeId  String?     @map("employee_id") @db.Uuid
+  inspectorId String?     @map("inspector_id") @db.Uuid
+  requestedBy String?     @map("requested_by") @db.Uuid
+  dueOn       DateTime?   @map("due_on") @db.Date
+  inspectedOn DateTime?   @map("inspected_on") @db.Date
+  answers     Json        @default("[]")
+  failed      Int         @default(0)
+  findings    String?
+  reviewedBy  String?     @map("reviewed_by") @db.Uuid
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?     @map("created_by") @db.Uuid
+  updatedAt   DateTime    @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?     @map("updated_by") @db.Uuid
+  version     Int         @default(1)
+  deletedAt   DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee    HrEmployee? @relation(fields: [tenantId, employeeId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, employeeId])
+  @@map("sst_inspections")
+}
+
+model SstMedicalExam {
+  id                    String     @id @default(uuid(7)) @db.Uuid
+  tenantId              String     @map("tenant_id") @db.Uuid
+  employeeId            String     @map("employee_id") @db.Uuid
+  kind                  String
+  examDate              DateTime   @map("exam_date") @db.Date
+  provider              String
+  concept               String
+  restrictionsEncrypted String?    @map("restrictions_encrypted")
+  nextDueOn             DateTime?  @map("next_due_on") @db.Date
+  dueNoticeOn           DateTime?  @map("due_notice_on") @db.Date
+  requestKey            String     @map("request_key")
+  createdAt             DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy             String?    @map("created_by") @db.Uuid
+  updatedAt             DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy             String?    @map("updated_by") @db.Uuid
+  version               Int        @default(1)
+  deletedAt             DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant                Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee              HrEmployee @relation(fields: [tenantId, employeeId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, employeeId])
+  @@map("sst_medical_exams")
+}
+
+model SstPpeDelivery {
+  id             String     @id @default(uuid(7)) @db.Uuid
+  tenantId       String     @map("tenant_id") @db.Uuid
+  employeeId     String     @map("employee_id") @db.Uuid
+  item           String
+  quantity       Int        @default(1)
+  deliveredOn    DateTime   @map("delivered_on") @db.Date
+  deliveredBy    String     @map("delivered_by") @db.Uuid
+  note           String?
+  acknowledgedAt DateTime?  @map("acknowledged_at") @db.Timestamptz(6)
+  requestKey     String     @map("request_key")
+  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy      String?    @map("created_by") @db.Uuid
+  updatedAt      DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy      String?    @map("updated_by") @db.Uuid
+  version        Int        @default(1)
+  deletedAt      DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant         Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  employee       HrEmployee @relation(fields: [tenantId, employeeId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, requestKey])
+  @@index([tenantId, employeeId])
+  @@map("sst_ppe_deliveries")
+}
+
+model SstCommitteeMember {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  committee  String
+  userId     String    @map("user_id") @db.Uuid
+  role       String
+  represents String
+  fromOn     DateTime  @map("from_on") @db.Date
+  untilOn    DateTime? @map("until_on") @db.Date
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?   @map("created_by") @db.Uuid
+  updatedAt  DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?   @map("updated_by") @db.Uuid
+  version    Int       @default(1)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, userId])
+  @@map("sst_committee_members")
+}
+
+model SstCommitteeMinute {
+  id               String    @id @default(uuid(7)) @db.Uuid
+  tenantId         String    @map("tenant_id") @db.Uuid
+  committee        String
+  meetingOn        DateTime  @map("meeting_on") @db.Date
+  summaryEncrypted String    @map("summary_encrypted")
+  fileId           String?   @map("file_id") @db.Uuid
+  recordedBy       String    @map("recorded_by") @db.Uuid
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy        String?   @map("created_by") @db.Uuid
+  updatedAt        DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy        String?   @map("updated_by") @db.Uuid
+  version          Int       @default(1)
+  deletedAt        DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant           Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, committee, meetingOn])
+  @@map("sst_committee_minutes")
+}
+
+model SstCoexistenceComplaint {
+  id               String    @id @default(uuid(7)) @db.Uuid
+  tenantId         String    @map("tenant_id") @db.Uuid
+  code             String
+  complainantId    String    @map("complainant_id") @db.Uuid
+  factsEncrypted   String    @map("facts_encrypted")
+  status           String    @default("received")
+  outcomeEncrypted String?   @map("outcome_encrypted")
+  handledBy        String?   @map("handled_by") @db.Uuid
+  closedAt         DateTime? @map("closed_at") @db.Timestamptz(6)
+  requestKey       String    @map("request_key")
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy        String?   @map("created_by") @db.Uuid
+  updatedAt        DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy        String?   @map("updated_by") @db.Uuid
+  version          Int       @default(1)
+  deletedAt        DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant           Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, requestKey])
+  @@map("sst_coexistence_complaints")
+}
+
+model SstStandardsAssessment {
+  id             String    @id @default(uuid(7)) @db.Uuid
+  tenantId       String    @map("tenant_id") @db.Uuid
+  year           Int
+  standard       String
+  result         String
+  score          Int
+  justification  String?
+  evidenceFileId String?   @map("evidence_file_id") @db.Uuid
+  improvement    String?
+  assessedBy     String    @map("assessed_by") @db.Uuid
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy      String?   @map("created_by") @db.Uuid
+  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy      String?   @map("updated_by") @db.Uuid
+  version        Int       @default(1)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, year, standard])
+  @@map("sst_standards_assessments")
 }

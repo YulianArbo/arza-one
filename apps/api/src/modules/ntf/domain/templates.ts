@@ -118,6 +118,33 @@ export const DEFAULT_TEMPLATES: Readonly<Record<NotificationKind, TemplateText>>
     body: 'Un colaborador se retira y a usted le corresponde «{{tarea}}», con último día laborado el {{fecha}}. Márquela como hecha en ARZA ONE › Mi espacio.',
     urgent: false,
   },
+  // Seguridad y salud en el trabajo (B37). Sin datos de salud: el detalle está en la plataforma.
+  sst_report_received: {
+    subject: 'Nuevo reporte de SST: {{reporte}}',
+    body: 'Llegó un reporte de {{reporte}} en {{lugar}}. Atiéndalo en ARZA ONE › Talento y SST › SST.',
+    urgent: false,
+  },
+  sst_arl_due: {
+    subject: 'Reporte a la ARL pendiente: {{codigo}}',
+    body: 'El accidente de trabajo {{codigo}} debe reportarse a la ARL a más tardar el {{fecha}}. Registre el radicado en ARZA ONE › Talento y SST › SST.',
+    urgent: false,
+  },
+  sst_exam_due: {
+    subject: 'Evaluación médica ocupacional por vencer',
+    body: 'Una evaluación médica ocupacional vence el {{fecha}}. Revísela en ARZA ONE › Talento y SST › SST y prográmela con la institución prestadora.',
+    urgent: false,
+  },
+  sst_task_assigned: {
+    subject: 'Tarea de seguridad y salud: {{tarea}}',
+    body: 'Le corresponde «{{tarea}}», con fecha límite el {{fecha}}. Atiéndala en ARZA ONE › Mi espacio.',
+    urgent: false,
+  },
+  // Sin el contenido de la queja: solo los integrantes del comité la consultan en la plataforma.
+  sst_complaint_received: {
+    subject: 'Queja nueva para el Comité de Convivencia',
+    body: 'El Comité de Convivencia recibió la queja {{codigo}}. Consúltela en ARZA ONE › Talento y SST › Comités.',
+    urgent: false,
+  },
 };
 
 /** Variables que el texto usa y que este tipo de aviso no ofrece. */

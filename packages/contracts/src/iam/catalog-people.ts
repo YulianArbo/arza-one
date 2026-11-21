@@ -30,6 +30,8 @@ export const PEOPLE_PERMISSION_GROUPS = [
     label: 'Seguridad y salud en el trabajo',
     module: 'M13',
     entries: [
+      // Lectura del módulo sin datos médicos ni de convivencia (B37, decisión 2).
+      ['sst.read', 'read', 'Ver el módulo de SST'],
       ['sst.hazard.manage', 'write', 'Gestionar la matriz de peligros'],
       ['sst.plan.manage', 'write', 'Gestionar el plan de trabajo de SST'],
       ['sst.incident.report', 'write', 'Reportar incidentes y actos inseguros', OWN],
@@ -41,6 +43,7 @@ export const PEOPLE_PERMISSION_GROUPS = [
       ['sst.committee.read', 'read', 'Ver las actas del comité'],
       ['sst.committee.manage', 'write', 'Gestionar el comité'],
       ['sst.standards.manage', 'manage', 'Gestionar los estándares mínimos'],
+      ['sst.ppe.manage', 'write', 'Registrar la entrega de elementos de protección'],
     ],
   },
   {

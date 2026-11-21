@@ -13,26 +13,26 @@ permisos de una persona son la suma de sus roles vigentes.
 
 | Rol | Código | Para | Permisos | Solo lo propio |
 | --- | --- | --- | --- | --- |
-| Dirección | `DIRECCION` | Interno | 75 | 1 |
+| Dirección | `DIRECCION` | Interno | 76 | 1 |
 | Administrador de plataforma | `ADMIN_PLATAFORMA` | Interno | 34 | 1 |
-| Calidad | `CALIDAD` | Interno | 65 | 1 |
+| Calidad | `CALIDAD` | Interno | 66 | 1 |
 | Comercial | `COMERCIAL` | Interno | 52 | 9 |
 | Líder técnico | `LIDER_TECNICO` | Interno | 47 | 8 |
 | Equipo de proyecto | `EQUIPO_PROYECTO` | Interno | 21 | 17 |
 | Servicio al cliente | `SERVICIO` | Interno | 45 | 9 |
 | Administrativo y financiero | `ADMIN_FINANCIERO` | Interno | 62 | 5 |
 | Contador | `CONTADOR` | Interno | 20 | 2 |
-| Talento humano | `TALENTO_HUMANO` | Interno | 40 | 9 |
-| Seguridad y salud en el trabajo | `SST` | Interno | 29 | 8 |
+| Talento humano | `TALENTO_HUMANO` | Interno | 41 | 9 |
+| Seguridad y salud en el trabajo | `SST` | Interno | 31 | 8 |
 | Oficial de protección de datos | `OFICIAL_DATOS` | Interno | 33 | 5 |
 | Colaborador | `COLABORADOR` | Interno | 24 | 20 |
-| Auditor | `AUDITOR` | Interno | 36 | 0 |
+| Auditor | `AUDITOR` | Interno | 37 | 0 |
 | Administrador del cliente | `CLIENTE_ADMIN` | Portal | 9 | 0 |
 | Usuario del cliente | `CLIENTE_USUARIO` | Portal | 4 | 4 |
 
 ## Dirección (`DIRECCION`)
 
-Director General. Lectura transversal, aprobaciones de alto nivel, firma de contratos, tableros. 75 permisos.
+Director General. Lectura transversal, aprobaciones de alto nivel, firma de contratos, tableros. 76 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema · Administrar los comunicados del acceso
 - **Identidad y acceso (M01):** Ver los usuarios y sus roles · Ver los roles y sus permisos · Ver el informe de revisión de accesos
@@ -50,7 +50,7 @@ Director General. Lectura transversal, aprobaciones de alto nivel, firma de cont
 - **Finanzas (M10):** Ver facturas · Aprobar facturas · Registrar documento fiscal emitido · Anular facturas · Ver presupuestos · Aprobar presupuestos · Aprobar gastos · Ver gastos, caja menor y conciliaciones
 - **Compras y activos (M11):** Aprobar solicitudes de compra · Aprobar viajes · Ver compras, proveedores y viajes · Ver activos · Aprobar compras del tramo alto
 - **Talento humano (M12):** Ver colaboradores · Aprobar permisos y vacaciones · Autorizar horas extras · Cerrar el periodo de novedades de nómina · Ver salarios
-- **Seguridad y salud en el trabajo (M13):** Ver las actas del comité
+- **Seguridad y salud en el trabajo (M13):** Ver el módulo de SST · Ver las actas del comité
 - **Calidad (M14):** Cerrar no conformidades · Verificar la eficacia de las acciones · Evaluar el cumplimiento legal
 - **Innovación (M15):** Evaluar ideas · Aprobar ideas
 
@@ -69,7 +69,7 @@ Responsable técnico. Usuarios, roles, parámetros, flujos y catálogos, sin acc
 
 ## Calidad (`CALIDAD`)
 
-Coordinador de Calidad e Innovación. Control documental, riesgos, no conformidades, auditorías, indicadores. 65 permisos.
+Coordinador de Calidad e Innovación. Control documental, riesgos, no conformidades, auditorías, indicadores. 66 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Terceros (M02):** Ver terceros
@@ -84,7 +84,7 @@ Coordinador de Calidad e Innovación. Control documental, riesgos, no conformida
 - **Proyectos (M07):** Ver todos los proyectos · Ver los proyectos donde es miembro
 - **Servicio al cliente (M08):** Ver tiquetes · Ver PQRSF · Leer la base de conocimiento
 - **Compras y activos (M11):** Ver compras, proveedores y viajes · Ver activos
-- **Seguridad y salud en el trabajo (M13):** Ver las actas del comité
+- **Seguridad y salud en el trabajo (M13):** Ver el módulo de SST · Ver las actas del comité
 - **Calidad (M14):** Administrar procesos y su contexto · Gestionar riesgos · Reportar no conformidades · Gestionar no conformidades · Cerrar no conformidades · Gestionar acciones de mejora · Verificar la eficacia de las acciones · Planear auditorías internas · Ejecutar auditorías internas · Administrar indicadores · Registrar mediciones de indicadores · Gestionar la revisión por la dirección · Administrar la matriz de requisitos legales · Evaluar el cumplimiento legal
 - **Innovación (M15):** Proponer ideas · Evaluar ideas · Aprobar ideas · Administrar la hoja de ruta · Administrar la propiedad intelectual · Gestionar la vigilancia tecnológica
 
@@ -189,7 +189,7 @@ Contador Público externo. Lectura financiera, exportaciones contables, parámet
 
 ## Talento humano (`TALENTO_HUMANO`)
 
-Coordinador de talento humano. Colaboradores, selección, novedades, formación, disciplinarios. 40 permisos.
+Coordinador de talento humano. Colaboradores, selección, novedades, formación, disciplinarios. 41 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Terceros (M02):** Ver terceros · Crear terceros · Editar terceros · Fusionar terceros duplicados · Registrar el conocimiento del tercero
@@ -200,12 +200,12 @@ Coordinador de talento humano. Colaboradores, selección, novedades, formación,
 - **Servicio al cliente (M08):** Leer la base de conocimiento
 - **Compras y activos (M11):** Solicitar compras (solo lo propio) · Solicitar viajes (solo lo propio) · Ver activos (solo lo propio)
 - **Talento humano (M12):** Ver colaboradores · Administrar colaboradores · Gestionar vacantes · Gestionar candidatos · Solicitar permisos y vacaciones · Aprobar permisos y vacaciones · Autorizar horas extras · Registrar novedades de nómina · Cerrar el periodo de novedades de nómina · Gestionar evaluaciones de desempeño · Gestionar formación · Gestionar procesos disciplinarios · Gestionar retiros · Ver la historia laboral · Ver salarios
-- **Seguridad y salud en el trabajo (M13):** Ver las actas del comité
+- **Seguridad y salud en el trabajo (M13):** Ver el módulo de SST · Ver las actas del comité
 - **Calidad (M14):** Reportar no conformidades (solo lo propio) · Gestionar acciones de mejora (solo lo propio) · Registrar mediciones de indicadores (solo lo propio)
 
 ## Seguridad y salud en el trabajo (`SST`)
 
-Líder de SST. Módulo de SST, incluidos los conceptos de aptitud; nunca diagnósticos. 29 permisos.
+Líder de SST. Módulo de SST, incluidos los conceptos de aptitud; nunca diagnósticos. 31 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Gestión documental (M03):** Ver documentos · Crear documentos · Editar documentos · Enviar una versión a revisión · Solicitar cambios documentales · Diligenciar formatos
@@ -213,7 +213,7 @@ Líder de SST. Módulo de SST, incluidos los conceptos de aptitud; nunca diagnó
 - **Tableros (M16):** Ver tableros de proceso (solo lo propio)
 - **Servicio al cliente (M08):** Leer la base de conocimiento
 - **Compras y activos (M11):** Solicitar compras (solo lo propio) · Solicitar viajes (solo lo propio) · Ver activos (solo lo propio)
-- **Seguridad y salud en el trabajo (M13):** Gestionar la matriz de peligros · Gestionar el plan de trabajo de SST · Reportar incidentes y actos inseguros · Investigar incidentes · Cerrar incidentes · Gestionar inspecciones · Ver las actas del comité · Gestionar el comité · Gestionar los estándares mínimos · Ver conceptos de aptitud (nunca diagnósticos) · Registrar conceptos de aptitud y restricciones
+- **Seguridad y salud en el trabajo (M13):** Ver el módulo de SST · Gestionar la matriz de peligros · Gestionar el plan de trabajo de SST · Reportar incidentes y actos inseguros · Investigar incidentes · Cerrar incidentes · Gestionar inspecciones · Ver las actas del comité · Gestionar el comité · Gestionar los estándares mínimos · Registrar la entrega de elementos de protección · Ver conceptos de aptitud (nunca diagnósticos) · Registrar conceptos de aptitud y restricciones
 - **Calidad (M14):** Reportar no conformidades (solo lo propio) · Gestionar acciones de mejora (solo lo propio) · Registrar mediciones de indicadores (solo lo propio)
 
 ## Oficial de protección de datos (`OFICIAL_DATOS`)
@@ -251,7 +251,7 @@ Todo colaborador. Sus tareas, sus solicitudes, sus datos, documentos vigentes de
 
 ## Auditor (`AUDITOR`)
 
-Auditor interno o externo. Solo lectura de evidencias y auditoría, por tiempo limitado. 36 permisos.
+Auditor interno o externo. Solo lectura de evidencias y auditoría, por tiempo limitado. 37 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Identidad y acceso (M01):** Ver los usuarios y sus roles · Ver los roles y sus permisos · Ver el informe de revisión de accesos
@@ -269,7 +269,7 @@ Auditor interno o externo. Solo lectura de evidencias y auditoría, por tiempo l
 - **Finanzas (M10):** Ver facturas · Ver presupuestos · Ver gastos, caja menor y conciliaciones
 - **Compras y activos (M11):** Ver compras, proveedores y viajes · Ver activos
 - **Talento humano (M12):** Ver colaboradores
-- **Seguridad y salud en el trabajo (M13):** Ver las actas del comité
+- **Seguridad y salud en el trabajo (M13):** Ver el módulo de SST · Ver las actas del comité
 
 ## Administrador del cliente (`CLIENTE_ADMIN`)
 

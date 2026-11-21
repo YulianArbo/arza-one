@@ -55,6 +55,10 @@
     "./hr": {
       "types": "./dist/modules/hr/index.d.ts",
       "default": "./dist/modules/hr/index.js"
+    },
+    "./sst": {
+      "types": "./dist/modules/sst/index.d.ts",
+      "default": "./dist/modules/sst/index.js"
     }
   },
   "scripts": {

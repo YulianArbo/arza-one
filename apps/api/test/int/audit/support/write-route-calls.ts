@@ -29,6 +29,8 @@ import { PROJECT_ROUTE_CALLS } from './project-route-calls.js';
 import { PURCHASE_ROUTE_CALLS } from './purchase-route-calls.js';
 import { QUOTE_ROUTE_CALLS } from './quote-route-calls.js';
 import { SERVICE_ROUTE_CALLS } from './service-route-calls.js';
+import { SST_PEOPLE_ROUTE_CALLS } from './sst-people-route-calls.js';
+import { SST_ROUTE_CALLS } from './sst-route-calls.js';
 import { WF_ROUTE_CALLS } from './wf-route-calls.js';
 
 // Una petición válida a cada ruta de la API que escribe (B11, criterio de la ficha 17.20). Cada
@@ -49,6 +51,8 @@ export const WRITE_ROUTE_CALLS: Readonly<Record<string, RouteCall>> = {
   ...HR_ROUTE_CALLS,
   ...HR_ABSENCE_ROUTE_CALLS,
   ...HR_PEOPLE_ROUTE_CALLS,
+  ...SST_ROUTE_CALLS,
+  ...SST_PEOPLE_ROUTE_CALLS,
   ...CORE_CALLS,
   ...ANNOUNCEMENT_CALLS,
   ...PARTY_ROUTE_CALLS,
