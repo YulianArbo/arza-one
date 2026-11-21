@@ -31,12 +31,12 @@ import { Meta, type RequestMeta } from '../../../platform/http/request-meta.js';
 import { ApiPermissionErrors } from '../../../platform/openapi/api-common-errors.js';
 import { Inspections } from '../application/inspections.js';
 
-class InspectionListResponse extends createZodDto(inspectionListResponseSchema) {}
-class ChecklistResponse extends createZodDto(checklistResponseSchema) {}
-class RecordBody extends createZodDto(recordInspectionSchema) {}
-class HomeRequestBody extends createZodDto(requestHomeInspectionSchema) {}
-class ReviewBody extends createZodDto(reviewInspectionSchema) {}
-class CreatedResponse extends createZodDto(sstCreatedResponseSchema) {}
+class SstInspectionListResponse extends createZodDto(inspectionListResponseSchema) {}
+class SstChecklistResponse extends createZodDto(checklistResponseSchema) {}
+class SstRecordBody extends createZodDto(recordInspectionSchema) {}
+class SstHomeRequestBody extends createZodDto(requestHomeInspectionSchema) {}
+class SstReviewBody extends createZodDto(reviewInspectionSchema) {}
+class SstCreatedResponse extends createZodDto(sstCreatedResponseSchema) {}
 const KIND = new ParseEnumPipe(inspectionKindSchema.enum);
 
 // Inspecciones de instalaciones, emergencias y puesto de trabajo en casa (B37, decisión 11).
@@ -50,43 +50,47 @@ export class InspectionsController {
   @Get()
   @RequirePermission('sst.read')
   @ApiOperation({ summary: 'Consultar las inspecciones' })
-  @ZodResponse({ status: HttpStatus.OK, type: InspectionListResponse, description: 'Inspecciones' })
-  async list(@CurrentPrincipal() principal: Principal): Promise<InspectionListResponse> {
+  @ZodResponse({
+    status: HttpStatus.OK,
+    type: SstInspectionListResponse,
+    description: 'Inspecciones',
+  })
+  async list(@CurrentPrincipal() principal: Principal): Promise<SstInspectionListResponse> {
     return { data: await this.inspections.list(principal) };
   }
 
   @Get('checklists/:kind')
   @RequirePermission('sst.read')
   @ApiOperation({ summary: 'Consultar la lista de chequeo de un tipo de inspección' })
-  @ZodResponse({ status: HttpStatus.OK, type: ChecklistResponse, description: 'Lista' })
+  @ZodResponse({ status: HttpStatus.OK, type: SstChecklistResponse, description: 'Lista' })
   async checklist(
     @CurrentPrincipal() principal: Principal,
     @Param('kind', KIND) kind: InspectionKind,
-  ): Promise<ChecklistResponse> {
+  ): Promise<SstChecklistResponse> {
     return { kind, data: await this.inspections.checklist(principal, kind) };
   }
 
   @Post()
   @RequirePermission('sst.inspection.manage')
   @ApiOperation({ summary: 'Registrar una inspección de instalaciones o de emergencias' })
-  @ZodResponse({ status: HttpStatus.CREATED, type: CreatedResponse, description: 'Registrada' })
+  @ZodResponse({ status: HttpStatus.CREATED, type: SstCreatedResponse, description: 'Registrada' })
   async record(
     @CurrentPrincipal() principal: Principal,
     @Meta() meta: RequestMeta,
-    @Body() input: RecordBody,
-  ): Promise<CreatedResponse> {
+    @Body() input: SstRecordBody,
+  ): Promise<SstCreatedResponse> {
     return { id: await this.inspections.record(principal, meta, input) };
   }
 
   @Post('home-requests')
   @RequirePermission('sst.inspection.manage')
   @ApiOperation({ summary: 'Pedir a un colaborador la autoinspección de su puesto en casa' })
-  @ZodResponse({ status: HttpStatus.CREATED, type: CreatedResponse, description: 'Solicitada' })
+  @ZodResponse({ status: HttpStatus.CREATED, type: SstCreatedResponse, description: 'Solicitada' })
   async requestHome(
     @CurrentPrincipal() principal: Principal,
     @Meta() meta: RequestMeta,
-    @Body() input: HomeRequestBody,
-  ): Promise<CreatedResponse> {
+    @Body() input: SstHomeRequestBody,
+  ): Promise<SstCreatedResponse> {
     return { id: await this.inspections.requestHome(principal, meta, input) };
   }
 
@@ -100,7 +104,7 @@ export class InspectionsController {
     @Meta() meta: RequestMeta,
     @Param('id', new ParseUUIDPipe({ version: '7' })) id: string,
     @Headers('if-match') version: string | undefined,
-    @Body() input: ReviewBody,
+    @Body() input: SstReviewBody,
   ): Promise<void> {
     const target = { id, version: versionFromIfMatch(version) };
     await this.inspections.review(principal, meta, target, input);

@@ -26,9 +26,9 @@ import { ApiPermissionErrors } from '../../../platform/openapi/api-common-errors
 import { sstInvalid } from '../application/sst-support.js';
 import { Standards } from '../application/standards.js';
 
-class AssessmentResponse extends createZodDto(standardsAssessmentSchema) {}
-class ScoreResponse extends createZodDto(standardsScoreSchema) {}
-class AssessBody extends createZodDto(assessStandardSchema) {}
+class SstAssessmentResponse extends createZodDto(standardsAssessmentSchema) {}
+class SstScoreResponse extends createZodDto(standardsScoreSchema) {}
+class SstAssessBody extends createZodDto(assessStandardSchema) {}
 const YEAR = new ParseIntPipe();
 
 function checkedYear(year: number): number {
@@ -47,22 +47,26 @@ export class StandardsController {
   @Get()
   @RequirePermission('sst.read')
   @ApiOperation({ summary: 'Consultar la autoevaluación del año con su puntaje' })
-  @ZodResponse({ status: HttpStatus.OK, type: AssessmentResponse, description: 'Autoevaluación' })
+  @ZodResponse({
+    status: HttpStatus.OK,
+    type: SstAssessmentResponse,
+    description: 'Autoevaluación',
+  })
   async assessment(
     @CurrentPrincipal() principal: Principal,
     @Param('year', YEAR) year: number,
-  ): Promise<AssessmentResponse> {
+  ): Promise<SstAssessmentResponse> {
     return this.standards.assessment(principal, checkedYear(year));
   }
 
   @Get('score')
   @RequirePermission('sst.read')
   @ApiOperation({ summary: 'Calcular el puntaje y su clasificación (Resolución 0312)' })
-  @ZodResponse({ status: HttpStatus.OK, type: ScoreResponse, description: 'Puntaje' })
+  @ZodResponse({ status: HttpStatus.OK, type: SstScoreResponse, description: 'Puntaje' })
   async score(
     @CurrentPrincipal() principal: Principal,
     @Param('year', YEAR) year: number,
-  ): Promise<ScoreResponse> {
+  ): Promise<SstScoreResponse> {
     return (await this.standards.assessment(principal, checkedYear(year))).score;
   }
 
@@ -81,7 +85,7 @@ export class StandardsController {
     @Param('year', YEAR) year: number,
     @Param('code') code: string,
     @Headers('if-match') version: string | undefined,
-    @Body() input: AssessBody,
+    @Body() input: SstAssessBody,
   ): Promise<void> {
     const target = {
       year: checkedYear(year),

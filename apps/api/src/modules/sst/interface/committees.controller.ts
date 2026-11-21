@@ -37,17 +37,17 @@ import { ApiPermissionErrors } from '../../../platform/openapi/api-common-errors
 import { Committees } from '../application/committees.js';
 import { Complaints } from '../application/complaints.js';
 
-class MemberListResponse extends createZodDto(committeeMemberListResponseSchema) {}
-class MemberBody extends createZodDto(addCommitteeMemberSchema) {}
-class EndMemberBody extends createZodDto(endCommitteeMemberSchema) {}
-class MinuteListResponse extends createZodDto(committeeMinuteListResponseSchema) {}
-class MinuteQueryBody extends createZodDto(committeeQuerySchema) {}
-class MinuteBody extends createZodDto(recordCommitteeMinuteSchema) {}
-class ComplaintListResponse extends createZodDto(complaintListResponseSchema) {}
-class ComplaintBody extends createZodDto(fileComplaintSchema) {}
-class ComplaintResponse extends createZodDto(ownComplaintSchema) {}
-class HandleBody extends createZodDto(handleComplaintSchema) {}
-class CreatedResponse extends createZodDto(sstCreatedResponseSchema) {}
+class SstMemberListResponse extends createZodDto(committeeMemberListResponseSchema) {}
+class SstMemberBody extends createZodDto(addCommitteeMemberSchema) {}
+class SstEndMemberBody extends createZodDto(endCommitteeMemberSchema) {}
+class SstMinuteListResponse extends createZodDto(committeeMinuteListResponseSchema) {}
+class SstMinuteQueryBody extends createZodDto(committeeQuerySchema) {}
+class SstMinuteBody extends createZodDto(recordCommitteeMinuteSchema) {}
+class SstComplaintListResponse extends createZodDto(complaintListResponseSchema) {}
+class SstComplaintBody extends createZodDto(fileComplaintSchema) {}
+class SstComplaintResponse extends createZodDto(ownComplaintSchema) {}
+class SstHandleBody extends createZodDto(handleComplaintSchema) {}
+class SstCreatedResponse extends createZodDto(sstCreatedResponseSchema) {}
 const UUID = new ParseUUIDPipe({ version: '7' });
 const IF_MATCH = { name: 'If-Match', required: true, description: 'Versión del registro' };
 
@@ -67,24 +67,24 @@ export class CommitteesController {
   @Get('committee-members')
   @RequirePermission('sst.committee.read')
   @ApiOperation({ summary: 'Consultar los integrantes de los comités' })
-  @ZodResponse({ status: HttpStatus.OK, type: MemberListResponse, description: 'Integrantes' })
+  @ZodResponse({ status: HttpStatus.OK, type: SstMemberListResponse, description: 'Integrantes' })
   async members(
     @CurrentPrincipal() principal: Principal,
     @CurrentAbility() ability: AppAbility,
-  ): Promise<MemberListResponse> {
+  ): Promise<SstMemberListResponse> {
     return { data: await this.committees.members({ principal, ability }) };
   }
 
   @Post('committee-members')
   @RequirePermission('sst.committee.manage')
   @ApiOperation({ summary: 'Agregar un integrante a un comité' })
-  @ZodResponse({ status: HttpStatus.CREATED, type: CreatedResponse, description: 'Agregado' })
+  @ZodResponse({ status: HttpStatus.CREATED, type: SstCreatedResponse, description: 'Agregado' })
   async addMember(
     @CurrentPrincipal() principal: Principal,
     @CurrentAbility() ability: AppAbility,
     @Meta() meta: RequestMeta,
-    @Body() input: MemberBody,
-  ): Promise<CreatedResponse> {
+    @Body() input: SstMemberBody,
+  ): Promise<SstCreatedResponse> {
     return { id: await this.committees.addMember({ principal, ability }, meta, input) };
   }
 
@@ -99,7 +99,7 @@ export class CommitteesController {
     @Meta() meta: RequestMeta,
     @Param('id', UUID) id: string,
     @Headers('if-match') version: string | undefined,
-    @Body() input: EndMemberBody,
+    @Body() input: SstEndMemberBody,
   ): Promise<void> {
     const target = { id, version: versionFromIfMatch(version) };
     await this.committees.endMember({ principal, ability }, meta, target, input);
@@ -109,26 +109,26 @@ export class CommitteesController {
   @HttpCode(HttpStatus.OK)
   @RequirePermission('sst.incident.report')
   @ApiOperation({ summary: 'Consultar las actas de un comité (Convivencia: solo integrantes)' })
-  @ZodResponse({ status: HttpStatus.OK, type: MinuteListResponse, description: 'Actas' })
+  @ZodResponse({ status: HttpStatus.OK, type: SstMinuteListResponse, description: 'Actas' })
   async minutes(
     @CurrentPrincipal() principal: Principal,
     @CurrentAbility() ability: AppAbility,
     @Meta() meta: RequestMeta,
-    @Body() input: MinuteQueryBody,
-  ): Promise<MinuteListResponse> {
+    @Body() input: SstMinuteQueryBody,
+  ): Promise<SstMinuteListResponse> {
     return { data: await this.committees.minutes({ principal, ability }, meta, input.committee) };
   }
 
   @Post('committee-minutes')
   @RequirePermission('sst.incident.report')
   @ApiOperation({ summary: 'Registrar el acta de una reunión del comité' })
-  @ZodResponse({ status: HttpStatus.CREATED, type: CreatedResponse, description: 'Registrada' })
+  @ZodResponse({ status: HttpStatus.CREATED, type: SstCreatedResponse, description: 'Registrada' })
   async recordMinute(
     @CurrentPrincipal() principal: Principal,
     @CurrentAbility() ability: AppAbility,
     @Meta() meta: RequestMeta,
-    @Body() input: MinuteBody,
-  ): Promise<CreatedResponse> {
+    @Body() input: SstMinuteBody,
+  ): Promise<SstCreatedResponse> {
     return { id: await this.committees.recordMinute({ principal, ability }, meta, input) };
   }
 
@@ -136,13 +136,13 @@ export class CommitteesController {
   @RequirePermission('sst.incident.report')
   @ApiIdempotencyKey()
   @ApiOperation({ summary: 'Presentar una queja confidencial al Comité de Convivencia' })
-  @ZodResponse({ status: HttpStatus.CREATED, type: ComplaintResponse, description: 'Recibida' })
+  @ZodResponse({ status: HttpStatus.CREATED, type: SstComplaintResponse, description: 'Recibida' })
   async file(
     @CurrentPrincipal() principal: Principal,
     @Meta() meta: RequestMeta,
     @Headers('idempotency-key') key: string | undefined,
-    @Body() input: ComplaintBody,
-  ): Promise<ComplaintResponse> {
+    @Body() input: SstComplaintBody,
+  ): Promise<SstComplaintResponse> {
     return this.complaints.file(principal, meta, idempotencyKeyFrom(key), input);
   }
 
@@ -152,11 +152,11 @@ export class CommitteesController {
   @ApiOperation({
     summary: 'Consultar las quejas (solo integrantes de Convivencia); queda registrado',
   })
-  @ZodResponse({ status: HttpStatus.OK, type: ComplaintListResponse, description: 'Quejas' })
+  @ZodResponse({ status: HttpStatus.OK, type: SstComplaintListResponse, description: 'Quejas' })
   async list(
     @CurrentPrincipal() principal: Principal,
     @Meta() meta: RequestMeta,
-  ): Promise<ComplaintListResponse> {
+  ): Promise<SstComplaintListResponse> {
     return { data: await this.complaints.list(principal, meta) };
   }
 
@@ -170,7 +170,7 @@ export class CommitteesController {
     @Meta() meta: RequestMeta,
     @Param('id', UUID) id: string,
     @Headers('if-match') version: string | undefined,
-    @Body() input: HandleBody,
+    @Body() input: SstHandleBody,
   ): Promise<void> {
     const target = { id, version: versionFromIfMatch(version) };
     await this.complaints.handle(principal, meta, target, input);

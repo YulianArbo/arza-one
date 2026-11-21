@@ -32,13 +32,13 @@ import { ApiPermissionErrors } from '../../../platform/openapi/api-common-errors
 import { Hazards } from '../application/hazards.js';
 import { WorkPlan } from '../application/work-plan.js';
 
-class HazardListResponse extends createZodDto(hazardListResponseSchema) {}
-class HazardBody extends createZodDto(saveHazardSchema) {}
-class WorkPlanResponse extends createZodDto(workPlanResponseSchema) {}
-class WorkPlanQuery extends createZodDto(workPlanQuerySchema) {}
-class WorkPlanItemBody extends createZodDto(saveWorkPlanItemSchema) {}
-class CompleteItemBody extends createZodDto(completeWorkPlanItemSchema) {}
-class CreatedResponse extends createZodDto(sstCreatedResponseSchema) {}
+class SstHazardListResponse extends createZodDto(hazardListResponseSchema) {}
+class SstHazardBody extends createZodDto(saveHazardSchema) {}
+class SstWorkPlanResponse extends createZodDto(workPlanResponseSchema) {}
+class SstWorkPlanQuery extends createZodDto(workPlanQuerySchema) {}
+class SstWorkPlanItemBody extends createZodDto(saveWorkPlanItemSchema) {}
+class SstCompleteItemBody extends createZodDto(completeWorkPlanItemSchema) {}
+class SstCreatedResponse extends createZodDto(sstCreatedResponseSchema) {}
 const UUID = new ParseUUIDPipe({ version: '7' });
 const IF_MATCH = { name: 'If-Match', required: true, description: 'Versión del registro' };
 
@@ -56,20 +56,20 @@ export class PlanningController {
   @Get('hazards')
   @RequirePermission('sst.read')
   @ApiOperation({ summary: 'Consultar la matriz de peligros, del riesgo más alto al más bajo' })
-  @ZodResponse({ status: HttpStatus.OK, type: HazardListResponse, description: 'Matriz' })
-  async listHazards(@CurrentPrincipal() principal: Principal): Promise<HazardListResponse> {
+  @ZodResponse({ status: HttpStatus.OK, type: SstHazardListResponse, description: 'Matriz' })
+  async listHazards(@CurrentPrincipal() principal: Principal): Promise<SstHazardListResponse> {
     return { data: await this.hazards.list(principal) };
   }
 
   @Post('hazards')
   @RequirePermission('sst.hazard.manage')
   @ApiOperation({ summary: 'Agregar un peligro; la plataforma calcula el nivel de riesgo' })
-  @ZodResponse({ status: HttpStatus.CREATED, type: CreatedResponse, description: 'Agregado' })
+  @ZodResponse({ status: HttpStatus.CREATED, type: SstCreatedResponse, description: 'Agregado' })
   async createHazard(
     @CurrentPrincipal() principal: Principal,
     @Meta() meta: RequestMeta,
-    @Body() input: HazardBody,
-  ): Promise<CreatedResponse> {
+    @Body() input: SstHazardBody,
+  ): Promise<SstCreatedResponse> {
     return { id: await this.hazards.create(principal, meta, input) };
   }
 
@@ -83,7 +83,7 @@ export class PlanningController {
     @Meta() meta: RequestMeta,
     @Param('id', UUID) id: string,
     @Headers('if-match') version: string | undefined,
-    @Body() input: HazardBody,
+    @Body() input: SstHazardBody,
   ): Promise<void> {
     await this.hazards.update(principal, meta, { id, version: versionFromIfMatch(version) }, input);
   }
@@ -91,23 +91,23 @@ export class PlanningController {
   @Get('work-plan')
   @RequirePermission('sst.read')
   @ApiOperation({ summary: 'Consultar el plan anual con su porcentaje de cumplimiento' })
-  @ZodResponse({ status: HttpStatus.OK, type: WorkPlanResponse, description: 'Plan' })
+  @ZodResponse({ status: HttpStatus.OK, type: SstWorkPlanResponse, description: 'Plan' })
   async listPlan(
     @CurrentPrincipal() principal: Principal,
-    @Query() query: WorkPlanQuery,
-  ): Promise<WorkPlanResponse> {
+    @Query() query: SstWorkPlanQuery,
+  ): Promise<SstWorkPlanResponse> {
     return this.plan.list(principal, query.year);
   }
 
   @Post('work-plan')
   @RequirePermission('sst.plan.manage')
   @ApiOperation({ summary: 'Agregar una actividad al plan anual' })
-  @ZodResponse({ status: HttpStatus.CREATED, type: CreatedResponse, description: 'Agregada' })
+  @ZodResponse({ status: HttpStatus.CREATED, type: SstCreatedResponse, description: 'Agregada' })
   async createItem(
     @CurrentPrincipal() principal: Principal,
     @Meta() meta: RequestMeta,
-    @Body() input: WorkPlanItemBody,
-  ): Promise<CreatedResponse> {
+    @Body() input: SstWorkPlanItemBody,
+  ): Promise<SstCreatedResponse> {
     return { id: await this.plan.create(principal, meta, input) };
   }
 
@@ -121,7 +121,7 @@ export class PlanningController {
     @Meta() meta: RequestMeta,
     @Param('id', UUID) id: string,
     @Headers('if-match') version: string | undefined,
-    @Body() input: CompleteItemBody,
+    @Body() input: SstCompleteItemBody,
   ): Promise<void> {
     await this.plan.complete(principal, meta, { id, version: versionFromIfMatch(version) }, input);
   }

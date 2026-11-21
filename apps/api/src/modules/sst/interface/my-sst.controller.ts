@@ -33,12 +33,12 @@ import { MySstQueries } from '../application/my-sst.js';
 import { PpeDeliveries } from '../application/ppe.js';
 import { QuickReports } from '../application/quick-reports.js';
 
-class MySstResponse extends createZodDto(mySstSchema) {}
-class MyExamsResponse extends createZodDto(myMedicalExamsSchema) {}
-class ReportBody extends createZodDto(quickReportSchema) {}
-class ReportResponse extends createZodDto(quickReportResponseSchema) {}
-class AnswerBody extends createZodDto(answerHomeInspectionSchema) {}
-class RefListResponse extends createZodDto(sstRefListResponseSchema) {}
+class SstMySstResponse extends createZodDto(mySstSchema) {}
+class SstMyExamsResponse extends createZodDto(myMedicalExamsSchema) {}
+class SstReportBody extends createZodDto(quickReportSchema) {}
+class SstReportResponse extends createZodDto(quickReportResponseSchema) {}
+class SstAnswerBody extends createZodDto(answerHomeInspectionSchema) {}
+class SstRefListResponse extends createZodDto(sstRefListResponseSchema) {}
 const UUID = new ParseUUIDPipe({ version: '7' });
 const IF_MATCH = { name: 'If-Match', required: true, description: 'Versión del registro' };
 
@@ -61,8 +61,8 @@ export class MySstController {
   @Get('me')
   @RequirePermission('sst.incident.report')
   @ApiOperation({ summary: 'Consultar lo propio de SST para «Mi espacio»' })
-  @ZodResponse({ status: HttpStatus.OK, type: MySstResponse, description: 'Mi SST' })
-  async mine(@CurrentPrincipal() principal: Principal): Promise<MySstResponse> {
+  @ZodResponse({ status: HttpStatus.OK, type: SstMySstResponse, description: 'Mi SST' })
+  async mine(@CurrentPrincipal() principal: Principal): Promise<SstMySstResponse> {
     return this.queries.summary(principal);
   }
 
@@ -72,13 +72,13 @@ export class MySstController {
   @ApiOperation({
     summary: 'Reportar una condición, un acto inseguro, un incidente o un accidente',
   })
-  @ZodResponse({ status: HttpStatus.CREATED, type: ReportResponse, description: 'Reportado' })
+  @ZodResponse({ status: HttpStatus.CREATED, type: SstReportResponse, description: 'Reportado' })
   async report(
     @CurrentPrincipal() principal: Principal,
     @Meta() meta: RequestMeta,
     @Headers('idempotency-key') key: string | undefined,
-    @Body() input: ReportBody,
-  ): Promise<ReportResponse> {
+    @Body() input: SstReportBody,
+  ): Promise<SstReportResponse> {
     return this.reports.report(principal, meta, idempotencyKeyFrom(key), input);
   }
 
@@ -86,11 +86,11 @@ export class MySstController {
   @HttpCode(HttpStatus.OK)
   @RequirePermission('sst.incident.report')
   @ApiOperation({ summary: 'Consultar sus conceptos de aptitud; la consulta queda registrada' })
-  @ZodResponse({ status: HttpStatus.OK, type: MyExamsResponse, description: 'Conceptos' })
+  @ZodResponse({ status: HttpStatus.OK, type: SstMyExamsResponse, description: 'Conceptos' })
   async myExams(
     @CurrentPrincipal() principal: Principal,
     @Meta() meta: RequestMeta,
-  ): Promise<MyExamsResponse> {
+  ): Promise<SstMyExamsResponse> {
     return { data: await this.exams.mine(principal, meta) };
   }
 
@@ -104,7 +104,7 @@ export class MySstController {
     @Meta() meta: RequestMeta,
     @Param('id', UUID) id: string,
     @Headers('if-match') version: string | undefined,
-    @Body() input: AnswerBody,
+    @Body() input: SstAnswerBody,
   ): Promise<void> {
     const target = { id, version: versionFromIfMatch(version) };
     await this.inspections.answerHome(principal, meta, target, input);
@@ -127,16 +127,16 @@ export class MySstController {
   @Get('employees')
   @RequirePermission('sst.read')
   @ApiOperation({ summary: 'Colaboradores activos, para los formularios de SST' })
-  @ZodResponse({ status: HttpStatus.OK, type: RefListResponse, description: 'Colaboradores' })
-  async employees(@CurrentPrincipal() principal: Principal): Promise<RefListResponse> {
+  @ZodResponse({ status: HttpStatus.OK, type: SstRefListResponse, description: 'Colaboradores' })
+  async employees(@CurrentPrincipal() principal: Principal): Promise<SstRefListResponse> {
     return { data: await this.queries.employees(principal) };
   }
 
   @Get('people')
   @RequirePermission('sst.read')
   @ApiOperation({ summary: 'Cuentas activas, para responsables e integrantes de comités' })
-  @ZodResponse({ status: HttpStatus.OK, type: RefListResponse, description: 'Personas' })
-  async people(@CurrentPrincipal() principal: Principal): Promise<RefListResponse> {
+  @ZodResponse({ status: HttpStatus.OK, type: SstRefListResponse, description: 'Personas' })
+  async people(@CurrentPrincipal() principal: Principal): Promise<SstRefListResponse> {
     return { data: await this.queries.people(principal) };
   }
 }

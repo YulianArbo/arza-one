@@ -127,7 +127,7 @@ export const DEFAULT_TEMPLATES: Readonly<Record<NotificationKind, TemplateText>>
   sst_arl_due: {
     subject: 'Reporte a la ARL pendiente: {{codigo}}',
     body: 'El accidente de trabajo {{codigo}} debe reportarse a la ARL a más tardar el {{fecha}}. Registre el radicado en ARZA ONE › Talento y SST › SST.',
-    urgent: true,
+    urgent: false,
   },
   sst_exam_due: {
     subject: 'Evaluación médica ocupacional por vencer',

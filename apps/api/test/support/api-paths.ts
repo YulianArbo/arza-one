@@ -1,6 +1,6 @@
 import { CORE_PATHS } from './api-paths-core.js';
 import { FINANCE_PATHS } from './api-paths-finance.js';
-import { HR_PATHS } from './api-paths-hr.js';
+import { PEOPLE_PATHS } from './api-paths-hr.js';
 import { PORTAL_PATHS } from './api-paths-portal.js';
 import { PURCHASE_PATHS } from './api-paths-purchase.js';
 import { SERVICE_PATHS } from './api-paths-service.js';
@@ -296,6 +296,6 @@ const PLATFORM_PATHS = [
   '/version',
 ];
 
-const MODULE_PATHS = [FINANCE_PATHS, SERVICE_PATHS, PORTAL_PATHS, PURCHASE_PATHS, HR_PATHS];
+const MODULE_PATHS = [FINANCE_PATHS, SERVICE_PATHS, PORTAL_PATHS, PURCHASE_PATHS, PEOPLE_PATHS];
 
 export const API_PATHS = PLATFORM_PATHS.concat(...MODULE_PATHS, CORE_PATHS).sort();

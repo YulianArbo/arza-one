@@ -34,15 +34,15 @@ import { ApiPermissionErrors } from '../../../platform/openapi/api-common-errors
 import { Incidents } from '../application/incidents.js';
 import { UnsafeReports } from '../application/unsafe-reports.js';
 
-class IncidentListResponse extends createZodDto(sstIncidentListResponseSchema) {}
-class IncidentResponse extends createZodDto(sstIncidentDetailSchema) {}
-class UnsafeListResponse extends createZodDto(unsafeReportListResponseSchema) {}
-class AttendBody extends createZodDto(attendUnsafeReportSchema) {}
-class ArlBody extends createZodDto(reportToArlSchema) {}
-class InvestigateBody extends createZodDto(startInvestigationSchema) {}
-class PlanBody extends createZodDto(investigationPlanSchema) {}
-class CloseBody extends createZodDto(closeIncidentSchema) {}
-class CompleteActionBody extends createZodDto(completeInvestigationActionSchema) {}
+class SstIncidentListResponse extends createZodDto(sstIncidentListResponseSchema) {}
+class SstIncidentResponse extends createZodDto(sstIncidentDetailSchema) {}
+class SstUnsafeListResponse extends createZodDto(unsafeReportListResponseSchema) {}
+class SstAttendBody extends createZodDto(attendUnsafeReportSchema) {}
+class SstArlBody extends createZodDto(reportToArlSchema) {}
+class SstInvestigateBody extends createZodDto(startInvestigationSchema) {}
+class SstPlanBody extends createZodDto(investigationPlanSchema) {}
+class SstCloseBody extends createZodDto(closeIncidentSchema) {}
+class SstCompleteActionBody extends createZodDto(completeInvestigationActionSchema) {}
 const UUID = new ParseUUIDPipe({ version: '7' });
 const IF_MATCH = { name: 'If-Match', required: true, description: 'Versión del registro' };
 
@@ -60,8 +60,8 @@ export class IncidentsController {
   @Get('unsafe-reports')
   @RequirePermission('sst.read')
   @ApiOperation({ summary: 'Consultar los actos y condiciones inseguras reportados' })
-  @ZodResponse({ status: HttpStatus.OK, type: UnsafeListResponse, description: 'Reportes' })
-  async listReports(@CurrentPrincipal() principal: Principal): Promise<UnsafeListResponse> {
+  @ZodResponse({ status: HttpStatus.OK, type: SstUnsafeListResponse, description: 'Reportes' })
+  async listReports(@CurrentPrincipal() principal: Principal): Promise<SstUnsafeListResponse> {
     return { data: await this.reports.list(principal) };
   }
 
@@ -75,7 +75,7 @@ export class IncidentsController {
     @Meta() meta: RequestMeta,
     @Param('id', UUID) id: string,
     @Headers('if-match') version: string | undefined,
-    @Body() input: AttendBody,
+    @Body() input: SstAttendBody,
   ): Promise<void> {
     await this.reports.attend(principal, meta, { id, version: versionFromIfMatch(version) }, input);
   }
@@ -83,19 +83,19 @@ export class IncidentsController {
   @Get('incidents')
   @RequirePermission('sst.read')
   @ApiOperation({ summary: 'Consultar los incidentes y accidentes de trabajo' })
-  @ZodResponse({ status: HttpStatus.OK, type: IncidentListResponse, description: 'Incidentes' })
-  async list(@CurrentPrincipal() principal: Principal): Promise<IncidentListResponse> {
+  @ZodResponse({ status: HttpStatus.OK, type: SstIncidentListResponse, description: 'Incidentes' })
+  async list(@CurrentPrincipal() principal: Principal): Promise<SstIncidentListResponse> {
     return { data: await this.incidents.list(principal) };
   }
 
   @Get('incidents/:id')
   @RequirePermission('sst.read')
   @ApiOperation({ summary: 'Consultar un incidente con su investigación y acciones' })
-  @ZodResponse({ status: HttpStatus.OK, type: IncidentResponse, description: 'Incidente' })
+  @ZodResponse({ status: HttpStatus.OK, type: SstIncidentResponse, description: 'Incidente' })
   async detail(
     @CurrentPrincipal() principal: Principal,
     @Param('id', UUID) id: string,
-  ): Promise<IncidentResponse> {
+  ): Promise<SstIncidentResponse> {
     return this.incidents.detail(principal, id);
   }
 
@@ -109,7 +109,7 @@ export class IncidentsController {
     @Meta() meta: RequestMeta,
     @Param('id', UUID) id: string,
     @Headers('if-match') version: string | undefined,
-    @Body() input: ArlBody,
+    @Body() input: SstArlBody,
   ): Promise<void> {
     const target = { id, version: versionFromIfMatch(version) };
     await this.incidents.reportArl(principal, meta, target, input);
@@ -125,7 +125,7 @@ export class IncidentsController {
     @Meta() meta: RequestMeta,
     @Param('id', UUID) id: string,
     @Headers('if-match') version: string | undefined,
-    @Body() input: InvestigateBody,
+    @Body() input: SstInvestigateBody,
   ): Promise<void> {
     const target = { id, version: versionFromIfMatch(version) };
     await this.incidents.investigate(principal, meta, target, input);
@@ -141,7 +141,7 @@ export class IncidentsController {
     @Meta() meta: RequestMeta,
     @Param('id', UUID) id: string,
     @Headers('if-match') version: string | undefined,
-    @Body() input: PlanBody,
+    @Body() input: SstPlanBody,
   ): Promise<void> {
     await this.incidents.plan(principal, meta, { id, version: versionFromIfMatch(version) }, input);
   }
@@ -156,7 +156,7 @@ export class IncidentsController {
     @Meta() meta: RequestMeta,
     @Param('id', UUID) id: string,
     @Headers('if-match') version: string | undefined,
-    @Body() input: CloseBody,
+    @Body() input: SstCloseBody,
   ): Promise<void> {
     await this.incidents.close(
       principal,
@@ -177,7 +177,7 @@ export class IncidentsController {
     @Meta() meta: RequestMeta,
     @Param('id', UUID) id: string,
     @Headers('if-match') version: string | undefined,
-    @Body() input: CompleteActionBody,
+    @Body() input: SstCompleteActionBody,
   ): Promise<void> {
     const target = { id, version: versionFromIfMatch(version) };
     await this.incidents.completeAction({ principal, ability }, meta, target, input);
