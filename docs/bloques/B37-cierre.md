@@ -135,17 +135,17 @@ Use cuentas de prueba: una con el rol **SST**, un colaborador vinculado (B35) y 
 
 Ejecutadas localmente el 20 y el 21/11/2026. En el PR #86 la verificación automática pasó migraciones, unitarias, integración con cobertura, navegador y despliegue de ensayo.
 
-| Verificación                     | Resultado                                                                                                                             |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Contratos (`packages/contracts`) | 257 pruebas en verde                                                                                                                  |
-| API unitarias y OpenAPI          | 443 pruebas en verde; OpenAPI regenerado (solo se suman las rutas de SST y 5 tipos de aviso; ninguna ruta existente cambió)           |
-| Worker                           | 42 pruebas en verde                                                                                                                   |
-| Integración SST (base real)      | 19 pruebas: permiso denegado, aislamiento entre empresas, cifrado, auditoría, plazos y alertas                                        |
-| Recorrido de auditoría           | Las 28 rutas de SST que escriben dejan su evento                                                                                      |
-| Integración general afectada     | Roles y permisos, semillas, permisos de base de datos, aislamiento, columnas de control, migraciones y avisos: 84; Talento humano: 58 |
-| Web (pantallas SST)              | 29 pruebas en verde                                                                                                                   |
-| Tipos (`pnpm typecheck`)         | 13 de 13 paquetes                                                                                                                     |
-| Analizador                       | Sin errores en todo lo tocado                                                                                                         |
+| Verificación                     | Resultado                                                                                                                                                                         |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Contratos (`packages/contracts`) | 257 pruebas en verde                                                                                                                                                              |
+| API unitarias y OpenAPI          | 443 pruebas en verde; OpenAPI regenerado (solo se suman las rutas de SST y 5 tipos de aviso; ninguna ruta existente cambió)                                                       |
+| Worker                           | 42 pruebas en verde                                                                                                                                                               |
+| Integración SST (base real)      | 34 pruebas: permiso denegado, aislamiento entre empresas, cifrado, auditoría, plazos, alertas, reintentos, fechas imposibles y pasos fuera de orden; 86 % de las ramas del módulo |
+| Recorrido de auditoría           | Las 28 rutas de SST que escriben dejan su evento                                                                                                                                  |
+| Integración general afectada     | Roles y permisos, semillas, permisos de base de datos, aislamiento, columnas de control, migraciones y avisos: 84; Talento humano: 58                                             |
+| Web                              | 29 pruebas de las pantallas de SST; suite completa: 895 en verde (las fallas que aparecieron con el equipo cargado pasaron al repetirlas solas)                                   |
+| Tipos (`pnpm typecheck`)         | 13 de 13 paquetes                                                                                                                                                                 |
+| Analizador                       | Sin errores en todo lo tocado                                                                                                                                                     |
 
 **No ejecutado localmente:** el recorrido en el navegador `apps/web/e2e/sst.spec.ts` y el resto de pruebas de navegador. El navegador de pruebas instalado (1243) no corresponde a la versión de Playwright del repositorio (1.65), e instalarlo requiere una descarga que no se hizo sin su autorización. Lo ejecuta la verificación automática de GitHub (CI) en el PR.
 
