@@ -102,8 +102,7 @@ const MODULES: readonly NavigationItem[] = [
     slug: 'calidad',
     label: 'Calidad',
     icon: BadgeCheck,
-    permissions: ['qms.nonconformity.create'],
-    block: 'B38',
+    permissions: ['qms.read', 'qms.nonconformity.create'],
   },
   {
     slug: 'finanzas',
@@ -219,6 +218,7 @@ const APP_NAVIGATION: readonly NavigationGroup[] = [
     label: 'Gobierno',
     icon: Scale,
     items: pick(
+      'calidad',
       'privacidad',
       'administracion',
       'auditoria',
