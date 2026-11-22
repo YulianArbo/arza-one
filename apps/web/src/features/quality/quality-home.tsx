@@ -31,6 +31,9 @@ const QUALITY_LINKS = [
   { href: '/app/calidad/procesos', label: 'Mapa de procesos' },
   { href: '/app/calidad/contexto', label: 'Contexto y partes interesadas' },
   { href: '/app/calidad/lecciones', label: 'Lecciones aprendidas' },
+  { href: '/app/calidad/auditorias', label: 'Programa y auditorías' },
+  { href: '/app/calidad/indicadores', label: 'Indicadores' },
+  { href: '/app/calidad/revision-direccion', label: 'Revisión por la dirección' },
 ] as const;
 
 function useIncidentOptions(enabled: boolean) {
@@ -163,7 +166,7 @@ export function QualityHome(): JSX.Element {
     <div className="flex flex-col gap-8">
       <PageHeader
         title="Calidad y mejora continua"
-        description="Procesos, riesgos, no conformidades, acciones y lecciones del sistema de gestión."
+        description="Procesos, riesgos, no conformidades, acciones, auditorías, indicadores y revisión por la dirección."
       />
       <div>
         <ReportNonconformity />
