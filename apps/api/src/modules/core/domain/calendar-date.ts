@@ -14,6 +14,11 @@ export function bogotaToday(now: Date): string {
   return toCalendarDate(new Date(now.getTime() - BOGOTA_OFFSET_MS));
 }
 
+/** El instante en que empieza ese día en Colombia (medianoche de Bogotá). */
+export function bogotaStartOf(date: string): Date {
+  return new Date(fromCalendarDate(date).getTime() + BOGOTA_OFFSET_MS);
+}
+
 export function bogotaYear(now: Date): number {
   return Number(bogotaToday(now).slice(0, 4));
 }

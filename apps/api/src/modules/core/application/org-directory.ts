@@ -76,3 +76,32 @@ export async function processOwnerPositionId(
   });
   return unit?.ownerPositionId ?? null;
 }
+
+/**
+ * Procesos ligados a un cargo: el proceso (o los procesos superiores) donde está el cargo y los que
+ * el cargo dirige. Calidad lo usa para que un auditor no audite su propio proceso (B39, decisión 2).
+ */
+export async function processesOfPosition(
+  tx: TenantTransaction,
+  positionId: string,
+): Promise<string[]> {
+  const position = await tx.position.findFirst({
+    where: { id: positionId, deletedAt: null },
+    select: { orgUnitId: true },
+  });
+  const owned = await tx.orgUnit.findMany({
+    where: { ownerPositionId: positionId, kind: 'process', deletedAt: null },
+    select: { id: true },
+  });
+  const found = new Set(owned.map((unit) => unit.id));
+  let unitId: string | null = position?.orgUnitId ?? null;
+  for (let hops = 0; unitId !== null && hops < 10; hops += 1) {
+    const unit = await tx.orgUnit.findFirst({
+      where: { id: unitId, deletedAt: null },
+      select: { id: true, kind: true, parentId: true },
+    });
+    if (unit?.kind === 'process') found.add(unit.id);
+    unitId = unit?.parentId ?? null;
+  }
+  return [...found];
+}
