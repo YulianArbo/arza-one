@@ -1,5 +1,13 @@
 # Estado del proyecto ARZA ONE
 
+**B39 construido y en revisión, 22/11/2026 (Claude Code).** El propietario aprobó el plan («Apruebo todo», 11 decisiones). Rama `feat/b39-calidad-auditorias-indicadores` desde `445a87b`, el commit donde el PR #89 (B38) se fusionó en la rama de B37: la rama `main` todavía no tiene Calidad.
+
+- Se construyó el resto del módulo de Calidad (M14): programa anual y auditorías internas con auditor independiente del proceso, lista de chequeo, hallazgos e informe en PDF; indicadores con ficha, medición manual con evidencia, 8 cálculos automáticos, tendencia y matriz RE-SGC-006 en CSV; y el acta de revisión por la dirección con entradas precargadas, decisiones que se vuelven acciones y aprobación solo de la Dirección, con su PDF.
+- Migración: `20261123000000_qms_audits_indicators_reviews`. Permiso nuevo: `qms.review.approve` (215 en total); `qms.audit.execute` pasó a «solo lo propio». Trabajos nuevos: `qms.indicator-work` (6:30) y `qms.pdf-work` (cada 30 s).
+- Pasaron en local: formato de los archivos del repositorio, límites entre módulos, `knip`, analizador de los 85 archivos tocados, tipos de los 13 paquetes, unitarias de los 13 paquetes con sus mínimos de cobertura y `gitleaks`. Integración de Calidad (46) y recorrido de auditoría de las 27 rutas nuevas, en verde. Suite completa de integración: 194 archivos; en la primera pasada la base local se reinició por falta de memoria y fallaron 66, que al repetirlos pasaron (423 pruebas). Compilación de los 7 paquetes en verde.
+- No se ejecutaron en local las pruebas de navegador (navegador 1243 frente a 1255 de Playwright 1.65).
+- Pendientes principales: validar RE-SGC-003, RE-SGC-004, RE-SGC-006 y RE-SGC-007, y llevar B38 y B39 a `main`. Cierre en `docs/bloques/B39-cierre.md`.
+
 **B38 construido y en revisión, 21/11/2026 (Claude Code).** El propietario aprobó el plan («Apruebo todo», 12 decisiones). Rama `feat/b38-calidad-procesos-riesgos-no-co` desde la rama de B37 (`84d99ba`); el PR #88 lleva a `main` las pantallas de SST y debe fusionarse antes.
 
 - Se construyó el módulo de Calidad (M14): mapa de procesos sobre el organigrama, contexto DOFA-PESTEL y partes interesadas, riesgos y oportunidades con nivel calculado, no conformidades con contención, análisis de causa y plan, acciones correctivas y de mejora con verificación por un tercero, bitácora RE-SGC-002 en CSV, escalamiento diario de vencidas y lecciones aprendidas.

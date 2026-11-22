@@ -1,5 +1,16 @@
 # Entrega entre agentes — ARZA ONE
 
+**B39, 22/11/2026 (Claude Code).** Rama `feat/b39-calidad-auditorias-indicadores`. Decisiones en `docs/bloques/B39-cierre.md` y reglas en `docs/manual/datos/qms.md`. Puntos para quien continúe:
+
+1. Servicio ya depende de Calidad (B38). Para no crear un ciclo, Calidad **no importa** a Servicio: declara `SERVICE_FIGURES` y `ServiceFiguresReader` en `qms/application/service-figures.ts`; Servicio los entrega con `ServiceFiguresModule` (global) y el worker pasa `serviceQualityFigures` a `runQmsIndicatorWork`.
+2. Los nombres de eventos de la bandeja de salida solo admiten letras por segmento (`qms.review.submitted`, no `qms.management_review.submitted`); los de auditoría sí admiten guion bajo.
+3. Los errores de validación responden 422 y el cuerpo de error es `{ error: { code } }`.
+4. El gancho de lint de Git se queda sin memoria con muchos archivos: haga el commit con `NODE_OPTIONS=--max-old-space-size=4096`.
+5. `renderQualityPdfs` recorre todas las empresas: en pruebas paralelas compruebe el PDF amarrado, no el conteo de la pasada.
+6. Rutas de pruebas en `test/support/api-paths-qms.ts`; recorrido de auditoría en `qms-audit-route-calls.ts` y `qms-review-route-calls.ts`.
+
+Los cambios sueltos del propietario (respaldos, `.csv`, `CLAUDE.md`, ADR 024/025, `.agents/`, `.claude/`) siguen sin commit y no se tocaron.
+
 **B38, 21/11/2026 (Claude Code).** Rama `feat/b38-calidad-procesos-riesgos-no-co`. Decisiones en `docs/bloques/B38-cierre.md` y reglas en `docs/manual/datos/qms.md`. Puntos para quien continúe:
 
 1. El módulo vive en `apps/api/src/modules/qms` y se publica como `@arza/api/qms` para el worker (`qms.daily-work`, 6:15). Compile la API antes de analizar el worker.

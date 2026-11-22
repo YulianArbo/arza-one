@@ -44,7 +44,7 @@ Un bloque a la vez, en orden. Actualice la columna Estado al cerrar cada uno.
 | B36A | Transversal, después de B36 y antes de B37 | Comunicados en el acceso | B22B · B14 · B16 | — | Terminado |
 | B37 | F7 | Seguridad y salud en el trabajo | B36 | — | En revisión |
 | B38 | F7 | Calidad: procesos, riesgos, no conformidades y acciones | B15 | — | En revisión |
-| B39 | F7 | Calidad: auditorías, indicadores y revisión por la dirección | B38 | — | Pendiente |
+| B39 | F7 | Calidad: auditorías, indicadores y revisión por la dirección | B38 | — | En revisión |
 | B40 | F7 | Innovación y propiedad intelectual | B15 | — | Pendiente |
 | B41 | F8 | Sitio público, formularios, textos legales y cookies | B22 · B29 · B17 | Sí | Pendiente |
 | B42 | F8 | Privacidad completa | B41 | Sí | Pendiente |
