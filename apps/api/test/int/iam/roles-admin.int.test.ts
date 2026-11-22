@@ -45,7 +45,7 @@ describe('consultar roles y permisos', () => {
       (await scenario.get('/v1/permissions', director.session)).body,
     );
     const permissions = catalog.groups.flatMap((group) => group.permissions);
-    expect(permissions).toHaveLength(215);
+    expect(permissions).toHaveLength(216);
     expect(permissions.map((permission) => permission.code)).toEqual(
       expect.arrayContaining([
         'finance.ledger.read',

@@ -121,6 +121,9 @@ export const DATABASE_BOUND_FILES = [
   // Calidad y mejora continua (B38): todo con base de datos, medido en integración.
   'src/modules/qms/application/**/*.ts',
   'src/modules/qms/interface/**/*.ts',
+  // Innovación y propiedad intelectual (B40): todo con base de datos, medido en integración.
+  'src/modules/inn/application/**/*.ts',
+  'src/modules/inn/interface/**/*.ts',
 ];
 
 /** Procesos que solo arrancan algo; se prueban a mano o como proceso real. */
