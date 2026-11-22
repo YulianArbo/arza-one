@@ -118,6 +118,9 @@ export const DATABASE_BOUND_FILES = [
   // Seguridad y salud en el trabajo (B37): todo con base de datos, medido en integración.
   'src/modules/sst/application/**/*.ts',
   'src/modules/sst/interface/**/*.ts',
+  // Calidad y mejora continua (B38): todo con base de datos, medido en integración.
+  'src/modules/qms/application/**/*.ts',
+  'src/modules/qms/interface/**/*.ts',
 ];
 
 /** Procesos que solo arrancan algo; se prueban a mano o como proceso real. */

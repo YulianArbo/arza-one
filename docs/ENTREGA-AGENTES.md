@@ -1,5 +1,29 @@
 # Entrega entre agentes — ARZA ONE
 
+**B39, 22/11/2026 (Claude Code).** Rama `feat/b39-calidad-auditorias-indicadores`. Decisiones en `docs/bloques/B39-cierre.md` y reglas en `docs/manual/datos/qms.md`. Puntos para quien continúe:
+
+1. Servicio ya depende de Calidad (B38). Para no crear un ciclo, Calidad **no importa** a Servicio: declara `SERVICE_FIGURES` y `ServiceFiguresReader` en `qms/application/service-figures.ts`; Servicio los entrega con `ServiceFiguresModule` (global) y el worker pasa `serviceQualityFigures` a `runQmsIndicatorWork`.
+2. Los nombres de eventos de la bandeja de salida solo admiten letras por segmento (`qms.review.submitted`, no `qms.management_review.submitted`); los de auditoría sí admiten guion bajo.
+3. Los errores de validación responden 422 y el cuerpo de error es `{ error: { code } }`.
+4. El gancho de lint de Git se queda sin memoria con muchos archivos: haga el commit con `NODE_OPTIONS=--max-old-space-size=4096`.
+5. `renderQualityPdfs` recorre todas las empresas: en pruebas paralelas compruebe el PDF amarrado, no el conteo de la pasada.
+6. Rutas de pruebas en `test/support/api-paths-qms.ts`; recorrido de auditoría en `qms-audit-route-calls.ts` y `qms-review-route-calls.ts`.
+
+Los cambios sueltos del propietario (respaldos, `.csv`, `CLAUDE.md`, ADR 024/025, `.agents/`, `.claude/`) siguen sin commit y no se tocaron.
+
+**B38, 21/11/2026 (Claude Code).** Rama `feat/b38-calidad-procesos-riesgos-no-co`. Decisiones en `docs/bloques/B38-cierre.md` y reglas en `docs/manual/datos/qms.md`. Puntos para quien continúe:
+
+1. El módulo vive en `apps/api/src/modules/qms` y se publica como `@arza/api/qms` para el worker (`qms.daily-work`, 6:15). Compile la API antes de analizar el worker.
+2. Servicio abre la no conformidad con `openNonconformityFromPqrsf` y SST le da el incidente con `incidentRefForQuality`. Calidad no lee tablas de otros módulos.
+3. Los nombres de riesgos llevan el prefijo «Qms» (`QMS_RISK_LEVELS`, `qmsRiskSchema`) porque chocaban con los de Proyectos y Terceros.
+4. `qms_processes` caracteriza una unidad `process` del núcleo (`org_unit_id`). No cree otra lista de procesos.
+5. Las fechas que salen de `created_at` se muestran con `bogotaToday`, no con `toCalendarDate`: después de las 7 p. m. la fecha UTC ya es la del día siguiente.
+6. En formularios con campos generados, no repita claves: la categoría «method» de las 6M chocaba con el selector `method` (ahora `cause_<categoría>`).
+7. Rutas de pruebas en `test/support/api-paths-qms.ts`; las del recorrido de auditoría en `test/int/audit/support/qms-route-calls.ts` (21 rutas).
+8. El equipo local tiene poca memoria: corra `turbo run test --concurrency=1` y la web con `--maxWorkers=2`; las integraciones largas pierden conexiones y hay que repetir las que fallan.
+
+Los cambios sueltos del propietario (respaldos, `.csv`, `CLAUDE.md`, ADR 024/025, `.agents/`, `.claude/`) siguen sin commit y no se tocaron.
+
 **B37, 20/11/2026 (Claude Code).** Rama `feat/b37-seguridad-y-salud-en-el-trabaj`. Decisiones en `docs/bloques/B37-cierre.md` y reglas en `docs/manual/datos/sst.md`. Puntos para quien continúe:
 
 1. El módulo vive en `apps/api/src/modules/sst` y se publica como `@arza/api/sst` para el worker (`sst.daily-work`, 6:00). Compile la API antes de analizar el worker.

@@ -140,6 +140,11 @@ const astLoanWorkJobSchema = z.object({});
 const hrRetentionJobSchema = z.object({});
 const hrDailyWorkJobSchema = z.object({});
 const sstDailyWorkJobSchema = z.object({});
+const qmsDailyWorkJobSchema = z.object({});
+/** Indicadores de Calidad (B39): cálculo de los automáticos y aviso de los manuales sin medir. */
+const qmsIndicatorWorkJobSchema = z.object({});
+/** PDF del informe de auditoría y del acta de revisión por la dirección (B39). Del sistema. */
+const qmsPdfWorkJobSchema = z.object({});
 const svcSlaWorkJobSchema = z.object({});
 /**
  * Correos y plazos de las PQRSF y las encuestas (B29): acuse, respuesta, invitación a la encuesta y
@@ -271,6 +276,21 @@ export const JOBS = {
     name: 'sst.daily-work',
     schema: sstDailyWorkJobSchema,
   },
+  qmsDailyWork: {
+    queue: QUEUES.platform,
+    name: 'qms.daily-work',
+    schema: qmsDailyWorkJobSchema,
+  },
+  qmsIndicatorWork: {
+    queue: QUEUES.platform,
+    name: 'qms.indicator-work',
+    schema: qmsIndicatorWorkJobSchema,
+  },
+  qmsPdfWork: {
+    queue: QUEUES.platform,
+    name: 'qms.pdf-work',
+    schema: qmsPdfWorkJobSchema,
+  },
   svcSlaWork: {
     queue: QUEUES.platform,
     name: 'svc.sla-work',
@@ -334,6 +354,14 @@ export const SCHEDULED_JOBS = [
   // Cada día a las 6:00: SST recibe el recordatorio de cada accidente sin reportar a la ARL, las
   // evaluaciones médicas que vencen en 30 días y las actividades vencidas del plan (B37).
   { id: 'sst.daily-work.daily', job: JOBS.sstDailyWork, pattern: '0 6 * * *' },
+  // Cada día a las 6:15: las acciones de calidad vencidas sin ejecutar escalan a su responsable, a
+  // Calidad y a la Dirección; el aviso se repite cada 7 días (B38, decisión 11).
+  { id: 'qms.daily-work.daily', job: JOBS.qmsDailyWork, pattern: '15 6 * * *' },
+  // Cada día a las 6:30: los indicadores automáticos del periodo que cerró se calculan y, desde el
+  // día 5, el responsable de un indicador manual sin medir recibe el aviso (B39, decisión 7).
+  { id: 'qms.indicator-work.daily', job: JOBS.qmsIndicatorWork, pattern: '30 6 * * *' },
+  // Cada 30 segundos: el informe de una auditoría emitida y el acta aprobada quedan en PDF (B39).
+  { id: 'qms.pdf-work.every-30-seconds', job: JOBS.qmsPdfWork, pattern: '*/30 * * * * *' },
   // Cada 5 minutos: la alerta del 80 % y la del plazo vencido llegan a lo sumo cinco minutos tarde,
   // y los tiquetes resueltos que nadie reabrió se cierran (B28).
   { id: 'svc.sla-work.every-5-minutes', job: JOBS.svcSlaWork, pattern: '*/5 * * * *' },

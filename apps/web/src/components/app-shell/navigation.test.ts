@@ -94,6 +94,7 @@ describe('grupos del menú (B22B)', () => {
       {
         label: 'Gobierno',
         slugs: [
+          'calidad',
           'privacidad',
           'administracion',
           'auditoria',
@@ -101,7 +102,7 @@ describe('grupos del menú (B22B)', () => {
           'sistema-de-diseno',
         ],
       },
-      { label: 'Bloques posteriores', slugs: ['calidad', 'indicadores'] },
+      { label: 'Bloques posteriores', slugs: ['indicadores'] },
     ]);
   });
 });

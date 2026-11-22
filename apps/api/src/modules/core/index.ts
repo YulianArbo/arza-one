@@ -9,6 +9,7 @@ export {
   activeProcesses,
   orgUnitsById,
   positionsById,
+  processesOfPosition,
   processOwnerPositionId,
   type OrgUnitRecord,
   type PositionSummary,
@@ -42,6 +43,7 @@ export {
 export { activeCostCenters, costCenterRefs } from './application/cost-centers.js';
 export {
   addDays,
+  bogotaStartOf,
   bogotaToday,
   fromCalendarDate,
   isoWeekday,

@@ -33,3 +33,4 @@ export {
   type ClientServiceScope,
 } from './application/client-support.js';
 export type { ServiceActor } from './application/service-support.js';
+export { serviceQualityFigures } from './application/quality-figures.js';

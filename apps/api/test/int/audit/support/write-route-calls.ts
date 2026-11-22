@@ -29,6 +29,9 @@ import { PROJECT_ROUTE_CALLS } from './project-route-calls.js';
 import { PURCHASE_ROUTE_CALLS } from './purchase-route-calls.js';
 import { QUOTE_ROUTE_CALLS } from './quote-route-calls.js';
 import { SERVICE_ROUTE_CALLS } from './service-route-calls.js';
+import { QMS_AUDIT_ROUTE_CALLS } from './qms-audit-route-calls.js';
+import { QMS_REVIEW_ROUTE_CALLS } from './qms-review-route-calls.js';
+import { QMS_ROUTE_CALLS } from './qms-route-calls.js';
 import { SST_PEOPLE_ROUTE_CALLS } from './sst-people-route-calls.js';
 import { SST_ROUTE_CALLS } from './sst-route-calls.js';
 import { WF_ROUTE_CALLS } from './wf-route-calls.js';
@@ -53,6 +56,9 @@ export const WRITE_ROUTE_CALLS: Readonly<Record<string, RouteCall>> = {
   ...HR_PEOPLE_ROUTE_CALLS,
   ...SST_ROUTE_CALLS,
   ...SST_PEOPLE_ROUTE_CALLS,
+  ...QMS_ROUTE_CALLS,
+  ...QMS_AUDIT_ROUTE_CALLS,
+  ...QMS_REVIEW_ROUTE_CALLS,
   ...CORE_CALLS,
   ...ANNOUNCEMENT_CALLS,
   ...PARTY_ROUTE_CALLS,

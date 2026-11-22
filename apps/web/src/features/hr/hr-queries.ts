@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import { useQuery, type QueryKey, type UseQueryResult } from '@tanstack/react-query';
 import type { z } from 'zod';
 
 import { useApiClient } from '../../lib/api/api-provider';
@@ -21,13 +21,15 @@ export function useHrQuery<T>(
   });
 }
 
+/** Con `refresh`, refresca también las consultas de otro módulo que usa estos formularios. */
 export function useHrAction<T, R = unknown>(
   run: (input: T, csrfToken: string) => Promise<R>,
   onSuccess?: (result: R) => void,
+  refresh: readonly QueryKey[] = [],
 ): AdminAction<T, R> {
   return useAdminAction({
     run,
-    invalidate: [HR_QUERY_ROOT],
+    invalidate: [HR_QUERY_ROOT, ...refresh],
     reason: 'Los cambios quedan registrados en la auditoría.',
     ...(onSuccess === undefined ? {} : { onSuccess }),
   });

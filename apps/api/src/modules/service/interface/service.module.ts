@@ -17,6 +17,7 @@ import { KnowledgeController } from './knowledge.controller.js';
 import { PqrsfResponseController } from './pqrsf-response.controller.js';
 import { PqrsfController } from './pqrsf.controller.js';
 import { PublicCareController } from './public-care.controller.js';
+import { ServiceFiguresModule } from './service-figures.module.js';
 import { ServiceSettingsController } from './service-settings.controller.js';
 import { SurveysController } from './surveys.controller.js';
 import { TicketRecordsController } from './ticket-records.controller.js';
@@ -30,6 +31,7 @@ import { TicketsController } from './tickets.controller.js';
  * aprobada; encuestas de satisfacción y NPS; base de conocimiento.
  */
 @Module({
+  imports: [ServiceFiguresModule],
   controllers: [
     TicketsController,
     TicketRecordsController,

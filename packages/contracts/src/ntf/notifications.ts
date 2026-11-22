@@ -119,6 +119,36 @@ export const NOTIFICATION_KINDS = {
     label: 'Queja nueva para el Comité de Convivencia',
     variables: ['nombre', 'codigo'],
   },
+  // Calidad y mejora continua (B38).
+  qms_nonconformity_reported: {
+    label: 'Se registró una no conformidad',
+    variables: ['nombre', 'codigo', 'origen'],
+  },
+  qms_action_assigned: {
+    label: 'Le corresponde una acción correctiva o de mejora',
+    variables: ['nombre', 'codigo', 'fecha'],
+  },
+  qms_action_to_verify: {
+    label: 'Una acción espera la verificación de su eficacia',
+    variables: ['nombre', 'codigo'],
+  },
+  qms_action_overdue: {
+    label: 'Una acción de calidad está vencida',
+    variables: ['nombre', 'codigo', 'fecha'],
+  },
+  // Auditorías, indicadores y revisión por la dirección (B39, decisión 11).
+  qms_audit_assigned: {
+    label: 'Le corresponde una auditoría interna',
+    variables: ['nombre', 'codigo', 'fecha'],
+  },
+  qms_indicator_due: {
+    label: 'Un indicador espera su medición',
+    variables: ['nombre', 'codigo', 'periodo'],
+  },
+  qms_review_to_approve: {
+    label: 'Un acta de revisión por la dirección espera su aprobación',
+    variables: ['nombre', 'codigo'],
+  },
 } as const satisfies Record<string, { label: string; variables: readonly string[] }>;
 
 export type NotificationKind = keyof typeof NOTIFICATION_KINDS;

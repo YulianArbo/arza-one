@@ -107,13 +107,17 @@ const WITHHELD: Readonly<Partial<Record<InternalRoleCode, readonly PermissionCod
   // El acta de entrega tiene valor ante el cliente: la envía el líder del proyecto o un Líder
   // técnico, no cualquier miembro del equipo (decisión 2 del B27).
   EQUIPO_PROYECTO: ['project.deliverable.submit'],
+  // Calidad prepara el acta de revisión por la dirección; la aprueba solo la Dirección (decisión 5
+  // del B39).
+  CALIDAD: ['qms.review.approve'],
 };
 
 /**
  * Permisos de lectura que todo rol interno tiene, lo lea o no en la matriz: la base de conocimiento
- * es el manual de usuario de la plataforma (capítulo 22) y la ayuda del equipo (decisión 10 del B29).
+ * es el manual de usuario de la plataforma (capítulo 22) y la ayuda del equipo (decisión 10 del B29);
+ * las lecciones aprendidas son conocimiento de todo el personal (decisión 3 del B38).
  */
-const EVERY_INTERNAL_ROLE: readonly PermissionCode[] = ['service.kb.read'];
+const EVERY_INTERNAL_ROLE: readonly PermissionCode[] = ['service.kb.read', 'qms.lesson.read'];
 
 /** Solo por permiso nominal además del rol (numeral 15.4, clasificación): ningún rol lo trae. */
 export const NOMINAL_ONLY_PERMISSIONS: readonly PermissionCode[] = ['doc.restricted.read'];

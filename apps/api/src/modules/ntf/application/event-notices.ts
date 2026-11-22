@@ -9,6 +9,7 @@ import { excerpt } from '../domain/delivery-rules.js';
 import { CONTRACT_HANDLERS } from './contract-notices.js';
 import { HR_HANDLERS } from './hr-notices.js';
 import { HR_PEOPLE_HANDLERS } from './hr-people-notices.js';
+import { QMS_HANDLERS } from './qms-notices.js';
 import { SST_HANDLERS } from './sst-notices.js';
 import type { Handler, Notice } from './notice-types.js';
 import { PROJECT_HANDLERS } from './project-notices.js';
@@ -219,6 +220,7 @@ const HANDLERS: Readonly<Record<string, Handler>> = {
   ...HR_HANDLERS,
   ...HR_PEOPLE_HANDLERS,
   ...SST_HANDLERS,
+  ...QMS_HANDLERS,
 };
 
 /** Los avisos que produce el evento; ninguno si nadie se ocupa de él. */

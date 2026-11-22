@@ -1,3 +1,4 @@
+import { QMS_PATHS } from './api-paths-qms.js';
 import { SST_PATHS } from './api-paths-sst.js';
 
 // Rutas de Talento humano (M12, B35 y B36) que publica la API. Se suman a API_PATHS.
@@ -68,5 +69,5 @@ const HR_PATHS = [
   '/v1/hr/vacancies/{id}/actions/close',
 ];
 
-/** Talento humano y Seguridad y salud en el trabajo (B37). */
-export const PEOPLE_PATHS = HR_PATHS.concat(SST_PATHS);
+/** Talento humano, Seguridad y salud en el trabajo (B37) y Calidad (B38). */
+export const PEOPLE_PATHS = HR_PATHS.concat(SST_PATHS, QMS_PATHS);

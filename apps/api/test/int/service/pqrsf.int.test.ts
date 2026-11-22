@@ -177,17 +177,27 @@ describe('respuesta aprobada por otra persona (decisión 7)', () => {
 });
 
 describe('respuesta aprobada por otra persona (decisión 7)', () => {
-  it('una queja procedente pide la no conformidad a Calidad', async () => {
+  it('una queja procedente crea la no conformidad enlazada en Calidad (B38, decisión 4)', async () => {
     const drafter = await scenario.agent();
     const approver = await scenario.agent();
     const quality = await scenario.person('calidad', ['CALIDAD']);
     const id = await scenario.submitted(drafter, true);
     await scenario.pqrsfStepOk(approver, id, 'approve');
-    expect((await scenario.pqrsfOf(quality, id)).nonconformity_at).not.toBeNull();
-    await scenario.dispatchNotices();
-    expect((await scenario.noticesFor(quality.id, 'svc_pqrsf_update')).join(' ')).toContain(
-      'no conformidad',
+    const pqrsf = await scenario.pqrsfOf(quality, id);
+    expect(pqrsf.nonconformity_at).not.toBeNull();
+    const nc = await scenario.inTenant((tx) =>
+      tx.qmsNonconformity.findFirstOrThrow({ where: { source: 'pqrsf', originId: id } }),
     );
+    expect(nc).toMatchObject({
+      status: 'detected',
+      originCode: pqrsf.code,
+      reportedBy: approver.id,
+    });
+    expect(nc.description).not.toContain(pqrsf.requester_name);
+    await scenario.dispatchNotices();
+    expect(
+      (await scenario.noticesFor(quality.id, 'qms_nonconformity_reported')).join(' '),
+    ).toContain(nc.code);
     expect(await scenario.auditActions(id)).toContain('service.pqrsf.request_nonconformity');
   });
 });
