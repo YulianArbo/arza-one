@@ -78,3 +78,48 @@ it('la acción ejecutada pide la verificación a Calidad', async () => {
     },
   ]);
 });
+
+it('la auditoría asignada llega al auditor con su fecha (B39)', async () => {
+  const payload = { code: 'AUD-2026-0001', planned_on: '2026-12-03', recipients: [QUALITY] };
+  const notices = await handlerOf('qms.audit.assigned')(
+    tx,
+    event('qms.audit.assigned', payload),
+    new Date(),
+  );
+  expect(notices).toEqual([
+    {
+      userId: QUALITY,
+      kind: 'qms_audit_assigned',
+      values: { codigo: 'AUD-2026-0001', fecha: '03/12/2026' },
+      link: '/app/mi-espacio',
+    },
+  ]);
+});
+
+it('el indicador sin medir avisa a su responsable aunque lo cause el sistema (B39)', async () => {
+  const payload = { code: 'IND-001', period: '10/2026', recipients: [QUALITY] };
+  const notices = await handlerOf('qms.indicator.due')(
+    tx,
+    event('qms.indicator.due', payload, null),
+    new Date(),
+  );
+  expect(notices).toEqual([
+    {
+      userId: QUALITY,
+      kind: 'qms_indicator_due',
+      values: { codigo: 'IND-001', periodo: '10/2026' },
+      link: '/app/mi-espacio',
+    },
+  ]);
+});
+
+it('el acta por aprobar llega a la Dirección, no a quien la envió (B39)', async () => {
+  const payload = { code: 'RD-2026-0001', recipients: [QUALITY, ACTOR] };
+  const notices = await handlerOf('qms.review.submitted')(
+    tx,
+    event('qms.review.submitted', payload),
+    new Date(),
+  );
+  expect(notices.map((notice) => notice.userId)).toEqual([QUALITY]);
+  expect(notices[0]?.link).toBe('/app/calidad/revision-direccion');
+});

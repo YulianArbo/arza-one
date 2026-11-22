@@ -13,7 +13,8 @@ import { bogotaToday, toCalendarDate } from '../../core/index.js';
 import { dateOf, optionalRef, processRefs, refOf, userRefs } from './qms-support.js';
 
 // La fila de la bitácora de acciones (RE-SGC-002, decisión 10): cada acción con su origen, el
-// hallazgo y la causa raíz de la no conformidad (o la descripción del riesgo), y su verificación.
+// hallazgo y la causa raíz de la no conformidad (o la descripción del riesgo, o el hallazgo de la
+// auditoría o el acta de la revisión por la dirección, B39), y su verificación.
 
 interface OriginFacts {
   readonly code: string;
@@ -30,18 +31,52 @@ interface ViewRefs {
 }
 
 function originKey(row: QmsActionRow): string | null {
-  return row.nonconformityId ?? row.riskId;
+  return row.nonconformityId ?? row.riskId ?? row.findingId ?? row.reviewId;
 }
+
+function idsOf(rows: readonly QmsActionRow[], pick: (row: QmsActionRow) => string | null) {
+  return [...new Set(rows.flatMap((row) => pick(row) ?? []))];
+}
+
+async function auditOrigins(
+  tx: TenantTransaction,
+  rows: readonly QmsActionRow[],
+): Promise<[string, OriginFacts][]> {
+  const [findings, reviews] = await Promise.all([
+    tx.qmsFinding.findMany({
+      where: { id: { in: idsOf(rows, (row) => row.findingId) } },
+      include: { audit: { select: { code: true, processId: true } } },
+    }),
+    tx.qmsManagementReview.findMany({ where: { id: { in: idsOf(rows, (row) => row.reviewId) } } }),
+  ]);
+  return [
+    ...findings.map((finding): [string, OriginFacts] => [
+      finding.id,
+      {
+        code: finding.audit.code,
+        finding: finding.description,
+        rootCause: null,
+        processId: finding.audit.processId,
+      },
+    ]),
+    ...reviews.map((review): [string, OriginFacts] => [
+      review.id,
+      { code: review.code, finding: REVIEW_FINDING, rootCause: null, processId: null },
+    ]),
+  ];
+}
+
+const REVIEW_FINDING = 'Decisión de la revisión por la dirección';
 
 async function originFacts(
   tx: TenantTransaction,
   rows: readonly QmsActionRow[],
 ): Promise<Map<string, OriginFacts>> {
-  const ncIds = rows.flatMap((row) => (row.nonconformityId === null ? [] : [row.nonconformityId]));
-  const riskIds = rows.flatMap((row) => (row.riskId === null ? [] : [row.riskId]));
   const [ncs, risks] = await Promise.all([
-    tx.qmsNonconformity.findMany({ where: { id: { in: [...new Set(ncIds)] } } }),
-    tx.qmsRisk.findMany({ where: { id: { in: [...new Set(riskIds)] } } }),
+    tx.qmsNonconformity.findMany({
+      where: { id: { in: idsOf(rows, (row) => row.nonconformityId) } },
+    }),
+    tx.qmsRisk.findMany({ where: { id: { in: idsOf(rows, (row) => row.riskId) } } }),
   ]);
   return new Map<string, OriginFacts>([
     ...ncs.map((nc): [string, OriginFacts] => [
@@ -52,6 +87,7 @@ async function originFacts(
       risk.id,
       { code: risk.code, finding: risk.description, rootCause: null, processId: risk.processId },
     ]),
+    ...(await auditOrigins(tx, rows)),
   ]);
 }
 

@@ -2,7 +2,6 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   ACCEPTS_ACTIONS,
   ACTION_LOG_COLUMNS,
-  actionTypeOf,
   nonconformityStatusSchema,
   type ActionOrigin,
   type ActionStatus,
@@ -23,27 +22,23 @@ import type { TenantTransaction } from '../../../platform/database/tenant-contex
 import { toCsv } from '../../../platform/export/csv.js';
 import { versionConflict } from '../../../platform/http/if-match.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
-import { bogotaToday, fromCalendarDate, nextBusinessCode } from '../../core/index.js';
+import { bogotaToday, fromCalendarDate } from '../../core/index.js';
 import { activeCollaborators } from '../../iam/index.js';
+import { assertPlan, insertAction, NO_LINK, notifyAssigned } from './action-records.js';
 import { actionLogRow, actionViews } from './action-views.js';
 import type { QmsViewer } from './nonconformities.js';
 import {
-  assertPerson,
   assertProcess,
   auditQms,
-  emitQms,
   qmsActorOf,
   qmsConflict,
   qmsInvalid,
   qmsNotFound,
-  type QmsActor,
   type Target,
 } from './qms-support.js';
 
 // Acciones correctivas y de mejora y su bitácora (B38, decisión 10; FT-SGC-005 y RE-SGC-002).
 // Calidad las registra y edita mientras están abiertas; cada responsable ve las suyas.
-
-const ACTIONS = { name: 'Acciones correctivas y de mejora', prefix: 'AC', padding: 4 };
 
 export interface ActionFilter {
   readonly status?: ActionStatus | undefined;
@@ -63,41 +58,17 @@ async function originLink(tx: TenantTransaction, input: CreateQmsAction) {
     if (!ACCEPTS_ACTIONS.includes(nonconformityStatusSchema.parse(nc.status))) {
       throw qmsConflict('Registre las acciones después del análisis de causa.');
     }
-    return { nonconformityId: nc.id, riskId: null, processId: null };
+    return { ...NO_LINK, nonconformityId: nc.id };
   }
   if (input.origin_type === 'risk') {
     const risk = await tx.qmsRisk.findFirst({
       where: { id: input.origin_id ?? '', status: 'active', deletedAt: null },
     });
     if (risk === null) throw qmsInvalid('El riesgo no existe o está retirado.');
-    return { nonconformityId: null, riskId: risk.id, processId: null };
+    return { ...NO_LINK, riskId: risk.id };
   }
   await assertProcess(tx, input.process_id);
-  return { nonconformityId: null, riskId: null, processId: input.process_id };
-}
-
-async function assertPlan(
-  tx: TenantTransaction,
-  actor: QmsActor,
-  input: { responsible_id: string; due_on: string },
-) {
-  await assertPerson(tx, input.responsible_id);
-  if (input.due_on < bogotaToday(actor.at)) {
-    throw qmsInvalid('La fecha compromiso no puede estar en el pasado.');
-  }
-}
-
-async function notifyAssigned(
-  tx: TenantTransaction,
-  actor: QmsActor,
-  action: { id: string; code: string; responsibleId: string; dueOn: string },
-) {
-  await emitQms(tx, actor, 'qms.action.assigned', {
-    action_id: action.id,
-    code: action.code,
-    due_on: action.dueOn,
-    recipients: [action.responsibleId],
-  });
+  return { ...NO_LINK, processId: input.process_id };
 }
 
 @Injectable()
@@ -176,28 +147,14 @@ export class Actions {
     return this.database.withTenant(viewer.principal, async (tx) => {
       const link = await originLink(tx, input);
       await assertPlan(tx, actor, input);
-      const code = await nextBusinessCode(tx, 'qms.action', actor.at, ACTIONS);
-      const row = await tx.qmsAction.create({
-        data: {
-          tenantId: actor.tenantId,
-          code,
-          originType: input.origin_type,
-          ...link,
-          actionType: actionTypeOf(input.origin_type),
-          description: input.description,
-          responsibleId: input.responsible_id,
-          dueOn: fromCalendarDate(input.due_on),
-          notes: input.notes,
-        },
+      return insertAction(tx, actor, {
+        originType: input.origin_type,
+        link,
+        description: input.description,
+        responsibleId: input.responsible_id,
+        dueOn: input.due_on,
+        notes: input.notes,
       });
-      await auditQms(tx, actor, {
-        action: 'qms.action.create',
-        entityType: 'qms_action',
-        entityId: row.id,
-        changes: { code, origin_type: input.origin_type, due_on: input.due_on },
-      });
-      await notifyAssigned(tx, actor, { ...row, dueOn: input.due_on });
-      return { id: row.id, code };
     });
   }
 

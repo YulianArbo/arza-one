@@ -76,3 +76,28 @@ export async function openNonconformityFromPqrsf(
     detectedOn: bogotaToday(actor.at),
   });
 }
+
+/**
+ * Un hallazgo de no conformidad abre su no conformidad al emitirse el informe de la auditoría (B39,
+ * decisión 3). Lleva el código de la auditoría como origen y el proceso auditado.
+ */
+export async function openNonconformityFromFinding(
+  tx: TenantTransaction,
+  actor: QmsActor,
+  finding: {
+    readonly id: string;
+    readonly auditCode: string;
+    readonly processId: string;
+    readonly requirement: string;
+    readonly description: string;
+    readonly detectedOn: string;
+  },
+): Promise<OpenedNonconformity> {
+  return openNonconformity(tx, actor, {
+    source: 'audit',
+    origin: { id: finding.id, code: finding.auditCode },
+    description: `${finding.description} (requisito: ${finding.requirement})`,
+    processId: finding.processId,
+    detectedOn: finding.detectedOn,
+  });
+}

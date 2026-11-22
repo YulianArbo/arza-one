@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import type { Handler, Notice } from './notice-types.js';
 
-// Avisos de Calidad y mejora continua (B38). Los eventos traen los destinatarios y lo mínimo para
+// Avisos de Calidad y mejora continua (B38 y B39). Los eventos traen los destinatarios y lo mínimo para
 // el texto: el código y, si aplica, la fecha.
 
 const recipientsSchema = z.object({ recipients: z.array(z.uuid()).default([]) });
@@ -74,9 +74,51 @@ const onOverdue: Handler = (_tx, event) => {
   );
 };
 
+// Auditorías, indicadores y revisión por la dirección (B39, decisión 11).
+
+const onAuditAssigned: Handler = (_tx, event) => {
+  const payload = recipientsSchema
+    .extend({ code: z.string(), planned_on: z.iso.date() })
+    .parse(event.payload);
+  return Promise.resolve(
+    toEach(payload.recipients, event.actorId, {
+      kind: 'qms_audit_assigned',
+      values: { codigo: payload.code, fecha: shownDate(payload.planned_on) },
+      link: '/app/mi-espacio',
+    }),
+  );
+};
+
+const onIndicatorDue: Handler = (_tx, event) => {
+  const payload = recipientsSchema
+    .extend({ code: z.string(), period: z.string() })
+    .parse(event.payload);
+  return Promise.resolve(
+    toEach(payload.recipients, null, {
+      kind: 'qms_indicator_due',
+      values: { codigo: payload.code, periodo: payload.period },
+      link: '/app/mi-espacio',
+    }),
+  );
+};
+
+const onReviewSubmitted: Handler = (_tx, event) => {
+  const payload = recipientsSchema.extend({ code: z.string() }).parse(event.payload);
+  return Promise.resolve(
+    toEach(payload.recipients, event.actorId, {
+      kind: 'qms_review_to_approve',
+      values: { codigo: payload.code },
+      link: `${QMS_LINK}/revision-direccion`,
+    }),
+  );
+};
+
 export const QMS_HANDLERS: Readonly<Record<string, Handler>> = {
   'qms.nonconformity.reported': onReported,
   'qms.action.assigned': onAssigned,
   'qms.action.executed': onExecuted,
   'qms.action.overdue': onOverdue,
+  'qms.audit.assigned': onAuditAssigned,
+  'qms.indicator.due': onIndicatorDue,
+  'qms.review.submitted': onReviewSubmitted,
 };

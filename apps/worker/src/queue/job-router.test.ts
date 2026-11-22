@@ -120,6 +120,8 @@ describe('enrutador de trabajos de documentos y avisos', () => {
       JOBS.hrDailyWork,
       JOBS.sstDailyWork,
       JOBS.qmsDailyWork,
+      JOBS.qmsIndicatorWork,
+      JOBS.qmsPdfWork,
       JOBS.svcSlaWork,
       JOBS.svcCareWork,
     ]) {

@@ -76,6 +76,7 @@ export const managementReviewSchema = managementReviewSummarySchema.extend({
   inputs_loaded_at: z.string().nullable(),
   conclusions: z.string().nullable(),
   decisions: z.array(reviewDecisionSchema),
+  return_reason: z.string().nullable(),
   approved_by: qmsRefSchema.nullable(),
   approved_on: qmsDateSchema.nullable(),
   document_id: qmsIdSchema.nullable(),
