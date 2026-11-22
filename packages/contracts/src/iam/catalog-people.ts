@@ -61,10 +61,12 @@ export const PEOPLE_PERMISSION_GROUPS = [
       ['qms.action.manage', 'write', 'Gestionar acciones de mejora', OWN],
       ['qms.action.verify', 'approve', 'Verificar la eficacia de las acciones'],
       ['qms.audit.plan', 'manage', 'Planear auditorías internas'],
-      ['qms.audit.execute', 'write', 'Ejecutar auditorías internas'],
+      // Cualquier colaborador asignado ejecuta sus auditorías (B39, decisión 1).
+      ['qms.audit.execute', 'write', 'Ejecutar auditorías internas', OWN],
       ['qms.indicator.manage', 'manage', 'Administrar indicadores'],
       ['qms.indicator.measure', 'write', 'Registrar mediciones de indicadores', OWN],
       ['qms.review.manage', 'manage', 'Gestionar la revisión por la dirección'],
+      ['qms.review.approve', 'approve', 'Aprobar el acta de revisión por la dirección'],
       ['qms.legal.manage', 'manage', 'Administrar la matriz de requisitos legales'],
       ['qms.legal.evaluate', 'approve', 'Evaluar el cumplimiento legal'],
     ],

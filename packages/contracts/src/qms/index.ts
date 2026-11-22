@@ -5,3 +5,6 @@ export * from './risks.js';
 export * from './actions.js';
 export * from './nonconformities.js';
 export * from './lessons.js';
+export * from './audits.js';
+export * from './indicators.js';
+export * from './reviews.js';

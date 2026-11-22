@@ -136,6 +136,19 @@ export const NOTIFICATION_KINDS = {
     label: 'Una acción de calidad está vencida',
     variables: ['nombre', 'codigo', 'fecha'],
   },
+  // Auditorías, indicadores y revisión por la dirección (B39, decisión 11).
+  qms_audit_assigned: {
+    label: 'Le corresponde una auditoría interna',
+    variables: ['nombre', 'codigo', 'fecha'],
+  },
+  qms_indicator_due: {
+    label: 'Un indicador espera su medición',
+    variables: ['nombre', 'codigo', 'periodo'],
+  },
+  qms_review_to_approve: {
+    label: 'Un acta de revisión por la dirección espera su aprobación',
+    variables: ['nombre', 'codigo'],
+  },
 } as const satisfies Record<string, { label: string; variables: readonly string[] }>;
 
 export type NotificationKind = keyof typeof NOTIFICATION_KINDS;

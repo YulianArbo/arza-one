@@ -107,6 +107,9 @@ const WITHHELD: Readonly<Partial<Record<InternalRoleCode, readonly PermissionCod
   // El acta de entrega tiene valor ante el cliente: la envía el líder del proyecto o un Líder
   // técnico, no cualquier miembro del equipo (decisión 2 del B27).
   EQUIPO_PROYECTO: ['project.deliverable.submit'],
+  // Calidad prepara el acta de revisión por la dirección; la aprueba solo la Dirección (decisión 5
+  // del B39).
+  CALIDAD: ['qms.review.approve'],
 };
 
 /**

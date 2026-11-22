@@ -12,12 +12,16 @@ import {
 // Acciones correctivas y de mejora (B38, ficha 17.15; FT-SGC-005) y su bitácora (RE-SGC-002,
 // decisión 10). Cada acción tiene responsable y fecha; quien responde la marca ejecutada con su
 // evidencia y alguien distinto verifica su eficacia (decisión 8). Las vencidas escalan a la
-// Dirección (decisión 11).
+// Dirección (decisión 11). Desde B39 también nacen de un hallazgo de auditoría (observación u
+// oportunidad de mejora) o de una decisión de la revisión por la dirección; esas las crea la
+// plataforma, no el formulario de acciones.
 
 export const ACTION_ORIGINS = {
   nonconformity: 'No conformidad',
   risk: 'Riesgo u oportunidad',
   improvement: 'Mejora',
+  audit: 'Hallazgo de auditoría',
+  management_review: 'Revisión por la dirección',
 } as const;
 export type ActionOrigin = keyof typeof ACTION_ORIGINS;
 export const actionOriginSchema = qmsEnumOf(ACTION_ORIGINS);
@@ -74,9 +78,12 @@ export const actionQuerySchema = z.strictObject({
   origin_type: actionOriginSchema.optional(),
 });
 
+/** Orígenes que Calidad registra a mano en la bitácora. */
+export const manualActionOriginSchema = z.enum(['nonconformity', 'risk', 'improvement']);
+
 export const createQmsActionSchema = z
   .strictObject({
-    origin_type: actionOriginSchema,
+    origin_type: manualActionOriginSchema,
     origin_id: qmsIdSchema.nullable().default(null),
     process_id: qmsIdSchema.nullable().default(null),
     description: qmsTextSchema(5, 2000).describe('Qué se hará'),

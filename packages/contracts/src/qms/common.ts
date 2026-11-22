@@ -8,6 +8,8 @@ export const QMS_ERROR_CODES = {
   statusInvalid: 'QMS_STATUS_INVALID',
   /** La eficacia la verifica alguien distinto de quien ejecutó la acción (ficha 17.15). */
   selfVerification: 'QMS_SELF_VERIFICATION',
+  /** Un auditor no audita su propio proceso (ficha 17.15, B39 decisión 2). */
+  auditorOwnProcess: 'QMS_AUDITOR_OWN_PROCESS',
 } as const;
 
 export const qmsIdSchema = z.uuid();

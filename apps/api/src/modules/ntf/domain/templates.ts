@@ -166,6 +166,21 @@ export const DEFAULT_TEMPLATES: Readonly<Record<NotificationKind, TemplateText>>
     body: 'La acción {{codigo}} venció el {{fecha}} y sigue sin ejecutarse. Revísela en ARZA ONE › Calidad › Acciones.',
     urgent: false,
   },
+  qms_audit_assigned: {
+    subject: 'Le corresponde la auditoría interna {{codigo}}',
+    body: 'Hola, {{nombre}}. Usted es el auditor de {{codigo}}, programada para el {{fecha}}. Encuéntrela en ARZA ONE › Mi espacio.',
+    urgent: false,
+  },
+  qms_indicator_due: {
+    subject: 'Indicador por medir: {{codigo}}',
+    body: 'Hola, {{nombre}}. El indicador {{codigo}} no tiene la medición de {{periodo}}. Regístrela con su evidencia en ARZA ONE › Mi espacio.',
+    urgent: false,
+  },
+  qms_review_to_approve: {
+    subject: 'Acta de revisión por la dirección por aprobar: {{codigo}}',
+    body: 'Hola, {{nombre}}. El acta {{codigo}} está lista para su aprobación en ARZA ONE › Calidad › Revisión por la dirección.',
+    urgent: false,
+  },
 };
 
 /** Variables que el texto usa y que este tipo de aviso no ofrece. */
