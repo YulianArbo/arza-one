@@ -76,6 +76,8 @@ export const PEOPLE_PERMISSION_GROUPS = [
     label: 'Innovación',
     module: 'M15',
     entries: [
+      // Lectura del módulo para la Dirección, Calidad, el Líder técnico y el Auditor (B40, decisión 1).
+      ['inn.read', 'read', 'Ver innovación y propiedad intelectual'],
       ['inn.idea.create', 'write', 'Proponer ideas', OWN],
       ['inn.idea.evaluate', 'approve', 'Evaluar ideas'],
       ['inn.idea.approve', 'approve', 'Aprobar ideas'],

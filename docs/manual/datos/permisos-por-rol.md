@@ -13,11 +13,11 @@ permisos de una persona son la suma de sus roles vigentes.
 
 | Rol | Código | Para | Permisos | Solo lo propio |
 | --- | --- | --- | --- | --- |
-| Dirección | `DIRECCION` | Interno | 79 | 1 |
+| Dirección | `DIRECCION` | Interno | 80 | 1 |
 | Administrador de plataforma | `ADMIN_PLATAFORMA` | Interno | 35 | 1 |
-| Calidad | `CALIDAD` | Interno | 68 | 1 |
+| Calidad | `CALIDAD` | Interno | 69 | 1 |
 | Comercial | `COMERCIAL` | Interno | 54 | 10 |
-| Líder técnico | `LIDER_TECNICO` | Interno | 49 | 9 |
+| Líder técnico | `LIDER_TECNICO` | Interno | 50 | 9 |
 | Equipo de proyecto | `EQUIPO_PROYECTO` | Interno | 23 | 18 |
 | Servicio al cliente | `SERVICIO` | Interno | 47 | 10 |
 | Administrativo y financiero | `ADMIN_FINANCIERO` | Interno | 64 | 6 |
@@ -26,13 +26,13 @@ permisos de una persona son la suma de sus roles vigentes.
 | Seguridad y salud en el trabajo | `SST` | Interno | 33 | 9 |
 | Oficial de protección de datos | `OFICIAL_DATOS` | Interno | 35 | 6 |
 | Colaborador | `COLABORADOR` | Interno | 26 | 21 |
-| Auditor | `AUDITOR` | Interno | 39 | 0 |
+| Auditor | `AUDITOR` | Interno | 40 | 0 |
 | Administrador del cliente | `CLIENTE_ADMIN` | Portal | 9 | 0 |
 | Usuario del cliente | `CLIENTE_USUARIO` | Portal | 4 | 4 |
 
 ## Dirección (`DIRECCION`)
 
-Director General. Lectura transversal, aprobaciones de alto nivel, firma de contratos, tableros. 79 permisos.
+Director General. Lectura transversal, aprobaciones de alto nivel, firma de contratos, tableros. 80 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema · Administrar los comunicados del acceso
 - **Identidad y acceso (M01):** Ver los usuarios y sus roles · Ver los roles y sus permisos · Ver el informe de revisión de accesos
@@ -52,7 +52,7 @@ Director General. Lectura transversal, aprobaciones de alto nivel, firma de cont
 - **Talento humano (M12):** Ver colaboradores · Aprobar permisos y vacaciones · Autorizar horas extras · Cerrar el periodo de novedades de nómina · Ver salarios
 - **Seguridad y salud en el trabajo (M13):** Ver el módulo de SST · Ver las actas del comité
 - **Calidad (M14):** Ver el módulo de Calidad · Ver las lecciones aprendidas · Cerrar no conformidades · Verificar la eficacia de las acciones · Aprobar el acta de revisión por la dirección · Evaluar el cumplimiento legal
-- **Innovación (M15):** Evaluar ideas · Aprobar ideas
+- **Innovación (M15):** Ver innovación y propiedad intelectual · Evaluar ideas · Aprobar ideas
 
 ## Administrador de plataforma (`ADMIN_PLATAFORMA`)
 
@@ -70,7 +70,7 @@ Responsable técnico. Usuarios, roles, parámetros, flujos y catálogos, sin acc
 
 ## Calidad (`CALIDAD`)
 
-Coordinador de Calidad e Innovación. Control documental, riesgos, no conformidades, auditorías, indicadores. 68 permisos.
+Coordinador de Calidad e Innovación. Control documental, riesgos, no conformidades, auditorías, indicadores. 69 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Terceros (M02):** Ver terceros
@@ -87,7 +87,7 @@ Coordinador de Calidad e Innovación. Control documental, riesgos, no conformida
 - **Compras y activos (M11):** Ver compras, proveedores y viajes · Ver activos
 - **Seguridad y salud en el trabajo (M13):** Ver el módulo de SST · Ver las actas del comité
 - **Calidad (M14):** Ver el módulo de Calidad · Ver las lecciones aprendidas · Administrar procesos y su contexto · Gestionar riesgos · Reportar no conformidades · Gestionar no conformidades · Cerrar no conformidades · Gestionar acciones de mejora · Verificar la eficacia de las acciones · Planear auditorías internas · Ejecutar auditorías internas · Administrar indicadores · Registrar mediciones de indicadores · Gestionar la revisión por la dirección · Administrar la matriz de requisitos legales · Evaluar el cumplimiento legal
-- **Innovación (M15):** Proponer ideas · Evaluar ideas · Aprobar ideas · Administrar la hoja de ruta · Administrar la propiedad intelectual · Gestionar la vigilancia tecnológica
+- **Innovación (M15):** Ver innovación y propiedad intelectual · Proponer ideas · Evaluar ideas · Aprobar ideas · Administrar la hoja de ruta · Administrar la propiedad intelectual · Gestionar la vigilancia tecnológica
 
 ## Comercial (`COMERCIAL`)
 
@@ -110,7 +110,7 @@ Gerente y analistas comerciales. Prospectos, oportunidades, cotizaciones, client
 
 ## Líder técnico (`LIDER_TECNICO`)
 
-Gerente de Desarrollo, líder técnico. Todos los proyectos, liberaciones, incidentes. 49 permisos.
+Gerente de Desarrollo, líder técnico. Todos los proyectos, liberaciones, incidentes. 50 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Terceros (M02):** Ver terceros
@@ -123,7 +123,7 @@ Gerente de Desarrollo, líder técnico. Todos los proyectos, liberaciones, incid
 - **Servicio al cliente (M08):** Ver tiquetes · Crear tiquetes · Asignar tiquetes · Resolver tiquetes · Cerrar tiquetes · Ver PQRSF · Clasificar PQRSF · Responder PQRSF · Leer la base de conocimiento
 - **Compras y activos (M11):** Solicitar compras (solo lo propio) · Solicitar viajes (solo lo propio) · Ver activos (solo lo propio)
 - **Calidad (M14):** Reportar no conformidades (solo lo propio) · Gestionar acciones de mejora (solo lo propio) · Ejecutar auditorías internas (solo lo propio) · Registrar mediciones de indicadores (solo lo propio) · Ver las lecciones aprendidas
-- **Innovación (M15):** Proponer ideas · Gestionar la vigilancia tecnológica
+- **Innovación (M15):** Ver innovación y propiedad intelectual · Proponer ideas · Gestionar la vigilancia tecnológica
 
 ## Equipo de proyecto (`EQUIPO_PROYECTO`)
 
@@ -253,7 +253,7 @@ Todo colaborador. Sus tareas, sus solicitudes, sus datos, documentos vigentes de
 
 ## Auditor (`AUDITOR`)
 
-Auditor interno o externo. Solo lectura de evidencias y auditoría, por tiempo limitado. 39 permisos.
+Auditor interno o externo. Solo lectura de evidencias y auditoría, por tiempo limitado. 40 permisos.
 
 - **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema
 - **Identidad y acceso (M01):** Ver los usuarios y sus roles · Ver los roles y sus permisos · Ver el informe de revisión de accesos
@@ -273,6 +273,7 @@ Auditor interno o externo. Solo lectura de evidencias y auditoría, por tiempo l
 - **Talento humano (M12):** Ver colaboradores
 - **Seguridad y salud en el trabajo (M13):** Ver el módulo de SST · Ver las actas del comité
 - **Calidad (M14):** Ver el módulo de Calidad · Ver las lecciones aprendidas
+- **Innovación (M15):** Ver innovación y propiedad intelectual
 
 ## Administrador del cliente (`CLIENTE_ADMIN`)
 
