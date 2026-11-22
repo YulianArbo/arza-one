@@ -16,6 +16,7 @@ export const INN_PATHS = [
   '/v1/innovation/ip-assets/{id}/authors/{authorId}',
   '/v1/innovation/ip-assets/{id}/certificate/download-link',
   '/v1/innovation/my/ideas',
+  '/v1/innovation/people',
   '/v1/innovation/roadmap',
   '/v1/innovation/roadmap/{id}',
   '/v1/innovation/roadmap/{id}/release',

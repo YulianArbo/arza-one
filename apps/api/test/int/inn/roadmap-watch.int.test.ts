@@ -1,5 +1,6 @@
 import {
   competitorListResponseSchema,
+  innRefListResponseSchema,
   roadmapListResponseSchema,
   roadmapReleaseResponseSchema,
   watchListResponseSchema,
@@ -86,6 +87,10 @@ it('el hito solo nace de una idea aprobada y el trimestre se valida', async () =
   const release = { version_label: '1.0.0', released_on: later(scenario, 0) };
   expect((await at(scenario, `${path}/${id}/release`, f.quality, 2, release)).status).toBe(409);
   expect((await scenario.get(path, f.worker.session)).status).toBe(403);
+  const people = innRefListResponseSchema.parse(
+    (await scenario.get('/v1/innovation/people', f.quality.session)).body,
+  );
+  expect(people.data.map((person) => person.id)).toContain(f.tech.id);
   const ghost = '/v1/innovation/roadmap/01900000-0000-7000-8000-00000000dead';
   expect((await scenario.patch(ghost, f.quality.session, item(f.tech.id), 1)).status).toBe(404);
 });

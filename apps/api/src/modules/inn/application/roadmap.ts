@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import {
   IP_OFFICES,
+  type InnRef,
   type ReleaseRoadmapItem,
   type RoadmapItem,
   type SaveRoadmapItem,
@@ -15,6 +16,7 @@ import type { TenantTransaction } from '../../../platform/database/tenant-contex
 import { versionConflict } from '../../../platform/http/if-match.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
 import { companyIdentity, fromCalendarDate } from '../../core/index.js';
+import { activeCollaborators } from '../../iam/index.js';
 import {
   assertPerson,
   dateOf,
@@ -125,6 +127,16 @@ export class Roadmap {
     @Inject(DatabaseService) private readonly database: DatabaseService,
     @Inject(CLOCK) private readonly clock: Clock,
   ) {}
+
+  /** Cuentas internas activas, para elegir responsables de hitos y activos. */
+  async people(principal: Principal): Promise<InnRef[]> {
+    return this.database.withTenant(principal, async (tx) =>
+      (await activeCollaborators(tx)).map((person) => ({
+        id: person.id,
+        name: person.displayName ?? person.email,
+      })),
+    );
+  }
 
   /** Los hitos por trimestre y producto, con los productos ya escritos para sugerirlos. */
   async list(principal: Principal): Promise<{ data: RoadmapItem[]; products: string[] }> {

@@ -28,6 +28,7 @@ export function innEnumOf<T extends Record<string, unknown>>(
 
 /** Una persona, con el nombre para mostrar. */
 export const innRefSchema = z.object({ id: innIdSchema, name: z.string() });
+export const innRefListResponseSchema = z.object({ data: z.array(innRefSchema) });
 export const innCreatedResponseSchema = z.object({ id: innIdSchema });
 export const innCodeResponseSchema = z.object({ id: innIdSchema, code: z.string() });
 

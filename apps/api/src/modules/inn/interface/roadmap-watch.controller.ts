@@ -15,6 +15,7 @@ import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   competitorListResponseSchema,
   innCreatedResponseSchema,
+  innRefListResponseSchema,
   releaseRoadmapItemSchema,
   roadmapListResponseSchema,
   roadmapReleaseResponseSchema,
@@ -41,6 +42,7 @@ class InnWatchListResponse extends createZodDto(watchListResponseSchema) {}
 class InnWatchBody extends createZodDto(saveWatchEntrySchema) {}
 class InnCompetitorListResponse extends createZodDto(competitorListResponseSchema) {}
 class InnCompetitorBody extends createZodDto(saveCompetitorSchema) {}
+class InnPeopleResponse extends createZodDto(innRefListResponseSchema) {}
 class InnCreatedResponse extends createZodDto(innCreatedResponseSchema) {}
 const UUID = new ParseUUIDPipe({ version: '7' });
 const IF_MATCH = { name: 'If-Match', required: true, description: 'Versión del registro' };
@@ -57,6 +59,14 @@ export class RoadmapWatchController {
     @Inject(TechWatch) private readonly watch: TechWatch,
     @Inject(Competitors) private readonly competitors: Competitors,
   ) {}
+
+  @Get('people')
+  @RequirePermission('inn.read')
+  @ApiOperation({ summary: 'Cuentas internas activas, para elegir responsables' })
+  @ZodResponse({ status: HttpStatus.OK, type: InnPeopleResponse, description: 'Personas' })
+  async people(@CurrentPrincipal() principal: Principal): Promise<InnPeopleResponse> {
+    return { data: await this.roadmap.people(principal) };
+  }
 
   @Get('roadmap')
   @RequirePermission('inn.read')
