@@ -111,9 +111,10 @@ const WITHHELD: Readonly<Partial<Record<InternalRoleCode, readonly PermissionCod
 
 /**
  * Permisos de lectura que todo rol interno tiene, lo lea o no en la matriz: la base de conocimiento
- * es el manual de usuario de la plataforma (capítulo 22) y la ayuda del equipo (decisión 10 del B29).
+ * es el manual de usuario de la plataforma (capítulo 22) y la ayuda del equipo (decisión 10 del B29);
+ * las lecciones aprendidas son conocimiento de todo el personal (decisión 3 del B38).
  */
-const EVERY_INTERNAL_ROLE: readonly PermissionCode[] = ['service.kb.read'];
+const EVERY_INTERNAL_ROLE: readonly PermissionCode[] = ['service.kb.read', 'qms.lesson.read'];
 
 /** Solo por permiso nominal además del rol (numeral 15.4, clasificación): ningún rol lo trae. */
 export const NOMINAL_ONLY_PERMISSIONS: readonly PermissionCode[] = ['doc.restricted.read'];

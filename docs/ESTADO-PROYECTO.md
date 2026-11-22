@@ -1,5 +1,14 @@
 # Estado del proyecto ARZA ONE
 
+**B38 construido y en revisión, 21/11/2026 (Claude Code).** El propietario aprobó el plan («Apruebo todo», 12 decisiones). Rama `feat/b38-calidad-procesos-riesgos-no-co` desde la rama de B37 (`84d99ba`); el PR #88 lleva a `main` las pantallas de SST y debe fusionarse antes.
+
+- Se construyó el módulo de Calidad (M14): mapa de procesos sobre el organigrama, contexto DOFA-PESTEL y partes interesadas, riesgos y oportunidades con nivel calculado, no conformidades con contención, análisis de causa y plan, acciones correctivas y de mejora con verificación por un tercero, bitácora RE-SGC-002 en CSV, escalamiento diario de vencidas y lecciones aprendidas.
+- Una queja o un reclamo procedente abre la no conformidad en la misma operación; Calidad puede abrirla desde un incidente de SST.
+- Migración: `20261122000000_qms_quality_processes_risks_actions`. Permisos nuevos: `qms.read` y `qms.lesson.read` (214 en total).
+- Pasaron en local: formato, analizador, tipos, límites, `knip`, unitarias de los 13 paquetes (web 924, cobertura de ramas 85,2 %), integración (corrida completa más repetición de las que fallaron por conexiones agotadas), compilación y `gitleaks`. Las pruebas hallaron dos errores reales, ya corregidos (espina de pescado y fechas en hora de Colombia).
+- No se ejecutaron en local las pruebas de navegador (navegador 1243 frente a 1255 de Playwright 1.65); las corre la CI.
+- Pendientes principales: validar las columnas de RE-SGC-002 y la escala de FT-SGC-003. Cierre en `docs/bloques/B38-cierre.md`.
+
 **B37 construido y en revisión, 20/11/2026 (Claude Code).** El propietario aprobó el plan («Apruebo todo», 14 decisiones). Rama `feat/b37-seguridad-y-salud-en-el-trabaj` desde `main` (f312d42).
 
 - Se construyó el módulo de Seguridad y salud en el trabajo (M13): reporte desde el celular, incidentes y accidentes con plazo para la ARL e investigación, matriz de peligros GTC 45, plan anual con evidencias, inspecciones (también la del puesto en casa), conceptos de aptitud cifrados, elementos de protección, comités con lo de Convivencia restringido a sus integrantes, canal confidencial de quejas y autoevaluación de estándares mínimos.

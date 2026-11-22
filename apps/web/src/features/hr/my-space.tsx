@@ -17,6 +17,7 @@ import { QueryState } from '../administration/query-state';
 import { HrActionButton } from './hr-dialog';
 import { useHrQuery } from './hr-queries';
 import { MyLeaves, MyOvertime } from './my-space-absences';
+import { MyQualityActions } from '../quality/my-quality';
 import { MySst } from '../sst/my-sst';
 import { MyCitations, MyNovelties, MyReviews, MyTasks, MyTrainings } from './my-space-records';
 
@@ -106,6 +107,7 @@ export function MySpace(): JSX.Element {
             <>
               <Summary employment={employment} />
               <MySst />
+              <MyQualityActions />
               <MyCitations />
               <MyTasks />
               <MyLeaves />

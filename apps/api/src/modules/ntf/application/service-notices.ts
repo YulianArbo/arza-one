@@ -191,10 +191,7 @@ const PQRSF_HANDLERS: Readonly<Record<string, Handler>> = {
     'trata de datos personales: se trasladó a Privacidad y sigue los plazos de la Ley 1581',
     toRoles(['OFICIAL_DATOS']),
   ),
-  'service.pqrsf.nonconforming': pqrsfHandler(
-    'es una queja o un reclamo procedente: registre la no conformidad en Calidad',
-    toRoles(['CALIDAD']),
-  ),
+  // La queja o el reclamo procedente abre su no conformidad (B38): avisa Calidad, no Servicio.
   'service.pqrsf.warned': pqrsfHandler(
     'le quedan dos días hábiles para responder',
     toAssigneeAndLeaders,

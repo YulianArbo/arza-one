@@ -1,6 +1,7 @@
 'use client';
 
 import { FormField, SelectField } from '@arza/ui';
+import type { QueryKey } from '@tanstack/react-query';
 import { useState, type JSX, type ReactNode } from 'react';
 import type { z } from 'zod';
 
@@ -59,9 +60,10 @@ export function HrForm<T>(props: {
   readonly run: (input: T, csrfToken: string) => Promise<unknown>;
   readonly label: string;
   readonly onDone: () => void;
+  readonly refresh?: readonly QueryKey[];
 }): JSX.Element {
   const [problems, setProblems] = useState<Record<string, string>>({});
-  const action = useHrAction(props.run, props.onDone);
+  const action = useHrAction(props.run, props.onDone, props.refresh);
   return (
     <form
       noValidate

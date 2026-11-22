@@ -145,6 +145,27 @@ export const DEFAULT_TEMPLATES: Readonly<Record<NotificationKind, TemplateText>>
     body: 'El Comité de Convivencia recibió la queja {{codigo}}. Consúltela en ARZA ONE › Talento y SST › Comités.',
     urgent: false,
   },
+  // Calidad y mejora continua (B38).
+  qms_nonconformity_reported: {
+    subject: 'Nueva no conformidad: {{codigo}}',
+    body: 'Se registró la no conformidad {{codigo}} ({{origen}}). Aplique la corrección inmediata en ARZA ONE › Calidad › No conformidades.',
+    urgent: false,
+  },
+  qms_action_assigned: {
+    subject: 'Acción de calidad a su cargo: {{codigo}}',
+    body: 'Le corresponde la acción {{codigo}}, con fecha compromiso el {{fecha}}. Cuando la ejecute, registre la evidencia en ARZA ONE › Mi espacio.',
+    urgent: false,
+  },
+  qms_action_to_verify: {
+    subject: 'Acción por verificar: {{codigo}}',
+    body: 'La acción {{codigo}} se ejecutó y espera que alguien distinto de su responsable verifique su eficacia en ARZA ONE › Calidad › Acciones.',
+    urgent: false,
+  },
+  qms_action_overdue: {
+    subject: 'Acción de calidad vencida: {{codigo}}',
+    body: 'La acción {{codigo}} venció el {{fecha}} y sigue sin ejecutarse. Revísela en ARZA ONE › Calidad › Acciones.',
+    urgent: false,
+  },
 };
 
 /** Variables que el texto usa y que este tipo de aviso no ofrece. */

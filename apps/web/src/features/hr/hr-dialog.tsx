@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@arza/ui';
+import type { QueryKey } from '@tanstack/react-query';
 import { useState, type JSX } from 'react';
 import type { z } from 'zod';
 
@@ -35,6 +36,7 @@ export function HrDialogForm<T>(props: {
   readonly prepare?: (values: Record<string, string>) => unknown;
   readonly run: (input: T, csrfToken: string) => Promise<unknown>;
   readonly submitLabel: string;
+  readonly refresh?: readonly QueryKey[];
 }): JSX.Element | null {
   return (
     <NewRecord
@@ -51,6 +53,7 @@ export function HrDialogForm<T>(props: {
           run={props.run}
           label={props.submitLabel}
           onDone={close}
+          {...(props.refresh === undefined ? {} : { refresh: props.refresh })}
         />
       )}
     </NewRecord>
@@ -63,6 +66,7 @@ export function HrActionButton(props: {
   readonly pendingLabel: string;
   readonly ariaLabel: string;
   readonly run: (csrfToken: string) => Promise<unknown>;
+  readonly refresh?: readonly QueryKey[];
 }): JSX.Element {
   const [done, setDone] = useState(false);
   const action = useHrAction<undefined>(
@@ -70,6 +74,7 @@ export function HrActionButton(props: {
     () => {
       setDone(true);
     },
+    props.refresh,
   );
   return (
     <div className="flex flex-col gap-1">

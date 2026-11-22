@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   canPqrsfStep,
   NONCONFORMITY_TYPES,
+  PQRSF_TYPES,
   PQRSF_STATUSES,
   pqrsfStatusSchema,
   pqrsfTypeSchema,
@@ -19,6 +20,7 @@ import { DatabaseService } from '../../../platform/database/database.service.js'
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import { versionConflict } from '../../../platform/http/if-match.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
+import { openNonconformityFromPqrsf } from '../../qms/index.js';
 import { findPqrsf, pqrsfAudit, pqrsfDeadline, pqrsfPayload } from './pqrsf-records.js';
 import {
   approverInvalid,
@@ -99,6 +101,22 @@ async function handOff(
     changes: pqrsfAudit(pqrsf),
     payload: pqrsfPayload(pqrsf),
   });
+}
+
+/** La queja o el reclamo procedente abre su no conformidad en Calidad (B38, decisión 4). */
+async function openNonconformity(
+  tx: TenantTransaction,
+  actor: ServiceActor,
+  approverId: string,
+  pqrsf: SvcPqrsf,
+): Promise<void> {
+  await handOff(tx, actor, pqrsf, 'nonconformity');
+  const kindLabel = PQRSF_TYPES[pqrsfTypeSchema.parse(pqrsf.type)];
+  await openNonconformityFromPqrsf(
+    tx,
+    { tenantId: actor.tenantId, userId: approverId, at: actor.at, meta: actor.meta },
+    { id: pqrsf.id, code: pqrsf.code, kindLabel },
+  );
 }
 
 function needsNonconformity(pqrsf: SvcPqrsf): boolean {
@@ -245,7 +263,7 @@ export class PqrsfStepsUseCase {
         },
         changes: { nonconformity },
       });
-      if (nonconformity) await handOff(tx, actor, after, 'nonconformity');
+      if (nonconformity) await openNonconformity(tx, actor, principal.userId, after);
     });
   }
 
