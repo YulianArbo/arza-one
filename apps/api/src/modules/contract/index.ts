@@ -5,7 +5,11 @@
 // también como «@arza/api/contract» para el worker, que genera los PDF y revisa los vencimientos.
 export { ContractModule } from './interface/contract.module.js';
 export { seedContracts } from './application/contract-seed.js';
-export { visibleContractTitle } from './application/contract-access.js';
+export {
+  visibleContractByCode,
+  visibleContractTitle,
+  type ContractRef,
+} from './application/contract-access.js';
 export { linkCompanySigner, type SignerLinkOutcome } from './application/signer-link.js';
 export {
   contractsForProjects,
