@@ -1,5 +1,6 @@
 import { JOBS } from '@arza/api/platform';
 import { expireRecruitmentData, runHrDailyWork } from '@arza/api/hr';
+import { runInnDailyWork } from '@arza/api/inn';
 import { renderQualityPdfs, runQmsDailyWork, runQmsIndicatorWork } from '@arza/api/qms';
 import { serviceQualityFigures } from '@arza/api/service';
 import { runSstDailyWork } from '@arza/api/sst';
@@ -132,6 +133,7 @@ function handlers(deps: JobDependencies): ReadonlyMap<string, JobHandler> {
       ),
     ],
     [JOBS.qmsPdfWork.name, withoutData(async () => renderQualityPdfs(deps))],
+    [JOBS.innDailyWork.name, withoutData(async () => runInnDailyWork(deps))],
     [JOBS.svcSlaWork.name, withoutData(async () => processSlaWork(deps))],
     [JOBS.svcCareWork.name, withoutData(async () => processCareWork(deps))],
   ]);
