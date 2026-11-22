@@ -17,14 +17,14 @@ import { dateOf, optionalRef, refOf, userRefs } from './qms-support.js';
 // las decisiones van en JSON dentro del acta: así el acta aprobada conserva exactamente lo que se
 // revisó, aunque las cifras de la plataforma cambien después.
 
-export const storedInputSchema = z.object({
+const storedInputSchema = z.object({
   key: reviewInputKeySchema,
   lines: z.array(z.string()),
   comment: z.string().nullable(),
 });
 export type StoredInput = z.infer<typeof storedInputSchema>;
 
-export const storedDecisionSchema = z.object({
+const storedDecisionSchema = z.object({
   description: z.string(),
   responsible_id: z.uuid(),
   due_on: z.iso.date(),

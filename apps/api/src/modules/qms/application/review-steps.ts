@@ -21,6 +21,7 @@ import {
   type Target,
 } from './qms-support.js';
 import { automaticLines } from './review-inputs.js';
+import { SERVICE_FIGURES, type ServiceFiguresReader } from './service-figures.js';
 import { storedDecisions, storedInputs, type StoredDecision } from './review-views.js';
 
 // Los pasos del acta de revisión por la dirección (B39). Calidad precarga las entradas y la envía;
@@ -94,6 +95,7 @@ export class ReviewSteps {
   constructor(
     @Inject(DatabaseService) private readonly database: DatabaseService,
     @Inject(CLOCK) private readonly clock: Clock,
+    @Inject(SERVICE_FIGURES) private readonly serviceFigures: ServiceFiguresReader,
   ) {}
 
   private async step(
@@ -121,6 +123,7 @@ export class ReviewSteps {
         reviewId: ctx.review.id,
         from: toCalendarDate(ctx.review.periodFrom),
         to: toCalendarDate(ctx.review.periodTo),
+        serviceFigures: this.serviceFigures,
       });
       const inputs = storedInputs(ctx.review).map((input) => ({
         ...input,

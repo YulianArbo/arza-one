@@ -3,12 +3,13 @@ import { Decimal } from 'decimal.js';
 
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import { bogotaStartOf, fromCalendarDate } from '../../core/index.js';
-import { serviceQualityFigures } from '../../service/index.js';
 import { incidentCountForQuality } from '../../sst/index.js';
+import type { ServiceFiguresReader } from './service-figures.js';
 
 // Los indicadores que la plataforma calcula sola (B39, decisión 6). Cada cálculo mira un periodo
 // [inicio, fin) en fechas de Colombia. Si el dato no existe (nada que dividir), no hay medición:
-// la plataforma no inventa un 0 %. Servicio y SST entregan sus cifras por su interfaz pública.
+// la plataforma no inventa un 0 %. SST entrega sus cifras por su interfaz pública y Servicio por el
+// lector que recibe Calidad (service-figures.ts).
 
 export interface MeasuredPeriod {
   /** Primer día del periodo (AAAA-MM-DD). */
@@ -17,7 +18,11 @@ export interface MeasuredPeriod {
   readonly end: string;
 }
 
-type Calculator = (tx: TenantTransaction, period: MeasuredPeriod) => Promise<string | null>;
+type Calculator = (
+  tx: TenantTransaction,
+  period: MeasuredPeriod,
+  serviceFigures: ServiceFiguresReader,
+) => Promise<string | null>;
 
 /** num ÷ den × 100 con dos decimales; null si no hay base. */
 export function percentOf(numerator: number, denominator: number): string | null {
@@ -85,18 +90,18 @@ const auditProgram: Calculator = async (tx, period) => {
   return percentOf(reported, all);
 };
 
-const ticketsWithinSla: Calculator = async (tx, period) => {
-  const figures = await serviceQualityFigures(tx, instants(period));
+const ticketsWithinSla: Calculator = async (tx, period, serviceFigures) => {
+  const figures = await serviceFigures(tx, instants(period));
   return percentOf(figures.ticketsWithinSla, figures.ticketsResolved);
 };
 
-const pqrsfOnTime: Calculator = async (tx, period) => {
-  const figures = await serviceQualityFigures(tx, instants(period));
+const pqrsfOnTime: Calculator = async (tx, period, serviceFigures) => {
+  const figures = await serviceFigures(tx, instants(period));
   return percentOf(figures.pqrsfOnTime, figures.pqrsfResponded);
 };
 
-const surveySatisfaction: Calculator = async (tx, period) => {
-  const figures = await serviceQualityFigures(tx, instants(period));
+const surveySatisfaction: Calculator = async (tx, period, serviceFigures) => {
+  const figures = await serviceFigures(tx, instants(period));
   return averageOf(figures.satisfactionTotal, figures.surveysAnswered);
 };
 
@@ -119,6 +124,7 @@ export async function calculateSource(
   tx: TenantTransaction,
   source: AutomaticSourceKey,
   period: MeasuredPeriod,
+  serviceFigures: ServiceFiguresReader,
 ): Promise<string | null> {
-  return CALCULATORS[source](tx, period);
+  return CALCULATORS[source](tx, period, serviceFigures);
 }

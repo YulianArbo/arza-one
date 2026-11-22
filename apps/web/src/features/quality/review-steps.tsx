@@ -25,7 +25,7 @@ interface ReviewProps {
 }
 
 /** El cuerpo completo del acta tal como está, con el cambio pedido. */
-export function reviewBody(
+function reviewBody(
   review: ManagementReview,
   change: Partial<UpdateManagementReview> = {},
 ): UpdateManagementReview {

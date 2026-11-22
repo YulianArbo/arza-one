@@ -11,6 +11,7 @@ import type { QmsIndicator } from '../../../generated/prisma/client.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import { fromCalendarDate } from '../../core/index.js';
 import { calculateSource } from './indicator-sources.js';
+import type { ServiceFiguresReader } from './service-figures.js';
 
 // Guardar la medición automática de un periodo (B39, decisiones 6 y 7). La usan el botón «Calcular
 // ahora» y el trabajo diario. Si ya existe, actualiza el valor y conserva el análisis.
@@ -35,14 +36,20 @@ export async function storeAutomatic(
   tx: TenantTransaction,
   indicator: QmsIndicator,
   periodStart: string,
+  serviceFigures: ServiceFiguresReader,
 ): Promise<AutomaticOutcome> {
   const source = indicatorSourceSchema.parse(indicator.source);
   if (!isAutomaticSource(source)) return { kind: 'no_data' };
   const frequency = indicatorFrequencySchema.parse(indicator.frequency);
-  const value = await calculateSource(tx, source, {
-    start: periodStart,
-    end: periodEndOf(frequency, periodStart),
-  });
+  const value = await calculateSource(
+    tx,
+    source,
+    {
+      start: periodStart,
+      end: periodEndOf(frequency, periodStart),
+    },
+    serviceFigures,
+  );
   if (value === null) return { kind: 'no_data' };
   const data = { value, meets: meetsOf(indicator, value) };
   const existing = await tx.qmsMeasurement.findFirst({

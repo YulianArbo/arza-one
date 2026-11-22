@@ -4,5 +4,11 @@
 export { QmsModule } from './interface/qms.module.js';
 export { runQmsDailyWork } from './application/daily-work.js';
 export { runQmsIndicatorWork } from './application/indicator-work.js';
-export { renderQualityPdfs, type QualityPdfDependencies } from './application/quality-pdf-work.js';
+export { renderQualityPdfs } from './application/quality-pdf-work.js';
 export { openNonconformityFromPqrsf } from './application/nonconformity-origins.js';
+export {
+  SERVICE_FIGURES,
+  type ServiceFiguresReader,
+  type ServicePeriod,
+  type ServiceQualityFigures,
+} from './application/service-figures.js';

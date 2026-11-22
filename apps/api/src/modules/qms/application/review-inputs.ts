@@ -17,11 +17,11 @@ import {
 
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import { addDays, bogotaStartOf, fromCalendarDate } from '../../core/index.js';
-import { serviceQualityFigures } from '../../service/index.js';
 import { incidentCountForQuality } from '../../sst/index.js';
 import { percentOf } from './indicator-sources.js';
 import { indicatorRefs, indicatorView } from './indicator-views.js';
 import { processRefs, refOf } from './qms-support.js';
+import type { ServiceFiguresReader } from './service-figures.js';
 
 // Las entradas que la plataforma precarga en el acta de revisión por la dirección (B39; RE-SGC-007,
 // ISO 9001 9.3.2). Cada entrada es una lista de frases cortas con las cifras del periodo; Calidad y
@@ -31,6 +31,7 @@ export interface ReviewPeriod {
   readonly reviewId: string;
   readonly from: string;
   readonly to: string;
+  readonly serviceFigures: ServiceFiguresReader;
 }
 
 type LineBuilder = (tx: TenantTransaction, period: ReviewPeriod) => Promise<string[]>;
@@ -72,7 +73,7 @@ const context: LineBuilder = async (tx, period) => {
 };
 
 const customer: LineBuilder = async (tx, period) => {
-  const figures = await serviceQualityFigures(tx, {
+  const figures = await period.serviceFigures(tx, {
     from: bogotaStartOf(period.from),
     to: bogotaStartOf(addDays(period.to, 1)),
   });
@@ -149,7 +150,7 @@ const risks: LineBuilder = async (tx) => {
 };
 
 /** La línea de un indicador en la entrada «Desempeño de los procesos». */
-export function indicatorLine(indicator: Indicator): string {
+function indicatorLine(indicator: Indicator): string {
   const head = `${indicator.code} ${indicator.name} (${indicator.process.name})`;
   const last = indicator.last;
   if (last === null) return `${head}: sin medición.`;

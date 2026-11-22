@@ -6,6 +6,7 @@ import {
 import { expect, it } from 'vitest';
 
 import { runQmsIndicatorWork } from '../../../src/modules/qms/index.js';
+import { serviceQualityFigures } from '../../../src/modules/service/index.js';
 import { AccessScenario } from '../iam/support/access-scenario.js';
 import { auditActions } from '../iam/support/iam-fixtures.js';
 import { indicatorBody, measurementBody, monthStart } from './support/qms-b39-fixture.js';
@@ -178,7 +179,11 @@ it('el trabajo diario calcula los automáticos y recuerda una vez los manuales (
     direction: 'lower_better',
     source: 'sst_incidents',
   });
-  const deps = { database: scenario.db, clock: scenario.clock };
+  const deps = {
+    database: scenario.db,
+    clock: scenario.clock,
+    serviceFigures: serviceQualityFigures,
+  };
   await runQmsIndicatorWork(deps);
   await runQmsIndicatorWork(deps);
   const notices = await scenario.inTenant((tx) =>

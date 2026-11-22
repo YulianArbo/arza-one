@@ -86,10 +86,7 @@ export const FINDING_LINKS = {
   actions: { select: { id: true, code: true }, where: { deletedAt: null } },
 } as const;
 
-export function findingView(
-  row: FindingWithLinks,
-  processes: ReadonlyMap<string, QmsRef>,
-): AuditFinding {
+function findingView(row: FindingWithLinks, processes: ReadonlyMap<string, QmsRef>): AuditFinding {
   return {
     id: row.id,
     audit: { id: row.audit.id, code: row.audit.code },

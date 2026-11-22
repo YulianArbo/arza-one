@@ -26,7 +26,7 @@ import { optionalRef, processRefs, refOf, userRefs } from './qms-support.js';
 // y la fila de la matriz RE-SGC-006 (decisión 10).
 
 /** Un valor numeric(18,4) como texto sin ceros de sobra: 85.5000 → 85.5. */
-export function valueText(value: { toString(): string }): string {
+function valueText(value: { toString(): string }): string {
   const text = value.toString();
   return text.includes('.') ? text.replace(/\.?0+$/u, '') : text;
 }
@@ -54,7 +54,7 @@ export async function indicatorRefs(
 }
 
 /** La medición y la anterior a ella (para la tendencia). */
-export function measurementView(
+function measurementView(
   row: QmsMeasurementRow,
   previous: QmsMeasurementRow | undefined,
   indicator: QmsIndicatorRow,

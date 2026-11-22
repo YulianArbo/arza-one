@@ -15,6 +15,7 @@ import type { TenantTransaction } from '../../../platform/database/tenant-contex
 import { addDays, bogotaToday, fromCalendarDate } from '../../core/index.js';
 import { storeAutomatic } from './measurement-records.js';
 import { emitQms } from './qms-support.js';
+import type { ServiceFiguresReader } from './service-figures.js';
 
 // Trabajo diario de los indicadores (B39, decisión 7), a las 6:30 de Colombia. Al cerrar cada
 // periodo, la plataforma calcula los automáticos (si aún no tienen su medición; si no hay datos,
@@ -24,6 +25,8 @@ import { emitQms } from './qms-support.js';
 interface IndicatorWorkDeps {
   readonly database: Pick<DatabaseService, 'withTenant' | 'withoutTenant'>;
   readonly clock: Clock;
+  /** Las cifras de Servicio; el worker le pasa las del módulo de Servicio. */
+  readonly serviceFigures: ServiceFiguresReader;
 }
 
 export interface IndicatorWorkResult {
@@ -39,6 +42,7 @@ interface Scope {
   readonly tenantId: string;
   readonly at: Date;
   readonly today: string;
+  readonly serviceFigures: ServiceFiguresReader;
 }
 
 async function systemAudit(scope: Scope, indicator: QmsIndicator, changes: object) {
@@ -64,7 +68,7 @@ async function measured(scope: Scope, indicatorId: string, period: string): Prom
 }
 
 async function calculate(scope: Scope, indicator: QmsIndicator, period: string): Promise<boolean> {
-  const outcome = await storeAutomatic(scope.tx, indicator, period);
+  const outcome = await storeAutomatic(scope.tx, indicator, period, scope.serviceFigures);
   if (outcome.kind === 'no_data') return false;
   await systemAudit(scope, indicator, { period_start: period, value: outcome.value });
   return true;
@@ -95,7 +99,13 @@ async function remind(scope: Scope, indicator: QmsIndicator, period: string): Pr
 
 async function tenantWork(deps: IndicatorWorkDeps, tenantId: string, at: Date) {
   return deps.database.withTenant({ tenantId, userId: null }, async (tx) => {
-    const scope: Scope = { tx, tenantId, at, today: bogotaToday(at) };
+    const scope: Scope = {
+      tx,
+      tenantId,
+      at,
+      today: bogotaToday(at),
+      serviceFigures: deps.serviceFigures,
+    };
     const indicators = await tx.qmsIndicator.findMany({ where: { active: true, deletedAt: null } });
     let calculated = 0;
     let reminded = 0;

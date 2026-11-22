@@ -1,27 +1,13 @@
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
+import type {
+  ServiceFiguresReader,
+  ServicePeriod,
+  ServiceQualityFigures,
+} from '../../qms/index.js';
 
 // Las cifras de Servicio al cliente que Calidad usa para sus indicadores automáticos y para la
 // revisión por la dirección (B39, decisión 6). Solo conteos y promedios del periodo: Calidad nunca
 // lee las tablas de Servicio ni recibe datos de quien pidió o se quejó.
-
-export interface ServicePeriod {
-  /** Desde este instante (incluido) … */
-  readonly from: Date;
-  /** … hasta este instante (excluido). */
-  readonly to: Date;
-}
-
-export interface ServiceQualityFigures {
-  readonly ticketsResolved: number;
-  readonly ticketsWithinSla: number;
-  readonly pqrsfResponded: number;
-  readonly pqrsfOnTime: number;
-  readonly pqrsfReceived: number;
-  readonly pqrsfWellFounded: number;
-  readonly surveysAnswered: number;
-  /** Suma de la satisfacción (1 a 5) de las encuestas respondidas. */
-  readonly satisfactionTotal: number;
-}
 
 /** La fecha límite vence al terminar ese día en Colombia: 24 horas más las 5 de diferencia con UTC. */
 const DUE_DAY_END_MS = 29 * 60 * 60 * 1000;
@@ -73,14 +59,14 @@ async function surveyFigures(tx: TenantTransaction, period: ServicePeriod) {
   };
 }
 
-/** Las cifras del periodo, en la transacción de la empresa. */
-export async function serviceQualityFigures(
+/** Las cifras del periodo, en la transacción de la empresa (el lector que Calidad espera). */
+export const serviceQualityFigures: ServiceFiguresReader = async (
   tx: TenantTransaction,
   period: ServicePeriod,
-): Promise<ServiceQualityFigures> {
+): Promise<ServiceQualityFigures> => {
   return {
     ...(await ticketFigures(tx, period)),
     ...(await pqrsfFigures(tx, period)),
     ...(await surveyFigures(tx, period)),
   };
-}
+};

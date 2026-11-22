@@ -1,11 +1,7 @@
 import { JOBS } from '@arza/api/platform';
 import { expireRecruitmentData, runHrDailyWork } from '@arza/api/hr';
-import {
-  renderQualityPdfs,
-  runQmsDailyWork,
-  runQmsIndicatorWork,
-  type QualityPdfDependencies,
-} from '@arza/api/qms';
+import { renderQualityPdfs, runQmsDailyWork, runQmsIndicatorWork } from '@arza/api/qms';
+import { serviceQualityFigures } from '@arza/api/service';
 import { runSstDailyWork } from '@arza/api/sst';
 import { UnrecoverableError } from 'bullmq';
 
@@ -86,7 +82,7 @@ export type JobDependencies = ExampleEmailDependencies &
   LoanWorkJobDependencies &
   SlaWorkJobDependencies &
   CareWorkJobDependencies &
-  QualityPdfDependencies;
+  Parameters<typeof renderQualityPdfs>[0];
 
 /** Procesador que recibe los datos del trabajo; su resultado no se usa. */
 function withData(process: (data: unknown) => Promise<unknown>): JobHandler {
@@ -129,7 +125,12 @@ function handlers(deps: JobDependencies): ReadonlyMap<string, JobHandler> {
     [JOBS.hrDailyWork.name, withoutData(async () => runHrDailyWork(deps))],
     [JOBS.sstDailyWork.name, withoutData(async () => runSstDailyWork(deps))],
     [JOBS.qmsDailyWork.name, withoutData(async () => runQmsDailyWork(deps))],
-    [JOBS.qmsIndicatorWork.name, withoutData(async () => runQmsIndicatorWork(deps))],
+    [
+      JOBS.qmsIndicatorWork.name,
+      withoutData(async () =>
+        runQmsIndicatorWork({ ...deps, serviceFigures: serviceQualityFigures }),
+      ),
+    ],
     [JOBS.qmsPdfWork.name, withoutData(async () => renderQualityPdfs(deps))],
     [JOBS.svcSlaWork.name, withoutData(async () => processSlaWork(deps))],
     [JOBS.svcCareWork.name, withoutData(async () => processCareWork(deps))],

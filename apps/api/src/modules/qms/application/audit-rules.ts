@@ -14,7 +14,7 @@ import type { QmsViewer } from './nonconformities.js';
 // está su cargo (o uno superior) ni el que su cargo dirige (ficha 17.15, decisión 2). Cada auditor
 // ejecuta solo las auditorías que le asignaron; Calidad, todas (decisión 1).
 
-export function auditorOwnProcess(): AppError {
+function auditorOwnProcess(): AppError {
   return new AppError(
     HttpStatus.FORBIDDEN,
     QMS_ERROR_CODES.auditorOwnProcess,
@@ -35,7 +35,7 @@ export async function assertIndependentAuditor(
 }
 
 /** Calidad puede todo; los demás, solo las auditorías que les asignaron. */
-export function canWorkAudit(viewer: QmsViewer, audit: Pick<QmsAudit, 'auditorId'>): boolean {
+function canWorkAudit(viewer: QmsViewer, audit: Pick<QmsAudit, 'auditorId'>): boolean {
   return (
     hasUnconditionalPermission(viewer.ability, 'qms.audit.execute') ||
     audit.auditorId === viewer.principal.userId

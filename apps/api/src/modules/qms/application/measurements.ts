@@ -20,6 +20,7 @@ import { versionConflict } from '../../../platform/http/if-match.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
 import { bogotaToday, fromCalendarDate } from '../../core/index.js';
 import { meetsOf, storeAutomatic } from './measurement-records.js';
+import { SERVICE_FIGURES, type ServiceFiguresReader } from './service-figures.js';
 import type { QmsViewer } from './nonconformities.js';
 import {
   assertFile,
@@ -82,6 +83,7 @@ export class Measurements {
   constructor(
     @Inject(DatabaseService) private readonly database: DatabaseService,
     @Inject(CLOCK) private readonly clock: Clock,
+    @Inject(SERVICE_FIGURES) private readonly serviceFigures: ServiceFiguresReader,
   ) {}
 
   /** Medición manual con evidencia: la registra el responsable o Calidad. */
@@ -170,7 +172,7 @@ export class Measurements {
       const today = bogotaToday(actor.at);
       const period = input.period_start ?? previousPeriodStart(frequency, today);
       assertPeriod(indicator, period, today);
-      const outcome = await storeAutomatic(tx, indicator, period);
+      const outcome = await storeAutomatic(tx, indicator, period, this.serviceFigures);
       if (outcome.kind === 'no_data') {
         throw qmsInvalid('La plataforma aún no tiene datos para calcular ese periodo.');
       }

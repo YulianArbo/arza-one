@@ -4,14 +4,14 @@ import { escapeHtml } from './notice-email.js';
 // (RE-SGC-007) (B39, decisión 9). El encabezado y el pie los pone Gotenberg (institutional.ts).
 // Todo lo que escribió una persona va escapado.
 
-export interface ChecklistLine {
+interface ChecklistLine {
   readonly requirement: string;
   readonly question: string;
   readonly result: string;
   readonly evidence: string;
 }
 
-export interface FindingLine {
+interface FindingLine {
   readonly type: string;
   readonly requirement: string;
   readonly description: string;
@@ -34,13 +34,13 @@ export interface AuditReportDocument {
   readonly conclusions: string;
 }
 
-export interface ReviewSection {
+interface ReviewSection {
   readonly title: string;
   readonly lines: readonly string[];
   readonly comment: string;
 }
 
-export interface ReviewDecisionLine {
+interface ReviewDecisionLine {
   readonly description: string;
   readonly responsible: string;
   readonly dueOn: string;
