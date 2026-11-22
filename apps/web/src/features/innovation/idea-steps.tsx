@@ -104,7 +104,7 @@ function ProgressStep({ idea }: { readonly idea: Idea }): JSX.Element | null {
   );
 }
 
-export function ViabilityPdf({ idea }: { readonly idea: Idea }): JSX.Element | null {
+function ViabilityPdf({ idea }: { readonly idea: Idea }): JSX.Element | null {
   const api = useApiClient();
   if ((idea.viability?.record_code ?? null) === null) return null;
   return (

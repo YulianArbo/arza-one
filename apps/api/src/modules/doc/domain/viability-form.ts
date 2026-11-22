@@ -16,7 +16,7 @@ const SCALE = ['1', '2', '3', '4', '5'];
  * Evaluación de Viabilidad Comercial. Los criterios son los de VIABILITY_CRITERIA, calificados de
  * 1 a 5; borrador por validar contra el formato original.
  */
-export const VIABILITY: FormDefinition = {
+const VIABILITY: FormDefinition = {
   sections: [
     section('idea', 'Idea evaluada', [
       text('idea', 'Idea', true),

@@ -22,7 +22,7 @@ function viabilityOf(row: InnIdea, refs: ReadonlyMap<string, InnRef>): Idea['via
   };
 }
 
-export function ideaView(row: InnIdea, refs: ReadonlyMap<string, InnRef>): Idea {
+function ideaView(row: InnIdea, refs: ReadonlyMap<string, InnRef>): Idea {
   return {
     id: row.id,
     code: row.code,

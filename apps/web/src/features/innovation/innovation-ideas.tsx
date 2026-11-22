@@ -24,7 +24,7 @@ import { INN_REFRESH, useInnQuery } from './innovation-queries';
 // Banco de ideas (B40, ficha 17.16; FT-INN-005): todo colaborador propone; Calidad y la Dirección
 // evalúan con el FT-INN-003 y deciden.
 
-export const STAGE_TONE: Readonly<Record<IdeaStage, 'info' | 'warning' | 'success' | 'neutral'>> = {
+const STAGE_TONE: Readonly<Record<IdeaStage, 'info' | 'warning' | 'success' | 'neutral'>> = {
   registered: 'info',
   evaluating: 'warning',
   approved: 'success',

@@ -18,13 +18,13 @@ import { dateOf, refOf, userRefs } from './inn-support.js';
 type AssetWithAuthors = InnIpAsset & { readonly authors: readonly InnIpAuthor[] };
 
 /** Ya llegó la fecha de aviso de la renovación de un activo vigente. */
-export function renewalDue(row: InnIpAsset, today: string): boolean {
+function renewalDue(row: InnIpAsset, today: string): boolean {
   const alertOn = renewalAlertOn(row.kind as IpKind, dateOf(row.expiresOn));
   return row.status === 'registered' && alertOn !== null && alertOn <= today;
 }
 
 /** Hay al menos un autor y todos tienen soporte de cesión (la base exige el soporte). */
-export function chainComplete(authors: readonly InnIpAuthor[]): boolean {
+function chainComplete(authors: readonly InnIpAuthor[]): boolean {
   return authors.some((author) => author.deletedAt === null);
 }
 
@@ -39,7 +39,7 @@ export function authorView(row: InnIpAuthor): IpAuthor {
   };
 }
 
-export function assetView(
+function assetView(
   row: AssetWithAuthors,
   refs: {
     readonly people: ReadonlyMap<string, InnRef>;

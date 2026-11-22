@@ -16,7 +16,7 @@ import { IpAssets } from './ip-assets.js';
 // portafolio RE-INN-001 en CSV para Excel (decisión 5, columnas por validar). Cada enlace vence a los
 // cinco minutos y cada descarga queda en la auditoría.
 
-export const PORTFOLIO_COLUMNS = [
+const PORTFOLIO_COLUMNS = [
   'Código',
   'Tipo',
   'Nombre',
@@ -36,7 +36,7 @@ function printed(value: string | null): CsvCell {
   return value === null ? null : printedDate(value);
 }
 
-export function portfolioRow(asset: IpAsset): CsvCell[] {
+function portfolioRow(asset: IpAsset): CsvCell[] {
   return [
     asset.code,
     IP_KINDS[asset.kind],

@@ -3,8 +3,4 @@
 // Nadie más lee las tablas inn_.
 export { InnModule } from './interface/inn.module.js';
 export { seedInnovation, seedInnovationDemo } from './application/inn-seed.js';
-export {
-  runInnDailyWork,
-  type InnDailyWorkDeps,
-  type InnDailyWorkResult,
-} from './application/renewal-work.js';
+export { runInnDailyWork } from './application/renewal-work.js';

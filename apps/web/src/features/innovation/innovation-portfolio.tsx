@@ -19,7 +19,7 @@ import { useInnQuery } from './innovation-queries';
 // Portafolio de propiedad intelectual (B40, ficha 17.16; RE-INN-001): marcas, registros de
 // software y dominios, del vencimiento más próximo al más lejano, con su alerta de renovación.
 
-export const ASSET_STATUS_TONE = {
+const ASSET_STATUS_TONE = {
   proposed: 'info',
   filed: 'warning',
   registered: 'success',

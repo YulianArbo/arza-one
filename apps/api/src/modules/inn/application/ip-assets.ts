@@ -60,7 +60,7 @@ export interface AssetData {
   readonly notes: string | null;
 }
 
-export function assetData(input: SaveIpAsset): AssetData {
+function assetData(input: SaveIpAsset): AssetData {
   return {
     kind: input.kind,
     title: input.title,

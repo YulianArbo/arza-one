@@ -90,7 +90,7 @@ const OPTIONAL = [
   'notes',
 ] as const;
 
-export function assetBody(
+function assetBody(
   values: Record<string, string>,
   certificate: string | null,
 ): Record<string, unknown> {
