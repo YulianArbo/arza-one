@@ -1,6 +1,6 @@
 // Plantillas de correo (B16) y de documentos PDF (B20): el marco institucional, la maqueta de los
 // formatos diligenciados, los motores de las plantillas de salida HTML y Word y el acta de
-// disposición final (B21).
+// disposición final (B21), y el informe de auditoría y el acta de revisión por la dirección (B39).
 export { noticeEmail, type NoticeEmailInput, type RenderedEmail } from './notice-email.js';
 export {
   controlledCopyStamp,
@@ -48,3 +48,9 @@ export {
   type SignatureEvidence,
   type SignedBy,
 } from './signature-evidence.js';
+export {
+  auditReportBody,
+  managementReviewBody,
+  type AuditReportDocument,
+  type ManagementReviewDocument,
+} from './quality-documents.js';
