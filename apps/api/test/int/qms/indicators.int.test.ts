@@ -121,6 +121,9 @@ it('Calidad calcula un indicador automático; el responsable le agrega el análi
     'qms.indicator.calculate:success',
     'qms.indicator.analyze:success',
   ]);
+  // Calcular otra vez el mismo periodo actualiza la medición, no crea otra.
+  expect((await scenario.post(calc, f.quality.session, current)).status).toBeLessThan(300);
+  expect((await series(f, id)).data).toHaveLength(1);
 });
 
 it('sin datos que dividir no hay medición, y con mediciones no cambia la fuente', async () => {
