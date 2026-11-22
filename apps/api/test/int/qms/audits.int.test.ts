@@ -200,18 +200,25 @@ it('el informe no se emite sin iniciar ni con fecha futura', async () => {
 it('el worker genera el PDF del informe y lo amarra a la auditoría (decisión 9)', async () => {
   const f = await qualityFixture(scenario, 'pdf');
   const audit = await reportedAudit(scenario, f);
-  const result = await renderQualityPdfs({
+  const link = `/v1/qms/audits/${audit.id}/report/download-link`;
+  expect((await scenario.post(link, f.director.session)).status).toBe(409);
+  // Otra prueba en paralelo puede generar este PDF primero: se comprueba el resultado, no el conteo.
+  await renderQualityPdfs({
     database: apiDatabase(),
     clock: systemClock,
     storage: storage(),
     convertHtml: () => Promise.resolve(samplePdf('Informe')),
   });
-  expect(result.reports).toBeGreaterThanOrEqual(1);
   const detail = await auditDetail(scenario, f.quality, audit.id);
   expect(detail.audit.report_document_id).not.toBeNull();
   expect(await auditActions(scenario.db, scenario.tenant.id, audit.id)).toContain(
     'qms.audit.render:success',
   );
+  expect((await scenario.post(link, f.director.session)).status).toBe(200);
+  const mine = `/v1/qms/my/audits/${audit.id}/report/download-link`;
+  expect((await scenario.post(mine, f.worker.session)).status).toBe(200);
+  const other = await scenario.person('informe-ajeno', ['COLABORADOR']);
+  expect((await scenario.post(mine, other.session)).status).toBe(403);
 });
 
 it('otra empresa no ve ni ejecuta las auditorías', async () => {

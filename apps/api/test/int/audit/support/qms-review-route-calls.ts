@@ -2,6 +2,7 @@ import type request from 'supertest';
 
 import type { AccessScenario } from '../../iam/support/access-scenario.js';
 import { reviewBody } from '../../qms/support/qms-b39-fixture.js';
+import { renderPdfs } from './qms-audit-route-calls.js';
 import {
   at,
   coded,
@@ -72,6 +73,12 @@ export const QMS_REVIEW_ROUTE_CALLS: Readonly<Record<string, RouteCall>> = {
     const { f, base } = await submitted(s, 'auditoria-acta-devuelve');
     const reason = { reason: 'Falta el análisis de recursos.' };
     return final(at(s, `${base}/actions/return`, f.director, 4, reason));
+  },
+  'POST /v1/qms/management-reviews/{id}/download-link': async (s) => {
+    const { f, base } = await submitted(s, 'auditoria-acta-pdf');
+    await at(s, `${base}/actions/approve`, f.director, 4);
+    await renderPdfs();
+    return final(s.post(`${base}/download-link`, f.director.session));
   },
   'POST /v1/qms/management-reviews/{id}/actions/approve': async (s) => {
     const { f, base } = await submitted(s, 'auditoria-acta-aprueba');

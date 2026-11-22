@@ -14,6 +14,7 @@ import {
 import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   createManagementReviewSchema,
+  downloadLinkResponseSchema,
   managementReviewListResponseSchema,
   managementReviewSchema,
   qmsCodeResponseSchema,
@@ -22,11 +23,14 @@ import {
 } from '@arza/contracts';
 import { createZodDto, ZodResponse } from 'nestjs-zod';
 
+import type { AppAbility } from '../../../platform/access/ability.js';
 import { RequirePermission } from '../../../platform/access/access.decorators.js';
+import { CurrentAbility } from '../../../platform/access/authorizer.js';
 import { CurrentPrincipal, type Principal } from '../../../platform/access/principal.js';
 import { versionFromIfMatch } from '../../../platform/http/if-match.js';
 import { Meta, type RequestMeta } from '../../../platform/http/request-meta.js';
 import { ApiPermissionErrors } from '../../../platform/openapi/api-common-errors.js';
+import { QualityFiles } from '../application/quality-files.js';
 import { ReviewSteps } from '../application/review-steps.js';
 import { ManagementReviews } from '../application/reviews.js';
 
@@ -36,6 +40,7 @@ class QmsCreateReviewBody extends createZodDto(createManagementReviewSchema) {}
 class QmsUpdateReviewBody extends createZodDto(updateManagementReviewSchema) {}
 class QmsReturnReviewBody extends createZodDto(returnManagementReviewSchema) {}
 class QmsReviewCodeResponse extends createZodDto(qmsCodeResponseSchema) {}
+class QmsReviewLinkResponse extends createZodDto(downloadLinkResponseSchema) {}
 const UUID = new ParseUUIDPipe({ version: '7' });
 const IF_MATCH = { name: 'If-Match', required: true, description: 'Versión del registro' };
 
@@ -49,7 +54,22 @@ export class ReviewsController {
   constructor(
     @Inject(ManagementReviews) private readonly reviews: ManagementReviews,
     @Inject(ReviewSteps) private readonly steps: ReviewSteps,
+    @Inject(QualityFiles) private readonly files: QualityFiles,
   ) {}
+
+  @Post(':id/download-link')
+  @HttpCode(HttpStatus.OK)
+  @RequirePermission('qms.read')
+  @ApiOperation({ summary: 'Pedir el enlace del acta aprobada en PDF' })
+  @ZodResponse({ status: HttpStatus.OK, type: QmsReviewLinkResponse, description: 'Enlace' })
+  async downloadLink(
+    @CurrentPrincipal() principal: Principal,
+    @CurrentAbility() ability: AppAbility,
+    @Meta() meta: RequestMeta,
+    @Param('id', UUID) id: string,
+  ): Promise<QmsReviewLinkResponse> {
+    return this.files.reviewLink({ principal, ability }, id, meta);
+  }
 
   @Get()
   @RequirePermission('qms.read')

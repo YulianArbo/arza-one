@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
+  downloadLinkResponseSchema,
   addFindingSchema,
   auditDetailResponseSchema,
   auditListResponseSchema,
@@ -35,6 +36,7 @@ import { Meta, type RequestMeta } from '../../../platform/http/request-meta.js';
 import { ApiPermissionErrors } from '../../../platform/openapi/api-common-errors.js';
 import { AuditSteps } from '../application/audit-steps.js';
 import { Audits } from '../application/audits.js';
+import { QualityFiles } from '../application/quality-files.js';
 
 class QmsStartAuditBody extends createZodDto(startAuditSchema) {}
 class QmsChecklistBody extends createZodDto(saveChecklistSchema) {}
@@ -46,6 +48,7 @@ class QmsMyAuditsResponse extends createZodDto(auditListResponseSchema) {}
 class QmsMyAuditResponse extends createZodDto(auditDetailResponseSchema) {}
 class QmsFindingCreatedResponse extends createZodDto(qmsCreatedResponseSchema) {}
 class QmsFindingActionResponse extends createZodDto(qmsCodeResponseSchema) {}
+class QmsReportLinkResponse extends createZodDto(downloadLinkResponseSchema) {}
 const UUID = new ParseUUIDPipe({ version: '7' });
 const IF_MATCH = { name: 'If-Match', required: true, description: 'Versión del registro' };
 
@@ -59,7 +62,36 @@ export class AuditStepsController {
   constructor(
     @Inject(Audits) private readonly audits: Audits,
     @Inject(AuditSteps) private readonly steps: AuditSteps,
+    @Inject(QualityFiles) private readonly files: QualityFiles,
   ) {}
+
+  @Post('audits/:id/report/download-link')
+  @HttpCode(HttpStatus.OK)
+  @RequirePermission('qms.read')
+  @ApiOperation({ summary: 'Pedir el enlace del informe de auditoría en PDF' })
+  @ZodResponse({ status: HttpStatus.OK, type: QmsReportLinkResponse, description: 'Enlace' })
+  async reportLink(
+    @CurrentPrincipal() principal: Principal,
+    @CurrentAbility() ability: AppAbility,
+    @Meta() meta: RequestMeta,
+    @Param('id', UUID) id: string,
+  ): Promise<QmsReportLinkResponse> {
+    return this.files.reportLink({ principal, ability }, id, meta);
+  }
+
+  @Post('my/audits/:id/report/download-link')
+  @HttpCode(HttpStatus.OK)
+  @RequirePermission('qms.audit.execute')
+  @ApiOperation({ summary: 'Pedir el enlace del informe de una auditoría que me asignaron' })
+  @ZodResponse({ status: HttpStatus.OK, type: QmsReportLinkResponse, description: 'Enlace' })
+  async myReportLink(
+    @CurrentPrincipal() principal: Principal,
+    @CurrentAbility() ability: AppAbility,
+    @Meta() meta: RequestMeta,
+    @Param('id', UUID) id: string,
+  ): Promise<QmsReportLinkResponse> {
+    return this.files.reportLink({ principal, ability }, id, meta);
+  }
 
   @Get('my/audits')
   @RequirePermission('qms.audit.execute')

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 
+import { DocModule } from '../../doc/index.js';
 import { ActionSteps } from '../application/action-steps.js';
 import { Actions } from '../application/actions.js';
 import { AuditPrograms } from '../application/audit-programs.js';
@@ -12,6 +13,7 @@ import { Measurements } from '../application/measurements.js';
 import { Nonconformities } from '../application/nonconformities.js';
 import { NonconformitySteps } from '../application/nonconformity-steps.js';
 import { Processes } from '../application/processes.js';
+import { QualityFiles } from '../application/quality-files.js';
 import { ReviewSteps } from '../application/review-steps.js';
 import { ManagementReviews } from '../application/reviews.js';
 import { Risks } from '../application/risks.js';
@@ -28,6 +30,7 @@ import { RisksController } from './risks.controller.js';
 // Calidad y mejora continua (M14, B38): auditorías, indicadores y revisión por la dirección (B39).
 
 @Module({
+  imports: [DocModule],
   controllers: [
     OrganizationController,
     RisksController,
@@ -55,6 +58,7 @@ import { RisksController } from './risks.controller.js';
     Measurements,
     ManagementReviews,
     ReviewSteps,
+    QualityFiles,
   ],
 })
 export class QmsModule {}

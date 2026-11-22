@@ -165,14 +165,16 @@ it('el acta aprobada no cambia, ni por la API ni en la base (decisión 9)', asyn
       tx.qmsManagementReview.update({ where: { id }, data: { conclusions: 'Otra' } }),
     ),
   ).rejects.toThrow();
-  const result = await renderQualityPdfs({
+  // Otra prueba en paralelo puede generar este PDF primero: se comprueba el resultado, no el conteo.
+  await renderQualityPdfs({
     database: apiDatabase(),
     clock: systemClock,
     storage: storage(),
     convertHtml: () => Promise.resolve(samplePdf('Acta')),
   });
-  expect(result.reviews).toBeGreaterThanOrEqual(1);
   expect((await reviewOf(scenario, f.quality, id)).document_id).not.toBeNull();
+  expect((await scenario.post(`${base}/download-link`, f.auditor.session)).status).toBe(200);
+  expect((await scenario.post(`${base}/download-link`, f.worker.session)).status).toBe(403);
 });
 
 it('una decisión no lleva fecha pasada', async () => {

@@ -1,5 +1,10 @@
 import type request from 'supertest';
 
+import { renderQualityPdfs } from '../../../../src/modules/qms/index.js';
+import { systemClock } from '../../../../src/platform/clock/clock.js';
+import { samplePdf, storage } from '../../doc/support/file-scenario.js';
+import { apiDatabase } from '../../support/integration-database.js';
+
 import type { AccessScenario } from '../../iam/support/access-scenario.js';
 import {
   FINDING,
@@ -35,6 +40,16 @@ type RouteCall = (scenario: AccessScenario) => Promise<PendingRequest>;
 
 function final(test: request.Test): PendingRequest {
   return { test };
+}
+
+/** Genera los PDF pendientes con un PDF de muestra. */
+export async function renderPdfs(): Promise<void> {
+  await renderQualityPdfs({
+    database: apiDatabase(),
+    clock: systemClock,
+    storage: storage(),
+    convertHtml: () => Promise.resolve(samplePdf('Calidad')),
+  });
 }
 
 async function startedAudit(s: AccessScenario, label: string) {
@@ -114,6 +129,18 @@ export const QMS_AUDIT_ROUTE_CALLS: Readonly<Record<string, RouteCall>> = {
       due_on: later(s, 20),
     };
     return final(s.post(`/v1/qms/findings/${finding.id}/actions/action`, f.quality.session, body));
+  },
+  'POST /v1/qms/audits/{id}/report/download-link': async (s) => {
+    const f = await qualityFixture(s, 'auditoria-informe-pdf');
+    const audit = await reportedAudit(s, f, []);
+    await renderPdfs();
+    return final(s.post(`/v1/qms/audits/${audit.id}/report/download-link`, f.director.session));
+  },
+  'POST /v1/qms/my/audits/{id}/report/download-link': async (s) => {
+    const f = await qualityFixture(s, 'auditoria-mi-informe-pdf');
+    const audit = await reportedAudit(s, f, []);
+    await renderPdfs();
+    return final(s.post(`/v1/qms/my/audits/${audit.id}/report/download-link`, f.worker.session));
   },
   'POST /v1/qms/indicators': async (s) => {
     const f = await qualityFixture(s, 'auditoria-indicador');
