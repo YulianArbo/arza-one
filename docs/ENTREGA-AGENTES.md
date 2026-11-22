@@ -1,5 +1,17 @@
 # Entrega entre agentes — ARZA ONE
 
+**B37, 20/11/2026 (Claude Code).** Rama `feat/b37-seguridad-y-salud-en-el-trabaj`. Decisiones en `docs/bloques/B37-cierre.md` y reglas en `docs/manual/datos/sst.md`. Puntos para quien continúe:
+
+1. El módulo vive en `apps/api/src/modules/sst` y se publica como `@arza/api/sst` para el worker (`sst.daily-work`, 6:00). Compile la API antes de analizar el worker.
+2. SST nunca lee tablas `hr_`. Usa `activeEmployeesForSst`, `employeeIdOfUser`, `employeeNamesForSst` y `linkOccupationalExam` de `apps/api/src/modules/hr/index.ts`.
+3. Lo de Convivencia usa el permiso `sst.incident.report` más la regla de integrante vigente (403 `SST_NOT_COMMITTEE_MEMBER`). No lo reemplace por un permiso de rol.
+4. Los DTO de SST llevan el prefijo «Sst». Sin él, sus nombres chocaron en OpenAPI con los de Proyectos (`IncidentListResponse`).
+5. Los catálogos de SST están en `core/application/sst-seed-catalogs.ts`, porque `core-seed-data.ts` está en el límite de líneas.
+6. Las rutas de SST de las pruebas están en `test/support/api-paths-sst.ts` y se suman con `PEOPLE_PATHS`. Las del recorrido de auditoría están en `test/int/audit/support/sst-*-route-calls.ts`.
+7. El navegador de Playwright local (1243) no corresponde a la versión 1.65. Para correr `apps/web/e2e/sst.spec.ts` hace falta `pnpm --filter @arza/web e2e:install`, que es una descarga: pídale autorización al propietario.
+
+Los cambios sueltos del propietario (respaldos, `.csv`, `CLAUDE.md`, ADR 024/025, `.agents/`, `.claude/`) siguen sin commit y no se tocaron.
+
 **B36, 19/11/2026 (Claude Code).** Rama `feat/b36-talento-humano-novedades-desem` con commits por parte (contratos, migración, núcleo, identidad, API de Talento humano, avisos y trabajo diario, web, pruebas, documentación). Decisiones en `docs/bloques/B36-cierre.md`. Puntos para quien continúe: (1) correr `pnpm --filter @arza/api test:int -- test/int/hr test/int/audit` y corregir lo que falle, sin debilitar pruebas; (2) el _worker_ importa `@arza/api/hr` desde la compilación de la API: compile la API (`pnpm --filter @arza/api build`) antes de analizar o probar el worker; (3) no ejecute `tsc -p .` en `packages/contracts` sin `--noEmit`: escribe archivos `.js` junto al código; (4) los cambios sueltos del propietario (respaldos, `.csv`, `CLAUDE.md`, ADR) siguen sin commit y no se tocaron; los 31 bocetos de B22B se movieron a una copia temporal para cambiar de rama y Git los repuso idénticos.
 
 **Retención B35.** El worker registra `hr.retention` y `expireRecruitmentData` aplica el plazo en el contexto de cada empresa. La prueba dirigida y las pruebas del enrutador pasaron. Se conserva la autorización inmutable de selección. Los adjuntos y las identidades reutilizadas quedan fuera de la ejecución automática hasta definir o verificar su disposición. El recorrido de Playwright está en `apps/web/e2e/hr.spec.ts`. Turbopack falló al crear el proceso de CSS y se inició una compilación con Webpack para poder ejecutar la prueba.
