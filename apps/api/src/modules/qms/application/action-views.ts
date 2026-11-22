@@ -9,7 +9,7 @@ import {
 import type { QmsAction as QmsActionRow } from '../../../generated/prisma/client.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import type { CsvCell } from '../../../platform/export/csv.js';
-import { toCalendarDate } from '../../core/index.js';
+import { bogotaToday, toCalendarDate } from '../../core/index.js';
 import { dateOf, optionalRef, processRefs, refOf, userRefs } from './qms-support.js';
 
 // La fila de la bitácora de acciones (RE-SGC-002, decisión 10): cada acción con su origen, el
@@ -63,7 +63,7 @@ function actionView(row: QmsActionRow, refs: ViewRefs): QmsAction {
   return {
     id: row.id,
     code: row.code,
-    opened_on: toCalendarDate(row.createdAt),
+    opened_on: bogotaToday(row.createdAt),
     origin_type: row.originType as QmsAction['origin_type'],
     origin: key === null || origin === undefined ? null : { id: key, code: origin.code },
     process: optionalRef(refs.processes, processId, 'Proceso'),

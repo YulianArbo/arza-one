@@ -8,7 +8,7 @@ import { DatabaseService } from '../../../platform/database/database.service.js'
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import { versionConflict } from '../../../platform/http/if-match.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
-import { toCalendarDate } from '../../core/index.js';
+import { bogotaToday } from '../../core/index.js';
 import {
   assertProcess,
   auditQms,
@@ -85,7 +85,7 @@ export class Lessons {
         process: optionalRef(processes, row.processId, 'Proceso'),
         nonconformity: row.nonconformity,
         recorded_by: refOf(people, row.createdBy ?? row.id, 'Calidad'),
-        recorded_on: toCalendarDate(row.createdAt),
+        recorded_on: bogotaToday(row.createdAt),
         version: row.version,
       }));
     });
