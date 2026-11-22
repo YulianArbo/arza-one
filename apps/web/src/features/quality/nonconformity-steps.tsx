@@ -63,7 +63,10 @@ function analysisOf(values: Record<string, string>) {
   const filled = (value: string | undefined) => (value ?? '').trim() !== '';
   if (values['method'] === 'ishikawa') {
     const causes = Object.fromEntries(
-      CATEGORIES.map((key) => [key, filled(values[key]) ? [values[key]] : []]),
+      CATEGORIES.map((key) => {
+        const cause = values[`cause_${key}`];
+        return [key, filled(cause) ? [cause] : []];
+      }),
     );
     return { method: 'ishikawa', causes };
   }
@@ -82,8 +85,9 @@ function AnalyzeStep(props: StepProps): JSX.Element | null {
       fields={[
         { key: 'method', label: 'Método', options: optionsOf(ANALYSIS_METHODS) },
         ...WHYS.map((n) => ({ key: `why_${n}`, label: `¿Por qué? ${n} (cinco porqués)` })),
+        // La categoría «método» de las 6M no puede compartir clave con el método de análisis.
         ...CATEGORIES.map((key) => ({
-          key,
+          key: `cause_${key}`,
           label: `${ISHIKAWA_CATEGORIES[key]} (espina de pescado)`,
         })),
         { key: 'root_cause', label: 'Causa raíz' },
