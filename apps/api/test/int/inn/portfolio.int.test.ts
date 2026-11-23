@@ -1,4 +1,5 @@
 import {
+  contractDetailSchema,
   INN_ERROR_CODES,
   ipAssetDetailSchema,
   ipAssetListResponseSchema,
@@ -6,7 +7,8 @@ import {
 } from '@arza/contracts';
 import { expect, it } from 'vitest';
 
-import { availableFile } from '../hr/support/people-fixture.js';
+import { draft, people } from '../audit/support/contract-steps.js';
+import { availableFile, staffFixture } from '../hr/support/people-fixture.js';
 import { auditActions, errorCode } from '../iam/support/iam-fixtures.js';
 import { AccessScenario, type Person } from '../iam/support/access-scenario.js';
 import {
@@ -100,6 +102,39 @@ it('el software no se radica sin la cesión de sus autores (decisión 8)', async
     'inn.author.add:success',
     'inn.author.remove:success',
   ]);
+});
+
+it('la cesión se apoya en el contrato laboral firmado o en un contrato de Contratos', async () => {
+  const f = await innFixture(scenario, 'soportes');
+  const staff = await staffFixture(scenario, 'autores-inn');
+  const { sales } = await people(scenario);
+  const contractId = await draft(scenario, sales);
+  const contract = contractDetailSchema.parse(
+    (await scenario.get(`/v1/contracts/${contractId}`, sales.session)).body,
+  );
+  const { id } = coded(
+    await scenario.post('/v1/innovation/ip-assets', f.quality.session, software(f.quality.id)),
+  );
+  const authors = `/v1/innovation/ip-assets/${id}/authors`;
+  const employee = { user_id: staff.worker.id, support_kind: 'employment_contract' };
+  created(await scenario.post(authors, f.quality.session, employee));
+  const byContract = {
+    name: 'Proveedor autor',
+    support_kind: 'contract',
+    contract_code: contract.code,
+  };
+  created(await scenario.post(authors, f.quality.session, byContract));
+  const stored = await detail(f.auditor, id);
+  expect(stored.authors.map((author) => author.support_kind).sort()).toEqual([
+    'contract',
+    'employment_contract',
+  ]);
+  expect(
+    stored.authors.find((a) => a.support_kind === 'employment_contract')?.support_label,
+  ).toMatch(/firmado el/u);
+  expect(stored.authors.find((a) => a.support_kind === 'contract')?.support_label).toBe(
+    `${contract.code}: ${contract.title}`,
+  );
 });
 
 it('descarga el portafolio RE-INN-001 y el certificado del activo', async () => {
