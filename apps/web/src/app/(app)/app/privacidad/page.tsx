@@ -15,6 +15,8 @@ export default function PrivacyPage(): JSX.Element {
         'privacy.consent.read',
         'privacy.activity.manage',
         'privacy.processor.manage',
+        'privacy.request.manage',
+        'privacy.incident.manage',
       ]}
     >
       <PageHeader
