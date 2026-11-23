@@ -1,5 +1,16 @@
 # Entrega entre agentes — ARZA ONE
 
+**B40, 22/11/2026 (Claude Code).** Rama `feat/b40-innovacion-y-propiedad-intelec`. Decisiones en `docs/bloques/B40-cierre.md` y reglas en `docs/manual/datos/inn.md`. Puntos para quien continúe:
+
+1. El módulo vive en `apps/api/src/modules/inn` y se publica como `@arza/api/inn` para el worker (`inn.daily-work`, 6:45). Compile la API antes de analizar el worker.
+2. Innovación no lee tablas ajenas: usa `signedEmploymentContractOfUser` (Talento humano, sin salario), `visibleContractByCode` (Contratos) y `recordSystemForm`/`systemFormPdf` (Documentos, FT-INN-003 con entidad `inn_idea`).
+3. La tarea de renovar o de radicar es un solo flujo, `inn.ip`, que se publica solo la primera vez que hace falta (y en la semilla).
+4. Los nombres de contratos de Innovación llevan el prefijo «Inn» o el nombre del dominio (`IpAsset`, `Idea`); los DTO de OpenAPI, «Inn».
+5. Rutas de pruebas en `apps/api/test/support/api-paths-inn.ts`; recorrido de auditoría en `apps/api/test/int/audit/support/inn-route-calls.ts` (20 rutas).
+6. El catálogo de permisos tiene 216 entradas (`roles-admin.int.test.ts`) y el menú 21 módulos (`navigation.test.ts`).
+
+Los cambios sueltos del propietario (respaldos, `.csv`, `CLAUDE.md`, ADR 024/025, `.agents/`, `.claude/`, `docs/diagnosticos/`) siguen sin commit y no se tocaron.
+
 **B39, 22/11/2026 (Claude Code).** Rama `feat/b39-calidad-auditorias-indicadores`. Decisiones en `docs/bloques/B39-cierre.md` y reglas en `docs/manual/datos/qms.md`. Puntos para quien continúe:
 
 1. Servicio ya depende de Calidad (B38). Para no crear un ciclo, Calidad **no importa** a Servicio: declara `SERVICE_FIGURES` y `ServiceFiguresReader` en `qms/application/service-figures.ts`; Servicio los entrega con `ServiceFiguresModule` (global) y el worker pasa `serviceQualityFigures` a `runQmsIndicatorWork`.
