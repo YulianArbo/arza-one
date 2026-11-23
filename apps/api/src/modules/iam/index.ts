@@ -69,5 +69,10 @@ export {
   type AcceptedTerms,
   type TermsVersion,
 } from './application/portal-terms.js';
+export {
+  accountsOfParty,
+  anonymizePortalAccount,
+  type HolderAccount,
+} from './application/holder-accounts.js';
 export { InvitationUseCase } from './application/invitation.js';
 export { revokeEmployeeAccess, type AccessRevocation } from './application/offboarding-access.js';

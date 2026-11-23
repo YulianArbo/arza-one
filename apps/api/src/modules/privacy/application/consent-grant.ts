@@ -191,3 +191,20 @@ export async function publishedNotices(
   });
   return rows.map(noticeView);
 }
+
+/** Finalidad que permite enviar información comercial (catálogo personal_data_purposes). */
+const MARKETING_PURPOSE = 'MARKETING';
+
+/**
+ * El titular tiene vigente la autorización de envío de información comercial (ficha 17.19: revocar
+ * detiene de inmediato las comunicaciones comerciales). Todo envío comercial lo consulta antes.
+ */
+export async function hasCommercialConsent(
+  tx: TenantTransaction,
+  partyId: string,
+): Promise<boolean> {
+  const count = await tx.privacyConsent.count({
+    where: { partyId, revokedAt: null, deletedAt: null, purposes: { has: MARKETING_PURPOSE } },
+  });
+  return count > 0;
+}

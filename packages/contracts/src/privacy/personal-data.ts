@@ -89,3 +89,10 @@ export const personalDataReportSchema = z.object({
 });
 
 export type PersonalDataReport = z.infer<typeof personalDataReportSchema>;
+
+/** Entregar o suprimir siempre parte de una solicitud verificada (decisión 7). */
+export const personalDataRequestRefSchema = z.strictObject({
+  request_id: z.uuid().describe('La solicitud verificada que lo ordena'),
+});
+
+export type PersonalDataRequestRef = z.infer<typeof personalDataRequestRefSchema>;

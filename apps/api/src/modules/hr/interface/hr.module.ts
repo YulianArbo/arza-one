@@ -1,10 +1,12 @@
-import { Module } from '@nestjs/common';
+import { Inject, Module } from '@nestjs/common';
 
 import { CONFIG } from '../../../platform/config/config.module.js';
 import type { Env } from '../../../platform/config/env-schema.js';
 import { FieldCipher } from '../../../platform/crypto/field-cipher.js';
 import { IamModule } from '../../iam/index.js';
 import { DocModule } from '../../doc/index.js';
+import { PersonalDataRegistry } from '../../privacy/index.js';
+import { HR_PERSONAL_DATA } from '../application/hr-personal-data.js';
 import { CandidateStageUseCase } from '../application/candidate-stage.js';
 import { CandidateList } from '../application/candidate-list.js';
 import { CandidateEvaluations } from '../application/candidate-evaluations.js';
@@ -83,4 +85,9 @@ import { VacanciesController } from './vacancies.controller.js';
     },
   ],
 })
-export class HrModule {}
+export class HrModule {
+  /** Le presta a Privacidad lo que Talento humano guarda de cada titular (B42). */
+  constructor(@Inject(PersonalDataRegistry) registry: PersonalDataRegistry) {
+    registry.register(HR_PERSONAL_DATA);
+  }
+}

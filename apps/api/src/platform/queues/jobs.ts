@@ -155,6 +155,10 @@ const svcSlaWorkJobSchema = z.object({});
 const svcCareWorkJobSchema = z.object({});
 /** Acuse de los formularios del sitio con su enlace de baja (B41). Recorre las empresas con trabajo. */
 const webSiteWorkJobSchema = z.object({});
+/** Correos al titular y PDF de la entrega de sus datos (B42). Del sistema. */
+const prvRequestWorkJobSchema = z.object({});
+/** Avisos de plazo, desistimiento y retención de Privacidad (B42). Del sistema. */
+const prvDailyWorkJobSchema = z.object({});
 
 export type TenantJob = z.infer<typeof tenantJobSchema>;
 export type ExampleEmailJob = z.infer<typeof exampleEmailJobSchema>;
@@ -315,6 +319,16 @@ export const JOBS = {
     name: 'web.site-work',
     schema: webSiteWorkJobSchema,
   },
+  prvRequestWork: {
+    queue: QUEUES.platform,
+    name: 'prv.request-work',
+    schema: prvRequestWorkJobSchema,
+  },
+  prvDailyWork: {
+    queue: QUEUES.platform,
+    name: 'prv.daily-work',
+    schema: prvDailyWorkJobSchema,
+  },
 } as const;
 
 /** Trabajos programados: el worker los registra al arrancar (expresión cron, hora de Bogotá). */
@@ -387,6 +401,12 @@ export const SCHEDULED_JOBS = [
   { id: 'svc.care-work.every-30-seconds', job: JOBS.svcCareWork, pattern: '*/30 * * * * *' },
   // Cada 30 segundos: el acuse de un formulario del sitio llega casi de inmediato (B41).
   { id: 'web.site-work.every-30-seconds', job: JOBS.webSiteWork, pattern: '*/30 * * * * *' },
+  // Cada 30 segundos: la constancia, el requerimiento, la prórroga y la respuesta llegan al titular
+  // casi de inmediato, y el PDF de la entrega de sus datos queda listo (B42).
+  { id: 'prv.request-work.every-30-seconds', job: JOBS.prvRequestWork, pattern: '*/30 * * * * *' },
+  // Cada día a las 7:00: avisos de plazo al Oficial, cierre por desistimiento y retención de las
+  // cookies y de los formularios del sitio (B42, decisiones 4, 10 y 11).
+  { id: 'prv.daily-work.daily', job: JOBS.prvDailyWork, pattern: '0 7 * * *' },
 ] as const;
 
 export type JobDefinition = (typeof JOBS)[keyof typeof JOBS];

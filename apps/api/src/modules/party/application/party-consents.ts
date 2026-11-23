@@ -14,6 +14,7 @@ import {
   type PartyRecord,
 } from '../../privacy/index.js';
 import { consentNotAllowed } from './party-messages.js';
+import { holderOf, settlePartyErasure } from './party-personal-data.js';
 import { ALL_PARTIES, findParty, partyName } from './party-support.js';
 
 // Autorizaciones de tratamiento desde la ficha del tercero (B17). El texto y el registro son de
@@ -39,7 +40,11 @@ async function describeParties(
   );
 }
 
-export const PARTY_RECORDS: PartyDirectory = { describe: describeParties };
+export const PARTY_RECORDS: PartyDirectory = {
+  describe: describeParties,
+  holder: holderOf,
+  settleErasure: settlePartyErasure,
+};
 
 @Injectable()
 export class PartyConsentsUseCase {

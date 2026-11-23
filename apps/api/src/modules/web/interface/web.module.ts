@@ -1,10 +1,12 @@
-import { Global, Module } from '@nestjs/common';
+import { Global, Inject, Module } from '@nestjs/common';
 
 import { PLATFORM_TERMS_GATE } from '../../iam/index.js';
+import { PersonalDataRegistry } from '../../privacy/index.js';
 import { LegalTexts } from '../application/legal-texts.js';
 import { Pages } from '../application/pages.js';
 import { PLATFORM_TERMS_RECORDS, PlatformTerms } from '../application/platform-terms.js';
 import { SiteForms } from '../application/site-forms.js';
+import { SITE_PERSONAL_DATA } from '../application/site-personal-data.js';
 import { SitePublic } from '../application/site-public.js';
 import { Submissions } from '../application/submissions.js';
 import { PlatformTermsController } from './platform-terms.controller.js';
@@ -29,4 +31,9 @@ class PlatformTermsGateModule {}
   controllers: [SitePublicController, SiteAdminController, PlatformTermsController],
   providers: [Pages, LegalTexts, PlatformTerms, SiteForms, SitePublic, Submissions],
 })
-export class WebModule {}
+export class WebModule {
+  /** Le presta a Privacidad lo que el sitio guarda de cada titular (B42). */
+  constructor(@Inject(PersonalDataRegistry) registry: PersonalDataRegistry) {
+    registry.register(SITE_PERSONAL_DATA);
+  }
+}

@@ -1,4 +1,4 @@
-import { Module, type OnModuleInit } from '@nestjs/common';
+import { Inject, Module, type OnModuleInit } from '@nestjs/common';
 
 import { DocModule } from '../../doc/index.js';
 
@@ -19,6 +19,8 @@ import {
   PublicVerificationsController,
 } from './public-signatures.controller.js';
 import { SignaturesController } from './signatures.controller.js';
+import { PersonalDataRegistry } from '../../privacy/index.js';
+import { CONTRACT_PERSONAL_DATA } from '../application/contract-personal-data.js';
 
 /**
  * M06 Contratos (B24): contratos y órdenes de servicio generados desde las plantillas CT-COM y
@@ -49,6 +51,11 @@ import { SignaturesController } from './signatures.controller.js';
   ],
 })
 export class ContractModule implements OnModuleInit {
+  /** Le presta a Privacidad lo que este módulo guarda de cada titular (B42). */
+  constructor(@Inject(PersonalDataRegistry) registry: PersonalDataRegistry) {
+    registry.register(CONTRACT_PERSONAL_DATA);
+  }
+
   onModuleInit(): void {
     followContractWorkflows();
   }

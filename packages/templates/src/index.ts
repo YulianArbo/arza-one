@@ -54,3 +54,4 @@ export {
   type AuditReportDocument,
   type ManagementReviewDocument,
 } from './quality-documents.js';
+export { personalDataReportBody, type PersonalDataDocument } from './personal-data-report.js';

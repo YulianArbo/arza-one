@@ -83,7 +83,7 @@ export const submissionSchema = z.object({
   code: z.string(),
   form_key: siteFormKeySchema,
   name: z.string(),
-  email: z.string(),
+  email: z.string().nullable().describe('Vacío cuando el envío se volvió anónimo (B42)'),
   phone: z.string().nullable(),
   company: z.string().nullable(),
   detail: z.string().describe('Mensaje o descripción del proyecto'),

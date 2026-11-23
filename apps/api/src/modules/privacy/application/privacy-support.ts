@@ -1,5 +1,6 @@
 import type { Prisma } from '../../../generated/prisma/client.js';
 import { recordAuditEvent } from '../../../platform/audit/audit-recorder.js';
+import { addOutboxEvent } from '../../../platform/outbox/outbox.js';
 import type { Principal } from '../../../platform/access/principal.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
@@ -29,7 +30,10 @@ export interface PrivacyChange {
     | 'prv_consent'
     | 'prv_processing_activity'
     | 'prv_processor'
-    | 'prv_cookie_consent';
+    | 'prv_cookie_consent'
+    | 'prv_request'
+    | 'prv_data_export'
+    | 'prv_incident';
   readonly entityId: string;
   readonly changes: Prisma.InputJsonObject;
 }
@@ -51,6 +55,34 @@ export async function auditPrivacy(
     changes: change.changes,
     meta: actor.meta,
   });
+}
+
+/** Auditoría y, si hay evento, la bandeja de salida: los dos en la misma transacción (B42). */
+export async function recordPrivacyChange(
+  tx: TenantTransaction,
+  actor: PrivacyActor,
+  change: PrivacyChange & {
+    readonly event: string;
+    readonly payload: Prisma.InputJsonObject;
+  },
+): Promise<void> {
+  await auditPrivacy(tx, actor, change);
+  await addOutboxEvent(tx, {
+    tenantId: actor.tenantId,
+    eventType: change.event,
+    actorId: actor.userId,
+    occurredAt: actor.at,
+    payload: change.payload,
+  });
+}
+
+/** El sistema actúa: el worker o un formulario público, sin sesión. */
+export function privacySystemActor(
+  tenantId: string,
+  at: Date,
+  meta: RequestMeta | null = null,
+): PrivacyActor {
+  return { tenantId, userId: null, principal: null, meta, at };
 }
 
 /** Nombres de los terceros para mostrar; null si ya no existe. */

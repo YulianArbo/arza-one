@@ -225,3 +225,9 @@ export const privacyRequestSchema = privacyRequestSummarySchema.extend({
 });
 
 export type PrivacyRequest = z.infer<typeof privacyRequestSchema>;
+
+export const portalPrivacyRequestListSchema = z.object({
+  data: z.array(privacyRequestSummarySchema),
+});
+
+export type PortalPrivacyRequestList = z.infer<typeof portalPrivacyRequestListSchema>;
