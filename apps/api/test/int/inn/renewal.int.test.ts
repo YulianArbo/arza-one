@@ -1,6 +1,12 @@
 import { expect, it } from 'vitest';
 
-import { runInnDailyWork } from '../../../src/modules/inn/index.js';
+import {
+  runInnDailyWork,
+  seedInnovation,
+  seedInnovationDemo,
+} from '../../../src/modules/inn/index.js';
+import { systemClock } from '../../../src/platform/clock/clock.js';
+import { apiDatabase } from '../support/integration-database.js';
 import { AccessScenario } from '../iam/support/access-scenario.js';
 import { coded, innFixture, later, trademark } from './support/inn-fixture.js';
 
@@ -72,4 +78,24 @@ it('lo que pasó su fecha sin renovarse queda vencido', async () => {
   }
   const stored = await scenario.inTenant((tx) => tx.innIpAsset.findFirstOrThrow({ where: { id } }));
   expect(stored.status).toBe('expired');
+});
+
+it('la semilla de demostración espera a Calidad o la Dirección y no se duplica', async () => {
+  const tenantId = scenario.otherTenant.id;
+  const assets = () =>
+    scenario.db.withTenant({ tenantId, userId: null }, (tx) =>
+      tx.innIpAsset.findMany({ where: { deletedAt: null } }),
+    );
+  const seed = async () => {
+    await seedInnovation(apiDatabase(), [tenantId], systemClock);
+    await seedInnovationDemo(apiDatabase(), [tenantId], systemClock);
+  };
+  await seed();
+  expect(await assets()).toHaveLength(0);
+  await scenario.person('semilla-calidad', ['CALIDAD'], { tenantId });
+  await seed();
+  await seed();
+  const seeded = await assets();
+  expect(seeded.map((asset) => asset.kind).sort()).toEqual(['domain', 'software', 'trademark']);
+  expect(seeded.every((asset) => asset.notes === 'Dato ficticio de demostración.')).toBe(true);
 });
