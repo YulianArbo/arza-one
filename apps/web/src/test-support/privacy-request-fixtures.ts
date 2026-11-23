@@ -5,7 +5,7 @@ import { privacyPermissions } from './privacy-fixtures';
 
 export const REQUEST_ID = '01999a00-0000-7000-8000-00000000e001';
 export const INCIDENT_ID = '01999a00-0000-7000-8000-00000000e101';
-export const HOLDER_ID = '01999a00-0000-7000-8000-00000000d402';
+const HOLDER_ID = '01999a00-0000-7000-8000-00000000d402';
 export const EXPORT_ID = '01999a00-0000-7000-8000-00000000e201';
 
 export const DPO = privacyPermissions([

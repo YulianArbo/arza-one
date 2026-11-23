@@ -2,19 +2,20 @@ import {
   runPrivacyDailyIn,
   runPrivacyWork,
   tenantsWithPrivacyDailyWork,
-  type PrivacyDailyDependencies,
   type PrivacyWorkDependencies,
-  type PrivacyWorkResult,
 } from '@arza/api/privacy';
 import { anonymizeExpiredSubmissions } from '@arza/api/web';
 
-export type PrivacyJobDependencies = PrivacyWorkDependencies & PrivacyDailyDependencies;
+export type PrivacyJobDependencies = PrivacyWorkDependencies &
+  Parameters<typeof runPrivacyDailyIn>[0];
 
 /**
  * Correos al titular de su solicitud y PDF de la entrega de sus datos (B42). Repetirlo no cambia
  * nada; si el correo o Gotenberg no responden, lo pendiente queda para la siguiente pasada.
  */
-export async function processPrivacyWork(deps: PrivacyJobDependencies): Promise<PrivacyWorkResult> {
+export async function processPrivacyWork(
+  deps: PrivacyJobDependencies,
+): ReturnType<typeof runPrivacyWork> {
   return runPrivacyWork(deps);
 }
 

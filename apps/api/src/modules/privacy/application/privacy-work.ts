@@ -32,7 +32,7 @@ export interface PrivacyMail {
   readonly text: string;
 }
 
-export interface PrivacyHtml {
+interface PrivacyHtml {
   readonly index: string;
   readonly header: string;
   readonly footer: string;

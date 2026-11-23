@@ -4,10 +4,7 @@
 export { WebModule } from './interface/web.module.js';
 export { seedSiteDemo, seedSiteTexts } from './application/site-seed.js';
 export { isUnsubscribed, mayContactCommercially } from './application/submissions.js';
-export {
-  anonymizeExpiredSubmissions,
-  type SiteRetentionDependencies,
-} from './application/site-personal-data.js';
+export { anonymizeExpiredSubmissions } from './application/site-personal-data.js';
 export {
   sendSiteMail,
   sendSiteMailIn,

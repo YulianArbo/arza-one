@@ -29,7 +29,7 @@ import { PrivacyRequestsController } from './requests.controller.js';
  */
 @Global()
 @Module({ providers: [PersonalDataRegistry], exports: [PersonalDataRegistry] })
-export class PersonalDataModule {}
+class PersonalDataModule {}
 
 /**
  * M18 Privacidad (B17 y B42): avisos y políticas versionados, autorizaciones de tratamiento con la

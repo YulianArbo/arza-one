@@ -32,19 +32,6 @@ export {
   type PersonalDataHolder,
   type PersonalDataSource,
 } from './application/personal-data-sources.js';
-export {
-  receivePqrsfTransfer,
-  type PqrsfTransfer,
-  type TransferActor,
-} from './application/request-transfer.js';
-export {
-  runPrivacyWork,
-  type PrivacyWorkDependencies,
-  type PrivacyWorkResult,
-} from './application/privacy-work.js';
-export {
-  runPrivacyDailyIn,
-  tenantsWithPrivacyDailyWork,
-  type PrivacyDailyDependencies,
-  type PrivacyDailyResult,
-} from './application/privacy-daily.js';
+export { receivePqrsfTransfer } from './application/request-transfer.js';
+export { runPrivacyWork, type PrivacyWorkDependencies } from './application/privacy-work.js';
+export { runPrivacyDailyIn, tenantsWithPrivacyDailyWork } from './application/privacy-daily.js';

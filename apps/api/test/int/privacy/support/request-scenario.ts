@@ -31,7 +31,7 @@ export const INCIDENTS = '/v1/privacy-incidents';
 
 let sequence = 0;
 
-export function uniqueDocument(): string {
+function uniqueDocument(): string {
   sequence += 1;
   return `10${String(Date.now()).slice(-6)}${String(sequence).padStart(2, '0')}`;
 }
