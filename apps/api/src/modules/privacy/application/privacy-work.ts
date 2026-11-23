@@ -155,12 +155,11 @@ async function sendOne(
 }
 
 interface PreparedExport {
-  readonly attempts: number;
   readonly code: string;
   readonly html: PrivacyHtml;
 }
 
-/** Cuenta el intento y arma el HTML; null si ya no está pendiente. */
+/** Arma el HTML de la entrega; null si ya no está pendiente. Solo lee. */
 async function prepareExport(
   deps: PrivacyWorkDependencies,
   tenantId: string,
@@ -171,10 +170,6 @@ async function prepareExport(
       where: { id: exportId, status: 'pending', deletedAt: null },
     });
     if (found === null) return null;
-    await tx.privacyDataExport.update({
-      where: { id: exportId },
-      data: { attempts: { increment: 1 } },
-    });
     const report = personalDataReportSchema.parse(found.content);
     const company = await companyIdentity(tx);
     const body = personalDataReportBody({
@@ -190,7 +185,7 @@ async function prepareExport(
       footer: institutionalFooter(company, report.request_code),
       landscape: false,
     };
-    return { attempts: found.attempts + 1, code: report.request_code, html };
+    return { code: report.request_code, html };
   });
 }
 
@@ -233,15 +228,41 @@ async function renderOne(
     return await storeExport(deps, { tenantId, exportId, code: prepared.code }, content);
   } catch (error) {
     // Tras varios intentos queda «No se pudo preparar» y el Oficial pide otra entrega.
-    if (prepared.attempts < MAX_ATTEMPTS) throw error;
-    await deps.database.withTenant(scopeOf(tenantId), (tx) =>
-      tx.privacyDataExport.updateMany({
-        where: { id: exportId, status: 'pending' },
-        data: { status: 'failed' },
-      }),
-    );
+    if (!(await recordFailure(deps, tenantId, exportId))) throw error;
     return false;
   }
+}
+
+/** Anota el intento fallido; dice si ya no se reintenta. */
+async function recordFailure(
+  deps: PrivacyWorkDependencies,
+  tenantId: string,
+  exportId: string,
+): Promise<boolean> {
+  return deps.database.withTenant(scopeOf(tenantId), async (tx) => {
+    const found = await tx.privacyDataExport.findFirst({
+      where: { id: exportId, status: 'pending' },
+    });
+    if (found === null) return true;
+    const attempts = found.attempts + 1;
+    const failed = attempts >= MAX_ATTEMPTS;
+    await tx.privacyDataExport.update({
+      where: { id: exportId },
+      data: { attempts, ...(failed ? { status: 'failed' } : {}) },
+    });
+    await recordAuditEvent(tx, {
+      tenantId,
+      occurredAt: deps.clock.now(),
+      actor: { kind: 'system' },
+      action: 'privacy.data.export_render',
+      entityType: 'prv_data_export',
+      entityId: exportId,
+      result: 'failure',
+      changes: { attempts, failed },
+      meta: null,
+    });
+    return failed;
+  });
 }
 
 async function tenantsWithWork(database: PrivacyWorkDependencies['database']): Promise<string[]> {
