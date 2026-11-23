@@ -181,7 +181,8 @@ export const DEFAULT_TEMPLATES: Readonly<Record<NotificationKind, TemplateText>>
     body: 'Hola, {{nombre}}. El acta {{codigo}} está lista para su aprobación en ARZA ONE › Calidad › Revisión por la dirección.',
     urgent: false,
   },
-  // Privacidad (B42): sin datos del titular, solo el código y la fecha límite.
+  // Privacidad (B42): sin datos del titular, solo el código y la fecha límite. No son urgentes: los
+  // plazos son de días hábiles y el aviso sale a las 7:00 (decisión 11, derecho a la desconexión).
   prv_request_received: {
     subject: 'Solicitud de titular nueva: {{codigo}}',
     body: 'Hola, {{nombre}}. Llegó la solicitud {{codigo}}; la fecha límite legal es el {{fecha}}. Atiéndala en ARZA ONE › Privacidad › Solicitudes de titulares.',
@@ -190,12 +191,12 @@ export const DEFAULT_TEMPLATES: Readonly<Record<NotificationKind, TemplateText>>
   prv_request_due: {
     subject: 'Solicitud de titular {{codigo}}: {{novedad}}',
     body: 'Hola, {{nombre}}. La solicitud {{codigo}} {{novedad}} (fecha límite: {{fecha}}). Revísela en ARZA ONE › Privacidad › Solicitudes de titulares.',
-    urgent: true,
+    urgent: false,
   },
   prv_incident_due: {
     subject: 'Incidente {{codigo}}: {{novedad}}',
     body: 'Hola, {{nombre}}. El incidente {{codigo}} {{novedad}} (fecha límite para reportar a la SIC: {{fecha}}). Revíselo en ARZA ONE › Privacidad › Incidentes.',
-    urgent: true,
+    urgent: false,
   },
 };
 
