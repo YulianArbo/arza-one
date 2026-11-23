@@ -176,6 +176,11 @@ model Tenant {
   webFormSubmissions       WebFormSubmission[]
   webUnsubscribes          WebUnsubscribe[]
   prvCookieConsents        PrivacyCookieConsent[]
+  prvRequests              PrivacyRequest[]
+  prvRequestEvents         PrivacyRequestEvent[]
+  prvDataExports           PrivacyDataExport[]
+  prvIncidents             PrivacyIncident[]
+  prvIncidentMeasures      PrivacyIncidentMeasure[]
   ctrClauses               CtrClause[]
   ctrTemplates             CtrTemplate[]
   ctrTemplateClauses       CtrTemplateClause[]
@@ -894,6 +899,10 @@ model Party {
   dataAuthorizedOn  DateTime?      @map("data_authorized_on") @db.Date
   mergedIntoId      String?        @map("merged_into_id") @db.Uuid
   logoFileId        String?        @map("logo_file_id") @db.Uuid
+  /// B42: datos bloqueados por deber legal o suprimidos a pedido del titular.
+  dataBlockedAt     DateTime?      @map("data_blocked_at") @db.Timestamptz(6)
+  dataBlockReason   String?        @map("data_block_reason")
+  dataErasedAt      DateTime?      @map("data_erased_at") @db.Timestamptz(6)
   createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
   createdBy         String?        @map("created_by") @db.Uuid
   updatedAt         DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
@@ -5657,7 +5666,8 @@ model WebFormSubmission {
   tenantId             String    @map("tenant_id") @db.Uuid
   code                 String
   formKey              String    @map("form_key")
-  email                String
+  /// Vacío cuando el envío se volvió anónimo (B42, decisión 10).
+  email                String?
   data                 Json
   noticeId             String    @map("notice_id") @db.Uuid
   noticeVersion        Int       @map("notice_version")
@@ -5671,6 +5681,7 @@ model WebFormSubmission {
   ackSentAt            DateTime? @map("ack_sent_at") @db.Timestamptz(6)
   unsubscribeTokenHash String?   @unique @map("unsubscribe_token_hash")
   unsubscribeUsedAt    DateTime? @map("unsubscribe_used_at") @db.Timestamptz(6)
+  anonymizedAt         DateTime? @map("anonymized_at") @db.Timestamptz(6)
   createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   createdBy            String?   @map("created_by") @db.Uuid
   updatedAt            DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
@@ -5727,4 +5738,171 @@ model PrivacyCookieConsent {
   @@index([tenantId, visitorId])
   @@index([tenantId, decidedAt])
   @@map("prv_cookie_consents")
+}
+
+/// Solicitudes de los titulares (B42, ficha 17.19): plazos legales en días hábiles.
+model PrivacyRequest {
+  id                    String                @id @default(uuid(7)) @db.Uuid
+  tenantId              String                @map("tenant_id") @db.Uuid
+  code                  String
+  right                 String
+  kind                  String
+  channel               String
+  status                String                @default("received")
+  requesterName         String                @map("requester_name")
+  requesterEmail        String?               @map("requester_email")
+  requesterPhone        String?               @map("requester_phone")
+  documentNumber        String?               @map("document_number")
+  description           String
+  partyId               String?               @map("party_id") @db.Uuid
+  portalUserId          String?               @map("portal_user_id") @db.Uuid
+  sourceCode            String?               @map("source_code")
+  privacyNoticeId       String?               @map("privacy_notice_id") @db.Uuid
+  receivedAt            DateTime              @map("received_at") @db.Timestamptz(6)
+  dueOn                 DateTime?             @map("due_on") @db.Date
+  extendedAt            DateTime?             @map("extended_at") @db.Timestamptz(6)
+  extensionReason       String?               @map("extension_reason")
+  requirementText       String?               @map("requirement_text")
+  requirementSentAt     DateTime?             @map("requirement_sent_at") @db.Timestamptz(6)
+  requirementAnsweredAt DateTime?             @map("requirement_answered_at") @db.Timestamptz(6)
+  verificationMethod    String?               @map("verification_method")
+  verificationNote      String?               @map("verification_note")
+  verifiedAt            DateTime?             @map("verified_at") @db.Timestamptz(6)
+  verifiedBy            String?               @map("verified_by") @db.Uuid
+  response              String?
+  respondedAt           DateTime?             @map("responded_at") @db.Timestamptz(6)
+  respondedBy           String?               @map("responded_by") @db.Uuid
+  closure               String?
+  closedAt              DateTime?             @map("closed_at") @db.Timestamptz(6)
+  erasure               Json?
+  erasedAt              DateTime?             @map("erased_at") @db.Timestamptz(6)
+  workflowInstanceId    String?               @map("workflow_instance_id") @db.Uuid
+  warnedFor             DateTime?             @map("warned_for") @db.Date
+  breachedFor           DateTime?             @map("breached_for") @db.Date
+  createdAt             DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy             String?               @map("created_by") @db.Uuid
+  updatedAt             DateTime              @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy             String?               @map("updated_by") @db.Uuid
+  version               Int                   @default(1)
+  deletedAt             DateTime?             @map("deleted_at") @db.Timestamptz(6)
+  tenant                Tenant                @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  events                PrivacyRequestEvent[]
+  exports               PrivacyDataExport[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@index([tenantId, status])
+  @@index([tenantId, partyId])
+  @@map("prv_requests")
+}
+
+/// Historia de cada solicitud; las que llevan correo al titular las envía el worker.
+model PrivacyRequestEvent {
+  id          String         @id @default(uuid(7)) @db.Uuid
+  tenantId    String         @map("tenant_id") @db.Uuid
+  requestId   String         @map("request_id") @db.Uuid
+  kind        String
+  note        String?
+  actorId     String?        @map("actor_id") @db.Uuid
+  occurredAt  DateTime       @map("occurred_at") @db.Timestamptz(6)
+  mailPending Boolean        @default(false) @map("mail_pending")
+  mailedAt    DateTime?      @map("mailed_at") @db.Timestamptz(6)
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?        @map("created_by") @db.Uuid
+  updatedAt   DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?        @map("updated_by") @db.Uuid
+  version     Int            @default(1)
+  deletedAt   DateTime?      @map("deleted_at") @db.Timestamptz(6)
+  tenant      Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  request     PrivacyRequest @relation(fields: [tenantId, requestId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, requestId])
+  @@map("prv_request_events")
+}
+
+/// Entrega de los datos de un titular: el contenido se reúne en la API y el PDF lo hace el worker.
+model PrivacyDataExport {
+  id          String         @id @default(uuid(7)) @db.Uuid
+  tenantId    String         @map("tenant_id") @db.Uuid
+  requestId   String         @map("request_id") @db.Uuid
+  partyId     String         @map("party_id") @db.Uuid
+  status      String         @default("pending")
+  content     Json
+  requestedAt DateTime       @map("requested_at") @db.Timestamptz(6)
+  requestedBy String?        @map("requested_by") @db.Uuid
+  attempts    Int            @default(0)
+  pdfFileId   String?        @map("pdf_file_id") @db.Uuid
+  readyAt     DateTime?      @map("ready_at") @db.Timestamptz(6)
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?        @map("created_by") @db.Uuid
+  updatedAt   DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?        @map("updated_by") @db.Uuid
+  version     Int            @default(1)
+  deletedAt   DateTime?      @map("deleted_at") @db.Timestamptz(6)
+  tenant      Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  request     PrivacyRequest @relation(fields: [tenantId, requestId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, requestId])
+  @@map("prv_data_exports")
+}
+
+/// Incidentes de seguridad con datos personales (B42; numeral 15.7).
+model PrivacyIncident {
+  id                  String                   @id @default(uuid(7)) @db.Uuid
+  tenantId            String                   @map("tenant_id") @db.Uuid
+  code                String
+  title               String
+  description         String
+  detectedAt          DateTime                 @map("detected_at") @db.Timestamptz(6)
+  affectedCount       Int                      @map("affected_count")
+  dataCategories      String[]                 @map("data_categories")
+  projectIncidentRef  String?                  @map("project_incident_ref")
+  status              String                   @default("open")
+  sicDueOn            DateTime                 @map("sic_due_on") @db.Date
+  containedAt         DateTime?                @map("contained_at") @db.Timestamptz(6)
+  containmentNote     String?                  @map("containment_note")
+  reportedOn          DateTime?                @map("reported_on") @db.Date
+  sicReference        String?                  @map("sic_reference")
+  holdersNotifiedOn   DateTime?                @map("holders_notified_on") @db.Date
+  holdersNotice       String?                  @map("holders_notice")
+  notReportableReason String?                  @map("not_reportable_reason")
+  closedAt            DateTime?                @map("closed_at") @db.Timestamptz(6)
+  warnedFor           DateTime?                @map("warned_for") @db.Date
+  breachedFor         DateTime?                @map("breached_for") @db.Date
+  createdAt           DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy           String?                  @map("created_by") @db.Uuid
+  updatedAt           DateTime                 @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy           String?                  @map("updated_by") @db.Uuid
+  version             Int                      @default(1)
+  deletedAt           DateTime?                @map("deleted_at") @db.Timestamptz(6)
+  tenant              Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  measures            PrivacyIncidentMeasure[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@index([tenantId, status])
+  @@map("prv_incidents")
+}
+
+/// Bitácora de medidas de un incidente; solo se agrega.
+model PrivacyIncidentMeasure {
+  id          String          @id @default(uuid(7)) @db.Uuid
+  tenantId    String          @map("tenant_id") @db.Uuid
+  incidentId  String          @map("incident_id") @db.Uuid
+  description String
+  takenOn     DateTime        @map("taken_on") @db.Date
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?         @map("created_by") @db.Uuid
+  updatedAt   DateTime        @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?         @map("updated_by") @db.Uuid
+  version     Int             @default(1)
+  deletedAt   DateTime?       @map("deleted_at") @db.Timestamptz(6)
+  tenant      Tenant          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  incident    PrivacyIncident @relation(fields: [tenantId, incidentId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, incidentId])
+  @@map("prv_incident_measures")
 }
