@@ -21,6 +21,7 @@ function principal(userId: string, recentlyVerified = true): Principal {
     csrfToken: 'codigo-antifalsificacion-de-prueba',
     signInComplete: true,
     recentlyVerified,
+    termsPending: false,
   };
 }
 

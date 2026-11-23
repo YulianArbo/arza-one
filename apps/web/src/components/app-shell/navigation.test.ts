@@ -57,7 +57,7 @@ describe('menú por permisos (permiso denegado, 16.3)', () => {
   });
 
   it('con todos los permisos del menú se ven todos los módulos', () => {
-    expect(visibleSlugs([...navigationPermissions()])).toHaveLength(21); // B13 agrega Terceros; B14, Archivos; B17, Privacidad; B33, Compras; B36, Mi espacio.
+    expect(visibleSlugs([...navigationPermissions()])).toHaveLength(22); // B13 agrega Terceros; B14, Archivos; B17, Privacidad; B33, Compras; B36, Mi espacio; B41, Sitio web.
   });
 
   it('«Mi espacio» aparece a todo colaborador que ve su ficha (B36)', () => {
@@ -96,6 +96,7 @@ describe('grupos del menú (B22B)', () => {
         slugs: [
           'calidad',
           'innovacion',
+          'sitio-web',
           'privacidad',
           'administracion',
           'auditoria',

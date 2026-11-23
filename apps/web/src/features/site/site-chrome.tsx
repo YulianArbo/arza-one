@@ -13,6 +13,8 @@ import { createElement, type JSX } from 'react';
 
 import { BrandLogo } from '../../components/brand-logo';
 import { ThemeMenu } from '../../components/theme-menu';
+import { CookiePreferencesLink } from './cookie-consent';
+import { SitePageLinks } from './public-content';
 import { COMPANY, LEGAL_TEXTS, SITE_NAV, SOCIAL_NETWORKS, legalPath } from './site-content';
 
 // Encabezado y pie de la vitrina (B22A; B22B, boceto 01): logo a la izquierda, secciones con
@@ -156,6 +158,8 @@ function FooterColumns(): JSX.Element {
               {link.label}
             </Link>
           ))}
+          {column.title === 'Empresa' ? <SitePageLinks /> : null}
+          {column.title === 'Legal' ? <CookiePreferencesLink /> : null}
         </nav>
       ))}
     </>

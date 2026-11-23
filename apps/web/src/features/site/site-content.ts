@@ -1,5 +1,5 @@
 // Contenido de la vitrina (B22A, boceto final aprobado). Los datos de la empresa entre corchetes
-// los entrega el dueño del producto antes de publicar el sitio (B41); no se inventan.
+// los entrega el dueño del producto antes de publicar el sitio; no se inventan.
 
 import { BriefcaseBusiness, FolderKanban, Megaphone, Monitor, SquareUser } from 'lucide-react';
 
@@ -113,12 +113,18 @@ export interface LegalText {
   readonly title: string;
 }
 
-/** Textos legales del pie de página (capítulo 20); su contenido versionado llega con B41. */
+/**
+ * Textos legales del pie de página (numeral 20.2). Se leen publicados de la API (B41); la política
+ * de tratamiento («privacidad») vive en Privacidad.
+ */
 export const LEGAL_TEXTS: readonly LegalText[] = [
   { slug: 'terminos', title: 'Términos y condiciones' },
-  { slug: 'privacidad', title: 'Política de privacidad' },
+  { slug: 'privacidad', title: 'Política de tratamiento de datos' },
   { slug: 'cookies', title: 'Política de cookies' },
   { slug: 'derechos-del-titular', title: 'Derechos del titular' },
+  { slug: 'seguridad', title: 'Seguridad y divulgación responsable' },
+  { slug: 'avisos-de-terceros', title: 'Avisos de software de terceros' },
+  { slug: 'terminos-de-la-plataforma', title: 'Términos de uso de la plataforma' },
 ];
 
 export function legalPath(text: LegalText): string {

@@ -13,6 +13,7 @@ import {
   Headset,
   House,
   Landmark,
+  Globe,
   Lightbulb,
   ListTodo,
   Paperclip,
@@ -152,6 +153,17 @@ const MODULES: readonly NavigationItem[] = [
     block: 'B46',
   },
   {
+    slug: 'sitio-web',
+    label: 'Sitio web',
+    icon: Globe,
+    permissions: [
+      'web.page.manage',
+      'web.legal_text.manage',
+      'web.legal_text.publish',
+      'web.submission.read',
+    ],
+  },
+  {
     slug: 'privacidad',
     label: 'Privacidad',
     icon: ShieldCheck,
@@ -227,6 +239,7 @@ const APP_NAVIGATION: readonly NavigationGroup[] = [
     items: pick(
       'calidad',
       'innovacion',
+      'sitio-web',
       'privacidad',
       'administracion',
       'auditoria',

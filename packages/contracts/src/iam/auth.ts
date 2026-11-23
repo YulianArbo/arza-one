@@ -28,6 +28,8 @@ export const IAM_ERROR_CODES = {
   reauthenticationRequired: 'REAUTHENTICATION_REQUIRED',
   reauthenticationFailed: 'REAUTHENTICATION_FAILED',
   sessionNotFound: 'SESSION_NOT_FOUND',
+  /** Faltan por aceptar los términos de la plataforma vigentes (B41). */
+  termsPending: 'TERMS_PENDING',
 } as const;
 
 export type PasswordShapeProblem = 'too_short' | 'too_long';
@@ -116,6 +118,9 @@ export const sessionResponseSchema = z.object({
   stage: signInStageSchema,
   csrf_token: z.string().describe('Código antifalsificación de esta sesión'),
   expires_at: z.iso.datetime({ offset: true }).describe('Vencimiento total de la sesión'),
+  terms_pending: z
+    .boolean()
+    .describe('Debe aceptar los términos de la plataforma antes de continuar (B41)'),
 });
 
 /** Datos del perfil propio. */

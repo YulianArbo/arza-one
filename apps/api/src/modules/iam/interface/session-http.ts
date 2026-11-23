@@ -44,5 +44,6 @@ export function toSessionResponse(view: SessionView): SessionResponse {
     stage: view.stage,
     csrf_token: view.csrfToken,
     expires_at: view.expiresAt.toISOString(),
+    terms_pending: view.termsPending,
   };
 }

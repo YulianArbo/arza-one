@@ -107,3 +107,20 @@ export async function captureLead(
   });
   return lead.id;
 }
+
+/** El prospecto que crea un formulario del sitio público (B41), sin persona que lo registre. */
+export interface SiteLead {
+  readonly id: string;
+  readonly code: string;
+  readonly consentId: string;
+}
+
+export async function captureSiteLead(
+  tx: TenantTransaction,
+  actor: CrmActor,
+  input: CreateLeadRequest,
+): Promise<SiteLead> {
+  const id = await captureLead(tx, { ...actor, userId: null, principal: null }, input);
+  const lead = await tx.crmLead.findUniqueOrThrow({ where: { id } });
+  return { id, code: lead.code, consentId: lead.consentId };
+}

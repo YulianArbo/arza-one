@@ -14,6 +14,7 @@ import {
 } from '../../../modules/doc/index.js';
 import { seedTaxParameters } from '../../../modules/fin/index.js';
 import { seedInnovation, seedInnovationDemo } from '../../../modules/inn/index.js';
+import { seedSiteDemo, seedSiteTexts } from '../../../modules/web/index.js';
 import { seedAccessControl } from '../../../modules/iam/index.js';
 import { seedPartyDemo } from '../../../modules/party/index.js';
 import { seedNotificationTemplates } from '../../../modules/ntf/index.js';
@@ -31,6 +32,18 @@ const seedEnvSchema = z.object({
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
   APP_ENV: z.enum(['local', 'staging', 'production']),
 });
+
+/** Datos ficticios de las empresas de demostración. */
+async function seedDemoData(database: DatabaseService): Promise<void> {
+  const demoIds = DEMO_TENANTS.map((tenant) => tenant.id);
+  // Los terceros ficticios llegan con su autorización: primero se publican los textos.
+  await seedPrivacyDemo(database, demoIds, systemClock);
+  await seedPartyDemo(database, demoIds, systemClock);
+  await seedWorkflowDemo(database, demoIds, systemClock);
+  await seedRetentionDemo(database, demoIds, systemClock);
+  await seedInnovationDemo(database, demoIds, systemClock);
+  await seedSiteDemo(database, demoIds, systemClock);
+}
 
 async function main(): Promise<void> {
   const env = seedEnvSchema.parse(process.env);
@@ -59,15 +72,8 @@ async function main(): Promise<void> {
     await seedProjects(database, tenantIds, systemClock);
     await seedService(database, tenantIds, systemClock);
     await seedInnovation(database, tenantIds, systemClock);
-    if (withDemo) {
-      const demoIds = DEMO_TENANTS.map((tenant) => tenant.id);
-      // Los terceros ficticios llegan con su autorización: primero se publican los textos.
-      await seedPrivacyDemo(database, demoIds, systemClock);
-      await seedPartyDemo(database, demoIds, systemClock);
-      await seedWorkflowDemo(database, demoIds, systemClock);
-      await seedRetentionDemo(database, demoIds, systemClock);
-      await seedInnovationDemo(database, demoIds, systemClock);
-    }
+    await seedSiteTexts(database, tenantIds, systemClock);
+    if (withDemo) await seedDemoData(database);
     process.stdout.write(withDemo ? 'Semilla y datos ficticios listos.\n' : 'Semilla lista.\n');
   } finally {
     await database.onModuleDestroy();

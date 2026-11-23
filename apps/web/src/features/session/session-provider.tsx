@@ -16,7 +16,7 @@ import {
 
 import { ApiError, CLIENT_ERROR_MESSAGES } from '../../lib/api/api-error';
 import { useApiClient } from '../../lib/api/api-provider';
-import { homeFor, loginPath, secondFactorPath, type LoginNotice } from './access-routes';
+import { homeFor, loginPath, secondFactorPath, termsPath, type LoginNotice } from './access-routes';
 import { saveFormDraft } from './form-draft';
 
 export const SESSION_QUERY_KEY = ['session'] as const;
@@ -106,7 +106,9 @@ export function RequireSession({ kind, children }: RequireSessionProps): JSX.Ele
   const sessionKind = query.data?.user.kind;
   const stage = query.data?.stage;
   const otherSurface = sessionKind !== undefined && sessionKind !== kind;
-  const incomplete = stage !== undefined && stage !== 'complete';
+  // Términos de la plataforma publicados después del último ingreso (B41, decisión 3).
+  const termsPending = query.data?.terms_pending === true && kind === 'internal';
+  const incomplete = (stage !== undefined && stage !== 'complete') || termsPending;
 
   useEffect(() => {
     if (unauthenticated) router.replace(loginPath(undefined, pathname));
@@ -114,7 +116,8 @@ export function RequireSession({ kind, children }: RequireSessionProps): JSX.Ele
       router.replace(secondFactorPath(stage, pathname));
     else if (sessionKind !== undefined && sessionKind !== kind)
       router.replace(homeFor(sessionKind));
-  }, [unauthenticated, stage, sessionKind, kind, router, pathname]);
+    else if (termsPending) router.replace(termsPath(pathname));
+  }, [unauthenticated, stage, sessionKind, kind, router, pathname, termsPending]);
 
   const value = useMemo(
     () => (query.data === undefined ? null : { session: query.data, logout, endSession }),

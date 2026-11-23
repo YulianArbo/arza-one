@@ -21,6 +21,9 @@ const SESSION_RULES: ReadonlySet<AccessRule> = new Set([
   'record',
 ]);
 
+/** Rutas que esperan la aceptación de los términos de la plataforma (B41, decisión 3). */
+const TERMS_GATED_RULES: ReadonlySet<AccessRule> = new Set(['permission', 'record']);
+
 /**
  * Autenticación, cerrada por defecto (numeral 13.1, paso 4): las rutas públicas pasan; las demás
  * pasan solo con una sesión válida en iam_sessions (B08) y completa, con el segundo factor (B09),
@@ -43,9 +46,18 @@ export class AccessGuard implements CanActivate {
     const principal = await this.authenticator.authenticate(request);
     if (principal === null) throw new UnauthorizedException();
     if (rule !== 'signing_in' && !principal.signInComplete) throw secondFactorRequired();
+    if (TERMS_GATED_RULES.has(rule) && principal.termsPending) throw termsPending();
     attachPrincipal(request, principal);
     return true;
   }
+}
+
+function termsPending(): AppError {
+  return new AppError(
+    HttpStatus.FORBIDDEN,
+    IAM_ERROR_CODES.termsPending,
+    'Para continuar, lea y acepte los términos de uso de la plataforma.',
+  );
 }
 
 function secondFactorRequired(): AppError {

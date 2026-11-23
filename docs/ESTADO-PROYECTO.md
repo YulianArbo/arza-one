@@ -1,5 +1,12 @@
 # Estado del proyecto ARZA ONE
 
+**B41 construido y en revisión, 23/11/2026 (Claude Code).** El propietario aprobó el plan («Apruebo todo», 12 decisiones). Rama `feat/b41-sitio-publico-formularios-text` desde `896c925` (`main` con B40 fusionado). Bloque crítico: requiere revisión externa.
+
+- Se construyó el módulo del sitio público (M17): formularios de contacto y cotización que crean el prospecto en Comercial con su autorización y acuse, textos legales versionados (borrador → aprobado → publicado → reemplazado, aprobados por otra persona), términos de la plataforma que se aceptan en el siguiente ingreso (la API bloquea hasta aceptarlos), aviso y centro de preferencias de cookies, baja de comunicaciones en un clic, páginas administrables y el módulo «Sitio web» en el menú.
+- Migración: `20261125000000_web_public_site_legal_cookies` (`web_pages`, `web_legal_texts`, `web_legal_acceptances`, `web_form_submissions`, `web_unsubscribes`, `prv_cookie_consents` e `iam_sessions.terms_pending`). Sin permisos nuevos (ya estaban en el catálogo). Trabajo nuevo: `web.site-work` (cada 30 s).
+- Verificado: integración del sitio 25/25, recorrido de auditoría 505/505, pantallas 982/982 (cobertura 85,5 % de ramas), API unitarias 456/456, tipos, límites, knip y secretos. Sin ejecutar en este equipo: pruebas de navegador (versión de Playwright) y revisión manual completa (memoria); las confirma la CI.
+- Pendientes principales: concepto jurídico de los textos, datos reales de la empresa en el pie, revisión en el navegador y revisión externa. Cierre en `docs/bloques/B41-cierre.md`.
+
 **B40 construido y en revisión, 22/11/2026 (Claude Code).** El propietario aprobó el plan («Apruebo todo», 10 decisiones). Rama `feat/b40-innovacion-y-propiedad-intelec` desde `c5a8c65` (`main` ya tiene B38 y B39, PR #90 fusionado).
 
 - Se construyó el módulo de Innovación y propiedad intelectual (M15): banco de ideas con la evaluación de viabilidad FT-INN-003 (motor de formatos, con PDF), hoja de ruta de productos propios cuya liberación propone el registro de software con su tarea, portafolio de marcas, software y dominios con cadena de titularidad, alertas de renovación (marcas a 6 meses, dominios a 60 días) y CSV RE-INN-001, y vigilancia tecnológica y competencia.

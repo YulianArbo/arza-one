@@ -53,6 +53,7 @@ import {
 import { FORMS_PATH, OUTPUT_TEMPLATES_PATH, RECORDS_PATH } from '../../features/forms/labels';
 import { NTF_PATHS } from '../../features/notifications/labels';
 import { PRIVACY_PATHS } from '../../features/privacy/labels';
+import { WEBSITE_PATHS } from '../../features/website/labels';
 import { SERVICE_PATHS } from '../../features/service/labels';
 import { WF_PATHS } from '../../features/workflows/labels';
 
@@ -149,6 +150,18 @@ const PRIVACY = [
   sub(PRIVACY_PATHS.processors, 'Encargados', Handshake, 'privacy.processor.manage'),
 ];
 
+const WEBSITE = [
+  sub(WEBSITE_PATHS.pages, 'Páginas', FileText, 'web.page.manage'),
+  sub(
+    WEBSITE_PATHS.texts,
+    'Textos legales',
+    Scale,
+    'web.legal_text.manage',
+    'web.legal_text.publish',
+  ),
+  sub(WEBSITE_PATHS.submissions, 'Formularios recibidos', Inbox, 'web.submission.read'),
+];
+
 const ADMINISTRATION = [
   sub(ADMIN_PATHS.users, 'Usuarios', Users, 'iam.user.read'),
   sub(ADMIN_PATHS.roles, 'Roles y permisos', KeyRound, 'iam.role.read'),
@@ -206,6 +219,7 @@ const SUBMODULES: Readonly<Record<string, readonly Submodule[]>> = {
   finanzas: FINANCE,
   'talento-y-sst': TALENT,
   privacidad: PRIVACY,
+  'sitio-web': WEBSITE,
   administracion: ADMINISTRATION,
   auditoria: AUDIT,
 };

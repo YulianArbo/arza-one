@@ -9,6 +9,7 @@ import { sessionExpiresAt } from '../domain/session-policy.js';
 import { sightDevice } from '../infrastructure/second-factor-store.js';
 import { hashSecretToken, newSecretToken } from '../infrastructure/secret-token.js';
 import { AccountNotifier } from './account-notifier.js';
+import { PLATFORM_TERMS_GATE, type PlatformTermsGate } from './platform-terms-gate.js';
 
 export interface CompletionInput {
   readonly session: Session;
@@ -34,11 +35,16 @@ export interface Completion {
  * Completa un inicio de sesión: después de la contraseña, o del segundo factor cuando corresponde.
  * - La sesión que venía a medias recibe una llave nueva (numeral 15.5: rotación del identificador
  *   al autenticarse), y empieza a contar su vencimiento de 12 horas.
+ * - Si la persona interna no ha aceptado los términos vigentes de la plataforma, la sesión queda
+ *   esperándolos (B41): solo atiende la cuenta propia hasta que los acepte.
  * - Se reconoce el equipo y, si es nuevo para la cuenta, queda el evento de seguridad y el aviso.
  */
 @Injectable()
 export class SignInCompletion {
-  constructor(@Inject(AccountNotifier) private readonly notifier: AccountNotifier) {}
+  constructor(
+    @Inject(AccountNotifier) private readonly notifier: AccountNotifier,
+    @Inject(PLATFORM_TERMS_GATE) private readonly terms: PlatformTermsGate,
+  ) {}
 
   async complete(tx: TenantTransaction, input: CompletionInput): Promise<Completion> {
     const { session, user, meta, now } = input;
@@ -49,6 +55,8 @@ export class SignInCompletion {
     const owner = { tenantId: user.tenantId, userId: user.id };
     const sighting = await sightDevice(tx, owner, device.hash, meta.userAgent, now);
     const rotated = input.rotate ? newSecretToken() : null;
+    // Decisión 3 de B41: los términos nuevos se aceptan en el siguiente ingreso (solo internos).
+    const termsPending = user.kind !== 'portal' && (await this.terms.pendingFor(tx, user.id));
     const completed = await tx.session.update({
       where: { id: session.id },
       data: {
@@ -56,6 +64,7 @@ export class SignInCompletion {
         reauthenticatedAt: now,
         deviceId: sighting.device.id,
         expiresAt: sessionExpiresAt(now),
+        termsPending,
         ...(rotated === null ? {} : { tokenHash: rotated.hash }),
       },
     });

@@ -18,17 +18,21 @@ const PRINCIPAL: Principal = {
   csrfToken: 'codigo-antifalsificacion-de-prueba',
   signInComplete: true,
   recentlyVerified: true,
+  termsPending: false,
 };
 
 /** Solo verificó la contraseña: le falta el segundo factor (B09). */
 const PENDING: Principal = { ...PRINCIPAL, signInComplete: false, recentlyVerified: false };
 /** Sesión completa, pero confirmó su identidad hace más de 30 minutos. */
 const NOT_RECENT: Principal = { ...PRINCIPAL, recentlyVerified: false };
+/** Al ingresar faltaba aceptar los términos de la plataforma vigentes (B41). */
+const TERMS: Principal = { ...PRINCIPAL, termsPending: true };
 
 const SESSIONS: Readonly<Record<string, Principal | undefined>> = {
   'sesion=valida': PRINCIPAL,
   'sesion=a-medias': PENDING,
   'sesion=antigua': NOT_RECENT,
+  'sesion=terminos': TERMS,
 };
 
 /** Acepta solo las cookies de SESSIONS. */
@@ -100,6 +104,23 @@ describe('segundo factor y confirmación de identidad (B09, permiso denegado)', 
     expect(errorResponseSchema.parse(stale.body).error.code).toBe('REAUTHENTICATION_REQUIRED');
     expect((await get('/test/high-risk', 'sesion=a-medias')).status).toBe(403);
     expect((await get('/test/high-risk', 'sesion=valida')).status).toBe(200);
+  });
+});
+
+describe('términos de la plataforma pendientes (B41, decisión 3)', () => {
+  function get(path: string, cookie: string) {
+    return request(app.getHttpServer()).get(path).set('Cookie', cookie);
+  }
+
+  it('sin aceptarlos no entra a ninguna ruta con permiso', async () => {
+    const response = await get('/test/users', 'sesion=terminos');
+    expect(response.status).toBe(403);
+    expect(errorResponseSchema.parse(response.body).error.code).toBe('TERMS_PENDING');
+  });
+
+  it('sí atiende su cuenta propia, para leerlos y aceptarlos', async () => {
+    expect((await get('/test/whoami', 'sesion=terminos')).status).toBe(200);
+    expect((await get('/test/signing-in', 'sesion=terminos')).status).toBe(200);
   });
 });
 

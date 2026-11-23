@@ -36,6 +36,8 @@ export interface SessionView {
   readonly stage: SignInStage;
   readonly csrfToken: string;
   readonly expiresAt: Date;
+  /** Faltan por aceptar los términos de la plataforma vigentes (B41). */
+  readonly termsPending: boolean;
 }
 
 /**
@@ -108,6 +110,7 @@ export class SessionService implements Authenticator {
       },
       csrfToken: csrfTokenFor(session.id, this.config.CSRF_SECRET),
       expiresAt: session.expiresAt,
+      termsPending: session.termsPending,
     };
   }
 
@@ -119,6 +122,7 @@ export class SessionService implements Authenticator {
       csrfToken: csrfTokenFor(ref.sessionId, this.config.CSRF_SECRET),
       signInComplete: session.authenticatedAt !== null,
       recentlyVerified: isRecentlyVerified(session.reauthenticatedAt, now),
+      termsPending: session.termsPending,
     };
   }
 

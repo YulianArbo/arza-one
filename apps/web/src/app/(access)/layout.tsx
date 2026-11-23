@@ -20,7 +20,7 @@ function AccessFooter(): JSX.Element {
     <footer className="flex justify-between gap-3 px-4 py-4 text-xs text-muted-foreground sm:px-8">
       <span>ARZA ONE · ARZA TECH S.A.S.</span>
       <span>
-        <Link href="/legal/terminos" className="hover:text-foreground">
+        <Link href="/legal/terminos-de-la-plataforma" className="hover:text-foreground">
           Términos
         </Link>{' '}
         ·{' '}
