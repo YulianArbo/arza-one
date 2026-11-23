@@ -5,6 +5,7 @@ import { expect } from 'vitest';
 import type { AccessScenario, Person } from '../../iam/support/access-scenario.js';
 import { WEB_ORIGIN, freshIp } from '../../iam/support/iam-fixtures.js';
 import { consentFor, personBody } from '../../party/support/party-scenario.js';
+import { siteCompany } from './care-route-calls.js';
 import { clientCrew } from './portal-steps.js';
 
 // Llamadas del recorrido de escrituras (B11) para las solicitudes de titulares, la entrega y la
@@ -167,9 +168,12 @@ export const PRIVACY_REQUEST_ROUTE_CALLS: Readonly<Record<string, RouteCall>> = 
     const path = `/v1/parties/${partyId}/personal-data/erase`;
     return { test: s.post(path, dpo.session, { request_id: id }) };
   },
-  'POST /v1/public/privacy-requests': (s) =>
-    Promise.resolve({ test: publicCall(s, '', PUBLIC_BODY) }),
+  'POST /v1/public/privacy-requests': async (s) => {
+    await siteCompany(s);
+    return { test: publicCall(s, '', PUBLIC_BODY) };
+  },
   'POST /v1/public/privacy-requests/status': async (s) => {
+    await siteCompany(s);
     const response = await publicCall(s, '', PUBLIC_BODY);
     expect(response.status, response.text).toBe(201);
     const { code } = response.body as { code: string };
