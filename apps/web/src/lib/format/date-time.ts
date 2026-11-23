@@ -24,3 +24,15 @@ export function formatDate(date: string | null): string {
 export function formatDateTime(iso: string | null): string {
   return iso === null ? '—' : DATE_TIME.format(new Date(iso));
 }
+
+const DAY_ONLY = new Intl.DateTimeFormat(PLATFORM_DEFAULTS.locale, {
+  timeZone: PLATFORM_DEFAULTS.timezone,
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+});
+
+/** El día en Colombia de un instante, como dd/mm/aaaa; un guion si no hay fecha. */
+export function formatDayOf(iso: string | null): string {
+  return iso === null ? '—' : DAY_ONLY.format(new Date(iso));
+}

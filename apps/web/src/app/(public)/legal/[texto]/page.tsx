@@ -2,11 +2,11 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import type { JSX } from 'react';
 
+import { LegalTextView } from '../../../../features/site/public-content';
 import { LEGAL_TEXTS } from '../../../../features/site/site-content';
-import { SoonBadge } from '../../../../features/site/site-sections';
 
-// Textos legales del sitio (capítulo 20). Su contenido versionado y aprobado llega con B41; hasta
-// entonces la página lo dice y no muestra un texto provisional que pueda tomarse por vigente.
+// Textos legales del sitio (numeral 20.2): la versión publicada y aprobada (B41). Si todavía no hay
+// una publicada, la página lo dice y no muestra un texto provisional que pueda tomarse por vigente.
 
 export const dynamicParams = false;
 
@@ -28,13 +28,8 @@ export default async function LegalTextPage({ params }: Props): Promise<JSX.Elem
   const text = LEGAL_TEXTS.find((item) => item.slug === slug);
   if (text === undefined) notFound();
   return (
-    <section className="mx-auto flex w-full max-w-3xl flex-col items-start gap-4 px-4 py-16">
-      <h1 className="text-3xl font-semibold tracking-tight">{text.title}</h1>
-      <SoonBadge />
-      <p className="text-muted-foreground">
-        Estamos preparando este texto. Mientras se publica, puede escribirnos por los medios de
-        contacto para cualquier consulta sobre sus datos personales.
-      </p>
+    <section className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-16">
+      <LegalTextView slug={text.slug} title={text.title} />
     </section>
   );
 }

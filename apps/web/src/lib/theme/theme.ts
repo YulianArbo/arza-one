@@ -29,3 +29,8 @@ export function themeCookie(theme: Theme, isSecure: boolean): string {
   const secure = isSecure ? '; Secure' : '';
   return `${THEME_COOKIE}=${theme}; Path=/; Max-Age=${String(ONE_YEAR_SECONDS)}; SameSite=Lax${secure}`;
 }
+
+/** Borra la cookie del modo: el visitante del sitio no aceptó las de preferencias (B41). */
+export function forgetThemeCookie(): string {
+  return `${THEME_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`;
+}

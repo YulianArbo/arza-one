@@ -14,12 +14,11 @@ import Link from 'next/link';
 import type { JSX } from 'react';
 
 import { COMPANY } from './site-content';
+import { ContactForm, QuoteForm } from './site-forms';
 import { SectionHeading, SoonBadge } from './site-sections';
 
-// Atención en la vitrina (B22A): cotización (B23), verificar documento (B25) y PQRSF (B29, B41),
-// contacto y acceso a la plataforma. Lo que no funciona todavía lo dice.
-
-const QUOTE_STEPS = ['Servicio', 'Datos de contacto', 'Confirmación'] as const;
+// Atención en la vitrina (B22A): cotización y contacto (B41), verificar documento (B25), PQRSF
+// (B29) y acceso a la plataforma. Lo que no funciona todavía lo dice.
 
 export function QuoteSection(): JSX.Element {
   return (
@@ -28,32 +27,14 @@ export function QuoteSection(): JSX.Element {
       id="cotizar"
       className="mx-auto grid w-full max-w-6xl scroll-mt-20 gap-8 px-4 py-16 lg:grid-cols-2"
     >
-      <SectionHeading
-        id="cotizar-titulo"
-        eyebrow="05 — Cotización"
-        title="Cotice su proyecto en tres pasos"
-      >
+      <SectionHeading id="cotizar-titulo" eyebrow="05 — Cotización" title="Cotice su proyecto">
         <p className="text-muted-foreground">
-          Un consultor revisa su solicitud y le responde con alcance, plazo y valor.
+          Cuéntenos qué necesita. Un consultor revisa su solicitud y le responde con alcance, plazo
+          y valor.
         </p>
       </SectionHeading>
-      <div className="flex flex-col gap-4 rounded-xl border bg-card p-6">
-        <ol className="flex flex-col gap-3">
-          {QUOTE_STEPS.map((step, index) => (
-            <li key={step} className="flex items-center gap-3 text-sm">
-              <span className="inline-flex size-7 items-center justify-center rounded-full border font-medium tabular-nums">
-                {index + 1}
-              </span>
-              {step}
-            </li>
-          ))}
-        </ol>
-        <div className="flex flex-wrap items-center gap-3 border-t pt-4">
-          <SoonBadge />
-          <p className="text-sm text-muted-foreground">
-            Mientras tanto, escríbanos por los medios de contacto.
-          </p>
-        </div>
+      <div className="rounded-xl border bg-card p-6">
+        <QuoteForm />
       </div>
     </section>
   );
@@ -148,6 +129,10 @@ export function ContactSection(): JSX.Element {
             </li>
           ))}
         </ul>
+        <div className="max-w-3xl rounded-xl border bg-card p-6">
+          <h3 className="mb-4 text-lg font-semibold">Escríbanos</h3>
+          <ContactForm />
+        </div>
       </div>
     </section>
   );

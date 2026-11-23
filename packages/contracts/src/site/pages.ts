@@ -92,3 +92,4 @@ export type SavePage = z.infer<typeof savePageSchema>;
 export type PageAction = z.infer<typeof pageActionSchema>;
 export type PublicPage = z.infer<typeof publicPageSchema>;
 export type PublicPageList = z.infer<typeof publicPageListResponseSchema>;
+export type PageListResponse = z.infer<typeof pageListResponseSchema>;

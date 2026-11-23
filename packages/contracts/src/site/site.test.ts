@@ -101,6 +101,7 @@ describe('elección de cookies', () => {
   it('se guarda y se lee igual', () => {
     expect(decodeCookieChoice(encodeCookieChoice(choice))).toEqual(choice);
     expect(decodeCookieChoice('basura')).toBeNull();
+    expect(decodeCookieChoice('%E0%A4%A')).toBeNull();
     expect(decodeCookieChoice(undefined)).toBeNull();
   });
 

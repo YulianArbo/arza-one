@@ -9,6 +9,8 @@ export { expect };
 // Reglas de WCAG 2.2 nivel AA (numeral 16.6).
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
+const CHOICE_VISITOR = '01999a00-0000-7000-8000-00000000f040';
+
 const OWN_ORIGINS = new Set([new URL(E2E_WEB_URL).origin, new URL(E2E_API_URL).origin]);
 
 const EMPTY_FUNNEL = {
@@ -53,6 +55,18 @@ const EMPTY_LISTS: Readonly<Record<string, unknown>> = {
   '/v1/files': { data: [] },
   // El acceso pide los comunicados vigentes (B36A); sin comunicados, no muestra nada.
   '/v1/public/announcements': { data: [] },
+  // El sitio pide sus páginas publicadas, el aviso de los formularios y la versión de la política
+  // de cookies (B41); por defecto no hay páginas ni aviso, y la política va en su versión 1.
+  '/v1/public/pages': { data: [] },
+  '/v1/public/forms/notice': { available: false, notice: null },
+  '/v1/public/legal/cookie_policy': {
+    id: '01999a00-0000-7000-8000-00000000f041',
+    key: 'cookie_policy',
+    title: 'Política de cookies',
+    body: 'Texto de prueba de la política de cookies.',
+    version_number: 1,
+    effective_from: '2026-11-22T15:00:00.000Z',
+  },
 };
 
 interface Fixtures {
@@ -65,6 +79,8 @@ interface Fixtures {
    * ni comentarios; lo demás, sin conexión.
    */
   baseApi: undefined;
+  /** El aviso de cookies ya respondido (B41). */
+  cookieChoice: undefined;
 }
 
 /**
@@ -88,6 +104,16 @@ export const test = base.extend<Fixtures>({
           await route.abort('connectionrefused');
         }
       });
+      await use(undefined);
+    },
+    { auto: true },
+  ],
+  // El aviso de cookies del sitio (B41) ya respondido, para que no tape las pantallas públicas;
+  // las pruebas del aviso lo borran con askCookies.
+  cookieChoice: [
+    async ({ page }, use) => {
+      const value = encodeURIComponent(`${CHOICE_VISITOR}|1|p|${new Date().toISOString()}`);
+      await page.context().addCookies([{ name: 'arza_cookie_consent', value, url: E2E_WEB_URL }]);
       await use(undefined);
     },
     { auto: true },
@@ -139,4 +165,9 @@ export async function useTheme(page: Page, theme: 'light' | 'dark'): Promise<voi
  */
 export async function waitForAppShell(page: Page): Promise<void> {
   await expect(page.getByRole('button', { name: 'Menú del usuario' })).toBeVisible();
+}
+
+/** Borra la elección de cookies: el sitio vuelve a mostrar el aviso (B41). */
+export async function askCookies(page: Page): Promise<void> {
+  await page.context().clearCookies({ name: 'arza_cookie_consent' });
 }

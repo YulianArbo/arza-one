@@ -69,6 +69,7 @@ export const INTERNAL_SESSION = {
   stage: 'complete',
   csrf_token: 'codigo-de-prueba',
   expires_at: '2026-10-10T03:00:00.000Z',
+  terms_pending: false,
 };
 
 /** Sesión de una persona del portal del cliente (ficticia). */

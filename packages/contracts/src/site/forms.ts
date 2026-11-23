@@ -129,3 +129,5 @@ export type Submission = z.infer<typeof submissionSchema>;
 export type UnsubscribeRequest = z.infer<typeof unsubscribeRequestSchema>;
 export type UnsubscribeResult = z.infer<typeof unsubscribeResultSchema>;
 export type Unsubscribe = z.infer<typeof unsubscribeSchema>;
+export type SubmissionListResponse = z.infer<typeof submissionListResponseSchema>;
+export type UnsubscribeListResponse = z.infer<typeof unsubscribeListResponseSchema>;

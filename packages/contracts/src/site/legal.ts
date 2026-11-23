@@ -104,3 +104,4 @@ export type PublicLegalText = z.infer<typeof publicLegalTextSchema>;
 export type PublicPrivacyPolicy = z.infer<typeof publicPrivacyPolicySchema>;
 export type PlatformTermsStatus = z.infer<typeof platformTermsStatusSchema>;
 export type AcceptPlatformTerms = z.infer<typeof acceptPlatformTermsSchema>;
+export type LegalTextListResponse = z.infer<typeof legalTextListResponseSchema>;

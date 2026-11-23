@@ -64,13 +64,22 @@ export function encodeCookieChoice(choice: StoredCookieChoice): string {
   return [choice.visitorId, String(choice.policyVersion), flags, choice.decidedAt].join('|');
 }
 
+function safeDecode(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return '';
+  }
+}
+
 /** La elección guardada; null si no hay o no se entiende. */
 export function decodeCookieChoice(value: string | undefined): StoredCookieChoice | null {
   if (value === undefined) return null;
-  const [visitorId, version, flags, decidedAt] = decodeURIComponent(value).split('|');
+  const [visitorId, version, flags, decidedAt] = safeDecode(value).split('|');
   const policyVersion = Number(version);
   if (visitorId === undefined || flags === undefined || decidedAt === undefined) return null;
-  if (!Number.isInteger(policyVersion) || policyVersion < 1) return null;
+  // Versión 0: la elección se tomó cuando no había política publicada.
+  if (!Number.isInteger(policyVersion) || policyVersion < 0) return null;
   if (!z.uuid().safeParse(visitorId).success || Number.isNaN(Date.parse(decidedAt))) return null;
   return { visitorId, policyVersion, preferences: flags === 'p', decidedAt };
 }
