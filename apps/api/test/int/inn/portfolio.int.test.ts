@@ -91,6 +91,8 @@ it('el software no se radica sin la cesión de sus autores (decisión 8)', async
   created(await scenario.post(authors, f.quality.session, second));
   expect((await remove(scenario, `${authors}/${authorId}`, f.quality)).status).toBe(204);
   expect((await remove(scenario, `${authors}/${authorId}`, f.quality)).status).toBe(404);
+  const ghostAsset = '/v1/innovation/ip-assets/01900000-0000-7000-8000-00000000dead/authors';
+  expect((await scenario.post(ghostAsset, f.quality.session, second)).status).toBe(404);
   expect(await auditActions(scenario.db, scenario.tenant.id, id)).toEqual([
     'inn.asset.create:success',
     'inn.author.add:success',

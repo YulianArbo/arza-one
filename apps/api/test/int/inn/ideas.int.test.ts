@@ -109,6 +109,19 @@ it('aprobar exige la evaluación y un concepto distinto de no viable', async () 
   expect(invalid.status).toBe(422);
 });
 
+it('los pasos fuera de orden o sobre una versión vieja no avanzan la idea', async () => {
+  const f = await innFixture(scenario, 'orden');
+  const id = await proposed(scenario, f.worker);
+  const base = `/v1/innovation/ideas/${id}`;
+  const approve = { decision: 'approve', note: 'Adelante.' };
+  expect((await at(scenario, `${base}/decision`, f.director, 1, approve)).status).toBe(409);
+  expect((await at(scenario, `${base}/evaluation`, f.director, 7)).status).toBe(409);
+  expect((await at(scenario, `${base}/evaluation`, f.director, 1)).status).toBe(204);
+  expect((await at(scenario, `${base}/evaluation`, f.director, 2)).status).toBe(409);
+  const ghost = '/v1/innovation/ideas/01900000-0000-7000-8000-00000000dead/viability';
+  expect((await at(scenario, ghost, f.director, 1, VIABILITY)).status).toBe(404);
+});
+
 it('el PDF de la evaluación se pide cuando la idea tiene evaluación', async () => {
   const f = await innFixture(scenario, 'pdf');
   const pending = await proposed(scenario, f.worker);

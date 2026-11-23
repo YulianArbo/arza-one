@@ -82,6 +82,15 @@ it('el hito solo nace de una idea aprobada y el trimestre se valida', async () =
   const wrong = { ...item(f.tech.id), quarter: '2027-Q2' };
   expect((await scenario.post(path, f.quality.session, wrong)).status).toBe(422);
   const id = created(await scenario.post(path, f.quality.session, item(f.tech.id)));
+  const listed = roadmapListResponseSchema.parse(
+    (await scenario.get(path, f.auditor.session)).body,
+  );
+  expect(listed.data.find((row) => row.id === id)).toMatchObject({ idea: null, ip_asset: null });
+  const stale = { version_label: '0.9.0', released_on: later(scenario, 0) };
+  expect((await at(scenario, `${path}/${id}/release`, f.quality, 9, stale)).status).toBe(409);
+  expect(
+    (await scenario.patch(`${path}/${id}`, f.quality.session, item(f.tech.id), 9)).status,
+  ).toBe(409);
   const cancelled = { ...item(f.tech.id), status: 'cancelled' };
   expect((await scenario.patch(`${path}/${id}`, f.quality.session, cancelled, 1)).status).toBe(204);
   const release = { version_label: '1.0.0', released_on: later(scenario, 0) };
