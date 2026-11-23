@@ -1,5 +1,12 @@
 # Estado del proyecto ARZA ONE
 
+**B40 construido y en revisión, 22/11/2026 (Claude Code).** El propietario aprobó el plan («Apruebo todo», 10 decisiones). Rama `feat/b40-innovacion-y-propiedad-intelec` desde `c5a8c65` (`main` ya tiene B38 y B39, PR #90 fusionado).
+
+- Se construyó el módulo de Innovación y propiedad intelectual (M15): banco de ideas con la evaluación de viabilidad FT-INN-003 (motor de formatos, con PDF), hoja de ruta de productos propios cuya liberación propone el registro de software con su tarea, portafolio de marcas, software y dominios con cadena de titularidad, alertas de renovación (marcas a 6 meses, dominios a 60 días) y CSV RE-INN-001, y vigilancia tecnológica y competencia.
+- Migración: `20261124000000_inn_innovation_ip`. Permiso nuevo: `inn.read` (216 en total). Trabajo nuevo: `inn.daily-work` (6:45). Flujo nuevo: `inn.ip`.
+- Verificado: pruebas de Innovación (contratos 9, integración 16, pantallas 16), recorrido de auditoría 493/493, suite de integración repetida por partes en verde, tipos, límites, knip, gitleaks y compilación. Sin ejecutar: pruebas de navegador (versión de Playwright) y cobertura web completa (memoria del equipo); las confirma la CI.
+- Pendientes principales: validar FT-INN-003 y RE-INN-001 con los formatos originales y revisar en el navegador. Cierre en `docs/bloques/B40-cierre.md`.
+
 **B39 construido y en revisión, 22/11/2026 (Claude Code).** El propietario aprobó el plan («Apruebo todo», 11 decisiones). Rama `feat/b39-calidad-auditorias-indicadores` desde `445a87b`, el commit donde el PR #89 (B38) se fusionó en la rama de B37: la rama `main` todavía no tiene Calidad.
 
 - Se construyó el resto del módulo de Calidad (M14): programa anual y auditorías internas con auditor independiente del proceso, lista de chequeo, hallazgos e informe en PDF; indicadores con ficha, medición manual con evidencia, 8 cálculos automáticos, tendencia y matriz RE-SGC-006 en CSV; y el acta de revisión por la dirección con entradas precargadas, decisiones que se vuelven acciones y aprobación solo de la Dirección, con su PDF.

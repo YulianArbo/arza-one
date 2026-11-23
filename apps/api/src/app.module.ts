@@ -8,6 +8,7 @@ import { AssetModule } from './modules/asset/index.js';
 import { HrModule } from './modules/hr/index.js';
 import { SstModule } from './modules/sst/index.js';
 import { QmsModule } from './modules/qms/index.js';
+import { InnModule } from './modules/inn/index.js';
 import { AuditModule } from './modules/audit/index.js';
 import { ContractModule } from './modules/contract/index.js';
 import { ProjectModule } from './modules/project/index.js';
@@ -62,6 +63,7 @@ const BUSINESS_MODULES = [
   HrModule,
   SstModule,
   QmsModule,
+  InnModule,
 ];
 
 /**

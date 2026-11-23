@@ -13,6 +13,7 @@ import {
   Headset,
   House,
   Landmark,
+  Lightbulb,
   ListTodo,
   Paperclip,
   Palette,
@@ -103,6 +104,12 @@ const MODULES: readonly NavigationItem[] = [
     label: 'Calidad',
     icon: BadgeCheck,
     permissions: ['qms.read', 'qms.nonconformity.create'],
+  },
+  {
+    slug: 'innovacion',
+    label: 'Innovación',
+    icon: Lightbulb,
+    permissions: ['inn.read', 'inn.idea.create'],
   },
   {
     slug: 'finanzas',
@@ -219,6 +226,7 @@ const APP_NAVIGATION: readonly NavigationGroup[] = [
     icon: Scale,
     items: pick(
       'calidad',
+      'innovacion',
       'privacidad',
       'administracion',
       'auditoria',

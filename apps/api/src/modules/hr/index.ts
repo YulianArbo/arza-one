@@ -9,3 +9,4 @@ export {
   linkOccupationalExam,
   type SstEmployee,
 } from './application/sst-links.js';
+export { signedEmploymentContractOfUser } from './application/innovation-links.js';

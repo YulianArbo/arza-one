@@ -164,6 +164,12 @@ model Tenant {
   qmsIndicators            QmsIndicator[]
   qmsMeasurements          QmsMeasurement[]
   qmsManagementReviews     QmsManagementReview[]
+  innIdeas                 InnIdea[]
+  innRoadmapItems          InnRoadmapItem[]
+  innIpAssets              InnIpAsset[]
+  innIpAuthors             InnIpAuthor[]
+  innTechWatch             InnTechWatch[]
+  innCompetitors           InnCompetitor[]
   ctrClauses               CtrClause[]
   ctrTemplates             CtrTemplate[]
   ctrTemplateClauses       CtrTemplateClause[]
@@ -5372,4 +5378,186 @@ model QmsManagementReview {
   @@unique([tenantId, id])
   @@unique([tenantId, code])
   @@map("qms_management_reviews")
+}
+
+/// Banco de ideas (B40, ficha 17.16; FT-INN-005) con su evaluación de viabilidad FT-INN-003.
+model InnIdea {
+  id                  String           @id @default(uuid(7)) @db.Uuid
+  tenantId            String           @map("tenant_id") @db.Uuid
+  code                String
+  title               String
+  description         String
+  expectedBenefit     String?          @map("expected_benefit")
+  proposerId          String           @map("proposer_id") @db.Uuid
+  proposedOn          DateTime         @map("proposed_on") @db.Date
+  stage               String           @default("registered")
+  evaluatorId         String?          @map("evaluator_id") @db.Uuid
+  /// Calificaciones de 1 a 5 por criterio (decisión 4).
+  viabilityScores     Json?            @map("viability_scores")
+  viabilityTotal      Int?             @map("viability_total")
+  viabilityConcept    String?          @map("viability_concept")
+  viabilityNote       String?          @map("viability_note")
+  evaluatedBy         String?          @map("evaluated_by") @db.Uuid
+  evaluatedOn         DateTime?        @map("evaluated_on") @db.Date
+  /// Registro FT-INN-003 del motor de formatos, con su PDF.
+  viabilityRecordId   String?          @map("viability_record_id") @db.Uuid
+  viabilityRecordCode String?          @map("viability_record_code")
+  decisionNote        String?          @map("decision_note")
+  decidedBy           String?          @map("decided_by") @db.Uuid
+  decidedOn           DateTime?        @map("decided_on") @db.Date
+  createdAt           DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy           String?          @map("created_by") @db.Uuid
+  updatedAt           DateTime         @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy           String?          @map("updated_by") @db.Uuid
+  version             Int              @default(1)
+  deletedAt           DateTime?        @map("deleted_at") @db.Timestamptz(6)
+  tenant              Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  roadmapItems        InnRoadmapItem[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@index([tenantId, proposerId])
+  @@index([tenantId, stage])
+  @@map("inn_ideas")
+}
+
+/// Hoja de ruta de productos propios (B40; FT-INN-004).
+model InnRoadmapItem {
+  id           String      @id @default(uuid(7)) @db.Uuid
+  tenantId     String      @map("tenant_id") @db.Uuid
+  product      String
+  title        String
+  description  String?
+  quarter      String
+  status       String      @default("planned")
+  ownerId      String      @map("owner_id") @db.Uuid
+  ideaId       String?     @map("idea_id") @db.Uuid
+  versionLabel String?     @map("version_label")
+  releasedOn   DateTime?   @map("released_on") @db.Date
+  /// Registro de software que propuso la liberación (decisión 7).
+  ipAssetId    String?     @map("ip_asset_id") @db.Uuid
+  createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy    String?     @map("created_by") @db.Uuid
+  updatedAt    DateTime    @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy    String?     @map("updated_by") @db.Uuid
+  version      Int         @default(1)
+  deletedAt    DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  tenant       Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  idea         InnIdea?    @relation(fields: [tenantId, ideaId], references: [tenantId, id], onDelete: Restrict)
+  ipAsset      InnIpAsset? @relation(fields: [tenantId, ipAssetId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, quarter])
+  @@map("inn_roadmap_items")
+}
+
+/// Portafolio de propiedad intelectual (B40; RE-INN-001, FT-INN-001, FT-INN-002).
+model InnIpAsset {
+  id                String           @id @default(uuid(7)) @db.Uuid
+  tenantId          String           @map("tenant_id") @db.Uuid
+  code              String
+  kind              String
+  title             String
+  holder            String
+  registryNumber    String?          @map("registry_number")
+  niceClasses       String?          @map("nice_classes")
+  office            String
+  filedOn           DateTime?        @map("filed_on") @db.Date
+  grantedOn         DateTime?        @map("granted_on") @db.Date
+  expiresOn         DateTime?        @map("expires_on") @db.Date
+  status            String           @default("proposed")
+  responsibleId     String           @map("responsible_id") @db.Uuid
+  product           String?
+  versionLabel      String?          @map("version_label")
+  /// Certificado o soporte del registro (archivo).
+  documentId        String?          @map("document_id") @db.Uuid
+  notes             String?
+  /// Vencimiento cuya renovación ya se avisó: una tarea por vencimiento (decisión 6).
+  renewalAlertedFor DateTime?        @map("renewal_alerted_for") @db.Date
+  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy         String?          @map("created_by") @db.Uuid
+  updatedAt         DateTime         @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy         String?          @map("updated_by") @db.Uuid
+  version           Int              @default(1)
+  deletedAt         DateTime?        @map("deleted_at") @db.Timestamptz(6)
+  tenant            Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  authors           InnIpAuthor[]
+  roadmapItems      InnRoadmapItem[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@index([tenantId, expiresOn])
+  @@map("inn_ip_assets")
+}
+
+/// Cadena de titularidad (B40, decisión 8): cada autor y el soporte escrito de su cesión.
+model InnIpAuthor {
+  id            String     @id @default(uuid(7)) @db.Uuid
+  tenantId      String     @map("tenant_id") @db.Uuid
+  assetId       String     @map("asset_id") @db.Uuid
+  userId        String?    @map("user_id") @db.Uuid
+  name          String
+  contribution  String?
+  supportKind   String     @map("support_kind")
+  hrContractId  String?    @map("hr_contract_id") @db.Uuid
+  contractId    String?    @map("contract_id") @db.Uuid
+  supportFileId String?    @map("support_file_id") @db.Uuid
+  supportLabel  String     @map("support_label")
+  createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?    @map("created_by") @db.Uuid
+  updatedAt     DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?    @map("updated_by") @db.Uuid
+  version       Int        @default(1)
+  deletedAt     DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  asset         InnIpAsset @relation(fields: [tenantId, assetId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, assetId])
+  @@map("inn_ip_authors")
+}
+
+/// Vigilancia tecnológica (B40; FT-INN-006).
+model InnTechWatch {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  topic      String
+  source     String
+  finding    String
+  relevance  String
+  observedOn DateTime  @map("observed_on") @db.Date
+  recordedBy String    @map("recorded_by") @db.Uuid
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?   @map("created_by") @db.Uuid
+  updatedAt  DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?   @map("updated_by") @db.Uuid
+  version    Int       @default(1)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, observedOn])
+  @@map("inn_tech_watch")
+}
+
+/// Análisis de competencia (B40; RE-INN-002).
+model InnCompetitor {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  name       String
+  segment    String
+  website    String?
+  strengths  String
+  weaknesses String
+  updatedOn  DateTime  @map("updated_on") @db.Date
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?   @map("created_by") @db.Uuid
+  updatedAt  DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?   @map("updated_by") @db.Uuid
+  version    Int       @default(1)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@map("inn_competitors")
 }

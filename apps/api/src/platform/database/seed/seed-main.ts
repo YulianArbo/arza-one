@@ -13,6 +13,7 @@ import {
   seedRetentionDemo,
 } from '../../../modules/doc/index.js';
 import { seedTaxParameters } from '../../../modules/fin/index.js';
+import { seedInnovation, seedInnovationDemo } from '../../../modules/inn/index.js';
 import { seedAccessControl } from '../../../modules/iam/index.js';
 import { seedPartyDemo } from '../../../modules/party/index.js';
 import { seedNotificationTemplates } from '../../../modules/ntf/index.js';
@@ -57,6 +58,7 @@ async function main(): Promise<void> {
     await seedContracts(database, tenantIds, systemClock);
     await seedProjects(database, tenantIds, systemClock);
     await seedService(database, tenantIds, systemClock);
+    await seedInnovation(database, tenantIds, systemClock);
     if (withDemo) {
       const demoIds = DEMO_TENANTS.map((tenant) => tenant.id);
       // Los terceros ficticios llegan con su autorización: primero se publican los textos.
@@ -64,6 +66,7 @@ async function main(): Promise<void> {
       await seedPartyDemo(database, demoIds, systemClock);
       await seedWorkflowDemo(database, demoIds, systemClock);
       await seedRetentionDemo(database, demoIds, systemClock);
+      await seedInnovationDemo(database, demoIds, systemClock);
     }
     process.stdout.write(withDemo ? 'Semilla y datos ficticios listos.\n' : 'Semilla lista.\n');
   } finally {

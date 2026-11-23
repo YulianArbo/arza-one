@@ -3,6 +3,7 @@ import type { CreateFormTemplate, FormDefinition, FormFillMode } from '@arza/con
 import { CODE_REVIEW, CODE_REVIEW_CODE, TECHNICAL_DELIVERY_CODE } from './code-review-form.js';
 import { choice, date, field, long, section, text, yesNo } from './form-builders.js';
 import { LOAN_CONTRACT, LOAN_CONTRACT_CODE } from './loan-contract-form.js';
+import { VIABILITY_TEMPLATE } from './viability-form.js';
 
 // Los formatos piloto del B20 (tabla 18.3) y el FT-TEC-002 del B27, que la semilla publica en cada
 // empresa la primera vez. Sus campos son un borrador por validar contra el original: Calidad los
@@ -310,4 +311,5 @@ export const PILOT_FORMS: readonly PilotForm[] = [
     fillMode: 'system',
     outputCode: null,
   },
+  { template: VIABILITY_TEMPLATE, fillMode: 'system', outputCode: null },
 ];

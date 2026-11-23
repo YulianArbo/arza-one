@@ -30,6 +30,7 @@ import { PURCHASE_ROUTE_CALLS } from './purchase-route-calls.js';
 import { QUOTE_ROUTE_CALLS } from './quote-route-calls.js';
 import { SERVICE_ROUTE_CALLS } from './service-route-calls.js';
 import { QMS_AUDIT_ROUTE_CALLS } from './qms-audit-route-calls.js';
+import { INN_ROUTE_CALLS } from './inn-route-calls.js';
 import { QMS_REVIEW_ROUTE_CALLS } from './qms-review-route-calls.js';
 import { QMS_ROUTE_CALLS } from './qms-route-calls.js';
 import { SST_PEOPLE_ROUTE_CALLS } from './sst-people-route-calls.js';
@@ -83,4 +84,7 @@ export const WRITE_ROUTE_CALLS: Readonly<Record<string, RouteCall>> = {
   ...PURCHASE_ROUTE_CALLS,
   ...ASSET_ROUTE_CALLS,
   ...MEDIA_ROUTE_CALLS,
+  // Innovación publica todos los formatos piloto (FT-SGC-002 incluido), y con la lista de
+  // verificación publicada las versiones de Documentos ya no se aprueban sin ella: va después.
+  ...INN_ROUTE_CALLS,
 };

@@ -63,6 +63,10 @@
     "./qms": {
       "types": "./dist/modules/qms/index.d.ts",
       "default": "./dist/modules/qms/index.js"
+    },
+    "./inn": {
+      "types": "./dist/modules/inn/index.d.ts",
+      "default": "./dist/modules/inn/index.js"
     }
   },
   "scripts": {

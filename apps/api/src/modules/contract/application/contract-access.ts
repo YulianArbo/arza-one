@@ -14,3 +14,20 @@ export async function visibleContractTitle(
   if (contract === null || !canSeeContract(ability, contract)) return null;
   return `${contract.code}: ${contract.title}`;
 }
+
+/** Un contrato referido por su código (B40, cadena de titularidad), si la persona lo ve. */
+export interface ContractRef {
+  readonly id: string;
+  readonly code: string;
+  readonly title: string;
+}
+
+export async function visibleContractByCode(
+  tx: TenantTransaction,
+  ability: AppAbility,
+  code: string,
+): Promise<ContractRef | null> {
+  const contract = await tx.ctrContract.findFirst({ where: { code, deletedAt: null } });
+  if (contract === null || !canSeeContract(ability, contract)) return null;
+  return { id: contract.id, code: contract.code, title: contract.title };
+}

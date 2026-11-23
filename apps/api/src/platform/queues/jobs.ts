@@ -141,6 +141,8 @@ const hrRetentionJobSchema = z.object({});
 const hrDailyWorkJobSchema = z.object({});
 const sstDailyWorkJobSchema = z.object({});
 const qmsDailyWorkJobSchema = z.object({});
+/** Alertas de renovación de marcas y dominios de Innovación (B40, decisión 6). Del sistema. */
+const innDailyWorkJobSchema = z.object({});
 /** Indicadores de Calidad (B39): cálculo de los automáticos y aviso de los manuales sin medir. */
 const qmsIndicatorWorkJobSchema = z.object({});
 /** PDF del informe de auditoría y del acta de revisión por la dirección (B39). Del sistema. */
@@ -281,6 +283,11 @@ export const JOBS = {
     name: 'qms.daily-work',
     schema: qmsDailyWorkJobSchema,
   },
+  innDailyWork: {
+    queue: QUEUES.platform,
+    name: 'inn.daily-work',
+    schema: innDailyWorkJobSchema,
+  },
   qmsIndicatorWork: {
     queue: QUEUES.platform,
     name: 'qms.indicator-work',
@@ -362,6 +369,9 @@ export const SCHEDULED_JOBS = [
   { id: 'qms.indicator-work.daily', job: JOBS.qmsIndicatorWork, pattern: '30 6 * * *' },
   // Cada 30 segundos: el informe de una auditoría emitida y el acta aprobada quedan en PDF (B39).
   { id: 'qms.pdf-work.every-30-seconds', job: JOBS.qmsPdfWork, pattern: '*/30 * * * * *' },
+  // Cada día a las 6:45: el responsable de una marca a seis meses de vencer o de un dominio a 60
+  // días recibe la tarea de renovarlo, y lo vencido queda vencido (B40, decisión 6).
+  { id: 'inn.daily-work.daily', job: JOBS.innDailyWork, pattern: '45 6 * * *' },
   // Cada 5 minutos: la alerta del 80 % y la del plazo vencido llegan a lo sumo cinco minutos tarde,
   // y los tiquetes resueltos que nadie reabrió se cierran (B28).
   { id: 'svc.sla-work.every-5-minutes', job: JOBS.svcSlaWork, pattern: '*/5 * * * *' },
