@@ -129,6 +129,7 @@ const FOOTER_COLUMNS = [
       { href: '/#cotizar', label: 'Solicitar cotización', icon: FileText },
       { href: '/pqrsf', label: 'Radicar una PQRSF', icon: MessagesSquare },
       { href: '/pqrsf/consulta', label: 'Consultar una PQRSF', icon: Search },
+      { href: '/derechos-del-titular', label: 'Mis datos personales', icon: Scale },
       { href: '/#contacto', label: 'Contacto', icon: SquareUser },
     ],
   },

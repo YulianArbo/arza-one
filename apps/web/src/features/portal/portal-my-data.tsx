@@ -11,6 +11,7 @@ import { FormError } from '../access/form-alert';
 import { QueryState } from '../administration/query-state';
 import { save } from '../audit/audit-export-button';
 import { Fact } from './portal-bits';
+import { PortalPrivacyRequests } from './portal-privacy-requests';
 import { usePortalAction, usePortalMyData } from './portal-queries';
 
 // Mis datos y privacidad (B30, ficha 17.10; Ley 1581, art. 8): la persona consulta lo que la
@@ -107,10 +108,13 @@ function MyDataView({ data }: { readonly data: PortalMyData }): JSX.Element {
         <NameForm data={data} />
         <p className="text-sm text-muted-foreground">
           Descargue una copia de lo que la plataforma guarda de usted. Para corregir su correo o
-          pedir que borremos sus datos, radique una PQRSF de datos personales en Soporte.
+          pedir que borremos sus datos, use «Sus derechos sobre sus datos».
         </p>
         <ExportButton />
       </HighlightCard>
+      <div className="md:col-span-2">
+        <PortalPrivacyRequests />
+      </div>
     </div>
   );
 }
