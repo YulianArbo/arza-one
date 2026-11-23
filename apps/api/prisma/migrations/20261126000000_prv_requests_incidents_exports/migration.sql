@@ -4,6 +4,7 @@
 -- (prv_incidents, prv_incident_measures). Terceros marca los datos bloqueados o suprimidos de un
 -- titular y los formularios del sitio pueden volverse anónimos (decisiones 8 y 10). Solo expande:
 -- la versión anterior sigue funcionando.
+-- arza:contract no borra datos al aplicarse: el DELETE está dentro de prv_purge_cookie_consents, la retención de cookies de tres años (decisión 10) que el trabajo diario ejecuta; no borra ni cambia objetos que la versión anterior use
 
 CREATE TABLE "prv_requests" (
     "id" UUID NOT NULL,
