@@ -22,6 +22,15 @@ export const PRIVACY_ERROR_CODES = {
   activityNotFound: 'PRIVACY_ACTIVITY_NOT_FOUND',
   processorNotFound: 'PRIVACY_PROCESSOR_NOT_FOUND',
   processorInvalid: 'PRIVACY_PROCESSOR_INVALID',
+  // B42: solicitudes de titulares, entrega y supresión, e incidentes.
+  requestNotFound: 'PRIVACY_REQUEST_NOT_FOUND',
+  requestStepInvalid: 'PRIVACY_REQUEST_STEP_INVALID',
+  requestNotVerified: 'PRIVACY_REQUEST_NOT_VERIFIED',
+  requestUnavailable: 'PRIVACY_REQUEST_UNAVAILABLE',
+  accountActive: 'PRIVACY_ACCOUNT_ACTIVE',
+  exportNotReady: 'PRIVACY_EXPORT_NOT_READY',
+  incidentNotFound: 'PRIVACY_INCIDENT_NOT_FOUND',
+  incidentStepInvalid: 'PRIVACY_INCIDENT_STEP_INVALID',
 } as const;
 
 /**
