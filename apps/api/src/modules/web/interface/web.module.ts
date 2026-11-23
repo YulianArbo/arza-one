@@ -20,7 +20,7 @@ import { SitePublicController } from './site-public.controller.js';
   providers: [{ provide: PLATFORM_TERMS_GATE, useValue: PLATFORM_TERMS_RECORDS }],
   exports: [PLATFORM_TERMS_GATE],
 })
-export class PlatformTermsGateModule {}
+class PlatformTermsGateModule {}
 
 // Sitio público, formularios, textos legales y cookies (M17, B41, ficha 17.18).
 

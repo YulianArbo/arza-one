@@ -9,8 +9,8 @@ export {
   publishedNotices,
   canEraseRecruitmentIdentity,
 } from './application/consent-grant.js';
-export { actorOf, type PrivacyActor } from './application/privacy-support.js';
-export { recordCookieConsent, type CookieConsentInput } from './application/cookie-consents.js';
+export { actorOf } from './application/privacy-support.js';
+export { recordCookieConsent } from './application/cookie-consents.js';
 export {
   PARTY_DIRECTORY,
   type PartyDirectory,

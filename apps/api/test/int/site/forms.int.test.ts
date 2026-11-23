@@ -108,7 +108,7 @@ it('el acuse trae el enlace de baja, que funciona en un clic y una sola vez', as
   const form = await scenario.contactForm();
   const email = String(form['email']);
   const receipt = await scenario.submit('contact', form);
-  expect(await scenario.siteWork()).toBeGreaterThan(0);
+  expect(await scenario.siteWorkEverywhere()).toBeGreaterThan(0);
   const [mail] = scenario.mailsTo(email);
   if (mail === undefined) throw new Error('No llegó el acuse.');
   expect(mail.subject).toContain(receipt.code);

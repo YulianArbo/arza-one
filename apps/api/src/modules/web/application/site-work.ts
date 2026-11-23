@@ -31,13 +31,13 @@ export interface SiteWorkDependencies {
 const BATCH = 25;
 
 /** La página pública de baja, con la llave después de «#». */
-export function unsubscribeUrl(appUrl: string, token: string): string {
+function unsubscribeUrl(appUrl: string, token: string): string {
   const url = new URL('/baja', appUrl);
   url.hash = `token=${token}`;
   return url.toString();
 }
 
-export function ackMail(row: WebFormSubmission, company: CompanyIdentity, link: string): SiteMail {
+function ackMail(row: WebFormSubmission, company: CompanyIdentity, link: string): SiteMail {
   const form = SITE_FORMS[siteFormKeySchema.parse(row.formKey)].toLowerCase();
   return {
     to: row.email,
@@ -119,7 +119,7 @@ async function workTenant(deps: SiteWorkDependencies, tenantId: string): Promise
 }
 
 /** Las empresas con acuses por enviar. */
-export async function tenantsWithSiteWork(
+async function tenantsWithSiteWork(
   deps: Pick<SiteWorkDependencies, 'database'>,
 ): Promise<string[]> {
   const rows = await deps.database.withoutTenant(

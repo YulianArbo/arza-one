@@ -8,6 +8,7 @@ import request from 'supertest';
 import { expect } from 'vitest';
 
 import {
+  sendSiteMail,
   sendSiteMailIn,
   type SiteMail,
   type SiteWorkDependencies,
@@ -111,6 +112,11 @@ export class SiteScenario extends CrmScenario {
   /** Corre el worker del sitio solo para la empresa del escenario. */
   async siteWork(): Promise<number> {
     return sendSiteMailIn(this.siteDeps(), [this.tenant.id]);
+  }
+
+  /** Corre el worker del sitio como lo programa la cola: en todas las empresas con acuses. */
+  async siteWorkEverywhere(): Promise<number> {
+    return sendSiteMail(this.siteDeps());
   }
 
   siteDeps(): SiteWorkDependencies {
