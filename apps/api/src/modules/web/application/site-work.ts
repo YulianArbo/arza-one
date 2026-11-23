@@ -53,6 +53,10 @@ export function ackMail(row: WebFormSubmission, company: CompanyIdentity, link: 
   };
 }
 
+function systemActor(tenantId: string, at: Date) {
+  return { tenantId, userId: null, at, meta: null };
+}
+
 function scopeOf(tenantId: string) {
   return { tenantId, userId: null };
 }
@@ -69,6 +73,12 @@ async function prepareAck(deps: SiteWorkDependencies, tenantId: string, id: stri
       where: { id },
       data: { unsubscribeTokenHash: unsubscribeTokenHash(token) },
     });
+    await recordWebAudit(tx, systemActor(tenantId, deps.clock.now()), {
+      action: 'web.unsubscribe.link.issue',
+      entityType: 'web_form_submission',
+      entityId: id,
+      changes: { code: row.code },
+    });
     return ackMail(row, await companyIdentity(tx), unsubscribeUrl(deps.appUrl, token));
   });
 }
@@ -84,16 +94,12 @@ async function sendAck(deps: SiteWorkDependencies, tenantId: string, id: string)
       data: { mailPending: false, ackSentAt: at },
     });
     if (count === 0) return false;
-    await recordWebAudit(
-      tx,
-      { tenantId, userId: null, at, meta: null },
-      {
-        action: 'web.form.acknowledge',
-        entityType: 'web_form_submission',
-        entityId: id,
-        changes: { mail: 'ack' },
-      },
-    );
+    await recordWebAudit(tx, systemActor(tenantId, at), {
+      action: 'web.form.acknowledge',
+      entityType: 'web_form_submission',
+      entityId: id,
+      changes: { mail: 'ack' },
+    });
     return true;
   });
 }
