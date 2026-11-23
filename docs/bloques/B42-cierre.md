@@ -57,6 +57,8 @@
 - **Rutas de entrega y supresión**: las del capítulo 14 (`/v1/parties/{id}/personal-data/export` y `erase`), con el código de la solicitud en el cuerpo.
 - **El informe de cookies usa el permiso «Administrar avisos de privacidad»**, que es del Oficial: el de «Ver autorizaciones» también lo tiene el colaborador (solo lo propio).
 - **Una PQRSF trasladada entra como «Conocer mis datos» o «Reclamar por un incumplimiento»** según la marque Servicio al cliente; su plazo cuenta desde que llegó la PQRSF.
+- **Excepción en la verificación de migraciones (decidida por el propietario el 23/11/2026)**: la migración `20261126000000_prv_requests_incidents_exports` lleva la marca `-- arza:contract` con su motivo. No borra datos al aplicarse; el `DELETE` está dentro de la función que borra las cookies de más de tres años (decisión 10), que es más segura que dar a la aplicación permiso de borrar. La marca solo exime las reglas de compatibilidad; las de seguridad siguen aplicando.
+- **Los avisos de plazo al Oficial no son urgentes**: llegan dentro de la jornada (desconexión laboral); los plazos son de días hábiles y el aviso sale a las 7:00.
 - **Los avisos nuevos** necesitaron una segunda migración pequeña (`20261126010000_ntf_privacy_notices`) que solo amplía la lista de tipos de aviso permitidos.
 - **Errores reales que encontraron las pruebas, ya corregidos**: el worker anotaba un intento fallido del PDF sin su evento de auditoría; una solicitud nacía en «versión 2» porque se guardaba dos veces; y la ficha suprimida chocaba con la regla de documento obligatorio.
 
