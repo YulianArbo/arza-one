@@ -54,6 +54,8 @@ export interface StartRequest {
    * de un contrato es del responsable del contrato). Vacío: quien lo inicia.
    */
   readonly initiator?: string;
+  /** Fecha límite fija de la primera tarea, en lugar de las horas hábiles del estado (B42). */
+  readonly dueAt?: Date;
 }
 
 /** El registro tiene un trámite abierto de ese tipo. */
@@ -114,7 +116,12 @@ export async function startWorkflow(
       occurredAt: context.at,
     },
   });
-  const target = { instance: created, stateKey: initial.key, entryId: entry.id };
+  const target = {
+    instance: created,
+    stateKey: initial.key,
+    entryId: entry.id,
+    ...(request.dueAt === undefined ? {} : { dueAt: request.dueAt }),
+  };
   const instance = await enterState(tx, context, flow, target);
   await recordStart(tx, context, instance, flow);
   return instance;
