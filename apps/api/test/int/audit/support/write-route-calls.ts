@@ -60,7 +60,6 @@ export const WRITE_ROUTE_CALLS: Readonly<Record<string, RouteCall>> = {
   ...QMS_ROUTE_CALLS,
   ...QMS_AUDIT_ROUTE_CALLS,
   ...QMS_REVIEW_ROUTE_CALLS,
-  ...INN_ROUTE_CALLS,
   ...CORE_CALLS,
   ...ANNOUNCEMENT_CALLS,
   ...PARTY_ROUTE_CALLS,
@@ -85,4 +84,7 @@ export const WRITE_ROUTE_CALLS: Readonly<Record<string, RouteCall>> = {
   ...PURCHASE_ROUTE_CALLS,
   ...ASSET_ROUTE_CALLS,
   ...MEDIA_ROUTE_CALLS,
+  // Innovación publica todos los formatos piloto (FT-SGC-002 incluido), y con la lista de
+  // verificación publicada las versiones de Documentos ya no se aprueban sin ella: va después.
+  ...INN_ROUTE_CALLS,
 };
