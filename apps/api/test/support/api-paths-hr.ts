@@ -1,5 +1,6 @@
 import { INN_PATHS } from './api-paths-inn.js';
 import { QMS_PATHS } from './api-paths-qms.js';
+import { PRIVACY_B42_PATHS } from './api-paths-privacy.js';
 import { SITE_PATHS } from './api-paths-site.js';
 import { SST_PATHS } from './api-paths-sst.js';
 
@@ -72,4 +73,10 @@ const HR_PATHS = [
 ];
 
 /** Talento humano, Seguridad y salud en el trabajo (B37) y Calidad (B38). */
-export const PEOPLE_PATHS = HR_PATHS.concat(SST_PATHS, QMS_PATHS, INN_PATHS, SITE_PATHS);
+export const PEOPLE_PATHS = HR_PATHS.concat(
+  SST_PATHS,
+  QMS_PATHS,
+  INN_PATHS,
+  SITE_PATHS,
+  PRIVACY_B42_PATHS,
+);

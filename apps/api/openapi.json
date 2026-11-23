@@ -21545,6 +21545,3092 @@
         ]
       }
     },
+    "/v1/privacy-requests": {
+      "get": {
+        "operationId": "PrivacyRequestsController_list",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "received",
+                "verifying",
+                "in_progress",
+                "responded",
+                "closed"
+              ]
+            }
+          },
+          {
+            "name": "kind",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "inquiry",
+                "claim"
+              ]
+            }
+          },
+          {
+            "name": "party_id",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Solicitudes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyRequestListResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Solicitudes de titulares, de la más nueva a la más vieja",
+        "tags": [
+          "Privacidad"
+        ]
+      },
+      "post": {
+        "description": "Recibe su código y la fecha límite legal; el Oficial recibe la tarea.",
+        "operationId": "PrivacyRequestsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePrivacyRequestBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Registrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyCreatedResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El texto, la autorización, la actividad o el encargado no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, texto ya publicado, borrador existente o autorización revocada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla de privacidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Registrar una solicitud que llegó por correo, teléfono, en persona o por escrito",
+        "tags": [
+          "Privacidad"
+        ]
+      }
+    },
+    "/v1/privacy-requests/export": {
+      "post": {
+        "description": "Separado por punto y coma para Excel. Queda en la auditoría.",
+        "operationId": "PrivacyRequestsController_exportRegister",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Archivo CSV en UTF-8"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Descargar el registro de solicitudes en CSV",
+        "tags": [
+          "Privacidad"
+        ]
+      }
+    },
+    "/v1/privacy-requests/{id}": {
+      "get": {
+        "operationId": "PrivacyRequestsController_get",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Solicitud",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyRequestResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El texto, la autorización, la actividad o el encargado no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, texto ya publicado, borrador existente o autorización revocada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla de privacidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Una solicitud con su historia",
+        "tags": [
+          "Privacidad"
+        ]
+      }
+    },
+    "/v1/privacy-requests/{id}/actions/start-verification": {
+      "post": {
+        "operationId": "PrivacyRequestsController_startVerification",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Hecho"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El texto, la autorización, la actividad o el encargado no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, texto ya publicado, borrador existente o autorización revocada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla de privacidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Empezar a verificar la identidad del titular",
+        "tags": [
+          "Privacidad"
+        ]
+      }
+    },
+    "/v1/privacy-requests/{id}/actions/verify": {
+      "post": {
+        "description": "Relaciona la solicitud con el titular en Terceros y dice cómo se comprobó.",
+        "operationId": "PrivacyRequestsController_verify",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyPrivacyRequestBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Hecho"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El texto, la autorización, la actividad o el encargado no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, texto ya publicado, borrador existente o autorización revocada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla de privacidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Registrar la identidad verificada",
+        "tags": [
+          "Privacidad"
+        ]
+      }
+    },
+    "/v1/privacy-requests/{id}/actions/require": {
+      "post": {
+        "description": "Dentro de los 5 días hábiles siguientes; el plazo queda suspendido.",
+        "operationId": "PrivacyRequestsController_require",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrivacyRequirementBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Hecho"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El texto, la autorización, la actividad o el encargado no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, texto ya publicado, borrador existente o autorización revocada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla de privacidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Pedir que complete el reclamo",
+        "tags": [
+          "Privacidad"
+        ]
+      }
+    },
+    "/v1/privacy-requests/{id}/actions/answer-requirement": {
+      "post": {
+        "description": "El plazo vuelve a correr desde ese día.",
+        "operationId": "PrivacyRequestsController_answerRequirement",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrivacyRequirementAnswerBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Hecho"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El texto, la autorización, la actividad o el encargado no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, texto ya publicado, borrador existente o autorización revocada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla de privacidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Registrar que el titular completó el reclamo",
+        "tags": [
+          "Privacidad"
+        ]
+      }
+    },
+    "/v1/privacy-requests/{id}/actions/extend": {
+      "post": {
+        "description": "Una sola vez y antes del vencimiento: 5 días hábiles las consultas, 8 los reclamos.",
+        "operationId": "PrivacyRequestsController_extend",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrivacyExtensionBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Hecho"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El texto, la autorización, la actividad o el encargado no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, texto ya publicado, borrador existente o autorización revocada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla de privacidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Ampliar el plazo",
+        "tags": [
+          "Privacidad"
+        ]
+      }
+    },
+    "/v1/privacy-requests/{id}/actions/respond": {
+      "post": {
+        "description": "La respuesta le llega por correo.",
+        "operationId": "PrivacyRequestsController_respond",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrivacyResponseBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Hecho"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El texto, la autorización, la actividad o el encargado no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, texto ya publicado, borrador existente o autorización revocada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla de privacidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Responder al titular",
+        "tags": [
+          "Privacidad"
+        ]
+      }
+    },
+    "/v1/privacy-requests/{id}/actions/close": {
+      "post": {
+        "description": "Cierra la tarea del Oficial.",
+        "operationId": "PrivacyRequestsController_close",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Hecho"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El texto, la autorización, la actividad o el encargado no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, texto ya publicado, borrador existente o autorización revocada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla de privacidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Cerrar la solicitud respondida",
+        "tags": [
+          "Privacidad"
+        ]
+      }
+    },
+    "/v1/public/privacy-requests": {
+      "post": {
+        "description": "Responde el código y la fecha límite; la constancia llega por correo.",
+        "operationId": "PublicPrivacyRequestsController_file",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicPrivacyRequestBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Recibida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyRequestReceiptResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El sitio no tiene empresa configurada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyPublicErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Presentar una consulta o un reclamo sobre sus datos personales",
+        "tags": [
+          "Sitio público"
+        ]
+      }
+    },
+    "/v1/public/privacy-requests/status": {
+      "post": {
+        "description": "Con el código y el correo con que se presentó; el código va en el cuerpo.",
+        "operationId": "PublicPrivacyRequestsController_status",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicPrivacyStatusBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Estado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPrivacyStatusResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El código y el correo no coinciden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyPublicErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El sitio no tiene empresa configurada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyPublicErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Consultar el estado de una solicitud",
+        "tags": [
+          "Sitio público"
+        ]
+      }
+    },
+    "/v1/portal/me/privacy-requests": {
+      "get": {
+        "operationId": "PortalPrivacyRequestsController_mine",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Solicitudes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalPrivacyRequestList_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Mis solicitudes sobre mis datos personales",
+        "tags": [
+          "Portal del cliente"
+        ]
+      },
+      "post": {
+        "description": "El nombre y el correo los pone su cuenta.",
+        "operationId": "PortalPrivacyRequestsController_file",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PortalPrivacyRequestBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Recibida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyRequestReceiptResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Presentar una consulta o un reclamo sobre mis datos",
+        "tags": [
+          "Portal del cliente"
+        ]
+      }
+    },
+    "/v1/parties/{id}/personal-data/export": {
+      "post": {
+        "description": "Reúne lo de todos los módulos; el PDF queda listo en unos segundos.",
+        "operationId": "PersonalDataController_export",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonalDataRequestBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "En preparación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyCreatedResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El texto, la autorización, la actividad o el encargado no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, texto ya publicado, borrador existente o autorización revocada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla de privacidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Preparar la entrega de los datos del titular",
+        "tags": [
+          "Privacidad"
+        ]
+      }
+    },
+    "/v1/parties/{id}/personal-data/erase": {
+      "post": {
+        "description": "Vuelve anónimo lo que se puede; lo que la ley obliga a conservar queda bloqueado con su motivo.",
+        "operationId": "PersonalDataController_erase",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonalDataRequestBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resultado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErasureResultResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El texto, la autorización, la actividad o el encargado no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, texto ya publicado, borrador existente o autorización revocada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla de privacidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Suprimir los datos del titular",
+        "tags": [
+          "Privacidad"
+        ]
+      }
+    },
+    "/v1/privacy-requests/{id}/exports/{exportId}/data": {
+      "get": {
+        "operationId": "PersonalDataController_exportData",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "exportId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Datos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonalDataReportResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El texto, la autorización, la actividad o el encargado no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, texto ya publicado, borrador existente o autorización revocada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla de privacidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Los datos entregados, en formato de datos (JSON)",
+        "tags": [
+          "Privacidad"
+        ]
+      }
+    },
+    "/v1/privacy-requests/{id}/exports/{exportId}/pdf": {
+      "get": {
+        "operationId": "PersonalDataController_exportPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "exportId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PDF"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El texto, la autorización, la actividad o el encargado no existe",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, texto ya publicado, borrador existente o autorización revocada",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla de privacidad",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Los datos entregados, en PDF legible",
+        "tags": [
+          "Privacidad"
+        ]
+      }
+    },
+    "/v1/privacy-incidents": {
+      "get": {
+        "operationId": "PrivacyIncidentsController_list",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "open",
+                "contained",
+                "reported",
+                "closed"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Incidentes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyIncidentListResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Incidentes, del más reciente al más viejo",
+        "tags": [
+          "Privacidad"
+        ]
+      },
+      "post": {
+        "description": "Calcula la fecha límite de 15 días hábiles para reportarlo a la SIC.",
+        "operationId": "PrivacyIncidentsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrivacyCreateIncidentBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Registrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyCreatedResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El texto, la autorización, la actividad o el encargado no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, texto ya publicado, borrador existente o autorización revocada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla de privacidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Registrar un incidente",
+        "tags": [
+          "Privacidad"
+        ]
+      }
+    },
+    "/v1/privacy-incidents/export": {
+      "post": {
+        "description": "Separado por punto y coma para Excel. Queda en la auditoría.",
+        "operationId": "PrivacyIncidentsController_exportRegister",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Archivo CSV en UTF-8"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Descargar el registro de incidentes y reportes en CSV",
+        "tags": [
+          "Privacidad"
+        ]
+      }
+    },
+    "/v1/privacy-incidents/{id}": {
+      "get": {
+        "operationId": "PrivacyIncidentsController_get",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Incidente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyIncidentResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El texto, la autorización, la actividad o el encargado no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, texto ya publicado, borrador existente o autorización revocada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla de privacidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Un incidente con su bitácora de medidas",
+        "tags": [
+          "Privacidad"
+        ]
+      },
+      "patch": {
+        "description": "Mientras no se haya reportado.",
+        "operationId": "PrivacyIncidentsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrivacyUpdateIncidentBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Hecho"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El texto, la autorización, la actividad o el encargado no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, texto ya publicado, borrador existente o autorización revocada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla de privacidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Corregir el incidente",
+        "tags": [
+          "Privacidad"
+        ]
+      }
+    },
+    "/v1/privacy-incidents/{id}/actions/contain": {
+      "post": {
+        "operationId": "PrivacyIncidentsController_contain",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrivacyIncidentNoteBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Hecho"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El texto, la autorización, la actividad o el encargado no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, texto ya publicado, borrador existente o autorización revocada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla de privacidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Registrar que el incidente se contuvo",
+        "tags": [
+          "Privacidad"
+        ]
+      }
+    },
+    "/v1/privacy-incidents/{id}/actions/report": {
+      "post": {
+        "description": "Con el día y el radicado.",
+        "operationId": "PrivacyIncidentsController_report",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrivacyReportIncidentBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Hecho"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El texto, la autorización, la actividad o el encargado no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, texto ya publicado, borrador existente o autorización revocada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla de privacidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Registrar el reporte a la SIC",
+        "tags": [
+          "Privacidad"
+        ]
+      }
+    },
+    "/v1/privacy-incidents/{id}/actions/notify-holders": {
+      "post": {
+        "operationId": "PrivacyIncidentsController_notifyHolders",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrivacyNotifyHoldersBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Hecho"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El texto, la autorización, la actividad o el encargado no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, texto ya publicado, borrador existente o autorización revocada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla de privacidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Registrar que se informó a los titulares afectados",
+        "tags": [
+          "Privacidad"
+        ]
+      }
+    },
+    "/v1/privacy-incidents/{id}/measures": {
+      "post": {
+        "operationId": "PrivacyIncidentsController_addMeasure",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrivacyAddMeasureBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Hecho"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El texto, la autorización, la actividad o el encargado no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, texto ya publicado, borrador existente o autorización revocada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla de privacidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Agregar una medida a la bitácora",
+        "tags": [
+          "Privacidad"
+        ]
+      }
+    },
+    "/v1/privacy-incidents/{id}/actions/close": {
+      "post": {
+        "description": "Con el reporte a la SIC hecho o con el motivo para no reportarlo.",
+        "operationId": "PrivacyIncidentsController_close",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Versión del registro",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrivacyCloseIncidentBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Hecho"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El texto, la autorización, la actividad o el encargado no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra versión, texto ya publicado, borrador existente o autorización revocada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Datos inválidos o una regla de privacidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Cerrar el incidente",
+        "tags": [
+          "Privacidad"
+        ]
+      }
+    },
+    "/v1/privacy/cookie-consents": {
+      "get": {
+        "operationId": "CookieConsentsController_list",
+        "parameters": [
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "description": "Desde (incluido)",
+            "schema": {
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "description": "Hasta (incluido)",
+            "schema": {
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Elecciones",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CookieConsentListResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Elecciones de cookies del periodo, de la más nueva a la más vieja",
+        "tags": [
+          "Privacidad"
+        ]
+      }
+    },
+    "/v1/privacy/cookie-consents/report": {
+      "get": {
+        "operationId": "CookieConsentsController_report",
+        "parameters": [
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "description": "Desde (incluido)",
+            "schema": {
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "description": "Hasta (incluido)",
+            "schema": {
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resumen",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CookieReportResponse_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Resumen del periodo: por categoría y por versión de la política",
+        "tags": [
+          "Privacidad"
+        ]
+      }
+    },
     "/v1/finance/tax-parameters": {
       "get": {
         "operationId": "TaxParametersController_list",
@@ -83813,7 +86899,10 @@
                     "qms_action_overdue",
                     "qms_audit_assigned",
                     "qms_indicator_due",
-                    "qms_review_to_approve"
+                    "qms_review_to_approve",
+                    "prv_request_received",
+                    "prv_request_due",
+                    "prv_incident_due"
                   ],
                   "description": "Tipo de aviso"
                 },
@@ -83915,7 +87004,10 @@
                     "qms_action_overdue",
                     "qms_audit_assigned",
                     "qms_indicator_due",
-                    "qms_review_to_approve"
+                    "qms_review_to_approve",
+                    "prv_request_received",
+                    "prv_request_due",
+                    "prv_incident_due"
                   ],
                   "description": "Tipo de aviso"
                 },
@@ -83951,7 +87043,7 @@
         "properties": {
           "items": {
             "minItems": 1,
-            "maxItems": 31,
+            "maxItems": 34,
             "type": "array",
             "items": {
               "type": "object",
@@ -83989,7 +87081,10 @@
                     "qms_action_overdue",
                     "qms_audit_assigned",
                     "qms_indicator_due",
-                    "qms_review_to_approve"
+                    "qms_review_to_approve",
+                    "prv_request_received",
+                    "prv_request_due",
+                    "prv_incident_due"
                   ],
                   "description": "Tipo de aviso"
                 },
@@ -84049,7 +87144,10 @@
                     "qms_action_overdue",
                     "qms_audit_assigned",
                     "qms_indicator_due",
-                    "qms_review_to_approve"
+                    "qms_review_to_approve",
+                    "prv_request_received",
+                    "prv_request_due",
+                    "prv_incident_due"
                   ],
                   "description": "Tipo de aviso"
                 },
@@ -84163,7 +87261,10 @@
               "qms_action_overdue",
               "qms_audit_assigned",
               "qms_indicator_due",
-              "qms_review_to_approve"
+              "qms_review_to_approve",
+              "prv_request_received",
+              "prv_request_due",
+              "prv_incident_due"
             ],
             "description": "Tipo de aviso"
           },
@@ -85955,6 +89056,2201 @@
           "country",
           "review_on",
           "status"
+        ],
+        "additionalProperties": false
+      },
+      "PrivacyRequestListResponse_Output": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "right": {
+                  "type": "string",
+                  "enum": [
+                    "know",
+                    "proof",
+                    "usage",
+                    "update",
+                    "rectify",
+                    "erase",
+                    "revoke",
+                    "complaint"
+                  ],
+                  "description": "Derecho que ejerce el titular"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "inquiry",
+                    "claim"
+                  ]
+                },
+                "channel": {
+                  "type": "string",
+                  "enum": [
+                    "web",
+                    "portal",
+                    "email",
+                    "phone",
+                    "in_person",
+                    "written",
+                    "pqrsf"
+                  ]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "received",
+                    "verifying",
+                    "in_progress",
+                    "responded",
+                    "closed"
+                  ]
+                },
+                "requester_name": {
+                  "type": "string"
+                },
+                "party": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "name": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "received_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "due_on": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                      "description": "Fecha de calendario AAAA-MM-DD"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "Vacío mientras el plazo está suspendido"
+                },
+                "overdue": {
+                  "type": "boolean"
+                },
+                "extended": {
+                  "type": "boolean"
+                },
+                "paused": {
+                  "type": "boolean",
+                  "description": "Esperando que el titular complete el reclamo"
+                },
+                "version": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "description": "Versión para la cabecera If-Match"
+                }
+              },
+              "required": [
+                "id",
+                "code",
+                "right",
+                "kind",
+                "channel",
+                "status",
+                "requester_name",
+                "party",
+                "received_at",
+                "due_on",
+                "overdue",
+                "extended",
+                "paused",
+                "version"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "next_cursor"
+        ],
+        "additionalProperties": false
+      },
+      "CreatePrivacyRequestBody": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "enum": [
+              "email",
+              "phone",
+              "in_person",
+              "written"
+            ],
+            "description": "Por dónde llegó"
+          },
+          "right": {
+            "type": "string",
+            "enum": [
+              "know",
+              "proof",
+              "usage",
+              "update",
+              "rectify",
+              "erase",
+              "revoke",
+              "complaint"
+            ],
+            "description": "Derecho que ejerce el titular"
+          },
+          "requester_name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 160
+          },
+          "requester_email": {
+            "default": null,
+            "anyOf": [
+              {
+                "description": "Correo electrónico",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "requester_phone": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[+\\d][\\d\\s-]{6,19}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "document_number": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9.-]{4,20}$",
+                "description": "Número de documento de identidad"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 8000
+          },
+          "received_on": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Día en que llegó; nunca posterior a hoy"
+          }
+        },
+        "required": [
+          "channel",
+          "right",
+          "requester_name",
+          "description",
+          "received_on"
+        ],
+        "additionalProperties": false
+      },
+      "PrivacyRequestResponse_Output": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "code": {
+            "type": "string"
+          },
+          "right": {
+            "type": "string",
+            "enum": [
+              "know",
+              "proof",
+              "usage",
+              "update",
+              "rectify",
+              "erase",
+              "revoke",
+              "complaint"
+            ],
+            "description": "Derecho que ejerce el titular"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "inquiry",
+              "claim"
+            ]
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "web",
+              "portal",
+              "email",
+              "phone",
+              "in_person",
+              "written",
+              "pqrsf"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "received",
+              "verifying",
+              "in_progress",
+              "responded",
+              "closed"
+            ]
+          },
+          "requester_name": {
+            "type": "string"
+          },
+          "party": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "name"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "received_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "due_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                "description": "Fecha de calendario AAAA-MM-DD"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Vacío mientras el plazo está suspendido"
+          },
+          "overdue": {
+            "type": "boolean"
+          },
+          "extended": {
+            "type": "boolean"
+          },
+          "paused": {
+            "type": "boolean",
+            "description": "Esperando que el titular complete el reclamo"
+          },
+          "version": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "description": "Versión para la cabecera If-Match"
+          },
+          "requester_email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "requester_phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "document_number": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "source_code": {
+            "description": "Radicado de la PQRSF de origen",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "verification": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "document",
+                      "email_match",
+                      "in_person",
+                      "portal_session"
+                    ]
+                  },
+                  "note": {
+                    "type": "string"
+                  },
+                  "verified_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  "verified_by": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "method",
+                  "note",
+                  "verified_at",
+                  "verified_by"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "requirement": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string"
+                  },
+                  "sent_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  "answered_at": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "text",
+                  "sent_at",
+                  "answered_at"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "extension_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "requirement_open_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                "description": "Fecha de calendario AAAA-MM-DD"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Último día para pedir que complete el reclamo; vacío si es consulta"
+          },
+          "response": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "responded_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "closure": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "answered",
+                  "desisted"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "closed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "exports": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "ready",
+                    "failed"
+                  ]
+                },
+                "requested_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "ready_at": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "pdf_file_id": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "status",
+                "requested_at",
+                "ready_at",
+                "pdf_file_id"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "erasure": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "erased_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  "sections": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "key": {
+                          "type": "string"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "outcome": {
+                          "type": "string",
+                          "enum": [
+                            "erased",
+                            "blocked",
+                            "kept",
+                            "none"
+                          ]
+                        },
+                        "count": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "reason": {
+                          "description": "Por qué se bloquea o se conserva",
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "key",
+                        "title",
+                        "outcome",
+                        "count",
+                        "reason"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "erased_at",
+                  "sections"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "received",
+                    "verification_started",
+                    "verified",
+                    "requirement",
+                    "requirement_answered",
+                    "extended",
+                    "exported",
+                    "erased",
+                    "responded",
+                    "closed",
+                    "desisted"
+                  ]
+                },
+                "note": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "actor": {
+                  "description": "Quién lo hizo; vacío si fue el sistema",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "occurred_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "mailed_at": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "Cuándo se le envió al titular"
+                }
+              },
+              "required": [
+                "kind",
+                "note",
+                "actor",
+                "occurred_at",
+                "mailed_at"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "right",
+          "kind",
+          "channel",
+          "status",
+          "requester_name",
+          "party",
+          "received_at",
+          "due_on",
+          "overdue",
+          "extended",
+          "paused",
+          "version",
+          "requester_email",
+          "requester_phone",
+          "document_number",
+          "description",
+          "source_code",
+          "verification",
+          "requirement",
+          "extension_reason",
+          "requirement_open_until",
+          "response",
+          "responded_at",
+          "closure",
+          "closed_at",
+          "exports",
+          "erasure",
+          "events"
+        ],
+        "additionalProperties": false
+      },
+      "VerifyPrivacyRequestBody": {
+        "type": "object",
+        "properties": {
+          "party_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "description": "El titular registrado en Terceros"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "document",
+              "email_match",
+              "in_person",
+              "portal_session"
+            ]
+          },
+          "note": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 2000,
+            "description": "Qué revisó para comprobar la identidad"
+          }
+        },
+        "required": [
+          "party_id",
+          "method",
+          "note"
+        ],
+        "additionalProperties": false
+      },
+      "PrivacyRequirementBody": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 2000,
+            "description": "Qué le falta al reclamo; se le envía al titular"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "additionalProperties": false
+      },
+      "PrivacyRequirementAnswerBody": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 2000,
+            "description": "Lo que entregó el titular"
+          },
+          "answered_on": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Día en que lo completó; nunca posterior a hoy"
+          }
+        },
+        "required": [
+          "note",
+          "answered_on"
+        ],
+        "additionalProperties": false
+      },
+      "PrivacyExtensionBody": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 2000,
+            "description": "Por qué se necesita más tiempo; se le informa al titular"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "PrivacyResponseBody": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 8000
+          }
+        },
+        "required": [
+          "response"
+        ],
+        "additionalProperties": false
+      },
+      "PublicPrivacyRequestBody": {
+        "type": "object",
+        "properties": {
+          "right": {
+            "type": "string",
+            "enum": [
+              "know",
+              "proof",
+              "usage",
+              "update",
+              "rectify",
+              "erase",
+              "revoke",
+              "complaint"
+            ],
+            "description": "Derecho que ejerce el titular"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 160
+          },
+          "document_number": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9.-]{4,20}$",
+            "description": "Número de documento de identidad"
+          },
+          "email": {
+            "description": "Aquí llegan la constancia y la respuesta",
+            "type": "string"
+          },
+          "phone": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[+\\d][\\d\\s-]{6,19}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 8000
+          },
+          "accepts_privacy": {
+            "type": "boolean",
+            "const": true
+          },
+          "website": {
+            "default": "",
+            "description": "Déjelo vacío",
+            "type": "string",
+            "const": ""
+          }
+        },
+        "required": [
+          "right",
+          "name",
+          "document_number",
+          "email",
+          "description",
+          "accepts_privacy"
+        ],
+        "additionalProperties": false
+      },
+      "PrivacyRequestReceiptResponse_Output": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "inquiry",
+              "claim"
+            ]
+          },
+          "received_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "due_on": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Fecha límite de respuesta"
+          }
+        },
+        "required": [
+          "code",
+          "kind",
+          "received_at",
+          "due_on"
+        ],
+        "additionalProperties": false
+      },
+      "PrivacyPublicErrorResponse_Output": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "Código estable del error, por ejemplo QUOTE_EXPIRED"
+              },
+              "message": {
+                "type": "string",
+                "description": "Mensaje para la persona, en español"
+              },
+              "details": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field": {
+                      "type": "string",
+                      "description": "Campo con el problema, en notación de puntos"
+                    },
+                    "issue": {
+                      "type": "string",
+                      "description": "Código del problema, por ejemplo too_small o invalid_type"
+                    }
+                  },
+                  "required": [
+                    "field",
+                    "issue"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "correlation_id": {
+                "type": "string",
+                "description": "Identificador de la petición en los registros"
+              }
+            },
+            "required": [
+              "code",
+              "message",
+              "details",
+              "correlation_id"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "additionalProperties": false
+      },
+      "PublicPrivacyStatusBody": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^PRV-\\d{4}-\\d{4,8}$",
+            "description": "Código de la solicitud"
+          },
+          "email": {
+            "description": "Correo electrónico",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "email"
+        ],
+        "additionalProperties": false
+      },
+      "PublicPrivacyStatusResponse_Output": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "right": {
+            "type": "string",
+            "enum": [
+              "know",
+              "proof",
+              "usage",
+              "update",
+              "rectify",
+              "erase",
+              "revoke",
+              "complaint"
+            ],
+            "description": "Derecho que ejerce el titular"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "inquiry",
+              "claim"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "received",
+              "verifying",
+              "in_progress",
+              "responded",
+              "closed"
+            ]
+          },
+          "received_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "due_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                "description": "Fecha de calendario AAAA-MM-DD"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Vacío mientras el plazo está suspendido"
+          },
+          "requirement": {
+            "description": "Lo que falta para tramitar el reclamo",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "responded_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "response": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "code",
+          "right",
+          "kind",
+          "status",
+          "received_at",
+          "due_on",
+          "requirement",
+          "responded_at",
+          "response"
+        ],
+        "additionalProperties": false
+      },
+      "PortalPrivacyRequestList_Output": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "right": {
+                  "type": "string",
+                  "enum": [
+                    "know",
+                    "proof",
+                    "usage",
+                    "update",
+                    "rectify",
+                    "erase",
+                    "revoke",
+                    "complaint"
+                  ],
+                  "description": "Derecho que ejerce el titular"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "inquiry",
+                    "claim"
+                  ]
+                },
+                "channel": {
+                  "type": "string",
+                  "enum": [
+                    "web",
+                    "portal",
+                    "email",
+                    "phone",
+                    "in_person",
+                    "written",
+                    "pqrsf"
+                  ]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "received",
+                    "verifying",
+                    "in_progress",
+                    "responded",
+                    "closed"
+                  ]
+                },
+                "requester_name": {
+                  "type": "string"
+                },
+                "party": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "name": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "received_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "due_on": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                      "description": "Fecha de calendario AAAA-MM-DD"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "Vacío mientras el plazo está suspendido"
+                },
+                "overdue": {
+                  "type": "boolean"
+                },
+                "extended": {
+                  "type": "boolean"
+                },
+                "paused": {
+                  "type": "boolean",
+                  "description": "Esperando que el titular complete el reclamo"
+                },
+                "version": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "description": "Versión para la cabecera If-Match"
+                }
+              },
+              "required": [
+                "id",
+                "code",
+                "right",
+                "kind",
+                "channel",
+                "status",
+                "requester_name",
+                "party",
+                "received_at",
+                "due_on",
+                "overdue",
+                "extended",
+                "paused",
+                "version"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "PortalPrivacyRequestBody": {
+        "type": "object",
+        "properties": {
+          "right": {
+            "type": "string",
+            "enum": [
+              "know",
+              "proof",
+              "usage",
+              "update",
+              "rectify",
+              "erase",
+              "revoke",
+              "complaint"
+            ],
+            "description": "Derecho que ejerce el titular"
+          },
+          "document_number": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9.-]{4,20}$",
+            "description": "Número de documento de identidad"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 8000
+          }
+        },
+        "required": [
+          "right",
+          "document_number",
+          "description"
+        ],
+        "additionalProperties": false
+      },
+      "PersonalDataRequestBody": {
+        "type": "object",
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "description": "La solicitud verificada que lo ordena"
+          }
+        },
+        "required": [
+          "request_id"
+        ],
+        "additionalProperties": false
+      },
+      "ErasureResultResponse_Output": {
+        "type": "object",
+        "properties": {
+          "erased_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "outcome": {
+                  "type": "string",
+                  "enum": [
+                    "erased",
+                    "blocked",
+                    "kept",
+                    "none"
+                  ]
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "reason": {
+                  "description": "Por qué se bloquea o se conserva",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "key",
+                "title",
+                "outcome",
+                "count",
+                "reason"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "erased_at",
+          "sections"
+        ],
+        "additionalProperties": false
+      },
+      "PersonalDataReportResponse_Output": {
+        "type": "object",
+        "properties": {
+          "company": {
+            "type": "string"
+          },
+          "holder": {
+            "type": "string"
+          },
+          "request_code": {
+            "type": "string"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "records": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "fields": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "label": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "label",
+                            "value"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [
+                      "title",
+                      "fields"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "key",
+                "title",
+                "records"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "company",
+          "holder",
+          "request_code",
+          "generated_at",
+          "sections"
+        ],
+        "additionalProperties": false
+      },
+      "PrivacyIncidentListResponse_Output": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "open",
+                    "contained",
+                    "reported",
+                    "closed"
+                  ]
+                },
+                "detected_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "affected_count": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "sensitive": {
+                  "type": "boolean",
+                  "description": "Comprometió datos sensibles"
+                },
+                "sic_due_on": {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                  "description": "Fecha límite para reportar a la SIC"
+                },
+                "reported_on": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                      "description": "Fecha de calendario AAAA-MM-DD"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "overdue": {
+                  "type": "boolean",
+                  "description": "Pasó la fecha límite sin reporte"
+                },
+                "version": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "description": "Versión para la cabecera If-Match"
+                }
+              },
+              "required": [
+                "id",
+                "code",
+                "title",
+                "status",
+                "detected_at",
+                "affected_count",
+                "sensitive",
+                "sic_due_on",
+                "reported_on",
+                "overdue",
+                "version"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "PrivacyCreateIncidentBody": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 200
+          },
+          "description": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 8000,
+            "description": "Qué pasó, cómo se detectó y qué sistemas afectó"
+          },
+          "detected_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "description": "Cuándo se detectó; nunca posterior a ahora"
+          },
+          "affected_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000000,
+            "description": "Titulares afectados"
+          },
+          "data_categories": {
+            "minItems": 1,
+            "maxItems": 10,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "identification",
+                "contact",
+                "demographic",
+                "financial",
+                "employment",
+                "education",
+                "images",
+                "location",
+                "health",
+                "biometric"
+              ],
+              "description": "Categoría de datos personales"
+            }
+          },
+          "project_incident_ref": {
+            "default": null,
+            "description": "Código del incidente en Proyectos, si lo hay",
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "title",
+          "description",
+          "detected_at",
+          "affected_count",
+          "data_categories"
+        ],
+        "additionalProperties": false
+      },
+      "PrivacyIncidentResponse_Output": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "code": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "contained",
+              "reported",
+              "closed"
+            ]
+          },
+          "detected_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "affected_count": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "sensitive": {
+            "type": "boolean",
+            "description": "Comprometió datos sensibles"
+          },
+          "sic_due_on": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Fecha límite para reportar a la SIC"
+          },
+          "reported_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                "description": "Fecha de calendario AAAA-MM-DD"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "overdue": {
+            "type": "boolean",
+            "description": "Pasó la fecha límite sin reporte"
+          },
+          "version": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "description": "Versión para la cabecera If-Match"
+          },
+          "description": {
+            "type": "string"
+          },
+          "data_categories": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "identification",
+                "contact",
+                "demographic",
+                "financial",
+                "employment",
+                "education",
+                "images",
+                "location",
+                "health",
+                "biometric"
+              ],
+              "description": "Categoría de datos personales"
+            }
+          },
+          "project_incident_ref": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "contained_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "containment_note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sic_reference": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "holders_notified_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                "description": "Fecha de calendario AAAA-MM-DD"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "holders_notice": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "not_reportable_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "closed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "measures": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "taken_on": {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                  "description": "Fecha de calendario AAAA-MM-DD"
+                },
+                "recorded_by": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "description",
+                "taken_on",
+                "recorded_by"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "title",
+          "status",
+          "detected_at",
+          "affected_count",
+          "sensitive",
+          "sic_due_on",
+          "reported_on",
+          "overdue",
+          "version",
+          "description",
+          "data_categories",
+          "project_incident_ref",
+          "contained_at",
+          "containment_note",
+          "sic_reference",
+          "holders_notified_on",
+          "holders_notice",
+          "not_reportable_reason",
+          "closed_at",
+          "measures"
+        ],
+        "additionalProperties": false
+      },
+      "PrivacyUpdateIncidentBody": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 200
+          },
+          "description": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 8000,
+            "description": "Qué pasó, cómo se detectó y qué sistemas afectó"
+          },
+          "detected_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "description": "Cuándo se detectó; nunca posterior a ahora"
+          },
+          "affected_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000000,
+            "description": "Titulares afectados"
+          },
+          "data_categories": {
+            "minItems": 1,
+            "maxItems": 10,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "identification",
+                "contact",
+                "demographic",
+                "financial",
+                "employment",
+                "education",
+                "images",
+                "location",
+                "health",
+                "biometric"
+              ],
+              "description": "Categoría de datos personales"
+            }
+          },
+          "project_incident_ref": {
+            "default": null,
+            "description": "Código del incidente en Proyectos, si lo hay",
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "title",
+          "description",
+          "detected_at",
+          "affected_count",
+          "data_categories"
+        ],
+        "additionalProperties": false
+      },
+      "PrivacyIncidentNoteBody": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "note"
+        ],
+        "additionalProperties": false
+      },
+      "PrivacyReportIncidentBody": {
+        "type": "object",
+        "properties": {
+          "reported_on": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Día en que se reportó a la SIC; nunca posterior a hoy"
+          },
+          "reference": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 80,
+            "description": "Radicado que entregó la SIC"
+          }
+        },
+        "required": [
+          "reported_on",
+          "reference"
+        ],
+        "additionalProperties": false
+      },
+      "PrivacyNotifyHoldersBody": {
+        "type": "object",
+        "properties": {
+          "notified_on": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Día en que se informó a los titulares"
+          },
+          "note": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 2000,
+            "description": "Cómo y a quiénes se informó"
+          }
+        },
+        "required": [
+          "notified_on",
+          "note"
+        ],
+        "additionalProperties": false
+      },
+      "PrivacyAddMeasureBody": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 2000,
+            "description": "La medida que se tomó"
+          },
+          "taken_on": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Día en que se tomó; nunca posterior a hoy"
+          }
+        },
+        "required": [
+          "description",
+          "taken_on"
+        ],
+        "additionalProperties": false
+      },
+      "PrivacyCloseIncidentBody": {
+        "type": "object",
+        "properties": {
+          "not_reportable_reason": {
+            "default": null,
+            "description": "Obligatorio si no se reportó a la SIC",
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 10,
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "CookieConsentListResponse_Output": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "decided_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "policy_version": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "categories": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "necessary",
+                      "preferences",
+                      "analytics",
+                      "advertising"
+                    ]
+                  }
+                },
+                "ip_truncated": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "visitor": {
+                  "type": "string",
+                  "description": "Primeros caracteres del identificador aleatorio del navegador"
+                }
+              },
+              "required": [
+                "id",
+                "decided_at",
+                "policy_version",
+                "categories",
+                "ip_truncated",
+                "visitor"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "next_cursor"
+        ],
+        "additionalProperties": false
+      },
+      "CookieReportResponse_Output": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Fecha de calendario AAAA-MM-DD"
+          },
+          "to": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "Fecha de calendario AAAA-MM-DD"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "only_necessary": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Rechazaron todas las no necesarias"
+          },
+          "by_category": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "category": {
+                  "type": "string",
+                  "enum": [
+                    "necessary",
+                    "preferences",
+                    "analytics",
+                    "advertising"
+                  ]
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "category",
+                "count"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "by_version": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "policy_version": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "policy_version",
+                "count"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "from",
+          "to",
+          "total",
+          "only_necessary",
+          "by_category",
+          "by_version"
         ],
         "additionalProperties": false
       },
@@ -123799,7 +129095,11 @@
                   "type": "string"
                 },
                 "email": {
-                  "type": "string"
+                  "description": "Vacío cuando el envío se volvió anónimo (B42)",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 },
                 "phone": {
                   "type": [
