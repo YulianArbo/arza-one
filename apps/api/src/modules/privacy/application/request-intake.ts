@@ -6,6 +6,8 @@ import {
   type PrivacyRight,
 } from '@arza/contracts';
 
+import { v7 as uuidv7 } from 'uuid';
+
 import type { PrivacyRequest } from '../../../generated/prisma/client.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import {
@@ -66,32 +68,44 @@ function receivedAt(actor: PrivacyActor, receivedOn: string): Date {
   return receivedOn === bogotaToday(actor.at) ? actor.at : bogotaStartOf(receivedOn);
 }
 
-async function openTask(tx: TenantTransaction, actor: PrivacyActor, row: PrivacyRequest) {
+interface TaskTarget {
+  readonly id: string;
+  readonly code: string;
+  readonly name: string;
+  readonly kind: PrivacyRequestKind;
+  readonly dueOn: string;
+}
+
+/** La tarea del Oficial con la fecha límite legal; devuelve el trámite. */
+async function openTask(tx: TenantTransaction, actor: PrivacyActor, target: TaskTarget) {
   await seedPublishedFlow(tx, actor, REQUEST_FLOW_DATA);
   const instance = await startWorkflow(tx, actor, {
     key: REQUEST_FLOW,
     entityType: REQUEST_FLOW,
-    entityId: row.id,
-    title: `${row.code} · ${row.requesterName}`,
-    facts: { kind: row.kind },
-    dueAt: taskDueAt(toCalendarDate(row.dueOn ?? actor.at)),
+    entityId: target.id,
+    title: `${target.code} · ${target.name}`,
+    facts: { kind: target.kind },
+    dueAt: taskDueAt(target.dueOn),
   });
-  await tx.privacyRequest.update({
-    where: { id: row.id },
-    data: { workflowInstanceId: instance.id },
-  });
+  return instance.id;
 }
 
+/** Crea la solicitud y su tarea en una sola escritura de la solicitud (nace en la versión 1). */
 async function createRow(
   tx: TenantTransaction,
   actor: PrivacyActor,
   intake: RequestIntake,
 ): Promise<PrivacyRequest> {
   const kind = privacyRequestKindOf(intake.right);
+  const id = uuidv7();
+  const code = await nextBusinessCode(tx, REQUEST_SEQUENCE, actor.at, REQUEST_CODES);
+  const dueOn = await legalDueOn(tx, intake.receivedOn, kind, false);
+  const target = { id, code, name: intake.name, kind, dueOn };
   return tx.privacyRequest.create({
     data: {
+      id,
       tenantId: actor.tenantId,
-      code: await nextBusinessCode(tx, REQUEST_SEQUENCE, actor.at, REQUEST_CODES),
+      code,
       right: intake.right,
       kind,
       channel: intake.channel,
@@ -105,7 +119,8 @@ async function createRow(
       sourceCode: intake.sourceCode,
       privacyNoticeId: intake.privacyNoticeId,
       receivedAt: receivedAt(actor, intake.receivedOn),
-      dueOn: fromCalendarDate(await legalDueOn(tx, intake.receivedOn, kind, false)),
+      dueOn: fromCalendarDate(dueOn),
+      workflowInstanceId: await openTask(tx, actor, target),
     },
   });
 }
@@ -117,7 +132,6 @@ export async function fileRequest(
   intake: RequestIntake,
 ): Promise<PrivacyRequest> {
   const row = await createRow(tx, actor, intake);
-  await openTask(tx, actor, row);
   await addRequestEvent(tx, actor, row, {
     kind: 'received',
     note: null,

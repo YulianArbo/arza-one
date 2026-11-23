@@ -69,6 +69,10 @@ function anonymized(at: Date) {
     dataAuthorization: null,
     dataAuthorizedOn: null,
     logoFileId: null,
+    // Sin documento, la base de datos solo admite la ficha como prospecto; además queda retirada.
+    status: 'prospect',
+    statusReason: 'Datos suprimidos a pedido del titular',
+    deletedAt: at,
     dataErasedAt: at,
     dataBlockedAt: null,
     dataBlockReason: null,
