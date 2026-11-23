@@ -170,6 +170,12 @@ model Tenant {
   innIpAuthors             InnIpAuthor[]
   innTechWatch             InnTechWatch[]
   innCompetitors           InnCompetitor[]
+  webPages                 WebPage[]
+  webLegalTexts            WebLegalText[]
+  webLegalAcceptances      WebLegalAcceptance[]
+  webFormSubmissions       WebFormSubmission[]
+  webUnsubscribes          WebUnsubscribe[]
+  prvCookieConsents        PrivacyCookieConsent[]
   ctrClauses               CtrClause[]
   ctrTemplates             CtrTemplate[]
   ctrTemplateClauses       CtrTemplateClause[]
@@ -291,6 +297,8 @@ model Session {
   expiresAt         DateTime     @map("expires_at") @db.Timestamptz(6)
   revokedAt         DateTime?    @map("revoked_at") @db.Timestamptz(6)
   revokedReason     String?      @map("revoked_reason")
+  /// Al ingresar faltaba aceptar los términos de la plataforma vigentes (B41, decisión 3).
+  termsPending      Boolean      @default(false) @map("terms_pending")
   createdAt         DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   createdBy         String?      @map("created_by") @db.Uuid
   updatedAt         DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
@@ -5560,4 +5568,163 @@ model InnCompetitor {
 
   @@unique([tenantId, id])
   @@map("inn_competitors")
+}
+
+// Sitio público, formularios, textos legales y cookies (M17, B41) ----------------------------------
+
+/// Páginas institucionales administrables (ficha 17.18), como «Nosotros». Se ven en /{slug}.
+model WebPage {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  tenantId    String    @map("tenant_id") @db.Uuid
+  slug        String
+  title       String
+  summary     String?
+  body        String
+  status      String    @default("draft")
+  publishedAt DateTime? @map("published_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?   @map("created_by") @db.Uuid
+  updatedAt   DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy   String?   @map("updated_by") @db.Uuid
+  version     Int       @default(1)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, slug])
+  @@map("web_pages")
+}
+
+/// Textos legales versionados: borrador → aprobado → publicado → reemplazado (numeral 20.2).
+model WebLegalText {
+  id            String               @id @default(uuid(7)) @db.Uuid
+  tenantId      String               @map("tenant_id") @db.Uuid
+  key           String
+  versionNumber Int                  @map("version_number")
+  title         String
+  body          String
+  status        String               @default("draft")
+  draftedBy     String?              @map("drafted_by") @db.Uuid
+  approvedBy    String?              @map("approved_by") @db.Uuid
+  approvedAt    DateTime?            @map("approved_at") @db.Timestamptz(6)
+  conceptFileId String?              @map("concept_file_id") @db.Uuid
+  effectiveFrom DateTime?            @map("effective_from") @db.Timestamptz(6)
+  replacedAt    DateTime?            @map("replaced_at") @db.Timestamptz(6)
+  createdAt     DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?              @map("created_by") @db.Uuid
+  updatedAt     DateTime             @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?              @map("updated_by") @db.Uuid
+  version       Int                  @default(1)
+  deletedAt     DateTime?            @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant               @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  acceptances   WebLegalAcceptance[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, key, versionNumber])
+  @@index([tenantId, key, status])
+  @@map("web_legal_texts")
+}
+
+/// Aceptación expresa de una versión de los términos (decisión 3). Solo se agrega.
+model WebLegalAcceptance {
+  id         String       @id @default(uuid(7)) @db.Uuid
+  tenantId   String       @map("tenant_id") @db.Uuid
+  textId     String       @map("text_id") @db.Uuid
+  userId     String?      @map("user_id") @db.Uuid
+  partyId    String?      @map("party_id") @db.Uuid
+  acceptedAt DateTime     @map("accepted_at") @db.Timestamptz(6)
+  ip         String?
+  userAgent  String?      @map("user_agent")
+  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?      @map("created_by") @db.Uuid
+  updatedAt  DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String?      @map("updated_by") @db.Uuid
+  version    Int          @default(1)
+  deletedAt  DateTime?    @map("deleted_at") @db.Timestamptz(6)
+  tenant     Tenant       @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  text       WebLegalText @relation(fields: [tenantId, textId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, textId, userId])
+  @@index([tenantId, userId])
+  @@map("web_legal_acceptances")
+}
+
+/// Envíos de los formularios de contacto y cotización (decisión 7). La llave de baja se crea al
+/// enviar el acuse y solo se guarda su huella.
+model WebFormSubmission {
+  id                   String    @id @default(uuid(7)) @db.Uuid
+  tenantId             String    @map("tenant_id") @db.Uuid
+  code                 String
+  formKey              String    @map("form_key")
+  email                String
+  data                 Json
+  noticeId             String    @map("notice_id") @db.Uuid
+  noticeVersion        Int       @map("notice_version")
+  consentId            String    @map("consent_id") @db.Uuid
+  ip                   String?
+  userAgent            String?   @map("user_agent")
+  createdLeadId        String?   @map("created_lead_id") @db.Uuid
+  createdLeadCode      String?   @map("created_lead_code")
+  receivedAt           DateTime  @map("received_at") @db.Timestamptz(6)
+  mailPending          Boolean   @default(true) @map("mail_pending")
+  ackSentAt            DateTime? @map("ack_sent_at") @db.Timestamptz(6)
+  unsubscribeTokenHash String?   @unique @map("unsubscribe_token_hash")
+  unsubscribeUsedAt    DateTime? @map("unsubscribe_used_at") @db.Timestamptz(6)
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy            String?   @map("created_by") @db.Uuid
+  updatedAt            DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy            String?   @map("updated_by") @db.Uuid
+  version              Int       @default(1)
+  deletedAt            DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant               Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@index([tenantId, receivedAt])
+  @@map("web_form_submissions")
+}
+
+/// Bajas de comunicaciones comerciales (decisión 9). Todo envío comercial la consulta primero.
+model WebUnsubscribe {
+  id             String    @id @default(uuid(7)) @db.Uuid
+  tenantId       String    @map("tenant_id") @db.Uuid
+  email          String
+  source         String
+  submissionId   String?   @map("submission_id") @db.Uuid
+  unsubscribedAt DateTime  @map("unsubscribed_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy      String?   @map("created_by") @db.Uuid
+  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy      String?   @map("updated_by") @db.Uuid
+  version        Int       @default(1)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, email])
+  @@map("web_unsubscribes")
+}
+
+/// Elección de cookies de un visitante del sitio (numeral 20.4; B41, decisión 4). Solo se agrega.
+model PrivacyCookieConsent {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  tenantId      String    @map("tenant_id") @db.Uuid
+  visitorId     String    @map("visitor_id") @db.Uuid
+  policyVersion Int       @map("policy_version")
+  categories    String[]
+  decidedAt     DateTime  @map("decided_at") @db.Timestamptz(6)
+  ipTruncated   String?   @map("ip_truncated")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?   @map("created_by") @db.Uuid
+  updatedAt     DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?   @map("updated_by") @db.Uuid
+  version       Int       @default(1)
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, visitorId])
+  @@index([tenantId, decidedAt])
+  @@map("prv_cookie_consents")
 }
