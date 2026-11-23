@@ -1,5 +1,18 @@
 # Entrega entre agentes — ARZA ONE
 
+**B41, 23/11/2026 (Claude Code).** Rama `feat/b41-sitio-publico-formularios-text`. Decisiones en `docs/bloques/B41-cierre.md` y reglas en `docs/manual/datos/web.md`. Puntos para quien continúe:
+
+1. El módulo vive en `apps/api/src/modules/web` y se publica como `@arza/api/web` para el worker (`web.site-work`, cada 30 s). Compile la API antes de analizar el worker.
+2. Identidad no lee tablas `web_`: pregunta por los términos pendientes con el puerto `PLATFORM_TERMS_GATE` (`iam/application/platform-terms-gate.ts`), que el sitio presta con un módulo global. La sesión guarda `terms_pending`; `AccessGuard` responde 403 `TERMS_PENDING` en rutas con permiso o «según el registro».
+3. Todo envío comercial futuro (por ejemplo, el boletín) debe consultar `isUnsubscribed` de `apps/api/src/modules/web/index.ts`.
+4. `prv_cookie_consents` ya existe (B41, decisión 4): B42 solo agrega su consulta, informes y retención.
+5. Las pruebas de navegador traen por defecto la elección de cookies hecha (fixture `cookieChoice` en `e2e/support/fixtures.ts`); las del aviso la borran con `askCookies`. La simulación base de la API responde las rutas públicas del sitio.
+6. Rutas de pruebas en `apps/api/test/support/api-paths-site.ts`; recorrido de auditoría en `apps/api/test/int/audit/support/web-route-calls.ts` (12 rutas), **al final**: publica los términos de la plataforma en la otra empresa del escenario, y desde ese momento todo ingreso nuevo de esa empresa espera la aceptación.
+7. La lista de rutas públicas permitidas está en `apps/api/test/access.test.ts`: cada ruta pública nueva se agrega allí, una por una.
+8. En Windows, `open(..., 'w')` de Python escribe fin de línea CRLF: use `newline=''` o corra Prettier antes del commit.
+
+Los cambios sueltos del propietario (respaldos, `.csv`, `CLAUDE.md`, ADR 024/025, `.agents/`, `.claude/`, `docs/diagnosticos/`) siguen sin commit y no se tocaron.
+
 **B40, 22/11/2026 (Claude Code).** Rama `feat/b40-innovacion-y-propiedad-intelec`. Decisiones en `docs/bloques/B40-cierre.md` y reglas en `docs/manual/datos/inn.md`. Puntos para quien continúe:
 
 1. El módulo vive en `apps/api/src/modules/inn` y se publica como `@arza/api/inn` para el worker (`inn.daily-work`, 6:45). Compile la API antes de analizar el worker.
