@@ -94,6 +94,27 @@ describe('avisos de plazo', () => {
   });
 });
 
+describe('avisos de plazo', () => {
+  it('el incidente avisa antes de que venza el plazo para reportar a la SIC, una sola vez', async () => {
+    const dpo = await scenario.officer();
+    const id = await scenario.incident(dpo);
+    const incident = await scenario.incidentDetail(dpo, id);
+    const dueIn = Math.round(
+      (new Date(`${incident.sic_due_on}T12:00:00Z`).getTime() - scenario.clock.now().getTime()) /
+        DAY,
+    );
+    const warnings = async (): Promise<number> =>
+      scenario.inTenant((tx) =>
+        tx.outboxEvent.count({
+          where: { eventType: 'privacy.incident.warned', payload: { path: ['id'], equals: id } },
+        }),
+      );
+    await daily(dueIn - 1);
+    await daily(dueIn - 1);
+    expect(await warnings()).toBe(1);
+  });
+});
+
 describe('desistimiento', () => {
   it('el reclamo que en dos meses no se completó se cierra y se le avisa al titular', async () => {
     const dpo = await scenario.officer();

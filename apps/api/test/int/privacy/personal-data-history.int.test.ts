@@ -131,3 +131,23 @@ describe('entrega de los datos', () => {
     ]);
   });
 });
+
+describe('entrega de los datos', () => {
+  it('un prospecto sin documento y con su relación terminada deja esos datos vacíos', async () => {
+    const dpo = await scenario.officer();
+    const partyId = await scenario.holder();
+    await scenario.inTenant(async (tx) => {
+      await tx.party.update({
+        where: { id: partyId },
+        data: { status: 'prospect', idType: null, idNumber: null, checkDigit: null },
+      });
+      await tx.partyRole.updateMany({ where: { partyId }, data: { status: 'ended' } });
+    });
+    const party = (await report(dpo, partyId)).sections.find(
+      (section) => section.key === '0-party',
+    );
+    const fields = party?.records[0]?.fields ?? [];
+    const value = (label: string) => fields.find((field) => field.label === label)?.value;
+    expect([value('Documento'), value('Relación con la empresa')]).toEqual([null, null]);
+  });
+});
