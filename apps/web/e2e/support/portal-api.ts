@@ -240,6 +240,28 @@ export const PORTAL_API: ApiRoutes = {
       version: 2,
     },
   },
+  '/v1/portal/me/privacy-requests': {
+    body: {
+      data: [
+        {
+          id: '01999a00-0000-7000-8000-0000000fb001',
+          code: 'PRV-2026-0001',
+          right: 'know',
+          kind: 'inquiry',
+          channel: 'portal',
+          status: 'received',
+          requester_name: 'Ana Cliente',
+          party: null,
+          received_at: '2026-11-20T15:00:00.000Z',
+          due_on: '2026-12-04',
+          overdue: false,
+          extended: false,
+          paused: false,
+          version: 1,
+        },
+      ],
+    },
+  },
 };
 
 /** Cada sección del portal y el texto que indica que ya cargó. */
