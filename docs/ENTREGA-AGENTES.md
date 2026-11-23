@@ -1,5 +1,18 @@
 # Entrega entre agentes — ARZA ONE
 
+**B42, 23/11/2026 (Claude Code).** Rama `feat/b42-privacidad-completa`. Decisiones en `docs/bloques/B42-cierre.md` y reglas en `docs/manual/datos/prv.md` y en la sección «Privacidad completa (B42)» de `apps/api/README.md`. Puntos para quien continúe:
+
+1. Privacidad se publica como `@arza/api/privacy` para el worker: `prv.request-work` (cada 30 s: correos al titular y PDF de la entrega) y `prv.daily-work` (7:00: avisos de plazo, desistimiento, cookies de más de 3 años). El worker también llama a `anonymizeExpiredSubmissions` del sitio (formularios de más de 2 años). Compile la API antes de analizar el worker.
+2. Un módulo nuevo que guarde datos personales registra una `PersonalDataSource` en `PersonalDataRegistry` desde el constructor de su módulo de Nest (vea crm, service, web, hr, fin y contract). Privacidad nunca lee tablas ajenas: Terceros responde por `PARTY_DIRECTORY` (`holder`, `settleErasure`) e Identidad por `accountsOfParty` y `anonymizePortalAccount`.
+3. El motor de tareas acepta `dueAt` en `startWorkflow` y `rescheduleWorkflow()` mueve la fecha (con `null`, la tarea no vence mientras el plazo está suspendido).
+4. Todo envío comercial futuro debe consultar `mayContactCommercially` del índice del sitio (baja + autorización `MARKETING` vigente).
+5. Servicio al cliente crea la solicitud en Privacidad al clasificar una PQRSF con `privacy_kind` (`pqrsf-transfer.ts`), en la misma transacción.
+6. Tipos de aviso nuevos (`prv_*`) exigen ampliar las listas de la base (`20261126010000_ntf_privacy_notices`); los próximos deben hacer lo mismo.
+7. Rutas de pruebas en `apps/api/test/support/api-paths-privacy.ts`; recorrido de auditoría en `apps/api/test/int/audit/support/privacy-request-route-calls.ts` (23 rutas). Las rutas públicas nuevas están en `apps/api/test/access.test.ts`.
+8. Los DTO de incidentes llevan el prefijo «Privacy»: sin él chocaban en OpenAPI con los de Proyectos.
+
+Los cambios sueltos del propietario (respaldos, `.csv`, `CLAUDE.md`, ADR 024/025, `.agents/`, `.claude/`, `docs/diagnosticos/`) siguen sin commit y no se tocaron.
+
 **B41, 23/11/2026 (Claude Code).** Rama `feat/b41-sitio-publico-formularios-text`. Decisiones en `docs/bloques/B41-cierre.md` y reglas en `docs/manual/datos/web.md`. Puntos para quien continúe:
 
 1. El módulo vive en `apps/api/src/modules/web` y se publica como `@arza/api/web` para el worker (`web.site-work`, cada 30 s). Compile la API antes de analizar el worker.

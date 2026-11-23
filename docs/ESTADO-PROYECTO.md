@@ -1,5 +1,12 @@
 # Estado del proyecto ARZA ONE
 
+**B42 construido y en revisión, 23/11/2026 (Claude Code).** El propietario aprobó el plan («Apruebo todo», 12 decisiones). Rama `feat/b42-privacidad-completa` desde `a776f34` (`main` con B41 fusionado). Bloque crítico: requiere revisión externa.
+
+- Se completó el módulo de privacidad (M18): solicitudes del titular (sitio público, portal, registro interno y traslado desde PQRSF) con plazos legales en días hábiles, prórroga, requerimiento de reclamos incompletos y desistimiento; verificación de identidad; exportación de datos en PDF y JSON; supresión con bloqueo por obligación legal; incidentes de seguridad con reporte a la SIC; informe de consentimientos de cookies; retención automática y alertas al Oficial de datos.
+- Migraciones: `20261126000000_prv_requests_incidents_exports` y `20261126010000_ntf_privacy_notices`. Trabajos nuevos: `prv.request-work` (cada 30 s) y `prv.daily-work` (7:00).
+- Verificado: privacidad 60/60, resto de la integración por partes en verde, pantallas 1011/1011 (85,34 % de ramas), worker 20/20, tipos, límites, knip y secretos. Sin ejecutar en este equipo: pruebas de navegador y `pnpm build` completo; los confirma la CI.
+- Pendientes principales: concepto jurídico de los textos al titular, revisión en el navegador y revisión externa. Cierre en `docs/bloques/B42-cierre.md`.
+
 **B41 construido y en revisión, 23/11/2026 (Claude Code).** El propietario aprobó el plan («Apruebo todo», 12 decisiones). Rama `feat/b41-sitio-publico-formularios-text` desde `896c925` (`main` con B40 fusionado). Bloque crítico: requiere revisión externa.
 
 - Se construyó el módulo del sitio público (M17): formularios de contacto y cotización que crean el prospecto en Comercial con su autorización y acuse, textos legales versionados (borrador → aprobado → publicado → reemplazado, aprobados por otra persona), términos de la plataforma que se aceptan en el siguiente ingreso (la API bloquea hasta aceptarlos), aviso y centro de preferencias de cookies, baja de comunicaciones en un clic, páginas administrables y el módulo «Sitio web» en el menú.
