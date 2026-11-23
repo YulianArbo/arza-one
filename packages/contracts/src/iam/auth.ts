@@ -116,6 +116,9 @@ export const sessionResponseSchema = z.object({
   stage: signInStageSchema,
   csrf_token: z.string().describe('Código antifalsificación de esta sesión'),
   expires_at: z.iso.datetime({ offset: true }).describe('Vencimiento total de la sesión'),
+  terms_pending: z
+    .boolean()
+    .describe('Debe aceptar los términos de la plataforma antes de continuar (B41)'),
 });
 
 /** Datos del perfil propio. */
