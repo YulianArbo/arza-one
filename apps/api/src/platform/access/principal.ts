@@ -12,6 +12,11 @@ export interface Principal {
   readonly signInComplete: boolean;
   /** Confirmó su identidad hace poco, como exigen las acciones de alto riesgo (numeral 15.1). */
   readonly recentlyVerified: boolean;
+  /**
+   * Al ingresar faltaba aceptar los términos de la plataforma vigentes (B41, decisión 3). Hasta
+   * aceptarlos, solo se atienden las rutas de la cuenta propia y del inicio de sesión.
+   */
+  readonly termsPending: boolean;
 }
 
 /** Valida la sesión de la petición. Lo implementa el módulo de identidad (M01). */

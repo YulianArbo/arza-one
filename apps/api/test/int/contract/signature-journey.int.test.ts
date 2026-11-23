@@ -79,6 +79,7 @@ async function companyAfterRecentVerification(context: EmploymentCase): Promise<
     csrfToken: 'fixture',
     signInComplete: true,
     recentlyVerified: false,
+    termsPending: false,
   };
   const target = { contractId: context.contractId, envelopeId: context.envelopeId };
   await expect(

@@ -28,6 +28,8 @@ export const IAM_ERROR_CODES = {
   reauthenticationRequired: 'REAUTHENTICATION_REQUIRED',
   reauthenticationFailed: 'REAUTHENTICATION_FAILED',
   sessionNotFound: 'SESSION_NOT_FOUND',
+  /** Faltan por aceptar los términos de la plataforma vigentes (B41). */
+  termsPending: 'TERMS_PENDING',
 } as const;
 
 export type PasswordShapeProblem = 'too_short' | 'too_long';

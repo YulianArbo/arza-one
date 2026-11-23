@@ -3,6 +3,11 @@
 export { IamModule } from './interface/iam.module.js';
 export { seedAccessControl } from './application/access-seed.js';
 export {
+  clearTermsPending,
+  PLATFORM_TERMS_GATE,
+  type PlatformTermsGate,
+} from './application/platform-terms-gate.js';
+export {
   prepareAccountEmail,
   type AccountEmail,
   type AccountEmailDependencies,
