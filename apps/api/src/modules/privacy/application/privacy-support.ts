@@ -24,7 +24,12 @@ export function actorOf(principal: Principal, meta: RequestMeta, at: Date): Priv
 
 export interface PrivacyChange {
   readonly action: string;
-  readonly entityType: 'prv_notice' | 'prv_consent' | 'prv_processing_activity' | 'prv_processor';
+  readonly entityType:
+    | 'prv_notice'
+    | 'prv_consent'
+    | 'prv_processing_activity'
+    | 'prv_processor'
+    | 'prv_cookie_consent';
   readonly entityId: string;
   readonly changes: Prisma.InputJsonObject;
 }

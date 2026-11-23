@@ -50,13 +50,13 @@ const visitorFields = {
 
 export const contactFormSchema = z.strictObject({
   ...visitorFields,
-  message: z.string().trim().min(10, 'Cuéntenos un poco más.').max(4000),
+  message: z.string().trim().min(10, 'Cuéntenos un poco más.').max(1800),
 });
 
 export const quoteFormSchema = z.strictObject({
   ...visitorFields,
   service: siteEnumOf(SITE_SERVICES).describe('Servicio que le interesa'),
-  description: z.string().trim().min(20, 'Cuéntenos un poco más del proyecto.').max(4000),
+  description: z.string().trim().min(20, 'Cuéntenos un poco más del proyecto.').max(1800),
   timeframe: siteEnumOf(QUOTE_TIMEFRAMES).describe('Cuándo lo necesita'),
 });
 

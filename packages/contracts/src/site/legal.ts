@@ -84,6 +84,9 @@ export const publicLegalTextSchema = z.object({
   effective_from: siteDateTimeSchema,
 });
 
+/** La política de tratamiento publicada en Privacidad, para el pie del sitio (decisión 1). */
+export const publicPrivacyPolicySchema = publicLegalTextSchema.omit({ key: true });
+
 /** Términos de la plataforma de quien ingresa (decisión 3). */
 export const platformTermsStatusSchema = z.object({
   pending: z.boolean().describe('Debe aceptar la versión vigente para continuar'),
@@ -98,5 +101,6 @@ export type CreateLegalText = z.infer<typeof createLegalTextSchema>;
 export type UpdateLegalText = z.infer<typeof updateLegalTextSchema>;
 export type ApproveLegalText = z.infer<typeof approveLegalTextSchema>;
 export type PublicLegalText = z.infer<typeof publicLegalTextSchema>;
+export type PublicPrivacyPolicy = z.infer<typeof publicPrivacyPolicySchema>;
 export type PlatformTermsStatus = z.infer<typeof platformTermsStatusSchema>;
 export type AcceptPlatformTerms = z.infer<typeof acceptPlatformTermsSchema>;

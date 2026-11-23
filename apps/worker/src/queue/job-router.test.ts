@@ -125,6 +125,7 @@ describe('enrutador de trabajos de documentos y avisos', () => {
       JOBS.innDailyWork,
       JOBS.svcSlaWork,
       JOBS.svcCareWork,
+      JOBS.webSiteWork,
     ]) {
       await expect(route({ name: job.name, data: {} })).rejects.toThrow('no se usa');
     }

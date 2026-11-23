@@ -67,6 +67,10 @@
     "./inn": {
       "types": "./dist/modules/inn/index.d.ts",
       "default": "./dist/modules/inn/index.js"
+    },
+    "./web": {
+      "types": "./dist/modules/web/index.d.ts",
+      "default": "./dist/modules/web/index.js"
     }
   },
   "scripts": {

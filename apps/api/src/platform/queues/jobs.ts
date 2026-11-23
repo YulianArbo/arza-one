@@ -153,6 +153,8 @@ const svcSlaWorkJobSchema = z.object({});
  * avisos de «por vencer» y vencida. Es del sistema: recorre las empresas con trabajo.
  */
 const svcCareWorkJobSchema = z.object({});
+/** Acuse de los formularios del sitio con su enlace de baja (B41). Recorre las empresas con trabajo. */
+const webSiteWorkJobSchema = z.object({});
 
 export type TenantJob = z.infer<typeof tenantJobSchema>;
 export type ExampleEmailJob = z.infer<typeof exampleEmailJobSchema>;
@@ -308,6 +310,11 @@ export const JOBS = {
     name: 'svc.care-work',
     schema: svcCareWorkJobSchema,
   },
+  webSiteWork: {
+    queue: QUEUES.platform,
+    name: 'web.site-work',
+    schema: webSiteWorkJobSchema,
+  },
 } as const;
 
 /** Trabajos programados: el worker los registra al arrancar (expresión cron, hora de Bogotá). */
@@ -378,6 +385,8 @@ export const SCHEDULED_JOBS = [
   // Cada 30 segundos: el acuse de una PQRSF y la encuesta de un tiquete resuelto llegan casi de
   // inmediato; los avisos de plazo, a lo sumo medio minuto tarde (B29).
   { id: 'svc.care-work.every-30-seconds', job: JOBS.svcCareWork, pattern: '*/30 * * * * *' },
+  // Cada 30 segundos: el acuse de un formulario del sitio llega casi de inmediato (B41).
+  { id: 'web.site-work.every-30-seconds', job: JOBS.webSiteWork, pattern: '*/30 * * * * *' },
 ] as const;
 
 export type JobDefinition = (typeof JOBS)[keyof typeof JOBS];

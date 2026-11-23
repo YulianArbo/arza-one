@@ -9,8 +9,6 @@ export const SITE_ERROR_CODES = {
   /** Nadie aprueba el texto legal que redactó (B41, decisión 2). */
   selfApproval: 'SITE_SELF_APPROVAL',
   slugTaken: 'SITE_SLUG_TAKEN',
-  /** Hay términos de la plataforma nuevos por aceptar (decisión 3). */
-  termsPending: 'SITE_TERMS_PENDING',
   termsOutdated: 'SITE_TERMS_OUTDATED',
   /** El sitio no tiene empresa configurada o el formulario no tiene aviso publicado. */
   formUnavailable: 'SITE_FORM_UNAVAILABLE',
