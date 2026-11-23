@@ -29,7 +29,7 @@
 - **Baja de comunicaciones comerciales en un clic.**
   - Cada correo de confirmación trae un enlace de baja. Basta abrirlo, sin iniciar sesión.
   - El correo queda en una lista de bajas que todo envío comercial futuro debe consultar.
-- **Páginas institucionales administrables**, como «Nosotros». Se redactan, se publican y se retiran desde la plataforma, y se ven en su dirección (por ejemplo `/nosotros`).
+- **Páginas institucionales administrables**, como «Nosotros». Se redactan, se publican y se retiran desde la plataforma, y se ven en su dirección (por ejemplo `/nosotros`). Antes de mostrarla, el servidor del sitio confirma con la API que está publicada; una dirección que no corresponde a una página publicada responde 404 (la prueba en navegador de la CI lo detectó y se corrigió).
 - **Módulo «Sitio web»** en el menú (grupo Gobierno), con tres partes: Páginas, Textos legales y Formularios recibidos (que incluye las bajas).
 - **Verificación pública de documentos** (B25) y **PQRSF** (B29): siguen funcionando como estaban.
 
@@ -97,7 +97,7 @@ Antes de empezar: `pnpm infra:up`, `pnpm db:migrate`, `pnpm db:seed:demo` y `pnp
    - Cierre sesión y vuelva a entrar con cualquier cuenta interna. Antes de la plataforma aparece la pantalla de los términos.
    - Pulse **Aceptar y continuar** sin marcar la casilla: se lo pide. Márquela y acepte: entra a la plataforma.
    - Cierre sesión y entre otra vez: ya no se los pide.
-8. **Páginas.** En **Sitio web › Páginas** está «Nosotros» de demostración. Ábrala en el sitio con `/nosotros`. Cree otra página (por ejemplo «servicios»), publíquela, véala en `/servicios` y luego **Retírela**: la dirección deja de mostrarla.
+8. **Páginas.** En **Sitio web › Páginas** está «Nosotros» de demostración. Ábrala en el sitio con `/nosotros`. Cree otra página (por ejemplo «servicios»), publíquela, véala en `/servicios` y luego **Retírela**: la dirección deja de mostrarla y responde «No encontramos esta página».
 9. **Permisos.** Como Colaborador, si escribe a mano `/app/sitio-web/paginas`, la plataforma no le muestra las páginas.
 
 ## Cómo se probó
