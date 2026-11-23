@@ -9,6 +9,8 @@ export const ACCESS_PATHS = {
   reset: '/restablecer-contrasena',
   secondFactor: '/segundo-factor',
   secondFactorSetup: '/segundo-factor/configurar',
+  /** Aceptar los términos de la plataforma publicados después del último ingreso (B41). */
+  terms: '/aceptar-terminos',
 } as const;
 
 export const PROFILE_PATH = '/app/perfil';
@@ -70,4 +72,10 @@ function isLoginNotice(value: string): value is LoginNotice {
 /** Aviso para la pantalla de inicio de sesión; solo los motivos conocidos. */
 export function loginNoticeOf(value: string | null): string | null {
   return value !== null && isLoginNotice(value) ? LOGIN_NOTICES[value] : null;
+}
+
+/** Pantalla para aceptar los términos pendientes (B41), con la pantalla a la que se vuelve. */
+export function termsPath(returnTo?: string | null): string {
+  if (returnTo === undefined || returnTo === null) return ACCESS_PATHS.terms;
+  return `${ACCESS_PATHS.terms}?${new URLSearchParams({ volver: returnTo }).toString()}`;
 }

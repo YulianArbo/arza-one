@@ -80,6 +80,17 @@ describe('pantallas que exigen sesión: etapas y superficies', () => {
     expect(screen.queryByRole('button', { name: /Salir/ })).toBeNull();
   });
 
+  it('con términos de la plataforma por aceptar, la lleva a leerlos (B41)', async () => {
+    mockApi({ 'GET /v1/auth/session': () => json({ ...SESSION, terms_pending: true }) });
+    renderGuarded();
+    await vi.waitFor(() => {
+      expect(navigation.replace).toHaveBeenCalledWith(
+        '/aceptar-terminos?volver=%2Fapp%2Festado-del-sistema',
+      );
+    });
+    expect(screen.queryByRole('button', { name: /Salir/ })).toBeNull();
+  });
+
   it('una persona de la aplicación interna que entra al portal va a su aplicación', async () => {
     mockApi({ 'GET /v1/auth/session': () => json(SESSION) });
     renderGuarded('portal');
