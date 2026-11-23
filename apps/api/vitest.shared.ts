@@ -124,6 +124,10 @@ export const DATABASE_BOUND_FILES = [
   // Innovación y propiedad intelectual (B40): todo con base de datos, medido en integración.
   'src/modules/inn/application/**/*.ts',
   'src/modules/inn/interface/**/*.ts',
+  // Sitio público, textos legales y cookies (B41): todo con base de datos, medido en integración.
+  'src/modules/iam/application/platform-terms-gate.ts',
+  'src/modules/web/application/**/*.ts',
+  'src/modules/web/interface/**/*.ts',
 ];
 
 /** Procesos que solo arrancan algo; se prueban a mano o como proceso real. */

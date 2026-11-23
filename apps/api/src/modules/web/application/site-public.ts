@@ -40,7 +40,7 @@ export class SitePublic {
   constructor(
     @Inject(DatabaseService) private readonly database: DatabaseService,
     @Inject(CLOCK) private readonly clock: Clock,
-    @Inject(CONFIG) private readonly config: Env,
+    @Inject(CONFIG) private readonly config: Pick<Env, 'PUBLIC_SITE_TAX_ID'>,
   ) {}
 
   private async read<T>(fallback: T, work: (tx: TenantTransaction) => Promise<T>): Promise<T> {

@@ -142,7 +142,7 @@ export class SiteForms {
   constructor(
     @Inject(DatabaseService) private readonly database: DatabaseService,
     @Inject(CLOCK) private readonly clock: Clock,
-    @Inject(CONFIG) private readonly config: Env,
+    @Inject(CONFIG) private readonly config: Pick<Env, 'PUBLIC_SITE_TAX_ID'>,
   ) {}
 
   /** El aviso que acompaña al formulario; sin empresa o sin aviso, no está disponible. */

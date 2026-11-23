@@ -22,7 +22,7 @@ import { DatabaseService } from '../../../platform/database/database.service.js'
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import { AppError } from '../../../platform/errors/app-error.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
-import { recordWebChange, siteTenantId, type WebActor } from './web-support.js';
+import { recordWebAudit, recordWebChange, siteTenantId, type WebActor } from './web-support.js';
 
 // Formularios recibidos y bajas de comunicaciones comerciales (B41, decisión 9). La llave de baja
 // solo existe en el correo de acuse: aquí se guarda su huella y sirve una sola vez.
@@ -90,7 +90,16 @@ async function recordUnsubscribe(
     where: { id: row.id },
     data: { unsubscribeUsedAt: actor.at },
   });
-  if (await isUnsubscribed(tx, row.email)) return true;
+  if (await isUnsubscribed(tx, row.email)) {
+    // El correo ya estaba de baja por otro enlace: queda constancia de que se usó este.
+    await recordWebAudit(tx, actor, {
+      action: 'web.unsubscribe.link.use',
+      entityType: 'web_form_submission',
+      entityId: row.id,
+      changes: { code: row.code, already: true },
+    });
+    return true;
+  }
   const created = await tx.webUnsubscribe.create({
     data: {
       tenantId: actor.tenantId,
@@ -115,7 +124,7 @@ export class Submissions {
   constructor(
     @Inject(DatabaseService) private readonly database: DatabaseService,
     @Inject(CLOCK) private readonly clock: Clock,
-    @Inject(CONFIG) private readonly config: Env,
+    @Inject(CONFIG) private readonly config: Pick<Env, 'PUBLIC_SITE_TAX_ID'>,
   ) {}
 
   async list(principal: Principal, formKey: SiteFormKey | undefined): Promise<Submission[]> {

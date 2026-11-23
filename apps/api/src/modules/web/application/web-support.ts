@@ -132,9 +132,9 @@ export function optionalRef(refs: ReadonlyMap<string, SiteRef>, id: string | nul
 
 /** IPv4 sin el último octeto; IPv6 con solo los tres primeros grupos (numeral 20.4). */
 export function truncatedIp(ip: string | null): string | null {
-  if (ip === null || ip === '') return null;
-  const v4 = /^(?:::ffff:)?(\d{1,3}\.\d{1,3}\.\d{1,3})\.\d{1,3}$/u.exec(ip);
-  if (v4 !== null) return `${v4[1] ?? ''}.0`;
+  if (ip === null) return null;
+  const v4 = /^(?:::ffff:)?(\d{1,3}\.\d{1,3}\.\d{1,3})\.\d{1,3}$/u;
+  if (v4.test(ip)) return ip.replace(v4, '$1.0');
   if (!ip.includes(':')) return null;
   return `${ip.split(':').slice(0, 3).join(':')}::`;
 }
