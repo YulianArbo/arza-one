@@ -2,6 +2,7 @@ import { privacyRequestListResponseSchema, publicPrivacyStatusSchema } from '@ar
 import { v7 as uuidv7 } from 'uuid';
 import { describe, expect, it } from 'vitest';
 
+import { bogotaToday } from '../../../src/modules/core/index.js';
 import type { Person } from '../iam/support/access-scenario.js';
 import { errorCode } from '../iam/support/iam-fixtures.js';
 import { RequestScenario, REQUESTS } from './support/request-scenario.js';
@@ -14,7 +15,7 @@ const scenario = new RequestScenario('privacidad bordes de solicitudes');
 
 function daysAgo(days: number): string {
   const at = scenario.clock.now();
-  return new Date(at.getTime() - days * 86_400_000).toISOString().slice(0, 10);
+  return bogotaToday(new Date(at.getTime() - days * 86_400_000));
 }
 
 async function attempt(dpo: Person, id: string, action: string, body: object): Promise<string> {

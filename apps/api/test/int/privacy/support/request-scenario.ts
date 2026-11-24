@@ -10,6 +10,7 @@ import {
 import request from 'supertest';
 import { expect } from 'vitest';
 
+import { bogotaToday } from '../../../../src/modules/core/index.js';
 import {
   runPrivacyWork,
   type PrivacyWorkDependencies,
@@ -68,8 +69,9 @@ export class RequestScenario extends PrivacyScenario {
     return { ...privacyRequestReceiptSchema.parse(response.body), email: String(body['email']) };
   }
 
+  /** Hoy en Colombia (dd en America/Bogota), como lo cuenta la API. */
   today(): string {
-    return this.clock.now().toISOString().slice(0, 10);
+    return bogotaToday(this.clock.now());
   }
 
   internalBody(overrides: object = {}): Record<string, unknown> {
