@@ -1,8 +1,10 @@
-// Despliegue al ambiente de pruebas con reversión automática (B07, numeral 10.6).
+// Despliegue con reversión automática (numeral 10.6): al ambiente de pruebas (B07) y a producción
+// (B44, con la aprobación del Director General sobre una versión etiquetada).
 //
 //  1. Sube los archivos de la versión y descarga sus imágenes.   ┐ Si algo falla aquí, la versión
 //  2. Enciende los datos, prepara Garage y copia la base.         │ anterior sigue encendida y no
-//  3. Aplica las migraciones y los datos ficticios.               ┘ se toca.
+//  3. Aplica las migraciones y los datos semilla (los ficticios,  ┘ se toca.
+//     solo en pruebas).
 //  4. Cambia el enlace current y enciende la versión nueva.       ┐ Si algo falla aquí, vuelve
 //  5. Pruebas de humo desde fuera y del aislamiento entre empresas ┘ sola a la versión anterior.
 //
@@ -15,11 +17,13 @@ import {
   compose,
   currentVersionScript,
   parseVersion,
+  PROFILES,
   releaseDir,
   releaseEnv,
   switchScript,
   validateRelease,
   type ReleaseSettings,
+  type Target,
 } from './release.ts';
 import { DeployError, required, shellQuote, tail, type Remote } from './remote.ts';
 
@@ -55,11 +59,8 @@ export interface DeployOutcome {
   readonly reason?: string;
 }
 
-/** Servicios que deben quedar sanos para dar la versión por encendida. */
-const APP_SERVICES = ['caddy', 'web', 'api', 'worker', 'gotenberg', 'mailpit'];
 const DATA_SERVICES = ['postgres', 'valkey', 'garage'];
 const WAIT = '--wait --wait-timeout 300';
-const STAGING_BUCKET = 'arza-one-staging';
 /** Versiones y copias de la base que se conservan en el servidor. */
 const KEPT_RELEASES = 5;
 const KEPT_BACKUPS = 10;
@@ -74,7 +75,7 @@ function loadServerEnv(baseDir: string): string {
 function garageCli(remote: Remote, settings: DeploySettings): GarageCli {
   return (args) => {
     const quoted = args.map((arg) => (SERVER_SECRETS.has(arg) ? `"${arg}"` : shellQuote(arg)));
-    const command = compose(settings.baseDir, settings.version, 'exec -T garage /garage');
+    const command = compose(settings, settings.version, 'exec -T garage /garage');
     return remote(`${loadServerEnv(settings.baseDir)}\n${command} ${quoted.join(' ')}`);
   };
 }
@@ -83,7 +84,7 @@ function garageCli(remote: Remote, settings: DeploySettings): GarageCli {
 function prepareFiles(remote: Remote, settings: DeploySettings): void {
   try {
     setupGarage(garageCli(remote, settings), {
-      bucket: STAGING_BUCKET,
+      bucket: PROFILES[settings.environment].bucket,
       accessKeyId: '${S3_ACCESS_KEY}',
       secretAccessKey: '${S3_SECRET_KEY}',
     });
@@ -135,7 +136,7 @@ function backup(
   const stamp = now.toISOString().replaceAll(/[-:]/g, '').slice(0, 15);
   const file = shellQuote(`${dir}/${stamp}Z-antes-de-${settings.version}.dump`);
   const dump = compose(
-    settings.baseDir,
+    settings,
     settings.version,
     'exec -T postgres pg_dump --username postgres --format custom arza_one',
   );
@@ -157,66 +158,65 @@ function prepare(
   previous: string | undefined,
 ): void {
   const { remote } = deps;
-  const { baseDir, version } = settings;
+  const { version } = settings;
   upload(remote, settings);
   required(
     remote,
     'descargar las imágenes',
-    compose(baseDir, version, '--profile tools pull --quiet'),
+    compose(settings, version, '--profile tools pull --quiet'),
   );
   required(
     remote,
     'encender la base de datos, las colas y los archivos',
-    compose(baseDir, version, 'up --detach', WAIT, ...DATA_SERVICES),
+    compose(settings, version, 'up --detach', WAIT, ...DATA_SERVICES),
   );
   prepareFiles(remote, settings);
   backup(remote, settings, previous, deps.now());
-  required(remote, 'aplicar las migraciones', compose(baseDir, version, 'run --rm migrate'));
-  required(
-    remote,
-    'cargar los datos ficticios',
-    compose(
-      baseDir,
-      version,
-      'run --rm --no-deps api node dist/platform/database/seed/seed-main.js --demo',
-    ),
-  );
+  required(remote, 'aplicar las migraciones', compose(settings, version, 'run --rm migrate'));
+  required(remote, 'cargar los datos semilla', compose(settings, version, seedCommand(settings)));
+}
+
+/** Catálogos y empresa de la plataforma; los datos ficticios, solo en pruebas (B44). */
+function seedCommand(target: Target): string {
+  const demo = PROFILES[target.environment].demoData ? ' --demo' : '';
+  return `run --rm --no-deps api node dist/platform/database/seed/seed-main.js${demo}`;
 }
 
 /** Enciende una versión ya preparada. ClamAV arranca aparte: tarda minutos y nada lo usa aún. */
-function start(remote: Remote, baseDir: string, version: string): void {
-  required(remote, 'cambiar a la versión', switchScript(baseDir, version));
+function start(remote: Remote, target: Target, version: string): void {
+  required(remote, 'cambiar a la versión', switchScript(target.baseDir, version));
+  const services = PROFILES[target.environment].appServices;
   required(
     remote,
     'encender la versión',
     [
-      compose(baseDir, version, 'up --detach --remove-orphans', WAIT, ...APP_SERVICES),
-      compose(baseDir, version, 'up --detach'),
+      compose(target, version, 'up --detach --remove-orphans', WAIT, ...services),
+      compose(target, version, 'up --detach'),
     ].join('\n'),
   );
 }
 
 async function verify(
   deps: DeployDependencies,
-  baseDir: string,
+  target: Target,
   version: string,
 ): Promise<string | undefined> {
   deps.beforeSmoke?.(version);
   const failures = await deps.smoke(version);
   if (failures.length > 0) return `pruebas de humo: ${failures.join('; ')}`;
-  return checkIsolation(deps.remote, baseDir, version);
+  return checkIsolation(deps.remote, target, version);
 }
 
 /** Enciende otra vez la versión anterior y comprueba que responde. */
 async function rollBack(
   deps: DeployDependencies,
-  baseDir: string,
+  target: Target,
   previous: string,
 ): Promise<string | undefined> {
   deps.print(`\nVolviendo a la versión anterior (${previous})…\n`);
   try {
-    start(deps.remote, baseDir, previous);
-    return await verify(deps, baseDir, previous);
+    start(deps.remote, target, previous);
+    return await verify(deps, target, previous);
   } catch (error) {
     if (error instanceof DeployError) return error.message;
     throw error;
@@ -246,18 +246,18 @@ async function deployPrepared(
   settings: DeploySettings,
   previous: string | undefined,
 ): Promise<DeployOutcome> {
-  const { baseDir, version } = settings;
+  const { version } = settings;
   let problem: string | undefined;
   try {
-    start(deps.remote, baseDir, version);
-    problem = await verify(deps, baseDir, version);
+    start(deps.remote, settings, version);
+    problem = await verify(deps, settings, version);
   } catch (error) {
     if (!(error instanceof DeployError)) throw error;
     problem = error.message;
   }
   if (problem === undefined) return { result: 'deployed', version, previous };
   if (previous === undefined) return { result: 'failed', version, reason: problem };
-  const rollbackProblem = await rollBack(deps, baseDir, previous);
+  const rollbackProblem = await rollBack(deps, settings, previous);
   return rollbackProblem === undefined
     ? { result: 'rolled_back', version, previous, reason: problem }
     : {
@@ -299,9 +299,9 @@ export async function deploy(
 }
 
 /** Resumen para el registro de GitHub. */
-export function describeOutcome(outcome: DeployOutcome): string {
+export function describeOutcome(outcome: DeployOutcome, where = 'pruebas'): string {
   if (outcome.result === 'deployed') {
-    return `Versión ${outcome.version} publicada en pruebas.\n`;
+    return `Versión ${outcome.version} publicada en ${where}.\n`;
   }
   const reason = tail(outcome.reason ?? '', 40);
   if (outcome.result === 'rolled_back') {

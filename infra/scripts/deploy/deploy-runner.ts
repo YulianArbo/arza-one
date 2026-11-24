@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { getCACertificates, setDefaultCACertificates } from 'node:tls';
 
 import { REPO_ROOT } from '../local/paths.ts';
-import { compose, BUNDLE_PATHS } from './release.ts';
+import { compose, PROFILES, type DeployEnvironment, type Target } from './release.ts';
 import { DeployError, sshArgs, type CommandResult, type Remote, type SshTarget } from './remote.ts';
 
 function spawn(
@@ -46,9 +46,10 @@ function serverEnv(): NodeJS.ProcessEnv {
 export const localRemote: Remote = (script, input) =>
   spawn('bash', ['-c', script], input, serverEnv());
 
-/** Empaqueta los archivos de la versión desde el repositorio. */
-export function createBundle(): Buffer {
-  const result = spawnSync('tar', ['-czf', '-', '-C', REPO_ROOT, ...BUNDLE_PATHS], {
+/** Empaqueta los archivos de la versión del ambiente desde el repositorio. */
+export function createBundle(environment: DeployEnvironment): Buffer {
+  const paths = PROFILES[environment].bundlePaths;
+  const result = spawnSync('tar', ['-czf', '-', '-C', REPO_ROOT, ...paths], {
     maxBuffer: 64 * 1024 * 1024,
   });
   if (result.status !== 0) {
@@ -58,9 +59,9 @@ export function createBundle(): Buffer {
 }
 
 /** Ensayo: confía en la autoridad propia de Caddy para que las pruebas de humo usen TLS real. */
-export function trustCaddyLocalCa(remote: Remote, baseDir: string, version: string): void {
+export function trustCaddyLocalCa(remote: Remote, target: Target, version: string): void {
   const root = '/data/caddy/pki/authorities/local/root.crt';
-  const result = remote(compose(baseDir, version, 'exec -T caddy cat', root));
+  const result = remote(compose(target, version, 'exec -T caddy cat', root));
   if (result.status !== 0) {
     throw new DeployError(`No se pudo leer el certificado local de Caddy: ${result.stderr}`);
   }

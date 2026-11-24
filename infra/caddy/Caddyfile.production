@@ -1,0 +1,56 @@
+# Puerta de entrada de producción (B44, numerales 10.2 y 10.4).
+# Caddy obtiene y renueva solo los certificados TLS (Let's Encrypt), redirige HTTP a HTTPS y es el
+# único servicio que escucha en internet (puertos 80 y 443). Las variables llegan del archivo .env
+# del servidor (infra/server/generate-env.sh). La página de estado (estado.[dominio]) y los
+# vigilantes viven en el servidor de vigilancia (ADR-026), no aquí.
+{
+	email {$ACME_EMAIL}
+	# Solo HTTP/1.1 y HTTP/2 sobre TCP: el cortafuegos no abre UDP (HTTP/3).
+	servers {
+		protocols h1 h2
+	}
+	# Vacío en el servidor. El ensayo de GitHub pone «local_certs».
+	{$CADDY_EXTRA_GLOBAL}
+	skip_install_trust
+}
+
+# TLS obligatorio por un año y sin anunciar el servidor. Las demás cabeceras de seguridad las pone
+# cada aplicación (B43).
+(production_headers) {
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+}
+
+# El dominio sin «www» lleva al sitio público.
+{$PRODUCTION_DOMAIN} {
+	import production_headers
+	redir https://www.{$PRODUCTION_DOMAIN}{uri} permanent
+}
+
+# Sitio público, formularios, textos legales y verificación de documentos firmados.
+www.{$PRODUCTION_DOMAIN} {
+	import production_headers
+	reverse_proxy web:3000
+}
+
+# Aplicación interna de colaboradores: la raíz abre /app.
+app.{$PRODUCTION_DOMAIN} {
+	import production_headers
+	redir / /app 302
+	reverse_proxy web:3000
+}
+
+# Portal del cliente y firma de documentos: la raíz abre /portal.
+clientes.{$PRODUCTION_DOMAIN} {
+	import production_headers
+	redir / /portal 302
+	reverse_proxy web:3000
+}
+
+# Interfaz de programación (sin el prefijo /api: la dirección propia ya lo dice).
+api.{$PRODUCTION_DOMAIN} {
+	import production_headers
+	reverse_proxy api:4000
+}

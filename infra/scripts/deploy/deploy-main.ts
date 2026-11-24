@@ -4,6 +4,7 @@
 import { loadDeployEnv, registryHost, type DeployEnv } from './config.ts';
 import { deploy, describeOutcome, type DeployDependencies, type DeploySettings } from './deploy.ts';
 import { createBundle, localRemote, sshRemote, trustCaddyLocalCa } from './deploy-runner.ts';
+import type { Target } from './release.ts';
 import { DeployError, type Remote } from './remote.ts';
 import { runSmokeTests } from './smoke.ts';
 
@@ -20,6 +21,10 @@ function remoteFor(env: DeployEnv): Remote {
   });
 }
 
+function target(env: DeployEnv): Target {
+  return { baseDir: env.STAGING_BASE_DIR, environment: 'staging' };
+}
+
 function dependencies(env: DeployEnv, remote: Remote): DeployDependencies {
   const smokeSettings = {
     domain: env.STAGING_DOMAIN,
@@ -31,7 +36,7 @@ function dependencies(env: DeployEnv, remote: Remote): DeployDependencies {
       setTimeout(resolve, ms);
     });
   const trustLocalCa = (version: string): void => {
-    trustCaddyLocalCa(remote, env.STAGING_BASE_DIR, version);
+    trustCaddyLocalCa(remote, target(env), version);
   };
   return {
     remote,
@@ -56,8 +61,8 @@ function settings(env: DeployEnv): DeploySettings {
   return {
     version: env.APP_VERSION,
     registry: env.IMAGE_REGISTRY,
-    baseDir: env.STAGING_BASE_DIR,
-    bundle: createBundle(),
+    ...target(env),
+    bundle: createBundle('staging'),
     ...login,
   };
 }

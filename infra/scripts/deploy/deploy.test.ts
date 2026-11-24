@@ -9,6 +9,7 @@ const SETTINGS: DeploySettings = {
   version: NEW,
   registry: 'ghcr.io/arza-tech',
   baseDir: '/srv/arza-one',
+  environment: 'staging',
   bundle: Buffer.from('archivos'),
 };
 const NOW = new Date('2026-10-08T15:04:05.000Z');
@@ -242,7 +243,7 @@ describe('despliegue: fallas antes de cambiar de versión', () => {
     ['encender la base de datos, las colas y los archivos', 'postgres valkey garage'],
     ['copiar la base de datos antes de migrar', 'pg_dump'],
     ['aplicar las migraciones', 'run --rm migrate'],
-    ['cargar los datos ficticios', 'seed-main.js'],
+    ['cargar los datos semilla', 'seed-main.js'],
   ])('si falla «%s» la versión anterior sigue encendida', async (step, fragment) => {
     const { server, deps, smoke } = harness({
       current: OLD,

@@ -1,0 +1,322 @@
+# Ambiente de producción de ARZA ONE (bloque B44, numerales 10.2 a 10.5, ADR-017 y ADR-026).
+# No se usa directamente: el despliegue (infra/scripts/deploy/production-main.ts) copia este
+# archivo al servidor en /srv/arza-one/releases/<vX.Y.Z>/ y lo enciende con dos archivos:
+#   - /srv/arza-one/.env: contraseñas y datos del servidor (infra/server/generate-env.sh).
+#   - release.env: la versión aprobada (APP_VERSION) y el registro de imágenes.
+# Diferencias con pruebas: sin contraseña adicional ni correo falso, cuatro direcciones públicas
+# (www, app, clientes y api), correo real, antivirus siempre encendido, sello de los PDF con el
+# certificado de la empresa, errores a GlitchTip y copias cifradas fuera del servidor
+# (pgBackRest para la base y restic para los archivos). Uptime Kuma y GlitchTip viven en otro
+# servidor (ADR-026): si este se cae, desde allá se avisa.
+name: arza-one-production
+
+x-service: &service
+  restart: unless-stopped
+  security_opt: ['no-new-privileges:true']
+  networks: [backend]
+
+x-app-env: &app-env
+  NODE_ENV: production
+  APP_ENV: production
+  LOG_LEVEL: info
+  DATABASE_URL: postgresql://app_user:${APP_DB_PASSWORD:?}@postgres:5432/arza_one
+  VALKEY_URL: redis://:${VALKEY_PASSWORD:?}@valkey:6379
+  GIT_COMMIT: ${APP_VERSION:?}
+  GLITCHTIP_DSN: ${GLITCHTIP_DSN:-}
+  S3_ENDPOINT: http://garage:3900
+  S3_REGION: garage
+  S3_BUCKET: arza-one-production
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY:?}
+  S3_SECRET_KEY: ${S3_SECRET_KEY:?}
+
+services:
+  caddy:
+    <<: *service
+    image: caddy:2.11.7-alpine@sha256:d8542f48d34a9cf4e4c11a478865229840e87e4c96ea3f439101f31a5d35f75f
+    user: '1000:1000'
+    depends_on:
+      volumes-init:
+        condition: service_completed_successfully
+    environment:
+      PRODUCTION_DOMAIN: ${PRODUCTION_DOMAIN:?Falta PRODUCTION_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:?Falta ACME_EMAIL}
+      CADDY_EXTRA_GLOBAL: ${CADDY_EXTRA_GLOBAL:-}
+    volumes:
+      - ../caddy/Caddyfile.production:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    ports:
+      - '80:80'
+      - '443:443'
+    sysctls:
+      net.ipv4.ip_unprivileged_port_start: 0
+    networks: [backend, edge]
+    mem_limit: 128m
+    healthcheck:
+      test: ['CMD', 'wget', '--quiet', '--spider', 'http://127.0.0.1:2019/config/']
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  web:
+    <<: *service
+    image: ${IMAGE_REGISTRY:?}/arza-one-web:${APP_VERSION:?Falta APP_VERSION}
+    environment:
+      APP_ENV: production
+      API_URL: https://api.${PRODUCTION_DOMAIN}
+    mem_limit: 768m
+
+  api:
+    <<: *service
+    image: ${IMAGE_REGISTRY:?}/arza-one-api:${APP_VERSION:?}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+      garage:
+        condition: service_healthy
+    environment:
+      <<: *app-env
+      APP_URL: https://app.${PRODUCTION_DOMAIN}/app
+      PORTAL_URL: https://clientes.${PRODUCTION_DOMAIN}/portal
+      PUBLIC_URL: https://www.${PRODUCTION_DOMAIN}
+      API_URL: https://api.${PRODUCTION_DOMAIN}
+      RATE_LIMIT_WINDOW_SECONDS: 60
+      RATE_LIMIT_MAX_REQUESTS: 100
+      CSRF_SECRET: ${CSRF_SECRET:?}
+      FIELD_ENCRYPTION_KEY: ${FIELD_ENCRYPTION_KEY:?}
+      PUBLIC_SITE_TAX_ID: ${PUBLIC_SITE_TAX_ID:-}
+      # Llave de los vigilantes para /ops/status (numeral 10.7).
+      MONITOR_TOKEN: ${MONITOR_TOKEN:?}
+    mem_limit: 1g
+
+  worker:
+    <<: *service
+    image: ${IMAGE_REGISTRY:?}/arza-one-worker:${APP_VERSION:?}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+    environment:
+      <<: *app-env
+      APP_URL: https://app.${PRODUCTION_DOMAIN}/app
+      # Correo real con SPF, DKIM y DMARC (numeral 10.4). El worker sale a internet solo por esto.
+      SMTP_HOST: ${SMTP_HOST:?Falta SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:?Falta MAIL_FROM}
+      CLAMAV_HOST: clamav
+      CLAMAV_PORT: 3310
+      GOTENBERG_URL: http://gotenberg:3000
+      # Certificado de la empresa para sellar los PDF firmados (B43). Obligatorio en producción.
+      PDF_SEAL_PKCS12: ${PDF_SEAL_PKCS12:?Falta el certificado del sello (PDF_SEAL_PKCS12)}
+      PDF_SEAL_PASSPHRASE: ${PDF_SEAL_PASSPHRASE:?}
+    networks: [backend, egress]
+    stop_grace_period: 30s
+    mem_limit: 768m
+
+  migrate:
+    image: ${IMAGE_REGISTRY:?}/arza-one-migrate:${APP_VERSION:?}
+    profiles: [tools]
+    restart: 'no'
+    security_opt: ['no-new-privileges:true']
+    networks: [backend]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_MIGRATION_URL: postgresql://migration_user:${MIGRATION_DB_PASSWORD:?}@postgres:5432/arza_one
+    mem_limit: 512m
+
+  # PostgreSQL con pgBackRest (infra/postgres/Dockerfile): cada archivo de cambios (WAL) sale
+  # cifrado al depósito externo; archive_timeout lo fuerza al menos cada 5 minutos (RPO 15 min).
+  postgres:
+    <<: *service
+    image: ${IMAGE_REGISTRY:?}/arza-one-postgres:${APP_VERSION:?}
+    command:
+      - postgres
+      - -c
+      - wal_level=replica
+      - -c
+      - archive_mode=on
+      - -c
+      - archive_command=pgbackrest --stanza=arza archive-push %p
+      - -c
+      - archive_timeout=300
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?}
+      MIGRATION_DB_PASSWORD: ${MIGRATION_DB_PASSWORD:?}
+      PGBACKREST_STANZA: arza
+      PGBACKREST_PG1_PATH: /var/lib/postgresql/data
+      PGBACKREST_COMPRESS_TYPE: zst
+      PGBACKREST_START_FAST: 'y'
+      PGBACKREST_LOG_LEVEL_CONSOLE: warn
+      # El destino externo es un depósito S3 de otro proveedor (numeral 10.5). El ensayo de GitHub
+      # usa una carpeta local (BACKUP_REPO_TYPE=posix) para no depender de internet.
+      # Tres juegos en el mismo depósito (decisión 5 de B44): 30 días a cualquier minuto, una
+      # copia mensual por 12 meses y una anual por 10 años. Todas cifradas con BACKUP_PASSWORD.
+      PGBACKREST_REPO1_TYPE: ${BACKUP_REPO_TYPE:-s3}
+      PGBACKREST_REPO1_PATH: ${BACKUP_REPO_ROOT:-}/pitr
+      PGBACKREST_REPO1_RETENTION_FULL_TYPE: time
+      PGBACKREST_REPO1_RETENTION_FULL: 30
+      PGBACKREST_REPO1_CIPHER_TYPE: aes-256-cbc
+      PGBACKREST_REPO1_CIPHER_PASS: ${BACKUP_PASSWORD:?}
+      PGBACKREST_REPO1_S3_BUCKET: ${BACKUP_S3_BUCKET:-}
+      PGBACKREST_REPO1_S3_ENDPOINT: ${BACKUP_S3_ENDPOINT:-}
+      PGBACKREST_REPO1_S3_REGION: ${BACKUP_S3_REGION:-}
+      PGBACKREST_REPO1_S3_KEY: ${BACKUP_S3_KEY:-}
+      PGBACKREST_REPO1_S3_KEY_SECRET: ${BACKUP_S3_SECRET:-}
+      PGBACKREST_REPO2_TYPE: ${BACKUP_REPO_TYPE:-s3}
+      PGBACKREST_REPO2_PATH: ${BACKUP_REPO_ROOT:-}/mensual
+      PGBACKREST_REPO2_RETENTION_FULL: 12
+      PGBACKREST_REPO2_RETENTION_ARCHIVE_TYPE: full
+      PGBACKREST_REPO2_RETENTION_ARCHIVE: 1
+      PGBACKREST_REPO2_CIPHER_TYPE: aes-256-cbc
+      PGBACKREST_REPO2_CIPHER_PASS: ${BACKUP_PASSWORD:?}
+      PGBACKREST_REPO2_S3_BUCKET: ${BACKUP_S3_BUCKET:-}
+      PGBACKREST_REPO2_S3_ENDPOINT: ${BACKUP_S3_ENDPOINT:-}
+      PGBACKREST_REPO2_S3_REGION: ${BACKUP_S3_REGION:-}
+      PGBACKREST_REPO2_S3_KEY: ${BACKUP_S3_KEY:-}
+      PGBACKREST_REPO2_S3_KEY_SECRET: ${BACKUP_S3_SECRET:-}
+      PGBACKREST_REPO3_TYPE: ${BACKUP_REPO_TYPE:-s3}
+      PGBACKREST_REPO3_PATH: ${BACKUP_REPO_ROOT:-}/anual
+      PGBACKREST_REPO3_RETENTION_FULL: 10
+      PGBACKREST_REPO3_RETENTION_ARCHIVE_TYPE: full
+      PGBACKREST_REPO3_RETENTION_ARCHIVE: 1
+      PGBACKREST_REPO3_CIPHER_TYPE: aes-256-cbc
+      PGBACKREST_REPO3_CIPHER_PASS: ${BACKUP_PASSWORD:?}
+      PGBACKREST_REPO3_S3_BUCKET: ${BACKUP_S3_BUCKET:-}
+      PGBACKREST_REPO3_S3_ENDPOINT: ${BACKUP_S3_ENDPOINT:-}
+      PGBACKREST_REPO3_S3_REGION: ${BACKUP_S3_REGION:-}
+      PGBACKREST_REPO3_S3_KEY: ${BACKUP_S3_KEY:-}
+      PGBACKREST_REPO3_S3_KEY_SECRET: ${BACKUP_S3_SECRET:-}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ../postgres/init:/docker-entrypoint-initdb.d:ro
+      # Solo el ensayo de GitHub guarda aquí las copias (BACKUP_REPO_TYPE=posix).
+      - backup-rehearsal:/var/lib/pgbackrest/ensayo
+    # Sale a internet solo para llevar las copias al depósito externo.
+    networks: [backend, egress]
+    mem_limit: 2g
+    healthcheck:
+      test: ['CMD', 'pg_isready', '--host', '127.0.0.1', '--dbname', 'arza_one']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  valkey:
+    <<: *service
+    image: valkey/valkey:8@sha256:640c5e62cea04b6d6f2084232651d0cc70362d31f4f805e7be94dbed6855e8f2
+    command: ['valkey-server', '--appendonly', 'yes', '--requirepass', '${VALKEY_PASSWORD:?}']
+    environment:
+      REDISCLI_AUTH: ${VALKEY_PASSWORD}
+    volumes:
+      - valkey-data:/data
+    mem_limit: 256m
+    healthcheck:
+      test: ['CMD', 'valkey-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  volumes-init:
+    image: valkey/valkey:8@sha256:640c5e62cea04b6d6f2084232651d0cc70362d31f4f805e7be94dbed6855e8f2
+    entrypoint:
+      [
+        'sh',
+        '-c',
+        'mkdir -p /var/lib/garage/meta /var/lib/garage/data && chown -R 1000:1000 /var/lib/garage /caddy/data /caddy/config',
+      ]
+    volumes:
+      - garage-data:/var/lib/garage
+      - caddy-data:/caddy/data
+      - caddy-config:/caddy/config
+    network_mode: none
+
+  garage:
+    <<: *service
+    image: dxflrs/garage:v2.1.0@sha256:4c9b34c113e61358466e83fd6e7d66e6d18657ede14b776eb78a93ee8da7cf6a
+    user: '1000:1000'
+    depends_on:
+      volumes-init:
+        condition: service_completed_successfully
+    environment:
+      GARAGE_RPC_SECRET: ${GARAGE_RPC_SECRET:?}
+      GARAGE_ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN:?}
+    volumes:
+      - ../garage/garage.local.toml:/etc/garage.toml:ro
+      - garage-data:/var/lib/garage
+    mem_limit: 512m
+    healthcheck:
+      test: ['CMD', '/garage', 'status']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  gotenberg:
+    <<: *service
+    image: gotenberg/gotenberg:8.37.0@sha256:f29984bd1e226bf1b93ba90af06000afa8b315853e99d27b9aaa41b93f15c769
+    mem_limit: 768m
+    healthcheck:
+      test: ['CMD', 'curl', '--fail', '--silent', 'http://127.0.0.1:3000/health']
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  # Antivirus: en el servidor siempre encendido (COMPOSE_PROFILES=antivirus en el .env); sin él
+  # los archivos se quedan «en análisis» y nunca se aceptan sin revisar. El ensayo lo omite.
+  clamav:
+    <<: *service
+    profiles: [antivirus]
+    image: clamav/clamav:1.4.6@sha256:57deb108fc4c72778aa83eafbca7bb7153e28c3f57c005afd38d31f16da86f23
+    networks: [backend, egress]
+    volumes:
+      - clamav-signatures:/var/lib/clamav
+    mem_limit: 1200m
+    healthcheck:
+      test: ['CMD', 'clamdcheck.sh']
+      interval: 30s
+      timeout: 10s
+      start_period: 15m
+      retries: 30
+
+  # Copia de los archivos (Garage) con restic (numeral 10.5). No corre sola: la lanza
+  # infra/backup/backup.sh desde el temporizador del servidor, después de pedirle a Garage una
+  # instantánea consistente de sus metadatos.
+  files-backup:
+    image: restic/restic:0.19.1@sha256:136600b6ff6843d61d355f7f71f460a166429f35de6fd11b568fece3c9a4d510
+    profiles: [tools]
+    restart: 'no'
+    security_opt: ['no-new-privileges:true']
+    networks: [egress]
+    environment:
+      RESTIC_REPOSITORY: ${FILES_BACKUP_REPOSITORY:?Falta FILES_BACKUP_REPOSITORY}
+      RESTIC_PASSWORD: ${BACKUP_PASSWORD:?}
+      AWS_ACCESS_KEY_ID: ${BACKUP_S3_KEY:-}
+      AWS_SECRET_ACCESS_KEY: ${BACKUP_S3_SECRET:-}
+      RESTIC_CACHE_DIR: /cache
+    volumes:
+      - garage-data:/data/garage
+      - restic-cache:/cache
+      - backup-rehearsal:/ensayo
+    mem_limit: 256m
+
+networks:
+  backend:
+    internal: true
+  edge:
+  egress:
+
+volumes:
+  postgres-data:
+  valkey-data:
+  garage-data:
+  caddy-data:
+  caddy-config:
+  clamav-signatures:
+  restic-cache:
+  backup-rehearsal:
