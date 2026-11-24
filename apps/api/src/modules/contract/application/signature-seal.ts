@@ -20,6 +20,8 @@ import { envelopeDocument, isStandalone } from './signature-sources.js';
 interface Sealed {
   readonly signedFileId: string;
   readonly signedSha256: string;
+  /** Certificado de la empresa con que se selló el PDF (B43). */
+  readonly sealCertificateSha256: string;
 }
 
 async function contractInForce(
@@ -107,14 +109,21 @@ export async function putDocumentInForce(
     signerId: null,
     ip: null,
     userAgent: null,
-    details: { signed_sha256: sealed.signedSha256 },
+    details: {
+      signed_sha256: sealed.signedSha256,
+      seal_certificate_sha256: sealed.sealCertificateSha256,
+    },
   });
   await recordSignatureChange(tx, actor, {
     action: 'signature.envelope.seal',
     // El evento del numeral 13.3: Contratos, Proyectos (B26) y el expediente lo consumen.
     event: 'envelope.completed',
     envelope,
-    changes: { signed_file_id: sealed.signedFileId, signed_sha256: sealed.signedSha256 },
+    changes: {
+      signed_file_id: sealed.signedFileId,
+      signed_sha256: sealed.signedSha256,
+      seal_certificate_sha256: sealed.sealCertificateSha256,
+    },
     payload: { ...(await noticePayload(tx, envelope)), signed_on: signedOn },
   });
 }

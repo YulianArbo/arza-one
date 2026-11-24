@@ -32,6 +32,36 @@ function problemsOf(raw: Record<string, string | undefined>): readonly string[] 
   return [];
 }
 
+describe('certificado del sello de los PDF firmados (B43)', () => {
+  it('fuera de producción puede faltar: se usa uno temporal', () => {
+    expect(problemsOf(VALID)).toEqual([]);
+  });
+
+  it('en producción es obligatorio, con su clave', () => {
+    const problems = problemsOf({ ...VALID, APP_ENV: 'production', NODE_ENV: 'production' });
+    expect(problems).toEqual([
+      'PDF_SEAL_PKCS12: falta; es obligatoria',
+      'PDF_SEAL_PASSPHRASE: falta; es obligatoria',
+    ]);
+  });
+
+  it('no acepta el certificado sin su clave', () => {
+    expect(problemsOf({ ...VALID, PDF_SEAL_PKCS12: 'ZmljdGljaW8=' })).toEqual([
+      'PDF_SEAL_PASSPHRASE: falta; es obligatoria',
+    ]);
+  });
+
+  it('el certificado debe venir en base64', () => {
+    const problems = problemsOf({
+      ...VALID,
+      PDF_SEAL_PKCS12: 'no es base64 ***',
+      PDF_SEAL_PASSPHRASE: 'ficticia',
+    });
+    expect(problems).toHaveLength(1);
+    expect(problems[0]).toMatch(/^PDF_SEAL_PKCS12: .+/);
+  });
+});
+
 describe('configuración del worker', () => {
   it('acepta una configuración completa y aplica los valores por defecto', () => {
     const config = loadWorkerConfig({ ...VALID, SMTP_USER: '' });

@@ -7,6 +7,7 @@ import type { SigSigner } from '../../../generated/prisma/client.js';
 import type { Clock } from '../../../platform/clock/clock.js';
 import type { DatabaseService } from '../../../platform/database/database.service.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
+import type { PdfSeal } from '../../../platform/pdf/pdf-seal.js';
 import { companyIdentity } from '../../core/index.js';
 import { openAvailableFile, storeGeneratedPdf, type FileStorage } from '../../doc/index.js';
 import { newSignatureCode } from '../domain/signature-rules.js';
@@ -41,6 +42,8 @@ export interface SignatureWorkDependencies {
   readonly storage: Pick<FileStorage, 'read' | 'put' | 'delete' | 'stream'>;
   readonly convertHtml: (document: ContractHtml) => Promise<Buffer>;
   readonly mergePdfs: (pdfs: readonly Buffer[]) => Promise<Buffer>;
+  /** Sello de integridad de la empresa (numeral 19.3, B43) para el PDF firmado por todos. */
+  readonly pdfSeal: PdfSeal;
   readonly mailer: { send(message: SignatureMail): Promise<void> };
   /** Dirección de la aplicación (APP_URL): los enlaces van a su mismo dominio. */
   readonly appUrl: string;
@@ -230,13 +233,15 @@ async function renderSealed(
 ): Promise<{ readonly signed: Buffer; readonly certificate: Buffer }> {
   const signaturesPdf = await deps.convertHtml(prepared.pages.signatures);
   const certificate = await deps.convertHtml(prepared.pages.certificate);
-  const signed = await deps.mergePdfs([prepared.original, signaturesPdf, certificate]);
+  const merged = await deps.mergePdfs([prepared.original, signaturesPdf, certificate]);
+  // El sello va al final: cualquier cambio posterior lo invalida en el lector de PDF (B43).
+  const signed = await deps.pdfSeal.seal(merged, deps.clock.now());
   return { signed, certificate };
 }
 
 /**
  * El documento firmado: el PDF aprobado, la página final de firmas y el certificado de evidencia,
- * en un solo PDF con su huella; el certificado, también aparte. Desde ahí el contrato o el otrosí
+ * en un solo PDF sellado por la empresa y con su huella; el certificado, también aparte. Desde ahí el contrato o el otrosí
  * rige y cada firmante recibe su copia.
  */
 async function seal(deps: SignatureWorkDependencies, tenantId: string, envelopeId: string) {
@@ -254,12 +259,19 @@ async function seal(deps: SignatureWorkDependencies, tenantId: string, envelopeI
       if (evidenceFileId === null) return false;
       const { count } = await tx.sigEnvelope.updateMany({
         where: { id: envelope.id, status: 'completed', sealStatus: 'pending' },
-        data: { sealStatus: 'ready', signedFileId: fileId, signedSha256, evidenceFileId },
+        data: {
+          sealStatus: 'ready',
+          signedFileId: fileId,
+          signedSha256,
+          sealCertificateSha256: deps.pdfSeal.certificateSha256,
+          evidenceFileId,
+        },
       });
       if (count === 0) return false;
       await putDocumentInForce(tx, systemActor(tenantId, at), envelope, {
         signedFileId: fileId,
         signedSha256,
+        sealCertificateSha256: deps.pdfSeal.certificateSha256,
       });
       return true;
     },

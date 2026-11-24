@@ -2912,53 +2912,55 @@ model CtrAmendment {
 
 /// Proceso de firma electrónica de un contrato o un otrosí aprobado (B25, capítulo 19).
 model SigEnvelope {
-  id                 String            @id @default(uuid(7)) @db.Uuid
-  tenantId           String            @map("tenant_id") @db.Uuid
-  code               String
-  source             String
+  id                    String            @id @default(uuid(7)) @db.Uuid
+  tenantId              String            @map("tenant_id") @db.Uuid
+  code                  String
+  source                String
   /// El contrato del documento; vacío en un acta de entrega de un proyecto (B27).
-  contractId         String?           @map("contract_id") @db.Uuid
-  amendmentId        String?           @map("amendment_id") @db.Uuid
+  contractId            String?           @map("contract_id") @db.Uuid
+  amendmentId           String?           @map("amendment_id") @db.Uuid
   /// Otro documento que se firma (B27: el acta de entrega de un proyecto) y su cliente.
-  sourceId           String?           @map("source_id") @db.Uuid
-  partyId            String?           @map("party_id") @db.Uuid
+  sourceId              String?           @map("source_id") @db.Uuid
+  partyId               String?           @map("party_id") @db.Uuid
   /// El PDF aprobado que se firma y su huella: no cambian.
-  documentFileId     String            @map("document_file_id") @db.Uuid
-  documentSha256     String            @map("document_sha256")
-  documentCode       String            @map("document_code")
-  documentTitle      String            @map("document_title")
-  level              Int               @default(2) @db.SmallInt
-  status             String            @default("draft")
-  message            String?
-  expiresAt          DateTime          @map("expires_at") @db.Timestamptz(6)
-  sentAt             DateTime?         @map("sent_at") @db.Timestamptz(6)
-  sentBy             String?           @map("sent_by") @db.Uuid
+  documentFileId        String            @map("document_file_id") @db.Uuid
+  documentSha256        String            @map("document_sha256")
+  documentCode          String            @map("document_code")
+  documentTitle         String            @map("document_title")
+  level                 Int               @default(2) @db.SmallInt
+  status                String            @default("draft")
+  message               String?
+  expiresAt             DateTime          @map("expires_at") @db.Timestamptz(6)
+  sentAt                DateTime?         @map("sent_at") @db.Timestamptz(6)
+  sentBy                String?           @map("sent_by") @db.Uuid
   /// Llave Idempotency-Key con que se envió: repetir el envío con ella no cambia nada.
-  sendKey            String?           @map("send_key")
-  completedAt        DateTime?         @map("completed_at") @db.Timestamptz(6)
-  closedAt           DateTime?         @map("closed_at") @db.Timestamptz(6)
-  closedReason       String?           @map("closed_reason")
+  sendKey               String?           @map("send_key")
+  completedAt           DateTime?         @map("completed_at") @db.Timestamptz(6)
+  closedAt              DateTime?         @map("closed_at") @db.Timestamptz(6)
+  closedReason          String?           @map("closed_reason")
   /// Huella del último evento de la cadena; la del documento mientras no hay eventos.
-  lastEventHash      String            @map("last_event_hash")
-  eventCount         Int               @default(0) @map("event_count")
-  workflowInstanceId String?           @map("workflow_instance_id") @db.Uuid
+  lastEventHash         String            @map("last_event_hash")
+  eventCount            Int               @default(0) @map("event_count")
+  workflowInstanceId    String?           @map("workflow_instance_id") @db.Uuid
   /// none hasta que firman todos; pending mientras el worker arma el documento firmado.
-  sealStatus         String            @default("none") @map("seal_status")
-  signedFileId       String?           @map("signed_file_id") @db.Uuid
-  signedSha256       String?           @map("signed_sha256")
-  evidenceFileId     String?           @map("evidence_file_id") @db.Uuid
-  verificationCode   String?           @map("verification_code")
-  createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
-  createdBy          String?           @map("created_by") @db.Uuid
-  updatedAt          DateTime          @default(now()) @map("updated_at") @db.Timestamptz(6)
-  updatedBy          String?           @map("updated_by") @db.Uuid
-  version            Int               @default(1)
-  deletedAt          DateTime?         @map("deleted_at") @db.Timestamptz(6)
-  tenant             Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  contract           CtrContract?      @relation(fields: [tenantId, contractId], references: [tenantId, id], onDelete: Restrict)
-  signers            SigSigner[]
-  events             SigEvent[]
-  verifications      SigVerification[]
+  sealStatus            String            @default("none") @map("seal_status")
+  signedFileId          String?           @map("signed_file_id") @db.Uuid
+  signedSha256          String?           @map("signed_sha256")
+  /// Huella del certificado de la empresa que selló el PDF firmado (B43).
+  sealCertificateSha256 String?           @map("seal_certificate_sha256")
+  evidenceFileId        String?           @map("evidence_file_id") @db.Uuid
+  verificationCode      String?           @map("verification_code")
+  createdAt             DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy             String?           @map("created_by") @db.Uuid
+  updatedAt             DateTime          @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy             String?           @map("updated_by") @db.Uuid
+  version               Int               @default(1)
+  deletedAt             DateTime?         @map("deleted_at") @db.Timestamptz(6)
+  tenant                Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  contract              CtrContract?      @relation(fields: [tenantId, contractId], references: [tenantId, id], onDelete: Restrict)
+  signers               SigSigner[]
+  events                SigEvent[]
+  verifications         SigVerification[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, code])

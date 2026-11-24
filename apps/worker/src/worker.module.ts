@@ -17,7 +17,15 @@ import {
   scanWithClamav,
   stampWithGotenberg,
 } from '@arza/api/doc';
-import { DatabaseService, JobQueue, SCHEDULED_JOBS, systemClock } from '@arza/api/platform';
+import {
+  DatabaseService,
+  JobQueue,
+  SCHEDULED_JOBS,
+  systemClock,
+  pdfSealFromPkcs12,
+  temporaryPdfSeal,
+  type PdfSeal,
+} from '@arza/api/platform';
 import { Redis } from 'ioredis';
 import type { Logger } from 'pino';
 
@@ -82,6 +90,7 @@ class WorkerRuntime implements OnApplicationBootstrap, OnApplicationShutdown {
       convertHtml: async (document) => convertHtmlWithGotenberg(gotenberg, document),
       stamp: async (pdf, text) => stampWithGotenberg(gotenberg, pdf, text),
       mergePdfs: async (pdfs) => mergeWithGotenberg(gotenberg, pdfs),
+      pdfSeal: this.pdfSeal(),
       extractText: extractPdfText,
     });
     this.queueWorkers = startQueueWorkers(router, {
@@ -95,6 +104,20 @@ class WorkerRuntime implements OnApplicationBootstrap, OnApplicationShutdown {
       this.logger.warn({ reason: String(error) }, 'No se pudo emitir el latido');
     });
     this.logger.info({ queues: this.queueWorkers.queues }, 'Worker listo');
+  }
+
+  /** Sello de los PDF firmados (B43): el certificado de la empresa o, fuera de producción, uno temporal. */
+  private pdfSeal(): PdfSeal {
+    const { PDF_SEAL_PKCS12: pkcs12, PDF_SEAL_PASSPHRASE: passphrase } = this.config;
+    const seal =
+      pkcs12 === undefined || passphrase === undefined
+        ? temporaryPdfSeal(`ARZA ONE (${this.config.APP_ENV}, sin validez)`, systemClock.now())
+        : pdfSealFromPkcs12(Buffer.from(pkcs12, 'base64'), passphrase);
+    this.logger.info(
+      { holder: seal.holder, certificateSha256: seal.certificateSha256 },
+      'Sello de los PDF firmados listo',
+    );
+    return seal;
   }
 
   /**
