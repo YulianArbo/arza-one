@@ -7,6 +7,7 @@ import {
 import { v7 as uuidv7 } from 'uuid';
 import { describe, expect, it } from 'vitest';
 
+import { candidateFixture } from '../hr/support/candidate-fixture.js';
 import type { Person } from '../iam/support/access-scenario.js';
 import { RequestScenario, REQUESTS } from './support/request-scenario.js';
 
@@ -149,5 +150,33 @@ describe('entrega de los datos', () => {
     const fields = party?.records[0]?.fields ?? [];
     const value = (label: string) => fields.find((field) => field.label === label)?.value;
     expect([value('Documento'), value('Relación con la empresa')]).toEqual([null, null]);
+  });
+});
+
+describe('supresión', () => {
+  it('a quien solo se postuló a una vacante se le suprime la candidatura', async () => {
+    const dpo = await scenario.officer();
+    const partyId = await scenario.holder();
+    const candidate = await candidateFixture(scenario);
+    await scenario.inTenant((tx) =>
+      tx.hrCandidate.update({ where: { id: candidate.id }, data: { partyId, talentBank: true } }),
+    );
+    const requestId = await scenario.verified(dpo, partyId, { right: 'erase' });
+    const response = await scenario.post(
+      `/v1/parties/${partyId}/personal-data/erase`,
+      dpo.session,
+      {
+        request_id: requestId,
+      },
+    );
+    expect(response.status, response.text).toBe(200);
+    const hr = erasureResultSchema
+      .parse(response.body)
+      .sections.find((section) => section.key === 'hr');
+    expect(hr?.outcome).toBe('erased');
+    const erased = await scenario.inTenant((tx) =>
+      tx.hrCandidate.findUniqueOrThrow({ where: { id: candidate.id } }),
+    );
+    expect([erased.erasedAt === null, erased.talentBank]).toEqual([false, false]);
   });
 });
