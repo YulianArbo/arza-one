@@ -22,14 +22,13 @@ import {
   JobQueue,
   SCHEDULED_JOBS,
   systemClock,
-  pdfSealFromPkcs12,
-  temporaryPdfSeal,
   type PdfSeal,
 } from '@arza/api/platform';
 import { Redis } from 'ioredis';
 import type { Logger } from 'pino';
 
 import type { WorkerEnv } from './config/env-schema.js';
+import { pdfSealFrom } from './config/pdf-seal.js';
 import { startHeartbeat } from './heartbeat/heartbeat.js';
 import { createLogger } from './logging/logger.js';
 import { SmtpMailer, type Mailer } from './mail/mailer.js';
@@ -106,13 +105,9 @@ class WorkerRuntime implements OnApplicationBootstrap, OnApplicationShutdown {
     this.logger.info({ queues: this.queueWorkers.queues }, 'Worker listo');
   }
 
-  /** Sello de los PDF firmados (B43): el certificado de la empresa o, fuera de producción, uno temporal. */
+  /** Sello de los PDF firmados (B43); deja en el registro de quién es el certificado. */
   private pdfSeal(): PdfSeal {
-    const { PDF_SEAL_PKCS12: pkcs12, PDF_SEAL_PASSPHRASE: passphrase } = this.config;
-    const seal =
-      pkcs12 === undefined || passphrase === undefined
-        ? temporaryPdfSeal(`ARZA ONE (${this.config.APP_ENV}, sin validez)`, systemClock.now())
-        : pdfSealFromPkcs12(Buffer.from(pkcs12, 'base64'), passphrase);
+    const seal = pdfSealFrom(this.config, systemClock.now());
     this.logger.info(
       { holder: seal.holder, certificateSha256: seal.certificateSha256 },
       'Sello de los PDF firmados listo',
