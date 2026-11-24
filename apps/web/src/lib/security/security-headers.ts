@@ -16,7 +16,27 @@ export const STATIC_SECURITY_HEADERS: Header[] = [
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
   { key: 'X-Frame-Options', value: 'DENY' },
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+  // B43: ninguna página de otro sitio comparte ventana ni lee recursos de ARZA ONE (ASVS 14.4).
+  { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
+  { key: 'Cross-Origin-Resource-Policy', value: 'same-origin' },
 ];
+
+/**
+ * Páginas con datos personales o de negocio fuera de /app y /portal (B43): acceso, firma,
+ * cotización, encuesta y baja. Llegan con un enlace personal: ni se indexan ni se guardan en caché.
+ */
+export const PRIVATE_PAGES = [
+  '/iniciar-sesion',
+  '/activar-cuenta',
+  '/recuperar-contrasena',
+  '/restablecer-contrasena',
+  '/segundo-factor',
+  '/aceptar-terminos',
+  '/firmar',
+  '/cotizacion',
+  '/encuesta',
+  '/baja',
+] as const;
 
 /** Aplicación interna y portal: sin indexación y sin copias en caché. */
 export function noIndexHeaders(): Header[] {

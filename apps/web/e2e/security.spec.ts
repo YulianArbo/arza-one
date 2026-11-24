@@ -33,6 +33,14 @@ test('la aplicación interna y el portal no se indexan', async ({ page }) => {
   expect(publicSite?.headers()['x-robots-tag']).toBeUndefined();
 });
 
+test('las páginas con enlace personal no se indexan ni se guardan en caché', async ({ page }) => {
+  for (const path of ['/firmar', '/cotizacion', '/encuesta', '/baja', '/segundo-factor']) {
+    const response = await page.request.get(path);
+    expect(response.headers()['x-robots-tag'], path).toBe('noindex, nofollow');
+    expect(response.headers()['cache-control'], path).toBe('no-store');
+  }
+});
+
 test('cabeceras generales de seguridad', async ({ page }) => {
   const headers = (await page.goto('/'))?.headers() ?? {};
   expect(headers['x-content-type-options']).toBe('nosniff');
@@ -40,6 +48,8 @@ test('cabeceras generales de seguridad', async ({ page }) => {
   expect(headers['x-frame-options']).toBe('DENY');
   expect(headers['permissions-policy']).toBe('camera=(), microphone=(), geolocation=()');
   expect(headers['x-powered-by']).toBeUndefined();
+  expect(headers['cross-origin-opener-policy']).toBe('same-origin');
+  expect(headers['cross-origin-resource-policy']).toBe('same-origin');
 });
 
 test('las tipografías se sirven desde el propio servidor', async ({ page }) => {
