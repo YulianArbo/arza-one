@@ -90,6 +90,23 @@ analizar el servidor de pruebas cuando este exista (pendiente de B07: ver su cie
    - Ensayo de despliegue (requiere Linux con Docker): `bash infra/scripts/deploy/rehearsal.sh`.
 3. Corrija la causa. **Nunca** se debilita una prueba ni un control para que pase (CLAUDE.md).
 
+### Análisis dinámico y pruebas de carga (B43)
+
+- **ZAP** (`zap-semanal.yml`): cada lunes, a demanda y en el pull request que cambie el propio
+  análisis. Levanta una copia con `.github/actions/scan-stack`: invita una cuenta de análisis,
+  le asigna Dirección y Comercial, la activa con contraseña y segundo factor por la API
+  (`infra/scripts/security/scan-session.ts`) y analiza la API con esa sesión. Falla con cualquier
+  alerta de riesgo alto. Los informes quedan en el artefacto `informes-zap`. Una alerta solo se
+  acepta en [`.zap/reglas.tsv`](../../.zap/reglas.tsv), con motivo y aprobación del Director General.
+- **k6** (`rendimiento.yml`): antes de cada versión (etiqueta `v*`), a demanda y en el pull request
+  que cambie la prueba. Crea 2000 terceros y mide 50 usuarios simultáneos durante 5 minutos. Falla
+  si el percentil 95 supera 500 ms en consultas o 1 s en escrituras (`infra/k6/carga.js`). El
+  resumen queda en el artefacto `resumen-k6`.
+- **Licencias, avisos de terceros y SBOM** (tareas 6 y 8): la tarea 6 falla si un componente que se
+  entrega trae una licencia que obligue a publicar el código de ARZA ONE
+  (`infra/scripts/ci/license-gate.ts`) y guarda `AVISOS-DE-TERCEROS.md`. La tarea 8 guarda el
+  inventario CycloneDX de cada imagen (`sbom-<commit>`), por 90 días.
+
 ### Excepciones de vulnerabilidades
 
 Si una vulnerabilidad alta no tiene corrección publicada, se puede registrar una excepción
@@ -143,7 +160,7 @@ Instalación (una sola vez, la hace el dueño del repositorio):
 ## Herramientas fijadas
 
 Para evitar sorpresas (en 2026 hubo un ataque real a una acción de Trivy), cada acción de GitHub va
-fijada a un commit exacto, cada imagen a su huella `sha256` y cada programa descargado (gitleaks,
+fijada a un commit exacto, cada imagen a su huella `sha256` (también ZAP y k6) y cada programa descargado (gitleaks,
 osv-scanner, Trivy) a su versión y a la huella del archivo, que se verifica antes de usarlo.
 Renovate actualiza las acciones y las imágenes. Los tres programas se actualizan a mano cada
 trimestre: cambie la versión y la huella en `ci.yml`, tomándola del archivo de huellas
