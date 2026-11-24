@@ -1,0 +1,120 @@
+# Servidor de vigilancia de ARZA ONE (B44, numeral 10.7, ADR-026). Vive FUERA del servidor de
+# producción: si producción se cae por completo, desde aquí se sigue avisando.
+#   - Uptime Kuma: disponibilidad (dos fallas seguidas en un minuto), certificados, copias,
+#     servidor y dominio por avisos «push», y la página de estado (estado.[dominio]).
+#   - GlitchTip: errores de la API y del worker; avisa por correo de cada error nuevo.
+# Se enciende a mano en el servidor de vigilancia (docs/runbooks/servidor-de-vigilancia.md) con
+# el archivo /srv/arza-vigilancia/.env que crea infra/server/generate-env-monitoring.sh.
+name: arza-one-monitoring
+
+x-service: &service
+  restart: unless-stopped
+  security_opt: ['no-new-privileges:true']
+  networks: [backend]
+
+x-glitchtip-env: &glitchtip-env
+  DATABASE_URL: postgresql://glitchtip:${GLITCHTIP_DB_PASSWORD:?}@glitchtip-postgres:5432/glitchtip
+  REDIS_URL: redis://:${GLITCHTIP_VALKEY_PASSWORD:?}@glitchtip-valkey:6379/0
+  SECRET_KEY: ${GLITCHTIP_SECRET_KEY:?}
+  GLITCHTIP_DOMAIN: https://errores.${MONITORING_DOMAIN:?}
+  DEFAULT_FROM_EMAIL: ${ALERT_FROM:?}
+  EMAIL_URL: ${ALERT_EMAIL_URL:?}
+  # Nadie se registra solo: el administrador crea las cuentas.
+  ENABLE_USER_REGISTRATION: 'false'
+  ENABLE_ORGANIZATION_CREATION: 'false'
+  GLITCHTIP_MAX_EVENT_LIFE_DAYS: 90
+  SERVER_ROLE: all_in_one
+
+services:
+  caddy:
+    <<: *service
+    image: caddy:2.11.7-alpine@sha256:d8542f48d34a9cf4e4c11a478865229840e87e4c96ea3f439101f31a5d35f75f
+    environment:
+      MONITORING_DOMAIN: ${MONITORING_DOMAIN:?}
+      ACME_EMAIL: ${ACME_EMAIL:?}
+      CADDY_EXTRA_GLOBAL: ${CADDY_EXTRA_GLOBAL:-}
+    volumes:
+      - ../caddy/Caddyfile.monitoring:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    ports:
+      - '80:80'
+      - '443:443'
+    networks: [backend, edge]
+    mem_limit: 128m
+
+  # Necesita salir a internet: revisa los sitios y envía correo y mensajería.
+  uptime-kuma:
+    <<: *service
+    image: louislam/uptime-kuma:2.5.12@sha256:8e4b6bef96417ec98a35dc103c99cc64fc229a01e584e56d95d9004d2003c02a
+    volumes:
+      - uptime-kuma-data:/app/data
+    networks: [backend, edge]
+    mem_limit: 384m
+
+  glitchtip:
+    <<: *service
+    image: glitchtip/glitchtip:7.0.0@sha256:c245745b4179667da3aebd73fb8d4f1fd918f7d68ba07d1fd73ea688933b6e01
+    depends_on:
+      glitchtip-postgres:
+        condition: service_healthy
+      glitchtip-valkey:
+        condition: service_healthy
+    environment:
+      <<: *glitchtip-env
+    networks: [backend, edge]
+    mem_limit: 768m
+
+  # Un solo uso al instalar y al actualizar GitHub: prepara su base de datos.
+  glitchtip-migrate:
+    image: glitchtip/glitchtip:7.0.0@sha256:c245745b4179667da3aebd73fb8d4f1fd918f7d68ba07d1fd73ea688933b6e01
+    profiles: [tools]
+    restart: 'no'
+    security_opt: ['no-new-privileges:true']
+    networks: [backend]
+    depends_on:
+      glitchtip-postgres:
+        condition: service_healthy
+    command: ['./manage.py', 'migrate']
+    environment:
+      <<: *glitchtip-env
+
+  glitchtip-postgres:
+    <<: *service
+    image: postgres:17@sha256:ae69c452f483507a6b99fb654cf93aad7fe156ffd2c56247707eef4e36d3c12b
+    environment:
+      POSTGRES_USER: glitchtip
+      POSTGRES_DB: glitchtip
+      POSTGRES_PASSWORD: ${GLITCHTIP_DB_PASSWORD:?}
+    volumes:
+      - glitchtip-postgres-data:/var/lib/postgresql/data
+    mem_limit: 512m
+    healthcheck:
+      test: ['CMD', 'pg_isready', '--host', '127.0.0.1', '--username', 'glitchtip']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  glitchtip-valkey:
+    <<: *service
+    image: valkey/valkey:8@sha256:640c5e62cea04b6d6f2084232651d0cc70362d31f4f805e7be94dbed6855e8f2
+    command: ['valkey-server', '--requirepass', '${GLITCHTIP_VALKEY_PASSWORD:?}']
+    environment:
+      REDISCLI_AUTH: ${GLITCHTIP_VALKEY_PASSWORD}
+    mem_limit: 128m
+    healthcheck:
+      test: ['CMD', 'valkey-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+networks:
+  backend:
+    internal: true
+  edge:
+
+volumes:
+  caddy-data:
+  caddy-config:
+  uptime-kuma-data:
+  glitchtip-postgres-data:

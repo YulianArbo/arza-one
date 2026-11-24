@@ -1,9 +1,17 @@
 #!/usr/bin/env bash
-# Prepara y endurece un servidor Ubuntu Server 24.04 LTS nuevo para el ambiente de pruebas
-# (B07, numeral 10.2). Se ejecuta una sola vez, como root, desde la carpeta infra/server:
+# Prepara y endurece un servidor Ubuntu Server 24.04 LTS nuevo (B07 y B44, numeral 10.2). Se
+# ejecuta una sola vez, como root, desde la carpeta infra/server:
 #
 #   sudo bash provision.sh --admin <usuario> --admin-key "<llave pública>" \
-#     --deploy-key "<llave pública del despliegue>" --domain <dominio> --email <correo>
+#     --deploy-key "<llave pública del despliegue>" --domain <dominio> --email <correo> \
+#     [--role staging|production|monitoring]
+#
+# --role (pruebas por omisión) decide qué más queda:
+#   - staging:    el ambiente de pruebas (B07).
+#   - production: producción (B44), con los temporizadores de las copias y de la vigilancia del
+#                 servidor. --domain es el dominio raíz (www., app., clientes. y api. cuelgan de él).
+#   - monitoring: el servidor de vigilancia (ADR-026): Uptime Kuma y GlitchTip en
+#                 /srv/arza-vigilancia y el temporizador del vencimiento del dominio.
 #
 # Deja: un usuario nominal con sudo y otro «deploy» solo para el despliegue, SSH solo con llave y
 # sin root, fail2ban, cortafuegos con 80, 443 y SSH, actualizaciones de seguridad automáticas con
@@ -12,11 +20,12 @@
 set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_INFRA="$(cd "$SCRIPT_DIR/.." && pwd)"
 BASE_DIR=/srv/arza-one
 DEPLOY_USER=deploy
 SSH_PORT=22
 
-admin="" admin_key="" deploy_key="" domain="" email=""
+admin="" admin_key="" deploy_key="" domain="" email="" role=staging
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --admin) admin="$2"; shift 2 ;;
@@ -24,6 +33,7 @@ while [[ $# -gt 0 ]]; do
     --deploy-key) deploy_key="$2"; shift 2 ;;
     --domain) domain="$2"; shift 2 ;;
     --email) email="$2"; shift 2 ;;
+    --role) role="$2"; shift 2 ;;
     *) echo "Opción desconocida: $1" >&2; exit 1 ;;
   esac
 done
@@ -33,6 +43,9 @@ trap 'echo "ERROR en la línea $LINENO: $BASH_COMMAND" >&2' ERR
 step() { printf '\n==> %s\n' "$*"; }
 
 [[ $EUID -eq 0 ]] || fail "Ejecute con sudo (como root)."
+[[ "$role" =~ ^(staging|production|monitoring)$ ]] ||
+  fail "--role debe ser staging, production o monitoring."
+if [[ "$role" == monitoring ]]; then BASE_DIR=/srv/arza-vigilancia; fi
 [[ -n "$admin" && -n "$admin_key" && -n "$deploy_key" && -n "$domain" && -n "$email" ]] ||
   fail "Faltan opciones. Vea el encabezado de este guion o docs/runbooks/servidor-de-pruebas.md."
 [[ "$admin" =~ ^[a-z][a-z0-9_-]{1,30}$ && "$admin" != root && "$admin" != "$DEPLOY_USER" ]] ||
@@ -166,8 +179,38 @@ install -d -m 750 -o "$DEPLOY_USER" -g "$DEPLOY_USER" "$BASE_DIR" "$BASE_DIR/rel
 if [[ -e "$BASE_DIR/.env" ]]; then
   echo "Ya existe $BASE_DIR/.env: se conserva."
 else
-  bash "$SCRIPT_DIR/generate-env.sh" "$BASE_DIR/.env" "$domain" "$email"
+  case "$role" in
+    staging) generator=generate-env.sh ;;
+    production) generator=generate-env-production.sh ;;
+    *) generator=generate-env-monitoring.sh ;;
+  esac
+  bash "$SCRIPT_DIR/$generator" "$BASE_DIR/.env" "$domain" "$email"
   chown "$DEPLOY_USER:$DEPLOY_USER" "$BASE_DIR/.env"
+fi
+
+# Temporizadores de systemd (B44): las copias y la vigilancia del servidor en producción; el
+# vencimiento del dominio en el servidor de vigilancia.
+install_timers() {
+  local unit
+  for unit in "$@"; do install -m 644 "$SCRIPT_DIR/systemd/$unit" /etc/systemd/system/; done
+  systemctl daemon-reload
+  for unit in "$@"; do
+    if [[ "$unit" == *.timer ]]; then systemctl enable --now "$unit"; fi
+  done
+}
+if [[ "$role" == production ]]; then
+  step "Temporizadores de las copias y de la vigilancia del servidor (numerales 10.5 y 10.7)"
+  install_timers arza-backup@.service arza-backup-db-full.timer arza-backup-db-diff.timer \
+    arza-backup-db-monthly.timer arza-backup-db-annual.timer arza-backup-files.timer \
+    arza-host-metrics.service arza-host-metrics.timer
+fi
+if [[ "$role" == monitoring ]]; then
+  step "Archivos del servidor de vigilancia y vencimiento del dominio (ADR-026)"
+  install -d -m 755 "$BASE_DIR/infra/compose" "$BASE_DIR/infra/caddy" "$BASE_DIR/infra/monitoring"
+  install -m 644 "$REPO_INFRA/compose/monitoring.yml" "$BASE_DIR/infra/compose/"
+  install -m 644 "$REPO_INFRA/caddy/Caddyfile.monitoring" "$BASE_DIR/infra/caddy/"
+  install -m 755 "$REPO_INFRA/monitoring/domain-expiry.sh" "$BASE_DIR/infra/monitoring/"
+  install_timers arza-domain-expiry.service arza-domain-expiry.timer
 fi
 
 step "Revisión final"
@@ -179,8 +222,8 @@ Servidor listo. Antes de cerrar esta sesión, abra OTRA terminal y confirme que 
   ssh $admin@<dirección del servidor>
 (root ya no puede entrar por SSH).
 
-Huella del servidor para GitHub (secreto STAGING_SSH_KNOWN_HOSTS):
+Huella del servidor para GitHub (secreto STAGING_SSH_KNOWN_HOSTS o PRODUCTION_SSH_KNOWN_HOSTS):
 $(for key in /etc/ssh/ssh_host_*_key.pub; do printf '<dirección del servidor> %s\n' "$(cut -d' ' -f1,2 "$key")"; done)
 
-Siga con docs/runbooks/servidor-de-pruebas.md, paso «Conectar GitHub».
+Siga con la guía de este servidor en docs/runbooks/ (pruebas, producción o vigilancia).
 EOF

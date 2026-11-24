@@ -1,0 +1,12 @@
+# copia completa de la base, domingos 2:00 a. m. de Colombia (B44). Horas en UTC: Colombia es UTC-5.
+[Unit]
+Description=ARZA ONE: copia completa de la base, domingos 2:00 a. m. de Colombia
+
+[Timer]
+OnCalendar=Sun *-*-* 07:00:00
+Persistent=true
+RandomizedDelaySec=5min
+Unit=arza-backup@db-full.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,11 @@
+# Cada minuto (B44, numeral 10.7).
+[Unit]
+Description=ARZA ONE: vigilancia del servidor cada minuto
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1min
+AccuracySec=10s
+
+[Install]
+WantedBy=timers.target

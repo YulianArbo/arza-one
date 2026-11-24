@@ -1,0 +1,7 @@
+# Vencimiento del dominio a Uptime Kuma (B44, numeral 10.7). Servidor de vigilancia.
+[Unit]
+Description=ARZA ONE: vencimiento del dominio
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash /srv/arza-vigilancia/infra/monitoring/domain-expiry.sh

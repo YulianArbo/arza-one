@@ -1,0 +1,9 @@
+# Procesador, memoria y disco del servidor de producción a Uptime Kuma (B44, numeral 10.7).
+[Unit]
+Description=ARZA ONE: vigilancia del servidor
+
+[Service]
+Type=oneshot
+User=deploy
+Group=deploy
+ExecStart=/usr/bin/bash /srv/arza-one/current/infra/monitoring/host-metrics.sh
