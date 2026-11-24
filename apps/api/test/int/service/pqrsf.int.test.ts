@@ -121,6 +121,11 @@ describe('registro interno y clasificación', () => {
     const pqrsf = await scenario.pqrsfOf(officer, id);
     expect(pqrsf).toMatchObject({ status: 'classified', privacy_kind: 'inquiry', term_days: 10 });
     expect(pqrsf.transferred_at).not.toBeNull();
+    // En la misma transacción nace la solicitud del titular en Privacidad (B42).
+    const request = await scenario.inTenant((tx) =>
+      tx.privacyRequest.findFirst({ where: { sourceCode: filed.code } }),
+    );
+    expect(request).toMatchObject({ channel: 'pqrsf', kind: 'inquiry', right: 'know' });
     await scenario.dispatchNotices();
     const notices = await scenario.noticesFor(officer.id, 'svc_pqrsf_update');
     expect(notices.join(' ')).toContain('Privacidad');

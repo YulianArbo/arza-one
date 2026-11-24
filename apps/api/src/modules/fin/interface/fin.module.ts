@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Inject, Module } from '@nestjs/common';
 
 import { AccountingUseCase } from '../application/accounting.js';
 import { BudgetsUseCase } from '../application/budgets.js';
@@ -13,6 +13,8 @@ import { BudgetsController } from './budgets.controller.js';
 import { ExpensesController } from './expenses.controller.js';
 import { InvoicesController } from './invoices.controller.js';
 import { TaxParametersController } from './tax-parameters.controller.js';
+import { PersonalDataRegistry } from '../../privacy/index.js';
+import { FIN_PERSONAL_DATA } from '../application/fin-personal-data.js';
 
 /**
  * M10 Finanzas. Los parámetros tributarios se adelantaron en B23; facturas, notas crédito y
@@ -38,4 +40,9 @@ import { TaxParametersController } from './tax-parameters.controller.js';
     AccountingUseCase,
   ],
 })
-export class FinModule {}
+export class FinModule {
+  /** Le presta a Privacidad lo que este módulo guarda de cada titular (B42). */
+  constructor(@Inject(PersonalDataRegistry) registry: PersonalDataRegistry) {
+    registry.register(FIN_PERSONAL_DATA);
+  }
+}

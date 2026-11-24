@@ -33,7 +33,7 @@
     "doc:importar-retencion": "turbo run build --filter=@arza/api --output-logs=errors-only && pnpm --filter @arza/api doc:importar-retencion",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "NODE_OPTIONS=--max-old-space-size=6144 eslint . --max-warnings 0",
+    "lint": "NODE_OPTIONS=--max-old-space-size=8192 eslint . --max-warnings 0",
     "boundaries": "depcruise apps packages --config .dependency-cruiser.cjs",
     "unused": "knip",
     "secrets": "gitleaks git --no-banner --redact",

@@ -14,6 +14,7 @@ export {
   type StartRequest,
   type TransitionAsk,
 } from './application/workflow-engine.js';
+export { rescheduleWorkflow } from './application/reschedule.js';
 export { taskActorOf, type WfContext } from './application/wf-context.js';
 export type { TaskActor } from './domain/task-rules.js';
 export { seedPublishedFlow, type SeedFlow } from './application/flow-seed.js';

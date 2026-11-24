@@ -1,4 +1,4 @@
-import { Module, type OnModuleInit } from '@nestjs/common';
+import { Inject, Module, type OnModuleInit } from '@nestjs/common';
 
 import { DocModule } from '../../doc/index.js';
 
@@ -21,6 +21,8 @@ import { OpportunitiesController } from './opportunities.controller.js';
 import { PublicQuotesController } from './public-quotes.controller.js';
 import { QuotesController } from './quotes.controller.js';
 import { ServicesController } from './services.controller.js';
+import { PersonalDataRegistry } from '../../privacy/index.js';
+import { CRM_PERSONAL_DATA } from '../application/crm-personal-data.js';
 
 /**
  * M05 Comercial, CRM (B22): prospectos con su autorización y su tarea de contacto, embudo de
@@ -55,6 +57,11 @@ import { ServicesController } from './services.controller.js';
   ],
 })
 export class CrmModule implements OnModuleInit {
+  /** Le presta a Privacidad lo que este módulo guarda de cada titular (B42). */
+  constructor(@Inject(PersonalDataRegistry) registry: PersonalDataRegistry) {
+    registry.register(CRM_PERSONAL_DATA);
+  }
+
   onModuleInit(): void {
     followCrmWorkflows();
   }

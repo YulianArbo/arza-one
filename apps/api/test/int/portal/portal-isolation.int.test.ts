@@ -121,6 +121,7 @@ const LISTS = [
   '/v1/portal/pqrsf',
   '/v1/portal/users',
   '/v1/portal/me',
+  '/v1/portal/me/privacy-requests',
 ] as const;
 
 /** Lo que no lleva identificador de otro cliente (términos, artículos y la cuenta propia). */
@@ -143,6 +144,16 @@ function call(person: Person, probe: Probe, ids: Ids): request.Test {
     .set('X-CSRF-Token', person.session.session.csrf_token)
     .set('If-Match', '"1"');
   return base.send(probe.body?.(ids) ?? {});
+}
+
+/** El usuario de A presenta una solicitud de datos personales: su lista no debe verse desde B. */
+async function filePrivacyRequest(person: Person): Promise<void> {
+  const filed = await scenario.post('/v1/portal/me/privacy-requests', person.session, {
+    right: 'know',
+    document_number: '1000000088',
+    description: 'Quiero saber qué datos míos tienen.',
+  });
+  expect(filed.status, filed.text).toBe(201);
 }
 
 let ids: Ids;
@@ -175,6 +186,7 @@ beforeAll(async () => {
     priority: 'medium',
     project_id: null,
   });
+  await filePrivacyRequest(world.user);
   ids = {
     world,
     contractId: contracts.data[0]?.id ?? '',

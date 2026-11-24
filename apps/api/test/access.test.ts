@@ -92,8 +92,9 @@ describe('todas las rutas reales de la API declaran su acceso', () => {
       // Comunicados del acceso (B36A): solo los vigentes de la empresa del sitio, que son públicos.
       // Sitio público (B41): páginas y textos publicados, el aviso de los formularios, contacto y
       // cotización, la elección de cookies y la baja con la llave del correo en el cuerpo.
+      // Derechos del titular (B42): presentar la solicitud y consultarla con código y correo.
       expect(path).toMatch(
-        /^\/(health|version|v1\/auth\/(login|password\/\w+|invitation\/accept)|v1\/files\/(uploads|downloads)\/:token|v1\/public\/quotes\/(view|pdf|accept|reject)|v1\/public\/signatures\/(open|code|verify-code|document|sign|reject)|v1\/public\/verifications|v1\/public\/pqrsf(\/status)?|v1\/public\/surveys\/(view|answer)|v1\/public\/announcements(\/:id\/image)?|v1\/public\/pages(\/:slug)?|v1\/public\/legal\/(privacy-policy|:key)|v1\/public\/forms\/(notice|contact|quote)|v1\/public\/(cookie-consent|unsubscribe))$/,
+        /^\/(health|version|v1\/auth\/(login|password\/\w+|invitation\/accept)|v1\/files\/(uploads|downloads)\/:token|v1\/public\/quotes\/(view|pdf|accept|reject)|v1\/public\/signatures\/(open|code|verify-code|document|sign|reject)|v1\/public\/verifications|v1\/public\/pqrsf(\/status)?|v1\/public\/surveys\/(view|answer)|v1\/public\/announcements(\/:id\/image)?|v1\/public\/pages(\/:slug)?|v1\/public\/legal\/(privacy-policy|:key)|v1\/public\/forms\/(notice|contact|quote)|v1\/public\/(cookie-consent|unsubscribe)|v1\/public\/privacy-requests(\/status)?)$/,
       );
     }
   });

@@ -3,7 +3,8 @@
 // también como «@arza/api/web» para el worker, que envía el acuse de los formularios.
 export { WebModule } from './interface/web.module.js';
 export { seedSiteDemo, seedSiteTexts } from './application/site-seed.js';
-export { isUnsubscribed } from './application/submissions.js';
+export { isUnsubscribed, mayContactCommercially } from './application/submissions.js';
+export { anonymizeExpiredSubmissions } from './application/site-personal-data.js';
 export {
   sendSiteMail,
   sendSiteMailIn,

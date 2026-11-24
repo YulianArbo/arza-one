@@ -283,6 +283,7 @@ export function servePortal(permissions: object, extra: Routes = {}): SentReques
       json({ ...ARTICLE, body: 'Entre a Facturas.' }),
     'GET /v1/portal/users': () => json(USERS),
     'GET /v1/portal/me': () => json(MY_DATA),
+    'GET /v1/portal/me/privacy-requests': () => json({ data: [] }),
     'GET /v1/files/download/llave': () => new Response(new Blob(['%PDF']), { status: 200 }),
     ...extra,
   });

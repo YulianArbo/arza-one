@@ -133,7 +133,10 @@ async function createStateTasks(
   }
 }
 
-/** Entra al estado: plazo en horas hábiles, fin del trámite si es final y tareas nuevas. */
+/**
+ * Entra al estado: plazo en horas hábiles, fin del trámite si es final y tareas nuevas. Quien
+ * inicia el trámite puede fijar la fecha límite (B42: el plazo legal en días hábiles).
+ */
 export async function enterState(
   tx: TenantTransaction,
   context: WfContext,
@@ -142,11 +145,13 @@ export async function enterState(
     readonly instance: WorkflowInstance;
     readonly stateKey: string;
     readonly entryId: string;
+    readonly dueAt?: Date;
   },
 ): Promise<WorkflowInstance> {
   const state = stateOf(flow, target.stateKey);
   const hours = state.sla_hours;
-  const dueAt = hours === null ? null : await businessHoursDeadline(tx, context.at, hours);
+  const dueAt =
+    target.dueAt ?? (hours === null ? null : await businessHoursDeadline(tx, context.at, hours));
   const instance = await tx.workflowInstance.update({
     where: { id: target.instance.id },
     data: {

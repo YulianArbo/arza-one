@@ -1,15 +1,16 @@
 'use client';
 
 import { buttonVariants, ForbiddenState, HighlightCard } from '@arza/ui';
-import { BookCheck, FileText, ListTree, Truck } from 'lucide-react';
+import { BookCheck, Cookie, FileText, Inbox, ListTree, ShieldAlert, Truck } from 'lucide-react';
 import Link from 'next/link';
 import type { JSX, ReactNode } from 'react';
 
 import { usePermissions } from '../session/permissions';
 import { PRIVACY_PATHS } from './labels';
+import { B42_PATHS } from './request-labels';
 
 // Entrada de Privacidad (B17, B22B): las secciones del Oficial de Protección de Datos que la persona
-// puede usar. Las solicitudes de titulares y los incidentes llegan en B42.
+// puede usar, con las solicitudes de titulares, los incidentes y las cookies (B42).
 
 interface Section {
   readonly href: string;
@@ -22,6 +23,22 @@ interface Section {
 }
 
 const SECTIONS: readonly Section[] = [
+  {
+    href: B42_PATHS.requests,
+    title: 'Solicitudes de titulares',
+    short: 'solicitudes',
+    description: 'Consultas y reclamos con su plazo legal, la entrega y la supresión de los datos.',
+    permission: 'privacy.request.manage',
+    icon: <Inbox aria-hidden="true" />,
+  },
+  {
+    href: B42_PATHS.incidents,
+    title: 'Incidentes',
+    short: 'incidentes',
+    description: 'Incidentes con datos personales, su bitácora y el reporte a la SIC.',
+    permission: 'privacy.incident.manage',
+    icon: <ShieldAlert aria-hidden="true" />,
+  },
   {
     href: PRIVACY_PATHS.activities,
     title: 'Actividades de tratamiento',
@@ -54,6 +71,15 @@ const SECTIONS: readonly Section[] = [
     permission: 'privacy.processor.manage',
     icon: <Truck aria-hidden="true" />,
   },
+  {
+    href: B42_PATHS.cookies,
+    title: 'Cookies',
+    short: 'cookies',
+    description:
+      'Qué aceptaron los visitantes del sitio, por categoría y por versión de la política.',
+    permission: 'privacy.notice.manage',
+    icon: <Cookie aria-hidden="true" />,
+  },
 ];
 
 function SectionCard({ section }: { readonly section: Section }): JSX.Element {
@@ -77,7 +103,7 @@ export function PrivacyHome(): JSX.Element | null {
   const visible = SECTIONS.filter((section) => permissions.can(section.permission));
   if (visible.length === 0) return <ForbiddenState />;
   return (
-    <ul className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4" aria-label="Secciones de privacidad">
+    <ul className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3" aria-label="Secciones de privacidad">
       {visible.map((section) => (
         <li key={section.title}>
           <SectionCard section={section} />

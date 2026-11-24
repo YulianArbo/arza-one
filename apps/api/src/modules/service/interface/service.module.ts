@@ -1,4 +1,4 @@
-import { Module, type OnModuleInit } from '@nestjs/common';
+import { Inject, Module, type OnModuleInit } from '@nestjs/common';
 
 import { CompensationsUseCase } from '../application/compensations.js';
 import { KnowledgeUseCase } from '../application/knowledge.js';
@@ -22,6 +22,8 @@ import { ServiceSettingsController } from './service-settings.controller.js';
 import { SurveysController } from './surveys.controller.js';
 import { TicketRecordsController } from './ticket-records.controller.js';
 import { TicketsController } from './tickets.controller.js';
+import { PersonalDataRegistry } from '../../privacy/index.js';
+import { SERVICE_PERSONAL_DATA } from '../application/service-personal-data.js';
 
 /**
  * M08 Servicio al cliente. B28, mesa de ayuda: tiquetes con niveles, prioridades y acuerdos de
@@ -59,6 +61,11 @@ import { TicketsController } from './tickets.controller.js';
   ],
 })
 export class ServiceModule implements OnModuleInit {
+  /** Le presta a Privacidad lo que este módulo guarda de cada titular (B42). */
+  constructor(@Inject(PersonalDataRegistry) registry: PersonalDataRegistry) {
+    registry.register(SERVICE_PERSONAL_DATA);
+  }
+
   onModuleInit(): void {
     followAcceptedDeliverables();
   }

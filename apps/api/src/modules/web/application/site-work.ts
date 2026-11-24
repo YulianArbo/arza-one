@@ -37,7 +37,11 @@ function unsubscribeUrl(appUrl: string, token: string): string {
   return url.toString();
 }
 
-function ackMail(row: WebFormSubmission, company: CompanyIdentity, link: string): SiteMail {
+function ackMail(
+  row: WebFormSubmission & { readonly email: string },
+  company: CompanyIdentity,
+  link: string,
+): SiteMail {
   const form = SITE_FORMS[siteFormKeySchema.parse(row.formKey)].toLowerCase();
   return {
     to: row.email,
@@ -68,6 +72,7 @@ async function prepareAck(deps: SiteWorkDependencies, tenantId: string, id: stri
       where: { id, mailPending: true, deletedAt: null },
     });
     if (row === null) return null;
+    if (row.email === null) return null;
     const token = randomBytes(32).toString('base64url');
     await tx.webFormSubmission.update({
       where: { id },
@@ -79,7 +84,11 @@ async function prepareAck(deps: SiteWorkDependencies, tenantId: string, id: stri
       entityId: id,
       changes: { code: row.code },
     });
-    return ackMail(row, await companyIdentity(tx), unsubscribeUrl(deps.appUrl, token));
+    return ackMail(
+      { ...row, email: row.email },
+      await companyIdentity(tx),
+      unsubscribeUrl(deps.appUrl, token),
+    );
   });
 }
 

@@ -149,6 +149,19 @@ export const NOTIFICATION_KINDS = {
     label: 'Un acta de revisión por la dirección espera su aprobación',
     variables: ['nombre', 'codigo'],
   },
+  // Privacidad (B42, decisión 11).
+  prv_request_received: {
+    label: 'Llegó una solicitud de un titular de datos',
+    variables: ['nombre', 'codigo', 'fecha'],
+  },
+  prv_request_due: {
+    label: 'Una solicitud de titular está por vencer o venció',
+    variables: ['nombre', 'codigo', 'fecha', 'novedad'],
+  },
+  prv_incident_due: {
+    label: 'Un incidente de datos personales espera su reporte a la SIC',
+    variables: ['nombre', 'codigo', 'fecha', 'novedad'],
+  },
 } as const satisfies Record<string, { label: string; variables: readonly string[] }>;
 
 export type NotificationKind = keyof typeof NOTIFICATION_KINDS;

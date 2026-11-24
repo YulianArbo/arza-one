@@ -13,6 +13,11 @@ import {
 import { processLoanWork, type LoanWorkJobDependencies } from '../jobs/loan-work.js';
 import { processSlaWork, type SlaWorkJobDependencies } from '../jobs/sla-work.js';
 import { processCareWork, type CareWorkJobDependencies } from '../jobs/care-work.js';
+import {
+  processPrivacyDailyWork,
+  processPrivacyWork,
+  type PrivacyJobDependencies,
+} from '../jobs/privacy-work.js';
 import { processSiteWork, type SiteWorkJobDependencies } from '../jobs/site-work.js';
 import { processAccountEmail, type AccountEmailJobDependencies } from '../jobs/account-email.js';
 import {
@@ -85,6 +90,7 @@ export type JobDependencies = ExampleEmailDependencies &
   SlaWorkJobDependencies &
   CareWorkJobDependencies &
   SiteWorkJobDependencies &
+  PrivacyJobDependencies &
   Parameters<typeof renderQualityPdfs>[0];
 
 /** Procesador que recibe los datos del trabajo; su resultado no se usa. */
@@ -99,6 +105,14 @@ function withoutData(process: () => Promise<unknown>): JobHandler {
   return async () => {
     await process();
   };
+}
+
+/** Privacidad (B42): correos al titular, PDF de la entrega y trabajo diario. */
+function privacyHandlers(deps: JobDependencies): [string, JobHandler][] {
+  return [
+    [JOBS.prvRequestWork.name, withoutData(async () => processPrivacyWork(deps))],
+    [JOBS.prvDailyWork.name, withoutData(async () => processPrivacyDailyWork(deps))],
+  ];
 }
 
 /** Procesadores de cada trabajo, por su nombre. Cada bloque agrega los suyos. */
@@ -139,6 +153,7 @@ function handlers(deps: JobDependencies): ReadonlyMap<string, JobHandler> {
     [JOBS.svcSlaWork.name, withoutData(async () => processSlaWork(deps))],
     [JOBS.svcCareWork.name, withoutData(async () => processCareWork(deps))],
     [JOBS.webSiteWork.name, withoutData(async () => processSiteWork(deps))],
+    ...privacyHandlers(deps),
   ]);
 }
 

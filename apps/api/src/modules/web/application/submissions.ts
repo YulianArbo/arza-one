@@ -22,6 +22,7 @@ import { DatabaseService } from '../../../platform/database/database.service.js'
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import { AppError } from '../../../platform/errors/app-error.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
+import { hasCommercialConsent } from '../../privacy/index.js';
 import { recordWebAudit, recordWebChange, siteTenantId, type WebActor } from './web-support.js';
 
 // Formularios recibidos y bajas de comunicaciones comerciales (B41, decisión 9). La llave de baja
@@ -81,6 +82,19 @@ export async function isUnsubscribed(tx: TenantTransaction, email: string): Prom
   return count > 0;
 }
 
+/**
+ * Se le puede enviar una comunicación comercial (ficha 17.19; B42): el correo no está de baja y, si
+ * se conoce el titular, tiene vigente la autorización de envío de información comercial. Revocarla
+ * detiene los envíos de inmediato. Todo envío comercial lo consulta antes.
+ */
+export async function mayContactCommercially(
+  tx: TenantTransaction,
+  recipient: { readonly email: string; readonly partyId: string | null },
+): Promise<boolean> {
+  if (await isUnsubscribed(tx, recipient.email)) return false;
+  return recipient.partyId === null ? true : hasCommercialConsent(tx, recipient.partyId);
+}
+
 async function recordUnsubscribe(
   tx: TenantTransaction,
   actor: WebActor,
@@ -90,6 +104,7 @@ async function recordUnsubscribe(
     where: { id: row.id },
     data: { unsubscribeUsedAt: actor.at },
   });
+  if (row.email === null) return true;
   if (await isUnsubscribed(tx, row.email)) {
     // El correo ya estaba de baja por otro enlace: queda constancia de que se usó este.
     await recordWebAudit(tx, actor, {
@@ -164,6 +179,7 @@ export class Submissions {
         where: { unsubscribeTokenHash: unsubscribeTokenHash(input.token), deletedAt: null },
       });
       if (row === null) throw linkInvalid();
+      if (row.email === null) throw linkInvalid();
       if (row.unsubscribeUsedAt !== null) return { email: maskEmail(row.email), already: true };
       const already = await recordUnsubscribe(tx, actor, row);
       return { email: maskEmail(row.email), already };

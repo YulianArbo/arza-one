@@ -48,7 +48,7 @@ function publicCall(s: AccessScenario, path: string, body: object): request.Test
  * El sitio público de la API de pruebas es el de la empresa del escenario, por su NIT. El paso que
  * edita la empresa en este mismo recorrido le cambia el NIT: aquí se le devuelve el del sitio.
  */
-async function siteCompany(s: AccessScenario): Promise<void> {
+export async function siteCompany(s: AccessScenario): Promise<void> {
   await tenantScope(
     s.db,
     s.tenant.id,

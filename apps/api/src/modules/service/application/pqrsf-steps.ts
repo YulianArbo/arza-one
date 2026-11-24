@@ -22,6 +22,7 @@ import { versionConflict } from '../../../platform/http/if-match.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
 import { openNonconformityFromPqrsf } from '../../qms/index.js';
 import { findPqrsf, pqrsfAudit, pqrsfDeadline, pqrsfPayload } from './pqrsf-records.js';
+import { transferToPrivacy } from './pqrsf-transfer.js';
 import {
   approverInvalid,
   assigneeInvalid,
@@ -176,7 +177,10 @@ export class PqrsfStepsUseCase {
         },
         changes: { type: [pqrsf.type, input.type], term_days: deadline.termDays },
       });
-      if (toPrivacy && pqrsf.transferredAt === null) await handOff(tx, actor, after, 'transfer');
+      if (toPrivacy && pqrsf.transferredAt === null) {
+        await handOff(tx, actor, after, 'transfer');
+        await transferToPrivacy(tx, actor, after);
+      }
     });
   }
 
