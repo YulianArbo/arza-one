@@ -9,6 +9,7 @@ import {
 } from '../../../src/modules/contract/index.js';
 import type { Person } from '../iam/support/access-scenario.js';
 import { errorCode } from '../iam/support/iam-fixtures.js';
+import { TEST_PDF_SEAL, checkPdfSeal } from '../../support/sealed-pdf.js';
 import {
   SignatureScenario,
   type Prepared,
@@ -205,6 +206,32 @@ describe('verificación pública', () => {
     expect(verifyDocumentResponseSchema.parse(altered.body).result).toBe('not_found');
     const both = await scenario.verify({ code, sha256: sha256(tampered) });
     expect(verifyDocumentResponseSchema.parse(both.body).result).toBe('mismatch');
+  });
+});
+
+describe('sello de integridad de la empresa (B43)', () => {
+  it('el documento firmado lleva el sello de la empresa y el lector detecta cambios (B43)', async () => {
+    const sales = await scenario.sales();
+    const prepared = await scenario.sentEnvelope(sales);
+    await scenario.clientSigns(firstSigner(prepared).email);
+    expect((await scenario.companySigns(prepared.director, prepared.envelopeId)).status).toBe(204);
+    await scenario.signatureWork();
+    const signed = await scenario.signedPdf(prepared.envelopeId);
+    const check = checkPdfSeal(signed);
+    expect(check).toMatchObject({ intact: true, holder: 'ARZA ONE (pruebas)' });
+    expect(check.certificateSha256).toBe(TEST_PDF_SEAL.certificateSha256);
+    expect(await scenario.sealCertificate(prepared.envelopeId)).toEqual({
+      stored: TEST_PDF_SEAL.certificateSha256,
+      audited: TEST_PDF_SEAL.certificateSha256,
+    });
+    const altered = Buffer.from(
+      signed.toString('latin1').replace('Documento firmado', 'Documento cambiad'),
+      'latin1',
+    );
+    expect(checkPdfSeal(altered).intact).toBe(false);
+    await expect(scenario.replaceSealCertificate(prepared.envelopeId)).rejects.toThrow(
+      /sig_envelopes_seal_certificate_keep|no cambia/,
+    );
   });
 });
 

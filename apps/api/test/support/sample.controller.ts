@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Param, Post, Query } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
@@ -37,6 +37,12 @@ export class SampleController {
   @Post('echo')
   echo(@Body() body: SampleBodyDto): SampleBodyDto {
     return body;
+  }
+
+  @Public()
+  @Get('search')
+  search(@Query('q') q: string | undefined): { q: string | null } {
+    return { q: q ?? null };
   }
 
   @OwnAccount()

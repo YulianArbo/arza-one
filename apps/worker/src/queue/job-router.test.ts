@@ -27,6 +27,11 @@ const unusedDeps: JobDependencies = {
   convertHtml: async () => Promise.reject(new Error('no se usa')),
   stamp: async () => Promise.reject(new Error('no se usa')),
   mergePdfs: async () => Promise.reject(new Error('no se usa')),
+  pdfSeal: {
+    certificateSha256: '0'.repeat(64),
+    holder: 'no se usa',
+    seal: async () => Promise.reject(new Error('no se usa')),
+  },
   extractText: async () => Promise.reject(new Error('no se usa')),
 };
 

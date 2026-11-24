@@ -8,6 +8,9 @@
     "test": "vitest run --coverage",
     "check:migrations": "node ci/check-migrations.ts",
     "check:vulnerabilities": "node ci/check-vulnerabilities.ts",
+    "check:licenses": "node ci/check-licenses.ts",
+    "scan:session": "node security/scan-session.ts",
+    "scan:openapi": "node security/scan-openapi.ts",
     "plan:ci": "node ci/plan-ci.ts",
     "deploy:staging": "node deploy/deploy-main.ts",
     "check:ports": "node deploy/check-ports.ts"

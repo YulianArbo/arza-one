@@ -981,6 +981,22 @@ Solicitudes de titulares, entrega y supresión de datos, incidentes y elecciones
 entrega con etiquetas en español y qué suprime o por qué conserva) y regístrela en el constructor
 de su módulo con `PersonalDataRegistry`.
 
+## Endurecimiento de seguridad (B43)
+
+Revisión contra OWASP ASVS 5.0 nivel 2 en
+[`docs/seguridad/asvs-nivel-2.md`](../../docs/seguridad/asvs-nivel-2.md). Decisiones en
+[`B43-cierre.md`](../../docs/bloques/B43-cierre.md).
+
+| Regla                                               | Cómo se cumple                                                                                                                                                                        |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| El PDF firmado lleva el sello de la empresa         | `platform/pdf/pdf-seal.ts` (`pdfSealFromPkcs12`, `temporaryPdfSeal`); el worker lo entrega como `pdfSeal` a `processSignatureWork`, que sella después de unir y antes de la huella    |
+| El certificado que selló no cambia                  | `sig_envelopes.seal_certificate_sha256`, protegido por el disparador `sig_envelopes_keep_seal_certificate`; también en el evento `sealed` y en la auditoría `signature.envelope.seal` |
+| Sin el certificado real no se arranca en producción | `PDF_SEAL_PKCS12` y `PDF_SEAL_PASSPHRASE` en `apps/worker/src/config/env-schema.ts`                                                                                                   |
+| Nada sensible en los registros                      | `REDACTED_PATHS` también oculta `current_password`, `new_password`, `secret`, `recovery_codes` y `passphrase`                                                                         |
+
+En las pruebas, `test/support/sealed-pdf.ts` da un PDF real (`minimalPdf`), el sello de pruebas
+(`TEST_PDF_SEAL`) y `checkPdfSeal`, que comprueba el sello como lo haría un lector de PDF.
+
 ## Imágenes Docker (B05 y B07)
 
 [`Dockerfile`](Dockerfile) produce dos imágenes, sin gestores de paquetes y con usuario sin

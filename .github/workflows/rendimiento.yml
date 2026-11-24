@@ -1,0 +1,66 @@
+# Pruebas de carga con k6 (numeral 21.1, B43): 50 usuarios simultáneos sobre una copia con datos
+# voluminosos. Falla si el percentil 95 supera 500 ms en consultas o 1 s en escrituras. Corre antes
+# de cada versión (etiqueta v*), a demanda y en el pull request que cambie la propia prueba.
+name: Pruebas de carga (k6)
+
+on:
+  workflow_dispatch:
+    inputs:
+      duration:
+        description: Duración de la medición (por ejemplo 5m)
+        default: 5m
+  push:
+    tags: ['v*']
+  pull_request:
+    paths:
+      - .github/workflows/rendimiento.yml
+      - .github/actions/scan-stack/**
+      - infra/k6/**
+
+permissions:
+  contents: read
+
+env:
+  K6_IMAGE: grafana/k6:2.4.0@sha256:3d8e5c7f1d53ec59408c2ffbd9943602a0985ffcbd4a2430ec00f3ffca89796e
+  COMPOSE: docker compose --file infra/compose/ci.yml
+  PRISMA_HIDE_UPDATE_MESSAGE: '1'
+
+jobs:
+  k6:
+    name: Rendimiento con 50 usuarios (k6)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - id: stack
+        uses: ./.github/actions/scan-stack
+      - name: Medir con k6
+        env:
+          SESSION_FILE: ${{ steps.stack.outputs.session-file }}
+          DURATION: ${{ inputs.duration || '5m' }}
+        run: |
+          mkdir -p k6 && chmod 777 k6
+          docker run --rm --network arza-one-ci_default \
+            --volume "$PWD/infra/k6:/scripts:ro" --volume "$PWD/k6:/resultados" \
+            --env API_URL=http://api:4000 --env ORIGIN=http://web:3000 \
+            --env SESSION_COOKIE="$(jq -r .cookie "$SESSION_FILE")" \
+            --env CSRF_TOKEN="$(jq -r .csrf "$SESSION_FILE")" \
+            --env DURATION="$DURATION" --env VOLUME=2000 \
+            "$K6_IMAGE" run --summary-export /resultados/resumen.json /scripts/carga.js
+      - name: Guardar el resumen
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: resumen-k6
+          path: k6/resumen.json
+          if-no-files-found: ignore
+          retention-days: 90
+      - name: Registros de la copia (si algo falló)
+        if: failure()
+        run: $COMPOSE logs --tail 100 api worker
+      - name: Apagar
+        if: always()
+        run: $COMPOSE down --volumes

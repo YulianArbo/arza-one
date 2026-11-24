@@ -1,5 +1,17 @@
 # Entrega entre agentes — ARZA ONE
 
+**B43, 24/11/2026 (Claude Code).** Rama `feat/b43-endurecimiento-de-seguridad-y`, PR #99. Decisiones en `docs/bloques/B43-cierre.md`; controles en `docs/seguridad/asvs-nivel-2.md` y en la sección «Endurecimiento de seguridad (B43)» de `apps/api/README.md`. Puntos para quien continúe:
+
+1. El sello vive en `apps/api/src/platform/pdf/pdf-seal.ts` y se publica en `@arza/api/platform`. `processSignatureWork` exige `pdfSeal`; en pruebas use `TEST_PDF_SEAL`, `minimalPdf` y `checkPdfSeal` de `apps/api/test/support/sealed-pdf.ts` (el `samplePdf` de Documentos no es un PDF real y no se puede sellar).
+2. `P12Signer` consume el certificado al leerlo: se crea uno por documento.
+3. `@signpdf/placeholder-plain` pide pdfkit 0.10 sin usarlo; `pnpm-workspace.yaml` lo declara opcional para no instalar `crypto-js` 3. Si se actualiza `@signpdf`, revise que pdfkit siga fuera de `pnpm-lock.yaml`.
+4. Toda pantalla nueva de acceso o de cliente con enlace personal va en `PRIVATE_PAGES` (`apps/web/src/lib/security/security-headers.ts`); una prueba lo exige.
+5. ZAP y k6 usan `.github/actions/scan-stack` (cuenta de análisis real con segundo factor). Las rutas que cerrarían la sesión se quitan en `infra/scripts/security/scan-auth.ts` (`SESSION_ROUTES`).
+6. `knip.json` declara `infra/k6/carga.js` como punto de entrada; los módulos `k6/*` los trae k6, no npm.
+7. Gotenberg 8 no sella PDF; Gotenberg 9 sí.
+
+Los cambios sueltos del propietario (respaldos, `.csv`, `CLAUDE.md`, ADR 024/025, `.agents/`, `.claude/`, `docs/diagnosticos/`, `.prettierignore`) siguen sin commit y no se tocaron.
+
 **B42, 23/11/2026 (Claude Code).** Rama `feat/b42-privacidad-completa`. Decisiones en `docs/bloques/B42-cierre.md` y reglas en `docs/manual/datos/prv.md` y en la sección «Privacidad completa (B42)» de `apps/api/README.md`. Puntos para quien continúe:
 
 1. Privacidad se publica como `@arza/api/privacy` para el worker: `prv.request-work` (cada 30 s: correos al titular y PDF de la entrega) y `prv.daily-work` (7:00: avisos de plazo, desistimiento, cookies de más de 3 años). El worker también llama a `anonymizeExpiredSubmissions` del sitio (formularios de más de 2 años). Compile la API antes de analizar el worker.

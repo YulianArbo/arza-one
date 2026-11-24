@@ -8,7 +8,12 @@ Tipos exactos, restricciones e índices de las tablas de la firma electrónica (
 ## Reglas comunes
 
 - **Nivel**: solo el nivel 2 del numeral 19.1 (enlace único y código al correo). El nivel 3 (firma
-  digital certificada) y el sello de integridad de la empresa llegan en la fase F8.
+  digital certificada) llega con un proveedor externo.
+- **Sello de integridad de la empresa (B43)**: el PDF firmado por todos se sella con el certificado
+  de la empresa (firma CMS separada, PAdES básico) antes de calcular su huella. Cualquier lector de
+  PDF muestra quién lo selló y avisa si el archivo cambió. El certificado llega al worker en
+  `PDF_SEAL_PKCS12` y `PDF_SEAL_PASSPHRASE` (obligatorios en producción); fuera de producción se usa
+  uno temporal sin validez. Los procesos firmados antes de B43 no se vuelven a sellar.
 - **Columnas de control** en `sig_envelopes` y `sig_signers`: las fija `core_set_control_columns()`
   ([core.md](core.md)). `sig_events` y `sig_verifications` solo se agregan: no tienen versión.
 - **Seguridad por fila**: activada y forzada con `core_current_tenant_id()` en las cuatro tablas.
@@ -61,6 +66,7 @@ Tipos exactos, restricciones e índices de las tablas de la firma electrónica (
 | `workflow_instance_id`      | uuid        | Sí   | La tarea «Firmar … por la empresa» (flujo `sig.company`)                   |
 | `seal_status`               | text        | No   | `none`, `pending` (el worker arma el firmado) o `ready`                    |
 | `signed_file_id`, `_sha256` |             | Sí   | El PDF firmado (original + página de firmas + certificado) y su huella     |
+| `seal_certificate_sha256`   | text        | Sí   | Huella del certificado que selló el PDF (B43); no cambia una vez escrita   |
 | `evidence_file_id`          | uuid        | Sí   | El certificado de evidencia, aparte                                        |
 | `verification_code`         | text        | Sí   | `XXXX-XXXX-XXXX`, único; para la verificación pública                      |
 | control                     |             |      | Columnas de control                                                        |

@@ -180,6 +180,19 @@ jobs:
             --format json --output-file "$RUNNER_TEMP/osv.json" || status=$?
           if [ "$status" -gt 1 ]; then exit "$status"; fi
           node infra/scripts/ci/check-vulnerabilities.ts "$RUNNER_TEMP/osv.json"
+      - name: Licencias de lo que se entrega y avisos de terceros (B43)
+        run: |
+          mkdir -p inventario
+          pnpm licenses list --prod --json --recursive > "$RUNNER_TEMP/licenses.json"
+          node infra/scripts/ci/check-licenses.ts "$RUNNER_TEMP/licenses.json"             inventario/AVISOS-DE-TERCEROS.md
+      - name: Guardar los avisos de terceros
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: avisos-de-terceros
+          path: inventario/AVISOS-DE-TERCEROS.md
+          if-no-files-found: ignore
+          retention-days: 90
 
   migrations:
     name: 7. Migraciones desde cero y sobre la versión anterior
@@ -248,6 +261,20 @@ jobs:
               "arza-one/$app:ci" || failed="$failed $app"
           done
           if [ -n "$failed" ]; then echo "Vulnerabilidad crítica con corrección en:$failed"; exit 1; fi
+      # Inventario de componentes (SBOM) de cada imagen en formato CycloneDX (numeral 15.5, B43).
+      - name: Inventario de componentes (SBOM) de cada imagen
+        run: |
+          mkdir -p sbom
+          for app in $APPS; do
+            trivy image --quiet --skip-db-update --format cyclonedx               --output "sbom/$app.cdx.json" "arza-one/$app:ci"
+          done
+          ls -l sbom
+      - name: Guardar el inventario de componentes
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sbom-${{ github.sha }}
+          path: sbom/*.cdx.json
+          retention-days: 90
 
   e2e:
     name: 9. Pruebas en navegador y accesibilidad

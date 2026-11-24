@@ -64,6 +64,11 @@ beforeAll(async () => {
     convertHtml: async () => Promise.reject(new Error('no se usa en esta prueba')),
     stamp: async () => Promise.reject(new Error('no se usa en esta prueba')),
     mergePdfs: async () => Promise.reject(new Error('no se usa en esta prueba')),
+    pdfSeal: {
+      certificateSha256: '0'.repeat(64),
+      holder: 'no se usa en esta prueba',
+      seal: async () => Promise.reject(new Error('no se usa en esta prueba')),
+    },
     extractText: async () => Promise.reject(new Error('no se usa en esta prueba')),
   });
   workers = startQueueWorkers(router, {

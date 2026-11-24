@@ -16,6 +16,12 @@ export const REDACTED_PATHS = [
   '*.token',
   '*.otp_code',
   '*.verification_code',
+  // B43 (ASVS V16.2.5): claves al cambiarlas, secretos del segundo factor y del sello.
+  '*.current_password',
+  '*.new_password',
+  '*.secret',
+  '*.recovery_codes',
+  '*.passphrase',
 ];
 
 /** Opciones de los registros: JSON con el identificador de correlación de cada petición. */

@@ -17,11 +17,18 @@ import {
   scanWithClamav,
   stampWithGotenberg,
 } from '@arza/api/doc';
-import { DatabaseService, JobQueue, SCHEDULED_JOBS, systemClock } from '@arza/api/platform';
+import {
+  DatabaseService,
+  JobQueue,
+  SCHEDULED_JOBS,
+  systemClock,
+  type PdfSeal,
+} from '@arza/api/platform';
 import { Redis } from 'ioredis';
 import type { Logger } from 'pino';
 
 import type { WorkerEnv } from './config/env-schema.js';
+import { pdfSealFrom } from './config/pdf-seal.js';
 import { startHeartbeat } from './heartbeat/heartbeat.js';
 import { createLogger } from './logging/logger.js';
 import { SmtpMailer, type Mailer } from './mail/mailer.js';
@@ -82,6 +89,7 @@ class WorkerRuntime implements OnApplicationBootstrap, OnApplicationShutdown {
       convertHtml: async (document) => convertHtmlWithGotenberg(gotenberg, document),
       stamp: async (pdf, text) => stampWithGotenberg(gotenberg, pdf, text),
       mergePdfs: async (pdfs) => mergeWithGotenberg(gotenberg, pdfs),
+      pdfSeal: this.pdfSeal(),
       extractText: extractPdfText,
     });
     this.queueWorkers = startQueueWorkers(router, {
@@ -95,6 +103,16 @@ class WorkerRuntime implements OnApplicationBootstrap, OnApplicationShutdown {
       this.logger.warn({ reason: String(error) }, 'No se pudo emitir el latido');
     });
     this.logger.info({ queues: this.queueWorkers.queues }, 'Worker listo');
+  }
+
+  /** Sello de los PDF firmados (B43); deja en el registro de quién es el certificado. */
+  private pdfSeal(): PdfSeal {
+    const seal = pdfSealFrom(this.config, systemClock.now());
+    this.logger.info(
+      { holder: seal.holder, certificateSha256: seal.certificateSha256 },
+      'Sello de los PDF firmados listo',
+    );
+    return seal;
   }
 
   /**

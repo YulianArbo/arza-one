@@ -44,6 +44,43 @@ describe('cabeceras de seguridad (numeral 15.6)', () => {
     expect(headers['cache-control']).toBe('no-store');
     expect(headers['x-robots-tag']).toBe('noindex, nofollow');
     expect(headers['x-powered-by']).toBeUndefined();
+    // B43: ningún sitio ajeno comparte ventana ni incrusta respuestas de la API.
+    expect(headers['cross-origin-opener-policy']).toBe('same-origin');
+    expect(headers['cross-origin-resource-policy']).toBe('same-origin');
+    expect(headers['x-frame-options']).toBe('DENY');
+  });
+
+  it('las incluye también en los errores', async () => {
+    const { status, headers } = await request(app.getHttpServer()).get('/no-existe');
+    expect(status).toBe(404);
+    expect(headers['content-security-policy']).toBe("default-src 'none';frame-ancestors 'none'");
+    expect(headers['cache-control']).toBe('no-store');
+    expect(headers['x-content-type-options']).toBe('nosniff');
+  });
+});
+
+describe('carácter nulo en la petición (B43, hallazgo de ZAP)', () => {
+  it('responde 422 y no un error interno si viene en el cuerpo', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/test/echo')
+      .send({ name: 'Ana\u0000', amount: '10.00' });
+    expect(response.status).toBe(422);
+    expect(errorResponseSchema.parse(response.body).error.code).toBe('VALIDATION_FAILED');
+  });
+
+  it('responde 422 si viene en la consulta o en un nombre de campo', async () => {
+    const query = await request(app.getHttpServer()).get('/test/search?q=%27%00%3Cscript%3E');
+    expect(query.status).toBe(422);
+    const key = await request(app.getHttpServer())
+      .post('/test/echo')
+      .send({ name: 'Ana', amount: '10.00', ['x\u0000']: 1 });
+    expect(key.status).toBe(422);
+  });
+
+  it('deja pasar los textos normales', async () => {
+    const response = await request(app.getHttpServer()).get('/test/search?q=%C3%B1and%C3%BA');
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ q: 'ñandú' });
   });
 });
 

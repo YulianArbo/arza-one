@@ -148,3 +148,13 @@ it('otra empresa no ve ni decide las ideas', async () => {
     404,
   );
 });
+
+it('rechaza con 422 el carácter nulo que ZAP envió, en lugar de un error interno (B43)', async () => {
+  const f = await innFixture(scenario, 'nulo');
+  const nul = String.fromCharCode(0);
+  const idea = { ...IDEA, title: `Idea${nul}<script>` };
+  const created = await scenario.post('/v1/innovation/ideas', f.worker.session, idea);
+  expect(created.status).toBe(422);
+  const search = await scenario.get('/v1/crm/services?view=active&q=%27%22%00', f.director.session);
+  expect(search.status).toBe(422);
+});

@@ -14,6 +14,7 @@ import type { Person } from '../../iam/support/access-scenario.js';
 import { WEB_ORIGIN, freshIp, tenantScope } from '../../iam/support/iam-fixtures.js';
 import { organizationBody } from '../../party/support/party-scenario.js';
 import { apiDatabase } from '../../support/integration-database.js';
+import { TEST_PDF_SEAL, minimalPdf } from '../../../support/sealed-pdf.js';
 import { ContractScenario } from './contract-scenario.js';
 
 // Escenario de las pruebas de firma electrónica (B25): el de Contratos más un cliente con su firmante
@@ -183,7 +184,9 @@ export class SignatureScenario extends ContractScenario {
       clock: this.clock,
       storage: storage(),
       convertHtml: async () => Promise.resolve(samplePdf('Firmas')),
-      mergePdfs: async (pdfs: readonly Buffer[]) => Promise.resolve(Buffer.concat([...pdfs])),
+      // Un PDF real: el sello de la empresa (B43) necesita un PDF que pueda leer.
+      mergePdfs: async () => Promise.resolve(minimalPdf('Documento firmado')),
+      pdfSeal: TEST_PDF_SEAL,
       mailer: {
         send: async (mail: SignatureMailCopy) => {
           this.signatureMails.push(mail);
@@ -267,6 +270,37 @@ export class SignatureScenario extends ContractScenario {
   }
 
   /** El PDF firmado, tal como se guardó. */
+  /** Huella del certificado que selló el documento firmado y la que dejó la auditoría (B43). */
+  async sealCertificate(envelopeId: string): Promise<{ stored: string | null; audited: unknown }> {
+    return tenantScope(
+      this.db,
+      this.tenant.id,
+    )(async (tx) => {
+      const envelope = await tx.sigEnvelope.findFirstOrThrow({ where: { id: envelopeId } });
+      const event = await tx.auditEvent.findFirstOrThrow({
+        where: { entityId: envelopeId, action: 'signature.envelope.seal' },
+      });
+      const changes = event.changes as Record<string, unknown> | null;
+      return {
+        stored: envelope.sealCertificateSha256,
+        audited: changes?.['seal_certificate_sha256'],
+      };
+    });
+  }
+
+  /** Intenta cambiar el certificado que selló: la base de datos lo impide. */
+  async replaceSealCertificate(envelopeId: string): Promise<void> {
+    await tenantScope(
+      this.db,
+      this.tenant.id,
+    )(async (tx) => {
+      await tx.sigEnvelope.update({
+        where: { id: envelopeId },
+        data: { sealCertificateSha256: 'b'.repeat(64) },
+      });
+    });
+  }
+
   async signedPdf(envelopeId: string): Promise<Buffer> {
     const file = await tenantScope(
       this.db,

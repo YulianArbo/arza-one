@@ -1,6 +1,7 @@
-# Copia temporal de ARZA ONE para el análisis dinámico con OWASP ZAP (B05, numeral 11.4, paso 10).
-# Solo se usa dentro de GitHub Actions; el ambiente local completo llega en B06 y el de pruebas
-# en B07. Las contraseñas llegan por variables de entorno desechables, nunca del repositorio.
+# Copia temporal de ARZA ONE para el análisis dinámico con OWASP ZAP (B05, numeral 11.4, paso 10)
+# y las pruebas de carga con k6 (B43, numeral 21.1). Solo se usa dentro de GitHub Actions. Las
+# contraseñas llegan por variables de entorno desechables, nunca del repositorio. El worker y la
+# bandeja falsa de correo (B43) permiten activar una cuenta de prueba e iniciar sesión de verdad.
 name: arza-one-ci
 
 services:
@@ -21,9 +22,47 @@ services:
 
   valkey:
     image: valkey/valkey:8@sha256:640c5e62cea04b6d6f2084232651d0cc70362d31f4f805e7be94dbed6855e8f2
+    ports:
+      - '127.0.0.1:6379:6379'
+
+  mailpit:
+    image: axllent/mailpit:v1.31.4@sha256:b68349e3a014b90c5610bfb26b2ae36f3892d7b8cf25ee140c6c71c98d2fcf48
+    ports:
+      - '127.0.0.1:8025:8025'
+    healthcheck:
+      test: ['CMD', '/mailpit', 'readyz']
+      interval: 2s
+      retries: 30
+
+  worker:
+    image: arza-one/worker:ci
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mailpit:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      APP_ENV: local
+      APP_URL: http://web:3000/app
+      DATABASE_URL: postgresql://app_user:${APP_DB_PASSWORD}@postgres:5432/arza_one
+      VALKEY_URL: redis://valkey:6379
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      MAIL_FROM: ARZA ONE análisis <no-responder@arza-one.test>
+      # Sin archivos, antivirus ni conversión: el análisis no los necesita.
+      S3_ENDPOINT: http://files.invalid:3900
+      S3_REGION: garage
+      S3_BUCKET: arza-one-ci
+      S3_ACCESS_KEY: ficticia
+      S3_SECRET_KEY: ficticia
+      CLAMAV_HOST: clamav.invalid
+      GOTENBERG_URL: http://gotenberg.invalid:3000
 
   api:
     image: arza-one/api:ci
+    ports:
+      - '127.0.0.1:4000:4000'
     depends_on:
       postgres:
         condition: service_healthy

@@ -12,6 +12,7 @@ import type { AccessScenario, Person } from '../../iam/support/access-scenario.j
 import { WEB_ORIGIN, freshIp, tenantScope } from '../../iam/support/iam-fixtures.js';
 import { consentFor, organizationBody, personBody } from '../../party/support/party-scenario.js';
 import { apiDatabase } from '../../support/integration-database.js';
+import { TEST_PDF_SEAL, minimalPdf } from '../../../support/sealed-pdf.js';
 import { created, data, day, people, step, type PendingRequest } from './contract-steps.js';
 
 // Llamadas del recorrido de escrituras (B11) para la firma electrónica (B25): preparar, enviar,
@@ -33,7 +34,9 @@ async function work(): Promise<void> {
     clock: systemClock,
     storage: storage(),
     convertHtml: async () => Promise.resolve(samplePdf('Firmas')),
-    mergePdfs: async (pdfs) => Promise.resolve(Buffer.concat([...pdfs])),
+    // Un PDF real: el sello de la empresa (B43) necesita un PDF que pueda leer.
+    mergePdfs: async () => Promise.resolve(minimalPdf('Documento firmado')),
+    pdfSeal: TEST_PDF_SEAL,
     mailer: {
       send: async (mail) => {
         mails.push(mail);

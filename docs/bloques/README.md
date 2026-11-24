@@ -48,7 +48,7 @@ Un bloque a la vez, en orden. Actualice la columna Estado al cerrar cada uno.
 | B40 | F7 | Innovación y propiedad intelectual | B15 | — | Pendiente |
 | B41 | F8 | Sitio público, formularios, textos legales y cookies | B22 · B29 · B17 | Sí | Pendiente |
 | B42 | F8 | Privacidad completa | B41 | Sí | En revisión |
-| B43 | F8 | Endurecimiento de seguridad y rendimiento | B30 · B42 | Sí | Pendiente |
+| B43 | F8 | Endurecimiento de seguridad y rendimiento | B30 · B42 | Sí | En revisión |
 | B44 | F8 | Servidor de producción, copias y monitoreo | B43 | Sí | Pendiente |
 | B45 | F8 | Carga inicial, aceptación y puesta en marcha | B44 | Sí | Pendiente |
 | B46 | F9 | Tableros gerenciales y requisitos legales | B39 · B31 | — | Pendiente |
