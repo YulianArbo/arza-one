@@ -2,6 +2,7 @@ import { createdResponseSchema } from '@arza/contracts';
 import request from 'supertest';
 import { expect } from 'vitest';
 
+import { bogotaToday } from '../../../../src/modules/core/index.js';
 import type { AccessScenario, Person } from '../../iam/support/access-scenario.js';
 import { WEB_ORIGIN, freshIp } from '../../iam/support/iam-fixtures.js';
 import { consentFor, personBody } from '../../party/support/party-scenario.js';
@@ -34,8 +35,9 @@ function act(s: AccessScenario, path: string, dpo: Person, version: number, body
   return s.post(path, dpo.session, body).set('If-Match', `"${String(version)}"`);
 }
 
+/** Hoy en Colombia, como lo cuenta la API. */
 function today(s: AccessScenario): string {
-  return s.clock.now().toISOString().slice(0, 10);
+  return bogotaToday(s.clock.now());
 }
 
 function requestBody(s: AccessScenario, right = 'know') {
