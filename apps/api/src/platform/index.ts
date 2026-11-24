@@ -6,6 +6,7 @@ export { DatabaseService } from './database/database.service.js';
 export { DEMO_TENANTS, PLATFORM_TENANT } from './database/seed/seed-data.js';
 export type { TenantContext, TenantTransaction } from './database/tenant-context.js';
 export { REDACTED_PATHS } from './logging/logging.module.js';
+export { pdfSealFromPkcs12, temporaryPdfSeal, type PdfSeal } from './pdf/pdf-seal.js';
 export { JobQueue } from './queues/job-queue.js';
 export {
   DEFAULT_JOB_OPTIONS,

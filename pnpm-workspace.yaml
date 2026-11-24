@@ -30,3 +30,10 @@ overrides:
   '@prisma/config>effect': 3.22.4
   # GHSA-q7qp-rjg7-q26m. NestJS 11 fija multer 2.4.0; la 2.5.0 solo trae la corrección.
   '@nestjs/platform-express>multer': 2.5.0
+# El sello de los PDF firmados (B43) usa @signpdf/placeholder-plain, que copia lo que necesita de
+# pdfkit 0.10 y nunca lo carga. Sin esto pnpm instalaría pdfkit 0.10 y su crypto-js 3 vulnerable.
+packageExtensions:
+  '@signpdf/placeholder-pdfkit010':
+    peerDependenciesMeta:
+      pdfkit:
+        optional: true
