@@ -185,6 +185,8 @@ Inventario de algoritmos:
 
 - Registros JSON con identificador de correlación. Nunca se registran contraseñas, cookies,
   códigos ni llaves.
+- **B43 (hallazgo de ZAP):** un texto con el carácter nulo causaba un error interno en PostgreSQL;
+  ahora se rechaza antes de validar, con 422 (`platform/http/null-character.pipe.ts`).
 - **B43:** tampoco las contraseñas al cambiarlas, el secreto del segundo factor, los códigos de
   recuperación ni la clave del sello (`logging.module.ts`).
 - Los errores responden con un formato único sin detalles internos. La auditoría es de solo

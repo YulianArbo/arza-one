@@ -110,9 +110,25 @@ En este equipo (24/11/2026):
   pdfkit instalado.
 - El guion de k6 se validó con `k6 inspect`.
 
-Lo que solo corre en GitHub (memoria del equipo): suite completa de integración, pruebas en
-navegador, imágenes con Trivy y SBOM, ZAP con sesión y k6. Sus resultados están en la pestaña
-**Checks** del PR #99.
+En GitHub (PR #99, primera ejecución del 24/11/2026):
+
+- **k6, en verde.** 50 usuarios durante 5 minutos sobre 2000 terceros adicionales: el 95 % de las
+  consultas respondió en **23 ms** (meta: 500 ms) y el de las escrituras en **22 ms** (meta:
+  1 s). Hubo 16 842 comprobaciones, sin una sola respuesta fallida.
+- **ZAP, en verde, sin alertas altas.** Analizó 648 rutas de la API con sesión y la sesión siguió
+  activa al final. Encontró **dos errores internos (500)** al enviar el carácter nulo (`%00`) en una
+  búsqueda de servicios y al crear una idea. **Se corrigió:** ahora toda la API rechaza ese
+  carácter con un aviso de datos no válidos (422). Prueba en `request-chain.test.ts`, en
+  `null-character.pipe.test.ts` y en las rutas reales (`ideas.int.test.ts`).
+- Las demás alertas son bajas o informativas. Los 503 de `/health` son esperados, porque la copia
+  de análisis no tiene almacenamiento de archivos. La única alerta media es la de estilos en línea,
+  ya aceptada.
+- Formato, tipos, unitarias, secretos, licencias, migraciones, imágenes con Trivy y SBOM, navegador,
+  ensayo de despliegue y servidor: en verde.
+- **La integración falló en la primera ejecución** porque la cobertura de ramas del worker quedó en
+  75 % (mínimo 85 %). La elección entre el certificado real y el temporal se pasó a una función
+  propia con sus pruebas, y se volvió a ejecutar. El resultado final está en la pestaña **Checks**
+  del PR #99.
 
 ## Cómo lo pruebo yo en el navegador
 
