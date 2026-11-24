@@ -74,7 +74,11 @@ describe('envío de los correos', () => {
     const { admin } = await pendingEmail();
     const mail = sender();
     await Promise.all([send(mail.send), send(mail.send)]);
-    expect(mail.sent.filter((email) => email.to === admin.email)).toHaveLength(1);
+    // Desde B44 el ingreso del administrador trae su propia alerta: se cuenta solo la de la prueba.
+    const reset = mail.sent.filter(
+      (email) => email.to === admin.email && email.subject.includes('segundo factor'),
+    );
+    expect(reset).toHaveLength(1);
   });
 });
 

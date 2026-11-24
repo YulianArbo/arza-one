@@ -33,6 +33,8 @@ const SECURITY_ALERT_LABELS: Readonly<Record<string, string>> = {
   'iam.mfa.reset': 'se reinició el segundo factor de una persona',
   'iam.mfa.disabled': 'una persona desactivó su segundo factor',
   'iam.mfa.failures': 'hubo varios códigos de segundo factor incorrectos seguidos',
+  'iam.login.admin': 'un administrador de la plataforma inició sesión',
+  'data.export.bulk': 'alguien hizo una exportación masiva de datos',
 };
 
 const taskAssignedSchema = z.object({ task_id: z.uuid(), assignee_id: z.uuid().nullable() });
