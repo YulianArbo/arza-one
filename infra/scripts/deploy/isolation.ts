@@ -32,7 +32,7 @@ function tenantIds(remote: Remote, target: Target, version: string): [string, st
 }
 
 /** Consultas y líneas esperadas; con una sola empresa no hay «otra» que buscar. */
-export function isolationQueries(tenantA: string, tenantB?: string): [string, string[]] {
+function isolationQueries(tenantA: string, tenantB?: string): [string, string[]] {
   const sql = [
     "SELECT 'role=' || rolsuper || ',' || rolbypassrls FROM pg_roles WHERE rolname = current_user;",
     "SELECT 'none=' || count(*) FROM core_tenants;",

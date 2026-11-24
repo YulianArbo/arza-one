@@ -63,7 +63,7 @@ async function monitorClosed(get: Get, api: string): Promise<string | undefined>
   return response.status === 401 ? undefined : answered(response, 401);
 }
 
-export function productionChecks(settings: ProductionSmokeSettings, fetch: Fetch): Check[] {
+function productionChecks(settings: ProductionSmokeSettings, fetch: Fetch): Check[] {
   const get = getter(fetch);
   const { domain, version } = settings;
   const www = `https://www.${domain}`;
