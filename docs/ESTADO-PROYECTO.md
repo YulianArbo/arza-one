@@ -1,5 +1,14 @@
 # Estado del proyecto ARZA ONE
 
+**B43 construido y en revisión, 24/11/2026 (Claude Code).** El propietario aprobó el plan («Apruebo todo», 8 decisiones). Rama `feat/b43-endurecimiento-de-seguridad-y` desde `cccd5e2` (`main` con B42 fusionado, PR #98). PR #99. Bloque crítico: requiere revisión externa.
+
+- Cabeceras definitivas: aislamiento de ventanas (COOP y CORP) en web y API; las pantallas de enlace personal (firmar, cotización, encuesta, baja, segundo factor, términos) ya no se guardan en caché ni se indexan.
+- Sello de integridad de la empresa en cada PDF firmado por todos (`@signpdf`, licencia MIT); la huella del certificado queda en `sig_envelopes.seal_certificate_sha256` y en la auditoría. Migración `20261127000000_sig_pdf_integrity_seal`. Variables nuevas del worker: `PDF_SEAL_PKCS12` y `PDF_SEAL_PASSPHRASE` (obligatorias en producción).
+- Revisión OWASP ASVS 5.0 nivel 2 en `docs/seguridad/asvs-nivel-2.md`; más secretos ocultos en los registros.
+- Integración continua: ZAP también con sesión iniciada, pruebas de carga k6 con las metas del 21.1, revisión de licencias, avisos de terceros y SBOM por imagen.
+- Verificado en este equipo: tipos de los 13 paquetes, límites, knip, unitarias de API (466, una repetida aparte por tiempo), worker e infraestructura, e integración de firma, activos, contratación, portal, proyectos y esquema. El resto lo confirma la CI del PR #99.
+- Pendientes principales: certificado real del sello (B44), revisión externa y prueba de intrusión. Cierre en `docs/bloques/B43-cierre.md`.
+
 **B42 construido y en revisión, 23/11/2026 (Claude Code).** El propietario aprobó el plan («Apruebo todo», 12 decisiones). Rama `feat/b42-privacidad-completa` desde `a776f34` (`main` con B41 fusionado). Bloque crítico: requiere revisión externa.
 
 - Se completó el módulo de privacidad (M18): solicitudes del titular (sitio público, portal, registro interno y traslado desde PQRSF) con plazos legales en días hábiles, prórroga, requerimiento de reclamos incompletos y desistimiento; verificación de identidad; exportación de datos en PDF y JSON; supresión con bloqueo por obligación legal; incidentes de seguridad con reporte a la SIC; informe de consentimientos de cookies; retención automática y alertas al Oficial de datos.
