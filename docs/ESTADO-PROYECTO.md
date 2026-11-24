@@ -1,5 +1,14 @@
 # Estado del proyecto ARZA ONE
 
+**B44 construido y en revisión, 24/11/2026 (Claude Code).** El propietario aprobó el plan («Apruebo todo», 10 decisiones). Rama `feat/b44-servidor-de-produccion-copias` desde `5eed7a9` (`main` con B43 fusionado, PR #99). Bloque crítico: requiere revisión externa.
+
+- Producción por guion (`provision.sh --role production`, `infra/compose/production.yml`, `Caddyfile.production`): `www`, `app`, `clientes` y `api`; PostgreSQL con pgBackRest (`infra/postgres/Dockerfile`).
+- Despliegue a producción a mano (`despliegue-produccion.yml`): solo `PRODUCTION_APPROVER`, solo etiquetas vX.Y.Z, ventana del 10.6 con festivos del módulo Núcleo, copia previa, pruebas de humo y reversión automática.
+- Copias: pgBackRest (30 días a cualquier minuto, mensual 12, anual 10) y restic (archivos) a un depósito S3 externo, con temporizadores de systemd; `restore.sh` y `verify-restore.sh`. La tarea 13 de la CI despliega, copia, lo borra todo, restaura y mide contra el RTO.
+- Vigilancia en un servidor aparte (ADR-026): Uptime Kuma y GlitchTip (`infra/compose/monitoring.yml`). La API publica `/ops/status` (regla de acceso `monitor` con `MONITOR_TOKEN`) y envía los errores a GlitchTip sin datos personales; el worker también. Alertas nuevas: ingreso de administrador y exportación masiva.
+- Guías nuevas en `docs/runbooks/` y formatos FT-TEC-005/006. Cierre en `docs/bloques/B44-cierre.md`.
+- Pendientes principales: contratar servidores y depósito, certificado del sello, ensayo real de alertas (criterio parcial), revisión externa.
+
 **B43 construido y en revisión, 24/11/2026 (Claude Code).** El propietario aprobó el plan («Apruebo todo», 8 decisiones). Rama `feat/b43-endurecimiento-de-seguridad-y` desde `cccd5e2` (`main` con B42 fusionado, PR #98). PR #99. Bloque crítico: requiere revisión externa.
 
 - Cabeceras definitivas: aislamiento de ventanas (COOP y CORP) en web y API; las pantallas de enlace personal (firmar, cotización, encuesta, baja, segundo factor, términos) ya no se guardan en caché ni se indexan.

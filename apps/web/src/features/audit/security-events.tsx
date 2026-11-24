@@ -38,6 +38,8 @@ const TYPE_LABELS: Readonly<Record<string, string>> = {
   'iam.mfa.recovery_codes_regenerated': 'Generó códigos de recuperación nuevos',
   'iam.mfa.recovery_code_used': 'Usó un código de recuperación',
   'iam.login.new_device': 'Inició sesión desde un equipo nuevo',
+  'iam.login.admin': 'Inició sesión un administrador de la plataforma',
+  'data.export.bulk': 'Exportación masiva de datos',
   'iam.permissions.changed': 'Cambiaron los permisos',
   'iam.sessions.revoked': 'Se cerraron todas las sesiones de una persona',
   'iam.sessions.revoked_all': 'Se cerraron todas las sesiones de la empresa',

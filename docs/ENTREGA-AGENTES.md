@@ -1,5 +1,19 @@
 # Entrega entre agentes — ARZA ONE
 
+**B44, 24/11/2026 (Claude Code).** Rama `feat/b44-servidor-de-produccion-copias`. Decisiones en `docs/bloques/B44-cierre.md`, ADR-026 y guías en `docs/runbooks/`. Puntos para quien continúe:
+
+1. Los guiones de despliegue reciben un perfil (`PROFILES` en `infra/scripts/deploy/release.ts`): `compose(target, versión, …)` pide `{ baseDir, environment }`. Producción entra por `production-main.ts` (variables `PRODUCTION_*`), nunca siembra datos ficticios y sus pruebas de humo están en `smoke-production.ts`.
+2. La ventana de publicación (`release-window.ts`) recibe los festivos como archivo JSON; el flujo los calcula con `colombianHolidays` del `dist` de la API para no duplicar la ley Emiliani.
+3. `/ops/status` usa la regla de acceso nueva `monitor` (`@MonitorToken()`); `access.test.ts` exige que solo exista bajo `/ops`. `createTestApp` acepta `queueFigures` para probarla sin Valkey.
+4. Toda exportación nueva debe dejar `rows` o `row_count` en su auditoría: `recordAuditEvent` dispara sola la alerta de exportación masiva (`platform/audit/bulk-export.ts`).
+5. El ingreso de un `ADMIN_PLATAFORMA` genera un aviso y un correo: las pruebas que cuentan los avisos o correos de un administrador deben filtrar por el tipo que vigilan (como `email-dispatch.int.test.ts`).
+6. Los errores van a GlitchTip con `platform/ops/error-reporter.ts` (sin SDK). La API lo usa en `ApiExceptionFilter` (solo 5xx); el worker, en los trabajos que fallan sin reintento.
+7. La tarea 13 de la CI (`infra/backup/rehearsal.sh`) solo corre en Linux; en este equipo no se puede ensayar. Las copias del ensayo van a una carpeta (`BACKUP_REPO_TYPE=posix`).
+8. `pnpm check` falla en `format:check` por los archivos sueltos del propietario (`.agents/`, `docs/diagnosticos/`…); los archivos del repositorio se revisan con Prettier aparte y el resto de la cadena se corre a mano.
+9. Gitleaks marca como secreto cualquier llave de prueba con aspecto real: genérela en tiempo de ejecución (`'v'.repeat(40)`).
+
+Los cambios sueltos del propietario (respaldos, `.csv`, `CLAUDE.md`, ADR 024/025, `.agents/`, `.claude/`, `docs/diagnosticos/`, `.prettierignore`) siguen sin commit y no se tocaron. En `docs/adr/README.md` solo se incorporó la fila de ADR-026; la de ADR-025 sigue sin commit.
+
 **B43, 24/11/2026 (Claude Code).** Rama `feat/b43-endurecimiento-de-seguridad-y`, PR #99. Decisiones en `docs/bloques/B43-cierre.md`; controles en `docs/seguridad/asvs-nivel-2.md` y en la sección «Endurecimiento de seguridad (B43)» de `apps/api/README.md`. Puntos para quien continúe:
 
 1. El sello vive en `apps/api/src/platform/pdf/pdf-seal.ts` y se publica en `@arza/api/platform`. `processSignatureWork` exige `pdfSeal`; en pruebas use `TEST_PDF_SEAL`, `minimalPdf` y `checkPdfSeal` de `apps/api/test/support/sealed-pdf.ts` (el `samplePdf` de Documentos no es un PDF real y no se puede sellar).
