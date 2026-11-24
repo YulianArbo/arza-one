@@ -2,6 +2,10 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "ignoreBinaries": ["gitleaks"],
   "workspaces": {
+    ".": {
+      "entry": ["infra/k6/carga.js"],
+      "ignoreDependencies": ["k6"]
+    },
     "apps/api": {
       "entry": [
         "src/main.ts",
