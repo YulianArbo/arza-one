@@ -1,0 +1,57 @@
+# Copia desechable de ARZA ONE para el análisis dinámico (ZAP) y las pruebas de carga (k6), con
+# una cuenta de análisis que inicia sesión de verdad: invitación, contraseña y segundo factor (B43).
+# Datos ficticios y contraseñas desechables; todo se borra al terminar la tarea.
+name: Copia de análisis con sesión
+description: Construye y levanta api, web y worker con sus servicios, y deja una sesión de análisis.
+
+outputs:
+  session-file:
+    description: Archivo JSON con la cookie de sesión y el código antifalsificación.
+    value: ${{ steps.session.outputs.file }}
+
+runs:
+  using: composite
+  steps:
+    - name: Construir las imágenes
+      shell: bash
+      run: |
+        for app in api web worker; do
+          bash infra/scripts/ci/build-image.sh "$app" "arza-one/$app:ci"
+        done
+    - name: Contraseñas desechables
+      shell: bash
+      run: |
+        for name in POSTGRES_PASSWORD APP_DB_PASSWORD MIGRATION_DB_PASSWORD CSRF_SECRET FIELD_ENCRYPTION_KEY; do
+          value="$(openssl rand -hex 18)"
+          echo "::add-mask::$value"
+          echo "$name=$value" >> "$GITHUB_ENV"
+        done
+    - name: Base de datos, migraciones y datos ficticios
+      shell: bash
+      run: |
+        docker compose --file infra/compose/ci.yml up --detach --wait postgres valkey mailpit
+        DATABASE_MIGRATION_URL="postgresql://migration_user:${MIGRATION_DB_PASSWORD}@127.0.0.1:5432/arza_one" \
+          pnpm db:migrate
+        DATABASE_URL="postgresql://app_user:${APP_DB_PASSWORD}@127.0.0.1:5432/arza_one" APP_ENV=local \
+          pnpm db:seed:demo
+    - name: Levantar la API, la web y el worker
+      shell: bash
+      run: docker compose --file infra/compose/ci.yml up --detach --wait --wait-timeout 180 api web worker
+    - name: Cuenta de análisis con sesión iniciada
+      id: session
+      shell: bash
+      env:
+        SCAN_EMAIL: analisis@arza-one.test
+      run: |
+        export DATABASE_URL="postgresql://app_user:${APP_DB_PASSWORD}@127.0.0.1:5432/arza_one"
+        export VALKEY_URL="redis://127.0.0.1:6379"
+        pnpm iam:invitar --empresa demo-uno --correo "$SCAN_EMAIL" --nombre "Cuenta de análisis"
+        # Dirección lee casi todos los módulos y Comercial crea terceros: el análisis llega a más
+        # rutas y la prueba de carga mide escrituras reales.
+        pnpm iam:asignar-rol --correo "$SCAN_EMAIL" --rol DIRECCION
+        pnpm iam:asignar-rol --correo "$SCAN_EMAIL" --rol COMERCIAL
+        file="$RUNNER_TEMP/scan-session.json"
+        node infra/scripts/security/scan-session.ts "$SCAN_EMAIL" "$file"
+        echo "::add-mask::$(jq -r .cookie "$file")"
+        echo "::add-mask::$(jq -r .csrf "$file")"
+        echo "file=$file" >> "$GITHUB_OUTPUT"

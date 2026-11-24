@@ -1,6 +1,8 @@
 # Verificación 10 del numeral 11.4: análisis dinámico con OWASP ZAP, semanal y a demanda.
-# Mientras no exista el servidor de pruebas (B07), analiza una copia temporal de la aplicación
-# levantada dentro de GitHub Actions (infra/compose/ci.yml). Falla con alertas de riesgo alto.
+# Analiza una copia temporal de la aplicación levantada dentro de GitHub Actions
+# (infra/compose/ci.yml). Desde B43 la API se analiza también con sesión iniciada: una cuenta de
+# análisis con el rol Dirección, creada por invitación y con segundo factor, como una persona.
+# Falla con alertas de riesgo alto. Las alertas aceptadas, con su motivo, están en .zap/reglas.tsv.
 name: Análisis dinámico semanal (OWASP ZAP)
 
 on:
@@ -8,6 +10,14 @@ on:
     # Lunes 06:00 UTC (01:00 en Bogotá).
     - cron: '0 6 * * 1'
   workflow_dispatch:
+  # Cuando cambia el propio análisis, se ejecuta en el pull request para comprobarlo.
+  pull_request:
+    paths:
+      - .github/workflows/zap-semanal.yml
+      - .github/actions/scan-stack/**
+      - .zap/**
+      - infra/compose/ci.yml
+      - infra/scripts/security/**
 
 permissions:
   contents: read
@@ -21,44 +31,65 @@ jobs:
   zap:
     name: 10. OWASP ZAP
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup
-      - name: Construir las imágenes
-        run: |
-          docker build --file apps/api/Dockerfile --tag arza-one/api:ci .
-          docker build --file apps/web/Dockerfile --tag arza-one/web:ci .
-      - name: Contraseñas desechables
-        run: |
-          for name in POSTGRES_PASSWORD APP_DB_PASSWORD MIGRATION_DB_PASSWORD CSRF_SECRET FIELD_ENCRYPTION_KEY; do
-            value="$(openssl rand -hex 18)"
-            echo "::add-mask::$value"
-            echo "$name=$value" >> "$GITHUB_ENV"
-          done
-      - name: Base de datos y migraciones
-        run: |
-          $COMPOSE up --detach --wait postgres
-          DATABASE_MIGRATION_URL="postgresql://migration_user:${MIGRATION_DB_PASSWORD}@127.0.0.1:5432/arza_one" \
-            pnpm db:migrate
-      - name: Levantar la API y la web
-        # Espera a que la verificación de salud de cada imagen responda.
-        run: $COMPOSE up --detach --wait --wait-timeout 180 valkey api web
-      - name: Análisis de la web (ZAP baseline)
+      - id: stack
+        uses: ./.github/actions/scan-stack
+      - name: Preparar los archivos del análisis
         run: |
           mkdir -p zap && chmod 777 zap
-          docker run --rm --network arza-one-ci_default --volume "$PWD/zap:/zap/wrk" "$ZAP_IMAGE" \
-            zap-baseline.py -t http://web:3000 -J web.json -r web.html -I
-      - name: Análisis de la API desde su OpenAPI (ZAP API scan)
+          cp .zap/reglas.tsv zap/reglas.tsv
+          curl -fsS http://127.0.0.1:4000/api/docs/openapi.json -o "$RUNNER_TEMP/openapi.json"
+          node infra/scripts/security/scan-openapi.ts "$RUNNER_TEMP/openapi.json" \
+            zap/openapi.json http://api:4000
+      - name: Análisis de la web (ZAP baseline)
         run: |
           docker run --rm --network arza-one-ci_default --volume "$PWD/zap:/zap/wrk" "$ZAP_IMAGE" \
-            zap-api-scan.py -t http://api:4000/api/docs/openapi.json -f openapi -J api.json -r api.html -I
+            zap-baseline.py -t http://web:3000 -c reglas.tsv -J web.json -r web.html -I
+      - name: Análisis de la API sin sesión (ZAP API scan)
+        run: |
+          docker run --rm --network arza-one-ci_default --volume "$PWD/zap:/zap/wrk" "$ZAP_IMAGE" \
+            zap-api-scan.py -t /zap/wrk/openapi.json -f openapi -c reglas.tsv \
+              -J api.json -r api.html -I
+      - name: Análisis de la API con sesión (ZAP API scan)
+        env:
+          SESSION_FILE: ${{ steps.stack.outputs.session-file }}
+        run: |
+          cookie="$(jq -r .cookie "$SESSION_FILE")"
+          csrf="$(jq -r .csrf "$SESSION_FILE")"
+          # El reemplazador de ZAP agrega la cookie y el código antifalsificación a cada petición.
+          rules="-config replacer.full_list(0).description=sesion"
+          rules="$rules -config replacer.full_list(0).enabled=true"
+          rules="$rules -config replacer.full_list(0).matchtype=REQ_HEADER"
+          rules="$rules -config replacer.full_list(0).matchstr=Cookie"
+          rules="$rules -config replacer.full_list(0).regex=false"
+          rules="$rules -config replacer.full_list(0).replacement=$cookie"
+          rules="$rules -config replacer.full_list(1).description=csrf"
+          rules="$rules -config replacer.full_list(1).enabled=true"
+          rules="$rules -config replacer.full_list(1).matchtype=REQ_HEADER"
+          rules="$rules -config replacer.full_list(1).matchstr=X-CSRF-Token"
+          rules="$rules -config replacer.full_list(1).regex=false"
+          rules="$rules -config replacer.full_list(1).replacement=$csrf"
+          docker run --rm --network arza-one-ci_default --volume "$PWD/zap:/zap/wrk" "$ZAP_IMAGE" \
+            zap-api-scan.py -t /zap/wrk/openapi.json -f openapi -c reglas.tsv \
+              -J api-sesion.json -r api-sesion.html -I -z "$rules"
+      - name: La sesión siguió activa durante el análisis
+        env:
+          SESSION_FILE: ${{ steps.stack.outputs.session-file }}
+        run: |
+          status=$(curl -s -o /dev/null -w '%{http_code}' \
+            -H "cookie: $(jq -r .cookie "$SESSION_FILE")" http://127.0.0.1:4000/v1/auth/session)
+          echo "Sesión de análisis: $status"
+          test "$status" -eq 200
       - name: Falla con alertas de riesgo alto
         run: |
-          high=$(jq '[.site[]?.alerts[]? | select(.riskcode == "3")] | length' zap/web.json zap/api.json | paste -sd+ | bc)
-          jq -r '.site[]?.alerts[]? | "\(.riskdesc): \(.name)"' zap/web.json zap/api.json | sort | uniq -c
+          reports="zap/web.json zap/api.json zap/api-sesion.json"
+          high=$(jq '[.site[]?.alerts[]? | select(.riskcode == "3")] | length' $reports | paste -sd+ | bc)
+          jq -r '.site[]?.alerts[]? | "\(.riskdesc): \(.name)"' $reports | sort | uniq -c
           echo "Alertas de riesgo alto: $high"
           test "$high" -eq 0
       - name: Guardar los informes
@@ -68,6 +99,9 @@ jobs:
           name: informes-zap
           path: zap/*.html
           retention-days: 30
+      - name: Registros de la copia (si algo falló)
+        if: failure()
+        run: $COMPOSE logs --tail 100 api worker
       - name: Apagar
         if: always()
         run: $COMPOSE down --volumes

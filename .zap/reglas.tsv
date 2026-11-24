@@ -1,0 +1,4 @@
+# Reglas del análisis con OWASP ZAP (B43). Formato: id<TAB>IGNORE|WARN|FAIL<TAB>(motivo).
+# Una alerta solo se ignora con motivo y aprobación del Director General en el pull request.
+# La verificación falla con cualquier alerta de riesgo alto, aunque esté marcada WARN.
+10055	WARN	(CSP: style-src permite estilos en línea; Radix los usa para posicionar menús; el numeral 15.6 solo los prohíbe en scripts)
