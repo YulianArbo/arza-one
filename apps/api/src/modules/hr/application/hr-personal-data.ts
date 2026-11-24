@@ -1,4 +1,5 @@
 import { recordAuditEvent } from '../../../platform/audit/audit-recorder.js';
+import { bogotaToday, fromCalendarDate } from '../../core/index.js';
 import { disposeAttachedFile } from '../../doc/index.js';
 import {
   outcomeFor,
@@ -15,6 +16,18 @@ import {
 
 const LABOR_RETENTION =
   'Historia laboral: se conserva por las obligaciones laborales y de seguridad social del empleador (Código Sustantivo del Trabajo).';
+
+/**
+ * La base de datos solo admite suprimir una candidatura descartada: si sigue en curso, queda
+ * descartada hoy con el motivo de la supresión (su retención ya no aplica: los datos se borran).
+ */
+function discardedFor(candidate: { readonly stage: string }, at: Date) {
+  const reason = { talentBank: false, discardReason: 'Datos suprimidos a pedido del titular' };
+  if (candidate.stage === 'discarded') return reason;
+  const discardedOn = fromCalendarDate(bogotaToday(at));
+  const retentionUntil = new Date(discardedOn.getTime() + 86_400_000);
+  return { ...reason, stage: 'discarded', discardedOn, retentionUntil };
+}
 
 export const HR_PERSONAL_DATA: PersonalDataSource = {
   key: 'hr',
@@ -65,12 +78,7 @@ export const HR_PERSONAL_DATA: PersonalDataSource = {
       if (key !== null) storageKeys.push(key);
       await tx.hrCandidate.update({
         where: { id: candidate.id },
-        data: {
-          erasedAt: actor.at,
-          resumeFileId: null,
-          talentBank: false,
-          discardReason: 'Datos suprimidos a pedido del titular',
-        },
+        data: { ...discardedFor(candidate, actor.at), erasedAt: actor.at, resumeFileId: null },
       });
       await tx.hrSelectionEvaluation.updateMany({
         where: { candidateId: candidate.id, deletedAt: null },
