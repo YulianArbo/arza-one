@@ -33,6 +33,17 @@ describe('registros (Pino)', () => {
     expect(line).toContain('[oculto]');
   });
 
+  it('oculta también claves al cambiarlas y secretos del segundo factor y del sello (B43)', () => {
+    const line = logLine({
+      body: { current_password: 'ficticio-5', new_password: 'ficticio-6' },
+      setup: { secret: 'ficticio-7', recovery_codes: ['ficticio-8'] },
+      seal: { passphrase: 'ficticio-9' },
+    });
+    for (const secret of ['ficticio-5', 'ficticio-6', 'ficticio-7', 'ficticio-8', 'ficticio-9']) {
+      expect(line).not.toContain(secret);
+    }
+  });
+
   it('identifica el servicio y el ambiente en cada línea', () => {
     const line = JSON.parse(logLine({ msg: 'hola' })) as Record<string, unknown>;
     expect(line).toMatchObject({ service: 'api', environment: 'local' });
