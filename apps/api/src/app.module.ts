@@ -33,6 +33,7 @@ import type { Env } from './platform/config/env-schema.js';
 import { DatabaseModule } from './platform/database/database.module.js';
 import { ApiExceptionFilter } from './platform/errors/api-exception.filter.js';
 import { HealthModule } from './platform/health/health.module.js';
+import { NullCharacterPipe } from './platform/http/null-character.pipe.js';
 import { LoggingModule } from './platform/logging/logging.module.js';
 import { QueueModule } from './platform/queues/queue.module.js';
 import { CsrfGuard } from './platform/security/csrf.guard.js';
@@ -105,6 +106,8 @@ export class AppModule {
         { provide: APP_GUARD, useClass: AccessGuard },
         { provide: APP_GUARD, useClass: CsrfGuard },
         { provide: APP_GUARD, useClass: AuthorizationGuard },
+        // B43: antes de validar, rechaza el carácter nulo que PostgreSQL no admite en un texto.
+        { provide: APP_PIPE, useClass: NullCharacterPipe },
         { provide: APP_PIPE, useClass: ZodValidationPipe },
         { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
         { provide: APP_FILTER, useClass: ApiExceptionFilter },
