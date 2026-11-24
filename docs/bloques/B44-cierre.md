@@ -126,10 +126,20 @@ Siga, en este orden: [servidor-de-vigilancia.md](../runbooks/servidor-de-vigilan
 - **Ajuste de una prueba existente (sin debilitarla):** `email-dispatch.int.test.ts` contaba todos
   los correos de un administrador; desde ahora su propio ingreso le genera otro correo legítimo
   (la alerta nueva). La prueba sigue exigiendo que el correo que vigila salga **una sola vez**.
-- En este equipo: tipos de la API, el worker y los guiones; pruebas unitarias de la API (las nuevas
-  y las de acceso y OpenAPI), del worker y de los guiones (206 en verde, 94 % de cobertura);
-  integración de avisos, auditoría, inicio de sesión y segundo factor. `pnpm check` completo: ver
-  la sección final.
+- **`pnpm check` en este equipo, paso por paso** (el comando entero no se puede correr aquí):
+  - Formato: todos los archivos del repositorio en verde. El paso `format:check` completo falla
+    solo por los archivos sueltos del propietario sin commit (`.agents/`, `docs/diagnosticos/`…),
+    que no se tocaron.
+  - Lint por partes (API, web, worker, paquetes y guiones): en verde. De una sola vez se queda sin
+    memoria en este equipo (8 GB).
+  - Tipos, fronteras entre módulos (`boundaries`), código sin usar (`knip`), compilación y
+    secretos (gitleaks, 712 commits): en verde.
+  - Pruebas unitarias de los 9 paquetes: en verde (API 97 %, web 95 %, worker 92 %, guiones 94 %
+    de cobertura de líneas).
+  - Integración: con la API y el worker a la vez, el equipo se satura (transacciones que no
+    alcanzan a empezar). Cada archivo que falló así pasó al correrlo solo, entre ellos
+    `write-routes-audited` (527 de 527). La corrida completa la confirma la CI.
+  - Navegador (Playwright): 420 de 420, en dos tandas (16 se repitieron por caídas del navegador).
 - **Lo que solo se comprueba en GitHub:** la tarea 13 (necesita Linux, `sudo` y Docker sin los
   límites de este equipo), ShellCheck de los guiones nuevos y Trivy sobre la imagen nueva de
   PostgreSQL.
