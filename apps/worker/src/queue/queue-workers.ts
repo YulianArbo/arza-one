@@ -1,4 +1,4 @@
-import { QUEUES } from '@arza/api/platform';
+import { NO_ERROR_REPORTER, QUEUES, type ErrorReporter } from '@arza/api/platform';
 import { Worker, type ConnectionOptions, type Job } from 'bullmq';
 import type { Logger } from 'pino';
 
@@ -10,6 +10,8 @@ export interface QueueWorkersOptions {
   readonly connection: ConnectionOptions;
   readonly concurrency: number;
   readonly logger: Logger;
+  /** GlitchTip (B44): recibe los trabajos que fallan sin reintento. */
+  readonly reporter?: ErrorReporter;
 }
 
 /** Procesadores de las colas en marcha. */
@@ -22,7 +24,11 @@ export interface QueueWorkers {
   stop(graceMs: number): Promise<void>;
 }
 
-function watch(worker: Worker, logger: Logger, inFlight: InFlightJobs): void {
+function watch(
+  worker: Worker,
+  { logger, reporter = NO_ERROR_REPORTER }: QueueWorkersOptions,
+  inFlight: InFlightJobs,
+): void {
   worker.on('completed', (job) => {
     inFlight.finish(jobKey(job));
     logger.info(describeJob(job), 'Trabajo terminado');
@@ -32,10 +38,19 @@ function watch(worker: Worker, logger: Logger, inFlight: InFlightJobs): void {
     const retry = willRetry(job, error);
     const message = retry ? 'Trabajo fallido; se reintentará' : 'Trabajo fallido sin reintento';
     logger.warn({ ...describeJob(job), reason: error.message }, message);
+    if (!retry)
+      reporter.report(error, { where: `trabajo ${job?.name ?? '?'}`, ...correlationOf(job) });
   });
   worker.on('error', (error) => {
     logger.error({ reason: error.message }, 'Error de la cola');
   });
+}
+
+/** Correlación del trabajo, si la trae (numeral 13.2). */
+function correlationOf(job: Job | undefined): { correlationId?: string } {
+  const data: unknown = job?.data;
+  if (typeof data !== 'object' || data === null || !('correlationId' in data)) return {};
+  return typeof data.correlationId === 'string' ? { correlationId: data.correlationId } : {};
 }
 
 /** Un procesador de BullMQ por cola de la plataforma (ADR-014). */
@@ -50,7 +65,7 @@ export function startQueueWorkers(handler: JobHandler, options: QueueWorkersOpti
       connection: options.connection,
       concurrency: options.concurrency,
     });
-    watch(worker, options.logger, inFlight);
+    watch(worker, options, inFlight);
     return worker;
   });
   const stop = async (graceMs: number): Promise<void> => {

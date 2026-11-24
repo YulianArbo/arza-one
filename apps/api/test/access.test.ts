@@ -14,7 +14,14 @@ afterEach(async () => {
   app = undefined;
 });
 
-const DECLARATIONS = new Set(['public', 'signing_in', 'own_account', 'permission', 'record']);
+const DECLARATIONS = new Set([
+  'public',
+  'signing_in',
+  'own_account',
+  'permission',
+  'record',
+  'monitor',
+]);
 
 /** Rutas que no declaran cómo se accede a ellas. */
 function undeclared(routes: readonly RouteDeclaration[]): string[] {
@@ -80,6 +87,11 @@ describe('todas las rutas reales de la API declaran su acceso', () => {
     for (const route of own) {
       expect(route.path, route.route).toMatch(/^\/v1\/(me|auth)(\/|$)/);
     }
+  });
+
+  it('la llave de los vigilantes solo abre /ops (B44)', () => {
+    const monitor = routes.filter((route) => route.access === 'monitor');
+    expect(monitor.map((route) => route.path)).toEqual(['/ops/status']);
   });
 
   it('las rutas públicas son solo las de acceso, las de estado y los enlaces de archivos', () => {

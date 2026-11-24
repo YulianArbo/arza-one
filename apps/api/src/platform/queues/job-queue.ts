@@ -1,7 +1,7 @@
 import { Queue, type ConnectionOptions } from 'bullmq';
 import type { z } from 'zod';
 
-import { DEFAULT_JOB_OPTIONS, type JobDefinition } from './jobs.js';
+import { DEFAULT_JOB_OPTIONS, QUEUES, type JobDefinition } from './jobs.js';
 
 /**
  * Encola trabajos. Valida los datos con el esquema del trabajo antes de enviarlos: a la cola
@@ -32,6 +32,17 @@ export class JobQueue {
       { pattern: scheduled.pattern, tz: 'America/Bogota' },
       { name: scheduled.job.name, data: {}, opts: DEFAULT_JOB_OPTIONS },
     );
+  }
+
+  /** Trabajos en espera (o programados) y fallidos sin reintento de todas las colas (10.7). */
+  async figures(): Promise<{ pending: number; failed: number }> {
+    const counts = await Promise.all(
+      Object.values(QUEUES).map(async (name) =>
+        this.queue(name).getJobCounts('waiting', 'delayed', 'failed'),
+      ),
+    );
+    const sum = (key: string) => counts.reduce((total, count) => total + (count[key] ?? 0), 0);
+    return { pending: sum('waiting') + sum('delayed'), failed: sum('failed') };
   }
 
   async close(): Promise<void> {

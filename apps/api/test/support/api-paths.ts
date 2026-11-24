@@ -10,6 +10,7 @@ import { SERVICE_PATHS } from './api-paths-service.js';
 /** Rutas de los demás módulos, en orden alfabético. */
 const PLATFORM_PATHS = [
   '/health',
+  '/ops/status',
   '/v1/access-review',
   '/v1/attachments',
   '/v1/attachments/{id}',

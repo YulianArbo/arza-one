@@ -20,3 +20,4 @@ export {
   type JobDefinition,
   type TenantJob,
 } from './queues/jobs.js';
+export { errorReporterFor, NO_ERROR_REPORTER, type ErrorReporter } from './ops/error-reporter.js';

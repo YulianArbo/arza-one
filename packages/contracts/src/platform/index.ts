@@ -12,3 +12,9 @@ export {
   type HealthResponse,
 } from './health.js';
 export { versionResponseSchema, type VersionResponse } from './version.js';
+export {
+  OPS_ALERTS,
+  opsStatusResponseSchema,
+  type OpsAlert,
+  type OpsStatusResponse,
+} from './ops-status.js';

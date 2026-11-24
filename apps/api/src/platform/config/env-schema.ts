@@ -44,6 +44,13 @@ export const envSchema = z.object({
     .max(60)
     .optional()
     .transform((value) => (value === '' ? undefined : value)),
+  /**
+   * Llave de los vigilantes (Uptime Kuma) para leer /ops/status (B44). Al menos 32 caracteres al
+   * azar. Vacía o sin definir, la ruta responde 401 a todos.
+   */
+  MONITOR_TOKEN: z.string().min(32).optional(),
+  /** Dirección de GlitchTip para los errores inesperados (anexo F). Vacía: no se envían. */
+  GLITCHTIP_DSN: z.url({ protocol: /^https?$/ }).optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

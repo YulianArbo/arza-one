@@ -53,6 +53,63 @@
         ]
       }
     },
+    "/ops/status": {
+      "get": {
+        "operationId": "OpsController_status",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Sin alertas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpsStatusResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Al menos una cifra pasa su umbral",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpsStatusResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cifras de operación para los vigilantes: tiempos, errores y colas (numeral 10.7)",
+        "tags": [
+          "Plataforma"
+        ]
+      }
+    },
     "/version": {
       "get": {
         "operationId": "VersionController_get",
@@ -70581,6 +70638,90 @@
         },
         "required": [
           "error"
+        ],
+        "additionalProperties": false
+      },
+      "OpsStatusResponse_Output": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "alert"
+            ],
+            "description": "alert si alguna cifra pasa su umbral"
+          },
+          "alerts": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "slow_api",
+                "error_rate",
+                "queue_backlog",
+                "queue_failed"
+              ]
+            },
+            "description": "Umbrales superados"
+          },
+          "window_minutes": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Minutos que cubren las cifras de peticiones"
+          },
+          "requests": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Peticiones atendidas en la ventana"
+          },
+          "p95_ms": {
+            "description": "Percentil 95 del tiempo de respuesta, en milisegundos",
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "error_rate": {
+            "description": "Proporción de respuestas 5xx (0 a 1)",
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "queue": {
+            "type": "object",
+            "properties": {
+              "pending": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "description": "Trabajos en espera o programados"
+              },
+              "failed": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "description": "Trabajos fallidos que ya no se reintentan"
+              }
+            },
+            "required": [
+              "pending",
+              "failed"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "status",
+          "alerts",
+          "window_minutes",
+          "requests",
+          "p95_ms",
+          "error_rate",
+          "queue"
         ],
         "additionalProperties": false
       },

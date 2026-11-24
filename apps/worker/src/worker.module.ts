@@ -19,9 +19,11 @@ import {
 } from '@arza/api/doc';
 import {
   DatabaseService,
+  errorReporterFor,
   JobQueue,
   SCHEDULED_JOBS,
   systemClock,
+  type ErrorReporter,
   type PdfSeal,
 } from '@arza/api/platform';
 import { Redis } from 'ioredis';
@@ -97,12 +99,23 @@ class WorkerRuntime implements OnApplicationBootstrap, OnApplicationShutdown {
       connection: { url: this.config.VALKEY_URL, maxRetriesPerRequest: null },
       concurrency: this.config.WORKER_CONCURRENCY,
       logger: this.logger,
+      reporter: this.errorReporter(),
     });
     this.scheduleJobs();
     this.stopHeartbeat = startHeartbeat(this.valkey, hostname(), (error) => {
       this.logger.warn({ reason: String(error) }, 'No se pudo emitir el latido');
     });
     this.logger.info({ queues: this.queueWorkers.queues }, 'Worker listo');
+  }
+
+  /** GlitchTip (B44): los trabajos que fallan sin reintento; sin GLITCHTIP_DSN, nada. */
+  private errorReporter(): ErrorReporter {
+    return errorReporterFor({
+      dsn: this.config.GLITCHTIP_DSN,
+      environment: this.config.APP_ENV,
+      release: this.config.GIT_COMMIT,
+      service: 'worker',
+    });
   }
 
   /** Sello de los PDF firmados (B43); deja en el registro de quién es el certificado. */
