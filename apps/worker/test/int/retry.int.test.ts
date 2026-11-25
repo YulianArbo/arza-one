@@ -131,7 +131,9 @@ describe('reintentos del trabajo de ejemplo', () => {
     });
     failuresLeft = 0;
   });
+});
 
+describe('reporte de trabajos inválidos', () => {
   it('reporta un trabajo inválido aunque no tenga identificador de correlación', async () => {
     report.mockClear();
     const job = await queue.add(JOBS.exampleEmail.name, {}, { attempts: 1 });
