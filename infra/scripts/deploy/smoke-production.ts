@@ -28,8 +28,10 @@ function getter(fetch: Fetch): Get {
 async function redirectsTo(get: Get, from: string, to: string): Promise<string | undefined> {
   const response = await get(from);
   const location = response.headers.get('location') ?? '';
-  const redirect = response.status >= 300 && response.status < 400;
-  return redirect && location.startsWith(to)
+  const target = URL.parse(location, from);
+  const expected = new URL(to);
+  const redirect = response.status >= 300 && response.status < 400 && location !== '';
+  return redirect && target?.origin === expected.origin && target.pathname === expected.pathname
     ? undefined
     : `respondió ${String(response.status)} hacia «${location}»`;
 }
@@ -69,7 +71,7 @@ function productionChecks(settings: ProductionSmokeSettings, fetch: Fetch): Chec
   const www = `https://www.${domain}`;
   const api = `https://api.${domain}`;
   const list: [string, () => Promise<string | undefined>][] = [
-    ['HTTP redirige a HTTPS', () => redirectsTo(get, `http://www.${domain}/`, 'https://')],
+    ['HTTP redirige a HTTPS', () => redirectsTo(get, `http://www.${domain}/`, www)],
     ['El dominio sin www lleva al sitio', () => redirectsTo(get, `https://${domain}/`, www)],
     ['El sitio público está vivo', () => healthy(get, `${www}/healthz`)],
     ['El sitio exige HTTPS en adelante (HSTS)', () => strictTransport(get, `${www}/healthz`)],

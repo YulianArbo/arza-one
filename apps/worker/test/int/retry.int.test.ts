@@ -10,7 +10,7 @@ import { fileStorageFrom } from '@arza/api/doc';
 import { Queue, QueueEvents } from 'bullmq';
 import { pino } from 'pino';
 import { v7 as uuidv7 } from 'uuid';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import type { MailMessage } from '../../src/mail/mailer.js';
 import { createJobRouter } from '../../src/queue/job-router.js';
@@ -31,6 +31,7 @@ let workers: QueueWorkers;
 /** Intentos de envío que todavía deben fallar. */
 let failuresLeft = 0;
 const sent: MailMessage[] = [];
+const report = vi.fn();
 
 const flakyMailer = {
   send: async (message: MailMessage): Promise<void> => {
@@ -75,6 +76,7 @@ beforeAll(async () => {
     connection: { ...connection, maxRetriesPerRequest: null },
     concurrency: 1,
     logger: pino({ level: 'silent' }),
+    reporter: { report },
   });
 });
 
@@ -94,6 +96,7 @@ function payload(): ExampleEmailJob {
 
 describe('reintentos del trabajo de ejemplo', () => {
   it('si el correo falla, se reintenta solo con la política real y termina bien', async () => {
+    report.mockClear();
     failuresLeft = 1;
     const started = Date.now();
     const id = await jobs.add(JOBS.exampleEmail, payload());
@@ -104,12 +107,15 @@ describe('reintentos del trabajo de ejemplo', () => {
     expect(job?.attemptsMade).toBe(2);
     expect(Date.now() - started).toBeGreaterThanOrEqual(4900);
     expect(sent.at(-1)?.subject).toContain('Reintentos');
+    expect(report).not.toHaveBeenCalled();
   });
 
   it('agotados los intentos, el trabajo queda fallido para revisión', async () => {
+    report.mockClear();
     failuresLeft = 10;
+    const data = payload();
     // Política corta solo en esta prueba: dos intentos, 100 ms de espera.
-    const job = await queue.add(JOBS.exampleEmail.name, payload(), {
+    const job = await queue.add(JOBS.exampleEmail.name, data, {
       attempts: 2,
       backoff: { type: 'fixed', delay: 100 },
     });
@@ -117,6 +123,23 @@ describe('reintentos del trabajo de ejemplo', () => {
     const finished = await queue.getJob(job.id ?? '');
     expect(await finished?.getState()).toBe('failed');
     expect(finished?.attemptsMade).toBe(2);
+    await vi.waitFor(() => {
+      expect(report).toHaveBeenCalledExactlyOnceWith(expect.any(Error), {
+        where: `trabajo ${job.name}`,
+        correlationId: data.correlationId,
+      });
+    });
     failuresLeft = 0;
+  });
+
+  it('reporta un trabajo inválido aunque no tenga identificador de correlación', async () => {
+    report.mockClear();
+    const job = await queue.add(JOBS.exampleEmail.name, {}, { attempts: 1 });
+    await expect(job.waitUntilFinished(events, 30_000)).rejects.toThrow();
+    await vi.waitFor(() => {
+      expect(report).toHaveBeenCalledExactlyOnceWith(expect.any(Error), {
+        where: `trabajo ${job.name}`,
+      });
+    });
   });
 });

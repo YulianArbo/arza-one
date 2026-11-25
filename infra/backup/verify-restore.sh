@@ -26,8 +26,8 @@ sql_as_owner() {
 
 sql_as_app() {
   compose exec -T postgres sh -c \
-    'PGPASSWORD="$APP_DB_PASSWORD" psql --host 127.0.0.1 --username app_user --dbname arza_one --no-psqlrc --tuples-only --no-align --set ON_ERROR_STOP=1 --command "$0"' \
-    "$1"
+    "PGPASSWORD=\"\$APP_DB_PASSWORD\" psql --host 127.0.0.1 --username app_user --dbname arza_one --no-psqlrc --tuples-only --no-align --set ON_ERROR_STOP=1 --command \"\$1\"" \
+    psql "$1"
 }
 
 check() {

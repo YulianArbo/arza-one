@@ -44,13 +44,15 @@ restore_files() {
   compose stop garage
   compose run --rm --no-deps files-backup restore latest --host arza-one --target / \
     --include /data/garage --delete
-  compose run --rm --no-deps --entrypoint sh files-backup -c '
+  compose run --rm --no-deps --entrypoint sh files-backup -c "$(cat <<'GARAGE_RESTORE'
     set -e
     latest="$(ls -1d /data/garage/meta/snapshots/*/ | sort | tail -n 1)"
     [ -n "$latest" ] || { echo "La copia no trae instantánea de Garage." >&2; exit 1; }
     rm -f /data/garage/meta/db.sqlite /data/garage/meta/db.sqlite-wal /data/garage/meta/db.sqlite-shm
     cp "${latest}db.sqlite" /data/garage/meta/db.sqlite
-    chown -R 1000:1000 /data/garage'
+    chown -R 1000:1000 /data/garage
+GARAGE_RESTORE
+)"
   compose up --detach --wait --wait-timeout 600 garage
   log "Archivos restaurados."
 }

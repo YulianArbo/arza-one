@@ -1,5 +1,7 @@
 # Estado del proyecto ARZA ONE
 
+**Corrección de CI de B44, 24/11/2026.** El PR #100 registró fallas de pruebas unitarias, cobertura del worker, ShellCheck, Trivy y ensayo de restauración. Se ajustaron las pruebas de vigilancia y reporte de errores, las redirecciones del ensayo, la configuración local de pgBackRest y la imagen de PostgreSQL. La corrida del PR debe confirmar el ensayo completo.
+
 **B44 construido y en revisión, 24/11/2026 (Claude Code).** El propietario aprobó el plan («Apruebo todo», 10 decisiones). Rama `feat/b44-servidor-de-produccion-copias` desde `5eed7a9` (`main` con B43 fusionado, PR #99). Bloque crítico: requiere revisión externa.
 
 - Producción por guion (`provision.sh --role production`, `infra/compose/production.yml`, `Caddyfile.production`): `www`, `app`, `clientes` y `api`; PostgreSQL con pgBackRest (`infra/postgres/Dockerfile`).

@@ -23,8 +23,8 @@ const HEALTHY: Answers = {
   'http://www.arza.test/': () => redirect('https://www.arza.test/'),
   'https://arza.test/': () => redirect('https://www.arza.test/'),
   'https://www.arza.test/healthz': () => json({ status: 'ok' }, 200, HSTS),
-  'https://app.arza.test/': () => redirect('https://app.arza.test/app'),
-  'https://clientes.arza.test/': () => redirect('https://clientes.arza.test/portal'),
+  'https://app.arza.test/': () => redirect('/app'),
+  'https://clientes.arza.test/': () => redirect('/portal'),
   'https://api.arza.test/health': () => json({ status: 'ok' }),
   'https://api.arza.test/version': () =>
     json({ version: '0.1.0', environment: 'production', commit: 'v1.2.3' }),

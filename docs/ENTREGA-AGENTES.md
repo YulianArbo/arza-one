@@ -1,5 +1,7 @@
 # Entrega entre agentes — ARZA ONE
 
+**CI de B44, 24/11/2026.** Consulte el PR #100 para el resultado de los trabajos 4, 5, 8, 12 y 13 después de las correcciones. El modo `posix` del ensayo descarta opciones S3 en el punto de entrada de pgBackRest. La comprobación de humo resuelve redirecciones relativas y verifica el origen y la ruta esperados.
+
 **B44, 24/11/2026 (Claude Code).** Rama `feat/b44-servidor-de-produccion-copias`. Decisiones en `docs/bloques/B44-cierre.md`, ADR-026 y guías en `docs/runbooks/`. Puntos para quien continúe:
 
 1. Los guiones de despliegue reciben un perfil (`PROFILES` en `infra/scripts/deploy/release.ts`): `compose(target, versión, …)` pide `{ baseDir, environment }`. Producción entra por `production-main.ts` (variables `PRODUCTION_*`), nunca siembra datos ficticios y sus pruebas de humo están en `smoke-production.ts`.

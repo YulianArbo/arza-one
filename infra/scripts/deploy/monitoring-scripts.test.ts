@@ -44,7 +44,7 @@ describe.skipIf(process.platform === 'win32')('vigilancia del servidor', () => {
   });
 
   it('un minuto normal dentro de los 15 no alcanza para alertar', () => {
-    const lines = Array.from({ length: 15 }, (_, index) => (index === 7 ? '20 90' : '95 90'));
+    const lines = Array.from({ length: 15 }, (_, index) => (index === 7 ? '20 40' : '95 90'));
     const { file, done } = samples(lines);
     expect(bash(HOST, '--evaluate', file, '50')).toMatch(/^up\|/);
     done();
