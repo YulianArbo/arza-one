@@ -4,8 +4,10 @@ import type { Session, User } from '../../../generated/prisma/client.js';
 import { recordSecurityEvent } from '../../../platform/audit/audit-recorder.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
+import { addOutboxEvent } from '../../../platform/outbox/outbox.js';
 import { describeDevice } from '../domain/device.js';
 import { sessionExpiresAt } from '../domain/session-policy.js';
+import { activeRoleCodes } from '../infrastructure/people-directory.js';
 import { sightDevice } from '../infrastructure/second-factor-store.js';
 import { hashSecretToken, newSecretToken } from '../infrastructure/secret-token.js';
 import { AccountNotifier } from './account-notifier.js';
@@ -69,17 +71,8 @@ export class SignInCompletion {
       },
     });
     await tx.user.update({ where: { id: user.id }, data: { lastLoginAt: now } });
-    if (sighting.isNew) {
-      await recordSecurityEvent(tx, {
-        tenantId: user.tenantId,
-        occurredAt: now,
-        type: 'iam.login.new_device',
-        userId: user.id,
-        severity: 'low',
-        detail: { device_id: sighting.device.id, ...describeDevice(meta.userAgent) },
-        meta,
-      });
-    }
+    if (sighting.isNew) await recordNewDevice(tx, user, sighting.device.id, meta, now);
+    await alertAdminSignIn(tx, user, meta, now);
     return {
       session: completed,
       sessionToken: rotated?.token ?? null,
@@ -100,4 +93,54 @@ export class SignInCompletion {
       occurredAt: now,
     });
   }
+}
+
+/** Evento de seguridad del ingreso desde un equipo que la cuenta no conocía. */
+async function recordNewDevice(
+  tx: TenantTransaction,
+  user: User,
+  deviceId: string,
+  meta: RequestMeta,
+  now: Date,
+): Promise<void> {
+  await recordSecurityEvent(tx, {
+    tenantId: user.tenantId,
+    occurredAt: now,
+    type: 'iam.login.new_device',
+    userId: user.id,
+    severity: 'low',
+    detail: { device_id: deviceId, ...describeDevice(meta.userAgent) },
+    meta,
+  });
+}
+
+/** Rol cuyo ingreso se alerta a Dirección (numeral 10.7). */
+const PLATFORM_ADMIN_ROLE = 'ADMIN_PLATAFORMA';
+
+/** Evento de seguridad y alerta cuando entra un administrador de la plataforma (numeral 10.7). */
+async function alertAdminSignIn(
+  tx: TenantTransaction,
+  user: User,
+  meta: RequestMeta,
+  now: Date,
+): Promise<void> {
+  if (user.kind === 'portal') return;
+  const roles = await activeRoleCodes(tx, user.id, now);
+  if (!roles.includes(PLATFORM_ADMIN_ROLE)) return;
+  await recordSecurityEvent(tx, {
+    tenantId: user.tenantId,
+    occurredAt: now,
+    type: 'iam.login.admin',
+    userId: user.id,
+    severity: 'low',
+    detail: { role: PLATFORM_ADMIN_ROLE },
+    meta,
+  });
+  await addOutboxEvent(tx, {
+    tenantId: user.tenantId,
+    eventType: 'security.alert',
+    actorId: user.id,
+    occurredAt: now,
+    payload: { type: 'iam.login.admin', user_id: user.id },
+  });
 }

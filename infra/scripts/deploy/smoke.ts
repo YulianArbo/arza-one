@@ -1,4 +1,5 @@
-// Pruebas de humo del ambiente de pruebas (B07, numeral 10.6). Se hacen desde fuera del servidor,
+// Pruebas de humo del ambiente de pruebas (B07, numeral 10.6); las de producción, en
+// smoke-production.ts (B44). Se hacen desde fuera del servidor,
 // como lo haría una persona: por internet, con TLS y con la autenticación adicional.
 // Si una falla después de varios intentos, el despliegue vuelve a la versión anterior.
 import { z } from 'zod';
@@ -23,15 +24,15 @@ export interface SmokeDependencies {
 export const SMOKE_ATTEMPTS = 36;
 export const SMOKE_INTERVAL_MS = 5000;
 
-interface Check {
+export interface Check {
   readonly name: string;
   readonly run: () => Promise<string | undefined>;
 }
 
-const statusSchema = z.object({ status: z.string() });
-const versionSchema = z.object({ commit: z.string(), environment: z.string() });
+export const statusSchema = z.object({ status: z.string() });
+export const versionSchema = z.object({ commit: z.string(), environment: z.string() });
 
-async function json(response: Response): Promise<unknown> {
+export async function json(response: Response): Promise<unknown> {
   try {
     return await response.json();
   } catch {
@@ -61,7 +62,7 @@ function client(settings: SmokeSettings, fetch: Fetch): Client {
   };
 }
 
-const answered = (response: Response, expected: number): string =>
+export const answered = (response: Response, expected: number): string =>
   `respondió ${String(response.status)} en lugar de ${String(expected)}`;
 
 async function deniesWithoutPassword({ site, get }: Client): Promise<string | undefined> {
@@ -140,7 +141,7 @@ async function runOnce(list: readonly Check[]): Promise<string[]> {
 }
 
 /**
- * Repite todas las pruebas hasta que pasen o se acaben los intentos.
+ * Repite todas las pruebas del ambiente de pruebas hasta que pasen o se acaben los intentos.
  * Devuelve las fallas del último intento (vacío si todo pasó).
  */
 export async function runSmokeTests(
@@ -148,7 +149,15 @@ export async function runSmokeTests(
   deps: SmokeDependencies,
   attempts = SMOKE_ATTEMPTS,
 ): Promise<string[]> {
-  const list = checks(settings, deps.fetch);
+  return runChecks(checks(settings, deps.fetch), deps, attempts);
+}
+
+/** Repite una lista de pruebas hasta que pasen o se acaben los intentos (pruebas y producción). */
+export async function runChecks(
+  list: readonly Check[],
+  deps: SmokeDependencies,
+  attempts = SMOKE_ATTEMPTS,
+): Promise<string[]> {
   let failures: string[] = [];
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     failures = await runOnce(list);

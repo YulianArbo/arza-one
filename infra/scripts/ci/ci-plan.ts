@@ -11,7 +11,7 @@ export interface CheckPlan {
   quality: boolean;
   /** Tareas 4, 5, 7, 8 y 9: pruebas, migraciones, imágenes y navegador. */
   tests: boolean;
-  /** Tareas 11 y 12: ensayos de despliegue y de servidor. */
+  /** Tareas 11, 12 y 13: ensayos de despliegue, de servidor y de copias (B44). */
   rehearsals: boolean;
   /** Explicación en español para quien lee la ejecución. */
   reason: string;
@@ -36,7 +36,7 @@ export function isDocumentation(path: string): boolean {
   return path.startsWith('docs/') || path.endsWith('.md');
 }
 
-/** Archivos de los que dependen las imágenes, el despliegue y el servidor (tareas 11 y 12). */
+/** Archivos de los que dependen las imágenes, el despliegue y el servidor (tareas 11 a 13). */
 export function isInfrastructure(path: string): boolean {
   const name = path.slice(path.lastIndexOf('/') + 1);
   return (
@@ -71,7 +71,7 @@ export function planChecks(input: PlanInput): CheckPlan {
       quality: false,
       tests: false,
       rehearsals: true,
-      reason: 'Fusión de un pull request ya verificado: corren los ensayos 11 y 12.',
+      reason: 'Fusión de un pull request ya verificado: corren los ensayos 11 a 13.',
     };
   }
   const rehearsals = files.some(isInfrastructure);
@@ -81,7 +81,7 @@ export function planChecks(input: PlanInput): CheckPlan {
     rehearsals,
     reason: rehearsals
       ? 'Cambio de código e infraestructura: corren todas.'
-      : 'Cambio de código: los ensayos 11 y 12 corren al fusionar a main.',
+      : 'Cambio de código: los ensayos 11 a 13 corren al fusionar a main.',
   };
 }
 
@@ -162,7 +162,7 @@ export async function runCheckPlan(env: PlanEnvironment, outputFile: string): Pr
   process.stdout.write(
     `${plan.reason}\nFormato y análisis: ${plan.quality ? 'sí' : 'no'} · ` +
       `Pruebas, migraciones, imágenes y navegador: ${plan.tests ? 'sí' : 'no'} · ` +
-      `Ensayos 11 y 12: ${plan.rehearsals ? 'sí' : 'no'} · Seguridad: sí\n`,
+      `Ensayos 11 a 13: ${plan.rehearsals ? 'sí' : 'no'} · Seguridad: sí\n`,
   );
   appendFileSync(outputFile, formatOutputs(plan));
   return 0;

@@ -1,0 +1,13 @@
+# Copia de seguridad de producción (B44, numeral 10.5): backup.sh <tipo> como el usuario deploy.
+# La lanzan los temporizadores arza-backup-*.timer; a mano: sudo systemctl start arza-backup@files
+[Unit]
+Description=ARZA ONE: copia de seguridad %i
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=deploy
+Group=deploy
+ExecStart=/usr/bin/bash /srv/arza-one/current/infra/backup/backup.sh %i
+TimeoutStartSec=6h

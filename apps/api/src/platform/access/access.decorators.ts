@@ -13,12 +13,22 @@ export const RECENT_AUTHENTICATION_KEY = 'arza:recent-authentication';
  * - own_account: sesión completa, sobre la cuenta propia (Mi perfil, mis sesiones, mis permisos).
  * - permission: sesión completa y el permiso del anexo G que declara la ruta (B10).
  * - record: sesión completa; el permiso lo decide el módulo dueño del registro (B16).
+ * - monitor: sin sesión, con la llave de los vigilantes (MONITOR_TOKEN, B44). Solo bajo /ops.
  */
-export type AccessRule = 'public' | 'signing_in' | 'own_account' | 'permission' | 'record';
+export type AccessRule =
+  'public' | 'signing_in' | 'own_account' | 'permission' | 'record' | 'monitor';
 
 /** Ruta abierta sin sesión, como /health. Úsela solo cuando el manual lo prevea. */
 export function Public(): CustomDecorator {
   return SetMetadata(ACCESS_KEY, 'public' satisfies AccessRule);
+}
+
+/**
+ * Ruta de los vigilantes (numeral 10.7): pide «Authorization: Bearer <MONITOR_TOKEN>». Una sesión
+ * de usuario no sirve, ni siquiera la de un administrador. Solo para cifras sin datos de empresas.
+ */
+export function MonitorToken(): CustomDecorator {
+  return SetMetadata(ACCESS_KEY, 'monitor' satisfies AccessRule);
 }
 
 /**

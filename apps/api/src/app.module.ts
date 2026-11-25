@@ -34,6 +34,7 @@ import { DatabaseModule } from './platform/database/database.module.js';
 import { ApiExceptionFilter } from './platform/errors/api-exception.filter.js';
 import { HealthModule } from './platform/health/health.module.js';
 import { NullCharacterPipe } from './platform/http/null-character.pipe.js';
+import { OpsModule } from './platform/ops/ops.module.js';
 import { LoggingModule } from './platform/logging/logging.module.js';
 import { QueueModule } from './platform/queues/queue.module.js';
 import { CsrfGuard } from './platform/security/csrf.guard.js';
@@ -98,6 +99,7 @@ export class AppModule {
         ClockModule,
         QueueModule,
         HealthModule,
+        OpsModule,
         VersionModule,
         ...BUSINESS_MODULES,
       ],

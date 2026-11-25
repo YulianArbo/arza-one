@@ -1,0 +1,12 @@
+# copia mensual de la base, día 1 a la 1:00 a. m. de Colombia (B44). Horas en UTC: Colombia es UTC-5.
+[Unit]
+Description=ARZA ONE: copia mensual de la base, día 1 a la 1:00 a. m. de Colombia
+
+[Timer]
+OnCalendar=*-*-01 06:00:00
+Persistent=true
+RandomizedDelaySec=5min
+Unit=arza-backup@db-monthly.service
+
+[Install]
+WantedBy=timers.target

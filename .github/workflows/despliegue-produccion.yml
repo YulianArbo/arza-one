@@ -1,0 +1,151 @@
+# Despliegue a producción (numeral 10.6, ADR-017, ADR-018 y decisión 3 de B44).
+# Solo a mano: el Director General crea la versión (etiqueta vX.Y.Z) y lanza este flujo desde la
+# pestaña «Actions» escribiendo esa versión. En el plan gratuito de GitHub un repositorio privado no
+# puede exigir «aprobación de una persona»; por eso el flujo se niega si quien lo lanza no es el
+# usuario autorizado (variable PRODUCTION_APPROVER). Con GitHub Pro se agrega además la aprobación
+# nativa del ambiente «produccion».
+#
+# Antes de tocar el servidor: revisa la ventana de publicación (martes a jueves antes de las
+# 4:00 p. m., sin festivos ni vísperas), salvo «corrección urgente de seguridad». Luego copia la
+# base, migra, actualiza los contenedores, hace las pruebas de humo y vuelve sola a la versión
+# anterior si fallan. Guía: docs/runbooks/despliegue-y-reversion.md.
+name: Despliegue a producción
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Versión etiquetada que se publica (por ejemplo v1.0.0)'
+        required: true
+        type: string
+      urgent_security_fix:
+        description: 'Corrección urgente de seguridad (permite publicar fuera de la ventana)'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: despliegue-produccion
+  cancel-in-progress: false
+
+env:
+  APP_VERSION: ${{ inputs.version }}
+
+jobs:
+  authorize:
+    name: Quién publica y qué versión
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Solo el usuario autorizado, solo una etiqueta vX.Y.Z existente y solo con servidor
+        env:
+          APPROVER: ${{ vars.PRODUCTION_APPROVER }}
+          HOST: ${{ vars.PRODUCTION_HOST }}
+          ACTOR: ${{ github.actor }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -z "$HOST" ]; then
+            echo "::error::El servidor de producción aún no está configurado (falta PRODUCTION_HOST). Guía: docs/runbooks/servidor-de-produccion.md"
+            exit 1
+          fi
+          if [ -z "$APPROVER" ] || [ "$ACTOR" != "$APPROVER" ]; then
+            echo "::error::Solo el usuario autorizado (PRODUCTION_APPROVER) puede publicar en producción."
+            exit 1
+          fi
+          if ! printf '%s' "$APP_VERSION" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::La versión debe ser una etiqueta vX.Y.Z."
+            exit 1
+          fi
+          gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$APP_VERSION" >/dev/null ||
+            { echo "::error::La etiqueta $APP_VERSION no existe."; exit 1; }
+
+  images:
+    name: Imagen ${{ matrix.app }} de ${{ inputs.version }}
+    needs: authorize
+    runs-on: ${{ vars.PRODUCTION_PLATFORM == 'linux/arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: true
+      matrix:
+        app: [api, web, worker, migrate, postgres]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ inputs.version }}
+          persist-credentials: false
+      - name: Construir
+        run: |
+          bash infra/scripts/ci/build-image.sh "${{ matrix.app }}" "arza-one/${{ matrix.app }}:release" \
+            "${{ vars.PRODUCTION_PLATFORM || 'linux/amd64' }}"
+      - name: Publicar en el registro privado de GitHub
+        env:
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/arza-one-${{ matrix.app }}:${APP_VERSION}"
+          echo "$REGISTRY_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          docker tag "arza-one/${{ matrix.app }}:release" "$image"
+          docker push --quiet "$image"
+          docker logout ghcr.io
+
+  deploy:
+    name: Desplegar en producción
+    needs: images
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      packages: read
+    # Ambiente «produccion»: guarda los secretos y el historial de despliegues (auditoría).
+    environment:
+      name: produccion
+      url: https://www.${{ vars.PRODUCTION_DOMAIN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ inputs.version }}
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      # Los festivos los calcula el módulo Núcleo de la API (ley Emiliani): una sola fuente.
+      - name: Festivos de Colombia de este año y el siguiente
+        run: |
+          pnpm --filter @arza/api build
+          node --input-type=module -e "
+            const { colombianHolidays } = await import('./apps/api/dist/modules/core/domain/colombian-holidays.js');
+            const year = new Date().getUTCFullYear();
+            const dates = [year, year + 1].flatMap((y) => colombianHolidays(y).map((h) => h.date));
+            process.stdout.write(JSON.stringify(dates));" > "$RUNNER_TEMP/festivos.json"
+      - name: Llave SSH y huella conocida del servidor
+        env:
+          SSH_KEY: ${{ secrets.PRODUCTION_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.PRODUCTION_SSH_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+      - name: Ventana, copia, migraciones, pruebas de humo y reversión automática
+        env:
+          PRODUCTION_HOST: ${{ vars.PRODUCTION_HOST }}
+          PRODUCTION_SSH_PORT: ${{ vars.PRODUCTION_SSH_PORT }}
+          PRODUCTION_DOMAIN: ${{ vars.PRODUCTION_DOMAIN }}
+          URGENT_SECURITY_FIX: ${{ inputs.urgent_security_fix && '1' || '0' }}
+          REGISTRY_USER: ${{ github.actor }}
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          export IMAGE_REGISTRY="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}"
+          node infra/scripts/deploy/production-main.ts "$RUNNER_TEMP/festivos.json"
+      - name: Solo 80, 443 y SSH abiertos (numeral 10.2)
+        if: always()
+        env:
+          PRODUCTION_HOST: ${{ vars.PRODUCTION_HOST }}
+          PRODUCTION_SSH_PORT: ${{ vars.PRODUCTION_SSH_PORT || '22' }}
+        run: node infra/scripts/deploy/check-ports.ts "$PRODUCTION_HOST" "$PRODUCTION_SSH_PORT"
+      - name: Borrar la llave SSH
+        if: always()
+        run: rm -f ~/.ssh/id_ed25519

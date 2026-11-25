@@ -117,4 +117,32 @@ sudo -u deploy bash -c 'd=/srv/arza-one; c="docker compose --project-name arza-o
 ## Ventanas de publicación
 
 En pruebas se publica cada vez que se integra a `main`. Las ventanas del numeral 10.6 (martes a
-jueves antes de las 4:00 p. m.) aplican a producción (B44).
+jueves antes de las 4:00 p. m., nunca festivo ni víspera de festivo) aplican a producción: el flujo
+las revisa solo y se niega fuera de ellas, salvo una corrección urgente de seguridad.
+
+## Publicar en producción (B44)
+
+Producción **nunca** se publica sola: la publica el Director General (el usuario de
+`PRODUCTION_APPROVER`) sobre una versión etiquetada. Preparación una sola vez:
+[servidor-de-produccion.md](servidor-de-produccion.md).
+
+1. **Crear la versión.** En GitHub: **Releases → Draft a new release → Choose a tag**, escriba la
+   versión nueva (por ejemplo `v1.0.0`) sobre `main`, genere las notas de versión con el botón
+   **Generate release notes** y publíquela. Las notas son el registro del cambio para Calidad
+   (numeral 10.6).
+2. **Lanzar el despliegue.** **Actions → Despliegue a producción → Run workflow**: escriba la versión
+   (`v1.0.0`). Marque «Corrección urgente de seguridad» solo si de verdad lo es: es lo único que
+   permite publicar fuera de la ventana, y queda registrado.
+3. **Qué hace el flujo:** revisa que usted sea el usuario autorizado y que la etiqueta exista;
+   construye las cinco imágenes de esa etiqueta; revisa la ventana; en el servidor copia la base,
+   aplica las migraciones y la semilla de la plataforma (nunca datos ficticios), enciende la versión
+   nueva y hace las pruebas de humo de `www`, `app`, `clientes` y `api`. Si fallan, **vuelve sola** a
+   la versión anterior y el flujo queda en rojo.
+4. **Registro:** el historial queda en **Settings → Environments → produccion** y en el servidor
+   (`/srv/arza-one/deployments.log`). Registre el cambio en el módulo de Calidad con el enlace de las
+   notas de versión.
+
+Las operaciones a mano de arriba sirven igual en producción cambiando `arza-one-staging` por
+`arza-one-production` y `staging.yml` por `production.yml`. **Excepción:** en producción no use
+`pg_restore` sobre la base: la restauración se hace con las copias externas
+([restauracion.md](restauracion.md)), que no pierden los últimos minutos.

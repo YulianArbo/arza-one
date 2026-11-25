@@ -33,8 +33,8 @@ por qué.
 | Cambio                                                | Qué corre                                        |
 | ----------------------------------------------------- | ------------------------------------------------ |
 | Pull request de código                                | Tareas 1 a 9 completas                           |
-| Pull request que toca infraestructura¹                | Tareas 1 a 9, más los ensayos 11 y 12            |
-| Fusión a `main` de un pull request ya verificado²     | Seguridad (6) y ensayos 11 y 12                  |
+| Pull request que toca infraestructura¹                | Tareas 1 a 9, más los ensayos 11 a 13            |
+| Fusión a `main` de un pull request ya verificado²     | Seguridad (6) y ensayos 11 a 13                  |
 | Solo documentación (`docs/` o archivos `.md`)         | Formato y mensajes de commit (1) y seguridad (6) |
 | Lanzada a mano, cambio directo a `main` o caso dudoso | Todo                                             |
 

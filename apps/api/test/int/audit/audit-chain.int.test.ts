@@ -1,7 +1,7 @@
 import type pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { recordAuditEvent } from '../../../src/platform/audit/audit-recorder.js';
+import { changesBetween, recordAuditEvent } from '../../../src/platform/audit/audit-recorder.js';
 import type { DatabaseService } from '../../../src/platform/database/database.service.js';
 import {
   connect,
@@ -74,6 +74,34 @@ interface Verification {
   broken_seq: string | null;
   problem: string | null;
 }
+
+describe('datos restringidos de auditoría', () => {
+  it('encadena la marca de cambio sin guardar los valores restringidos', async () => {
+    const tenant = await tenantWithEvents('campos restringidos');
+    await database.withTenant({ tenantId: tenant.id, userId: null }, (tx) =>
+      recordAuditEvent(tx, {
+        tenantId: tenant.id,
+        occurredAt: new Date(),
+        actor: { kind: 'system' },
+        action: 'core.tenant.update',
+        entityType: 'tenant',
+        entityId: tenant.id,
+        result: 'success',
+        changes: changesBetween({ privateNote: 'antes' }, { privateNote: 'después' }, [
+          'privateNote',
+        ]),
+        meta: null,
+      }),
+    );
+    const [row] = await inTenant<{ changes: unknown }>(
+      appUser,
+      tenant.id,
+      'SELECT changes FROM aud_events ORDER BY seq DESC LIMIT 1',
+    );
+    expect(row?.changes).toEqual({ privateNote: { changed: true } });
+    expect(await verify(tenant.id)).toMatchObject({ broken_seq: null, problem: null });
+  });
+});
 
 async function verify(tenantId: string): Promise<Verification | undefined> {
   const [row] = await inTenant<Verification>(appUser, tenantId, 'SELECT * FROM aud_verify_chain()');

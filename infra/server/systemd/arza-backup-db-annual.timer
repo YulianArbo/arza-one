@@ -1,0 +1,12 @@
+# copia anual de la base, 1 de enero 12:30 a. m. de Colombia (B44). Horas en UTC: Colombia es UTC-5.
+[Unit]
+Description=ARZA ONE: copia anual de la base, 1 de enero 12:30 a. m. de Colombia
+
+[Timer]
+OnCalendar=*-01-01 05:30:00
+Persistent=true
+RandomizedDelaySec=5min
+Unit=arza-backup@db-annual.service
+
+[Install]
+WantedBy=timers.target

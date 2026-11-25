@@ -36,7 +36,7 @@ ALTER TABLE "crm_leads" DROP COLUMN "notes";
 La marca queda a la vista en la revisión del pull request. Desactivar la seguridad por fila
 (`DISABLE` o `NO FORCE ROW LEVEL SECURITY`) nunca se permite, ni con la marca (ADR-007).
 
-`ci/build-image.sh <api|web|worker|migrate> <etiqueta> [plataforma]` construye cada imagen igual en
+`ci/build-image.sh <api|web|worker|migrate|postgres> <etiqueta> [plataforma]` construye cada imagen igual en
 la integración continua, el ensayo y el despliegue (B07).
 
 ## deploy/ — despliegue al ambiente de pruebas (B07)
@@ -60,6 +60,30 @@ Igual que en `local/`, la lógica recibe el servidor como una función (`Remote`
 servidor simulado (`fake-server.ts`). Ningún secreto viaja desde GitHub al servidor: las llaves de
 Garage se leen allí mismo, y el token del registro y la contraseña adicional solo por la entrada
 estándar o las variables del proceso.
+
+## Producción, copias y vigilancia (B44)
+
+Guías: [`servidor-de-produccion.md`](../../docs/runbooks/servidor-de-produccion.md),
+[`restauracion.md`](../../docs/runbooks/restauracion.md) y
+[`servidor-de-vigilancia.md`](../../docs/runbooks/servidor-de-vigilancia.md).
+
+| Archivo                          | Qué hace                                                                                                                      |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `deploy/release.ts` (`PROFILES`) | Lo que cambia entre pruebas y producción: proyecto de Compose, archivo de servicios, archivos que viajan, servicios y semilla |
+| `deploy/production-main.ts`      | Punto de entrada del flujo «Despliegue a producción»: ventana de publicación, despliegue y pruebas de humo de producción      |
+| `deploy/production-config.ts`    | Datos del despliegue a producción (`PRODUCTION_*`); solo versiones vX.Y.Z                                                     |
+| `deploy/release-window.ts`       | Ventana del numeral 10.6: martes a jueves antes de las 4:00 p. m., sin festivos ni vísperas                                   |
+| `deploy/smoke-production.ts`     | Pruebas de humo de `www`, `app`, `clientes` y `api`, HSTS, versión y `/ops/status` cerrado                                    |
+| `../backup/backup.sh`            | Copias en el servidor: pgBackRest (completa, diferencial, mensual, anual) y restic (archivos); avisa a Uptime Kuma            |
+| `../backup/restore.sh`           | Restauración de la base (a lo último o a un minuto) y de los archivos                                                         |
+| `../backup/verify-restore.sh`    | Comprobación después de restaurar: cadena de auditoría, aislamiento, salud de la API y cifras                                 |
+| `../backup/rehearsal.sh`         | Ensayo completo en GitHub (tarea 13): despliega producción, copia, lo borra todo, restaura y mide contra el RTO               |
+| `../monitoring/host-metrics.sh`  | Procesador, memoria y disco del servidor a Uptime Kuma, cada minuto                                                           |
+| `../monitoring/domain-expiry.sh` | Vencimiento del dominio (RDAP) a Uptime Kuma, cada día, en el servidor de vigilancia                                          |
+| `../server/systemd/`             | Temporizadores de las copias y de la vigilancia que instala `provision.sh --role production` o `--role monitoring`            |
+
+Los guiones de `infra/backup` y `infra/monitoring` se ejecutan en los servidores; sus umbrales se
+prueban en `deploy/monitoring-scripts.test.ts` y el ciclo completo de copias en la tarea 13.
 
 ## Pruebas
 

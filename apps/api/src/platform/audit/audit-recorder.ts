@@ -1,6 +1,8 @@
 import type { Prisma } from '../../generated/prisma/client.js';
 import type { TenantTransaction } from '../database/tenant-context.js';
 import type { RequestMeta } from '../http/request-meta.js';
+import { addOutboxEvent } from '../outbox/outbox.js';
+import { BULK_EXPORT_ALERT, exportedRows, isBulkExport } from './bulk-export.js';
 
 // Auditoría (ADR-012): cada caso de uso que escribe inserta su evento dentro de la misma
 // transacción. Si la transacción se revierte, el evento también. La base de datos encadena el
@@ -65,6 +67,36 @@ export async function recordAuditEvent(
       ip: event.meta?.ip ?? null,
       correlationId: event.meta?.correlationId ?? null,
     },
+  });
+  if (event.actor.kind === 'user' && isBulkExport(event.action, event.changes)) {
+    await alertBulkExport(transaction, event, event.actor.id);
+  }
+}
+
+/** Evento de seguridad y alerta de una exportación masiva, en la misma transacción (10.7). */
+async function alertBulkExport(
+  transaction: TenantTransaction,
+  event: AuditEventInput,
+  userId: string,
+): Promise<void> {
+  const rows = exportedRows(event.changes);
+  if (event.meta !== null) {
+    await recordSecurityEvent(transaction, {
+      tenantId: event.tenantId,
+      occurredAt: event.occurredAt,
+      type: BULK_EXPORT_ALERT,
+      userId,
+      severity: 'medium',
+      detail: { action: event.action, rows },
+      meta: event.meta,
+    });
+  }
+  await addOutboxEvent(transaction, {
+    tenantId: event.tenantId,
+    eventType: 'security.alert',
+    actorId: userId,
+    occurredAt: event.occurredAt,
+    payload: { type: BULK_EXPORT_ALERT, user_id: userId, action: event.action, rows },
   });
 }
 

@@ -997,6 +997,22 @@ Revisión contra OWASP ASVS 5.0 nivel 2 en
 En las pruebas, `test/support/sealed-pdf.ts` da un PDF real (`minimalPdf`), el sello de pruebas
 (`TEST_PDF_SEAL`) y `checkPdfSeal`, que comprueba el sello como lo haría un lector de PDF.
 
+## Operación y monitoreo (B44)
+
+Producción, copias y vigilancia: guías en [`docs/runbooks/`](../../docs/runbooks/README.md);
+decisiones en [`B44-cierre.md`](../../docs/bloques/B44-cierre.md) y ADR-026.
+
+| Regla (numeral 10.7)                                  | Cómo se cumple                                                                                                                                                                                                            |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Los vigilantes leen tiempos, errores y colas          | `GET /ops/status` (`platform/ops`): percentil 95 y tasa de 5xx de los últimos 10 minutos y trabajos en espera o fallidos; 503 si alguno pasa su umbral                                                                    |
+| Solo los vigilantes                                   | Regla de acceso `monitor` (`@MonitorToken()`): `Authorization: Bearer <MONITOR_TOKEN>` en tiempo constante; una sesión de usuario no sirve; sin llave, 401                                                                |
+| Errores inesperados a GlitchTip, sin datos personales | `platform/ops/error-reporter.ts`: tipo, mensaje depurado (sin correos, números largos ni valores), pila, ruta declarada y correlación. Lo usan el filtro de errores (5xx) y el worker (trabajos que fallan sin reintento) |
+| Alerta por ingreso de un administrador                | `SignInCompletion`: evento `iam.login.admin` y `security.alert` en la transacción del ingreso                                                                                                                             |
+| Alerta por exportación masiva                         | `recordAuditEvent` con `platform/audit/bulk-export.ts`: más de 500 registros, o siempre la auditoría y los datos de un titular; evento `data.export.bulk`                                                                 |
+
+Toda exportación nueva debe dejar en la auditoría el número de registros en `rows` o `row_count`:
+así la alerta la cubre sin código adicional.
+
 ## Imágenes Docker (B05 y B07)
 
 [`Dockerfile`](Dockerfile) produce dos imágenes, sin gestores de paquetes y con usuario sin

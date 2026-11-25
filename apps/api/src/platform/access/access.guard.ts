@@ -10,8 +10,11 @@ import { Reflector } from '@nestjs/core';
 import { IAM_ERROR_CODES } from '@arza/contracts';
 import type { Request } from 'express';
 
+import { CONFIG } from '../config/config.module.js';
+import type { Env } from '../config/env-schema.js';
 import { AppError } from '../errors/app-error.js';
 import { ACCESS_KEY, type AccessRule } from './access.decorators.js';
+import { monitorTokenMatches } from './monitor-token.js';
 import { AUTHENTICATOR, attachPrincipal, type Authenticator } from './principal.js';
 
 const SESSION_RULES: ReadonlySet<AccessRule> = new Set([
@@ -35,14 +38,20 @@ export class AccessGuard implements CanActivate {
   constructor(
     @Inject(Reflector) private readonly reflector: Reflector,
     @Inject(AUTHENTICATOR) private readonly authenticator: Authenticator,
+    @Inject(CONFIG) private readonly config: Env,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const targets = [context.getHandler(), context.getClass()];
     const rule = this.reflector.getAllAndOverride<AccessRule | undefined>(ACCESS_KEY, targets);
     if (rule === 'public') return true;
-    if (rule === undefined || !SESSION_RULES.has(rule)) throw new UnauthorizedException();
     const request = context.switchToHttp().getRequest<Request>();
+    if (rule === 'monitor') {
+      if (monitorTokenMatches(request.headers.authorization, this.config.MONITOR_TOKEN))
+        return true;
+      throw new UnauthorizedException();
+    }
+    if (rule === undefined || !SESSION_RULES.has(rule)) throw new UnauthorizedException();
     const principal = await this.authenticator.authenticate(request);
     if (principal === null) throw new UnauthorizedException();
     if (rule !== 'signing_in' && !principal.signInComplete) throw secondFactorRequired();

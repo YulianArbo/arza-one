@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 
 import { loadDeployEnv, registryHost } from './config.ts';
 import {
-  BUNDLE_PATHS,
+  PROFILES,
   compose,
   currentVersionScript,
   parseVersion,
@@ -53,14 +53,20 @@ describe('órdenes al servidor', () => {
 
 describe('versiones en el servidor', () => {
   it('acepta commits y etiquetas vX.Y.Z', () => {
+    const staging = {
+      registry: 'ghcr.io/arza',
+      baseDir: '/srv/arza-one',
+      environment: 'staging',
+    } as const;
     for (const version of ['b07aaaa', 'a'.repeat(40), 'v1.2.3']) {
-      expect(() =>
-        validateRelease({ version, registry: 'ghcr.io/arza', baseDir: '/srv/arza-one' }),
-      ).not.toThrow();
+      expect(() => validateRelease({ version, ...staging })).not.toThrow();
     }
-    expect(() =>
-      validateRelease({ version: 'b07aaaa', registry: 'localhost:5000', baseDir: '/srv/a' }),
-    ).not.toThrow();
+    const local = {
+      registry: 'localhost:5000',
+      baseDir: '/srv/a',
+      environment: 'production',
+    } as const;
+    expect(() => validateRelease({ version: 'b07aaaa', ...local })).not.toThrow();
   });
 
   // Git Bash en Windows copia en lugar de crear enlaces simbólicos: corre en Linux (GitHub).
@@ -88,13 +94,24 @@ describe('versiones en el servidor', () => {
 
 describe('archivos de cada versión', () => {
   it('docker compose usa el proyecto fijo, la versión y las contraseñas del servidor', () => {
-    expect(compose('/srv/arza-one', 'b07aaaa', 'ps')).toBe(
+    expect(compose({ baseDir: '/srv/arza-one', environment: 'staging' }, 'b07aaaa', 'ps')).toBe(
       "docker compose --project-name arza-one-staging --file '/srv/arza-one/releases/b07aaaa/infra/compose/staging.yml' --env-file '/srv/arza-one/.env' --env-file '/srv/arza-one/releases/b07aaaa/release.env' ps",
     );
   });
 
+  it('producción usa su propio proyecto y su propio archivo de servicios (B44)', () => {
+    const target = { baseDir: '/srv/arza-one', environment: 'production' } as const;
+    expect(compose(target, 'v1.0.0', 'ps')).toBe(
+      "docker compose --project-name arza-one-production --file '/srv/arza-one/releases/v1.0.0/infra/compose/production.yml' --env-file '/srv/arza-one/.env' --env-file '/srv/arza-one/releases/v1.0.0/release.env' ps",
+    );
+    expect(PROFILES.production.demoData).toBe(false);
+    expect(PROFILES.production.appServices).not.toContain('mailpit');
+  });
+
   it('los archivos que viajan con cada versión existen en el repositorio', () => {
-    for (const path of BUNDLE_PATHS) expect(existsSync(`${REPO}${path}`)).toBe(true);
+    for (const profile of Object.values(PROFILES)) {
+      for (const path of profile.bundlePaths) expect(existsSync(`${REPO}${path}`), path).toBe(true);
+    }
   });
 
   it('el ensayo y el servidor usan la misma imagen de Caddy que el compose', () => {

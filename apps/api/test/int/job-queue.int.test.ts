@@ -16,6 +16,27 @@ afterAll(async () => {
   await inspector.close();
 });
 
+describe('cifras de vigilancia de la cola', () => {
+  it('cuenta trabajos en espera y programados en Valkey', async () => {
+    const url = new URL(inject('valkeyUrl'));
+    url.pathname = '/14';
+    const connection = { url: url.toString() };
+    const monitored = new JobQueue(connection);
+    const queue = new Queue(JOBS.exampleEmail.queue, { connection });
+    try {
+      expect(await monitored.figures()).toEqual({ pending: 0, failed: 0 });
+      const waiting = await queue.add(JOBS.exampleEmail.name, validPayload());
+      const delayed = await queue.add(JOBS.exampleEmail.name, validPayload(), { delay: 600_000 });
+      expect(await monitored.figures()).toEqual({ pending: 2, failed: 0 });
+      await waiting.remove();
+      await delayed.remove();
+      expect(await monitored.figures()).toEqual({ pending: 0, failed: 0 });
+    } finally {
+      await Promise.all([monitored.close(), queue.close()]);
+    }
+  });
+});
+
 function validPayload(): ExampleEmailJob {
   return {
     tenantId: uuidv7(),

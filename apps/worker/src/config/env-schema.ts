@@ -36,6 +36,10 @@ const baseSchema = z.object({
    */
   PDF_SEAL_PKCS12: z.base64().trim().min(1).optional(),
   PDF_SEAL_PASSPHRASE: required.optional(),
+  /** Dirección de GlitchTip para los trabajos que fallan sin reintento (B44). Vacía: no se envían. */
+  GLITCHTIP_DSN: z.url({ protocol: /^https?$/ }).optional(),
+  /** Commit de la imagen; GlitchTip lo muestra como versión. */
+  GIT_COMMIT: required.default('unknown'),
 });
 
 /** En producción el sello con el certificado de la empresa es obligatorio (decisión 4 de B43). */

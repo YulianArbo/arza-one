@@ -1,0 +1,37 @@
+# Puerta de entrada del servidor de vigilancia (B44, numerales 10.4 y 10.7, ADR-026).
+#   - estado.[dominio]:     página de estado pública de Uptime Kuma (numeral 10.4).
+#   - vigilancia.[dominio]: tablero de Uptime Kuma (su propio ingreso con segundo factor).
+#   - errores.[dominio]:    GlitchTip (su propio ingreso). La API y el worker de producción le
+#                           envían los errores por aquí.
+{
+	email {$ACME_EMAIL}
+	servers {
+		protocols h1 h2
+	}
+	{$CADDY_EXTRA_GLOBAL}
+	skip_install_trust
+}
+
+(monitoring_headers) {
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+}
+
+estado.{$MONITORING_DOMAIN} {
+	import monitoring_headers
+	reverse_proxy uptime-kuma:3001
+}
+
+vigilancia.{$MONITORING_DOMAIN} {
+	import monitoring_headers
+	header X-Robots-Tag "noindex, nofollow"
+	reverse_proxy uptime-kuma:3001
+}
+
+errores.{$MONITORING_DOMAIN} {
+	import monitoring_headers
+	header X-Robots-Tag "noindex, nofollow"
+	reverse_proxy glitchtip:8000
+}

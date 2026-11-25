@@ -224,7 +224,8 @@ jobs:
     timeout-minutes: 20
     env:
       # migrate: imagen de migraciones del despliegue (B07), etapa del Dockerfile de la API.
-      APPS: api web worker migrate
+      # postgres: PostgreSQL con pgBackRest de producción (B44).
+      APPS: api web worker migrate postgres
       TRIVY_VERSION: 0.74.0
       TRIVY_SHA256: 2ae6fe3ee734b7fdf11335663e18c75ea12dccc76062f09f164a3b0f8be4371a
     steps:
@@ -329,11 +330,28 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup
       - name: Análisis de los guiones de bash (ShellCheck)
-        run: shellcheck --external-sources infra/server/*.sh infra/scripts/ci/*.sh infra/scripts/deploy/*.sh infra/postgres/init/*.sh
+        run: shellcheck --external-sources infra/server/*.sh infra/scripts/ci/*.sh infra/scripts/deploy/*.sh infra/postgres/init/*.sh infra/backup/*.sh infra/monitoring/*.sh
       # La máquina de GitHub es un Ubuntu 24.04 desechable: se prepara con provision.sh y se
       # comprueba desde fuera (SSH, root, contraseñas, puertos).
       - name: Preparar este equipo como servidor y comprobarlo
         run: bash infra/server/rehearsal.sh
+
+  backup-rehearsal:
+    name: 13. Ensayo de producción, copias y restauración completa
+    needs: plan
+    if: needs.plan.outputs.rehearsals == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      # Este mismo equipo hace de servidor de producción: despliega una versión etiquetada, saca
+      # todas las copias, borra la base y los archivos, restaura y mide el tiempo contra el RTO
+      # (criterios de B44, numerales 10.5 y 10.6).
+      - name: Desplegar, copiar, perderlo todo y restaurar
+        run: bash infra/backup/rehearsal.sh
 
   verifications:
     name: Verificaciones
@@ -350,6 +368,7 @@ jobs:
         e2e,
         deploy-rehearsal,
         server-rehearsal,
+        backup-rehearsal,
       ]
     runs-on: ubuntu-24.04
     timeout-minutes: 5

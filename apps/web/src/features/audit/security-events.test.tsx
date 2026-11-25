@@ -89,3 +89,24 @@ describe('eventos de seguridad', () => {
     });
   });
 });
+
+describe('alertas de B44', () => {
+  it('nombra en español el ingreso de un administrador y la exportación masiva', async () => {
+    const admin = {
+      ...LOCKED,
+      id: '01999a00-0000-7000-8000-00000000f103',
+      type: 'iam.login.admin',
+    };
+    const bulk = {
+      ...LOCKED,
+      id: '01999a00-0000-7000-8000-00000000f104',
+      type: 'data.export.bulk',
+    };
+    serve([admin, bulk]);
+    renderWithApi(<Screen />);
+    expect(
+      await screen.findByText('Inició sesión un administrador de la plataforma'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Exportación masiva de datos')).toBeInTheDocument();
+  });
+});

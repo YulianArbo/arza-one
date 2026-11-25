@@ -13,25 +13,25 @@ queda) · **Pendiente** (se hace en un bloque posterior) · **No aplica**.
 
 ## Resumen
 
-| Capítulo                          | Estado    | Pendiente                                          |
-| --------------------------------- | --------- | -------------------------------------------------- |
-| V1 Codificación y saneamiento     | Cumple    | —                                                  |
-| V2 Validación y lógica de negocio | Cumple    | —                                                  |
-| V3 Seguridad del navegador        | Cumple    | Estilos en línea aceptados (ver V3)                |
-| V4 API y servicios web            | Cumple    | —                                                  |
-| V5 Manejo de archivos             | Cumple    | —                                                  |
-| V6 Autenticación                  | Cumple    | —                                                  |
-| V7 Sesiones                       | Cumple    | —                                                  |
-| V8 Autorización                   | Cumple    | —                                                  |
-| V9 Tokens autocontenidos          | No aplica | No se usan JWT                                     |
-| V10 OAuth y OIDC                  | No aplica | No hay ingreso con terceros                        |
-| V11 Criptografía                  | Parcial   | Certificado real del sello y sello de tiempo (B44) |
-| V12 Comunicaciones seguras        | Parcial   | Cabeceras definitivas de Caddy en producción (B44) |
-| V13 Configuración                 | Parcial   | Gestor de secretos y rotación por guion (B44)      |
-| V14 Protección de datos           | Cumple    | —                                                  |
-| V15 Código y arquitectura seguros | Cumple    | —                                                  |
-| V16 Registros y errores           | Parcial   | Alertas centralizadas (GlitchTip, B44)             |
-| V17 WebRTC                        | No aplica | No se usa                                          |
+| Capítulo                          | Estado    | Pendiente                                                |
+| --------------------------------- | --------- | -------------------------------------------------------- |
+| V1 Codificación y saneamiento     | Cumple    | —                                                        |
+| V2 Validación y lógica de negocio | Cumple    | —                                                        |
+| V3 Seguridad del navegador        | Cumple    | Estilos en línea aceptados (ver V3)                      |
+| V4 API y servicios web            | Cumple    | —                                                        |
+| V5 Manejo de archivos             | Cumple    | —                                                        |
+| V6 Autenticación                  | Cumple    | —                                                        |
+| V7 Sesiones                       | Cumple    | —                                                        |
+| V8 Autorización                   | Cumple    | —                                                        |
+| V9 Tokens autocontenidos          | No aplica | No se usan JWT                                           |
+| V10 OAuth y OIDC                  | No aplica | No hay ingreso con terceros                              |
+| V11 Criptografía                  | Parcial   | Certificado real del sello y sello de tiempo (B44)       |
+| V12 Comunicaciones seguras        | Parcial   | Cabeceras definitivas de Caddy en producción (B44)       |
+| V13 Configuración                 | Parcial   | Gestor de secretos y rotación por guion (B44)            |
+| V14 Protección de datos           | Cumple    | —                                                        |
+| V15 Código y arquitectura seguros | Cumple    | —                                                        |
+| V16 Registros y errores           | Cumple    | Alertas centralizadas desde B44 (GlitchTip, Uptime Kuma) |
+| V17 WebRTC                        | No aplica | No se usa                                                |
 
 ## V1 Codificación y saneamiento
 
@@ -191,8 +191,10 @@ Inventario de algoritmos:
   recuperación ni la clave del sello (`logging.module.ts`).
 - Los errores responden con un formato único sin detalles internos. La auditoría es de solo
   inserción y encadenada por hash, con verificación diaria.
-- **Parcial:** la recolección central de errores y las alertas (GlitchTip, Uptime Kuma) son de
-  B44.
+- **B44:** los errores inesperados van a GlitchTip sin datos personales
+  (`platform/ops/error-reporter.ts`) y Uptime Kuma, en un servidor aparte (ADR-026), alerta por
+  caídas, tiempos, errores, colas, copias, capacidad, certificados y dominio (numeral 10.7). Las
+  alertas de seguridad suman el ingreso de un administrador y la exportación masiva.
 
 ## Análisis dinámico y carga
 

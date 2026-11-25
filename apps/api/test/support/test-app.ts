@@ -12,6 +12,7 @@ import { AUTHENTICATOR, type Authenticator } from '../../src/platform/access/pri
 import { CLOCK, type Clock } from '../../src/platform/clock/clock.js';
 import { loadConfig } from '../../src/platform/config/load-config.js';
 import { HEALTH_PROBES, type HealthProbe } from '../../src/platform/health/health-probe.js';
+import { JobQueue } from '../../src/platform/queues/job-queue.js';
 import { testEnv } from './test-env.js';
 
 export interface TestAppOptions {
@@ -32,6 +33,8 @@ export interface TestAppOptions {
   readonly authenticator?: Authenticator;
   /** Permisos simulados, para probar la autorización sin base de datos. */
   readonly authorizer?: Authorizer;
+  /** Cifras de las colas para /ops/status, sin Valkey (B44). */
+  readonly queueFigures?: { readonly pending: number; readonly failed: number };
 }
 
 function fakeProbe(component: HealthComponent, down: boolean): HealthProbe {
@@ -63,6 +66,12 @@ export async function createTestApp(options: TestAppOptions = {}): Promise<NestE
   }
   if (options.clock !== undefined) {
     builder = builder.overrideProvider(CLOCK).useValue(options.clock);
+  }
+  if (options.queueFigures !== undefined) {
+    const figures = options.queueFigures;
+    builder = builder
+      .overrideProvider(JobQueue)
+      .useValue({ figures: () => Promise.resolve(figures), close: () => Promise.resolve() });
   }
   if (options.realThrottlerStorage !== true) {
     builder = builder.overrideProvider(getStorageToken()).useValue(new ThrottlerStorageService());

@@ -5,6 +5,7 @@ import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module.js';
 import type { Env } from './platform/config/env-schema.js';
 import { setupApiDocs } from './platform/openapi/openapi.js';
+import { measureRequests, RequestMetrics } from './platform/ops/request-metrics.js';
 import { allowedOrigins } from './platform/security/allowed-origins.js';
 import { securityHeaders } from './platform/security/security-headers.js';
 
@@ -15,6 +16,8 @@ export function configureApp(app: NestExpressApplication, config: Env): void {
   // Caddy está delante de la API: la dirección IP real llega en X-Forwarded-For.
   app.set('trust proxy', 'loopback, linklocal, uniquelocal');
   app.use(securityHeaders());
+  // Tiempos y errores de cada respuesta para /ops/status (numeral 10.7, B44).
+  app.use(measureRequests(app.get(RequestMetrics)));
   app.enableCors({
     origin: allowedOrigins(config),
     credentials: true,
