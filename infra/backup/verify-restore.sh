@@ -42,7 +42,7 @@ check() {
 
 echo "Comprobación de la restauración — $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-tenants="$(sql_as_owner 'SELECT id FROM aud_tenant_ids()')"
+tenants="$(sql_as_owner 'SELECT aud_tenant_ids() AS id')"
 for tenant in $tenants; do
   result="$(sql_as_owner "SELECT set_config('app.tenant_id', '$tenant', false); SELECT checked || ' ' || coalesce(problem, 'íntegra') FROM aud_verify_chain();" | tail -n 1)"
   [[ "$result" == *íntegra ]] && ok=1 || ok=0
