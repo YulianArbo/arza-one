@@ -71,7 +71,16 @@ describe('inicio de sesión de un administrador (numeral 10.7)', () => {
   });
 });
 
-async function auditExport(person: Person, action: string, rows: number): Promise<void> {
+async function auditExport(
+  person: Person,
+  action: string,
+  rows: number,
+  meta: Parameters<typeof recordAuditEvent>[1]['meta'] = {
+    ip: '203.0.113.7',
+    userAgent: 'prueba',
+    correlationId: 'corr-b44',
+  },
+): Promise<void> {
   await scenario.db.withTenant({ tenantId: scenario.tenant.id, userId: person.id }, (tx) =>
     recordAuditEvent(tx, {
       tenantId: scenario.tenant.id,
@@ -82,7 +91,7 @@ async function auditExport(person: Person, action: string, rows: number): Promis
       entityId: null,
       result: 'success',
       changes: { rows },
-      meta: { ip: '203.0.113.7', userAgent: 'prueba', correlationId: 'corr-b44' },
+      meta,
     }),
   );
 }
@@ -122,5 +131,30 @@ describe('exportación masiva (numeral 10.7, decisión 6 de B44)', () => {
     const response = await scenario.post('/v1/audit-exports', person.session, { action: 'iam' });
     expect(response.status).toBe(403);
     expect((await alertsOf(person.id)).outbox).toEqual([]);
+  });
+});
+
+describe('publicación de alertas de seguridad', () => {
+  it('publica la alerta de exportación aun sin metadatos de petición', async () => {
+    const person = await scenario.people('exporta-sin-peticion', ['COLABORADOR']);
+    await auditExport(person, 'qms.action.export', BULK_EXPORT_ROWS + 1, null);
+    const { security, outbox } = await alertsOf(person.id);
+    expect(types(security)).not.toContain('data.export.bulk');
+    expect(outbox.map((row) => row.payload)).toContainEqual({
+      type: 'data.export.bulk',
+      user_id: person.id,
+      action: 'qms.action.export',
+      rows: BULK_EXPORT_ROWS + 1,
+    });
+  });
+
+  it('notifica un tipo nuevo con el texto genérico de seguridad', async () => {
+    const director = await scenario.people('director-alerta-generica', ['DIRECCION']);
+    await scenario.event('security.alert', { type: 'security.new_event' }, scenario.clock.now());
+    await scenario.publishOutbox();
+    const notices = await scenario.notifications(director);
+    expect(notices.map((notice) => notice.title)).toContainEqual(
+      expect.stringContaining('un evento de seguridad'),
+    );
   });
 });
