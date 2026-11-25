@@ -62,7 +62,7 @@ report() {
 }
 
 pgbackrest() {
-  compose exec -T --user postgres postgres pgbackrest "$@"
+  compose exec -T --user postgres postgres arza-postgres pgbackrest "$@"
 }
 
 # Crea el registro de la base en cada juego la primera vez; después solo comprueba que coincide.

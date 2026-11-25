@@ -33,7 +33,7 @@ restore_db() {
   fi
   log "Base de datos: deteniendo PostgreSQL y restaurando ${target:-lo último que haya}."
   compose stop postgres
-  compose run --rm --no-deps --user postgres --entrypoint pgbackrest postgres "${args[@]}"
+  compose run --rm --no-deps --user postgres postgres pgbackrest "${args[@]}"
   compose up --detach --wait --wait-timeout 1800 postgres
   log "Base de datos restaurada."
 }

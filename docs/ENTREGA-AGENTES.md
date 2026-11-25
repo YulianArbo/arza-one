@@ -1,6 +1,6 @@
 # Entrega entre agentes — ARZA ONE
 
-**CI de B44, 24/11/2026.** Consulte el PR #100 para el resultado de los trabajos 4, 5, 8, 12 y 13 después de las correcciones. El modo `posix` del ensayo descarta opciones S3 en el punto de entrada de pgBackRest. La comprobación de humo resuelve redirecciones relativas y verifica el origen y la ruta esperados.
+**CI de B44, 24/11/2026.** Consulte el PR #100 para el resultado de los trabajos 4, 5, 8, 12 y 13 después de las correcciones. El punto de entrada de PostgreSQL descarta opciones S3 en modo `posix`, también para la recuperación de WAL. La comprobación de humo resuelve redirecciones relativas y verifica el origen y la ruta esperados.
 
 **B44, 24/11/2026 (Claude Code).** Rama `feat/b44-servidor-de-produccion-copias`. Decisiones en `docs/bloques/B44-cierre.md`, ADR-026 y guías en `docs/runbooks/`. Puntos para quien continúe:
 

@@ -9,4 +9,4 @@ if [ "${PGBACKREST_REPO1_TYPE:-}" = posix ]; then
   done
 fi
 
-exec /usr/bin/pgbackrest "$@"
+exec docker-entrypoint.sh "$@"

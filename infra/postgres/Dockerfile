@@ -11,13 +11,18 @@ RUN apt-get update \
   && apt-get install --yes --no-install-recommends pgbackrest \
   && rm -rf /var/lib/apt/lists/* \
   && command -v setpriv \
-  && printf '%s\n' '#!/bin/sh' 'user="$1"; shift' 'exec setpriv --reuid "$user" --regid "$user" --init-groups -- "$@"' > /usr/local/bin/gosu \
+  && rm /usr/local/bin/gosu \
+  && printf '%s\n' '#!/bin/sh' 'user="$1"; shift' 'exec setpriv --reuid "$user" --regid "$user" --init-groups -- "$@"' > /usr/local/sbin/gosu \
+  && chmod 0755 /usr/local/sbin/gosu \
+  && gosu postgres true \
   && install --directory --owner=postgres --group=postgres --mode=0750 \
     /var/lib/pgbackrest /var/lib/pgbackrest/ensayo /var/log/pgbackrest \
     /var/spool/pgbackrest /tmp/pgbackrest \
   && rm -f /etc/pgbackrest.conf /etc/pgbackrest/pgbackrest.conf
 
-COPY --chmod=0755 infra/postgres/pgbackrest.sh /usr/local/bin/pgbackrest
+COPY --chmod=0755 infra/postgres/entrypoint.sh /usr/local/bin/arza-postgres
+ENTRYPOINT ["arza-postgres"]
+CMD ["postgres"]
 
 # La configuración llega toda por variables PGBACKREST_* (infra/compose/production.yml): ningún
 # secreto queda escrito en la imagen. El contenedor arranca como la imagen oficial (su punto de
