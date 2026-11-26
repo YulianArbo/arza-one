@@ -1,6 +1,6 @@
 # Entrega entre agentes — ARZA ONE
 
-**CI de B45, 26/11/2026 (Codex).** El trabajo de integración de la ejecución `45846284790` del PR #101 falló por cobertura de ramas de la API (84,94 % frente al mínimo de 85 %). Verificaciones propagó ese fallo. El ajuste está en `apps/api/test/int/golive/initial-load.int.test.ts`, con casos de error de alta por fila y continuidad de la carga. Consulte la ejecución del commit de corrección en el PR para verificar el resultado.
+**CI de B45, 26/11/2026 (Codex).** El trabajo de integración de la ejecución `45846284790` del PR #101 falló por cobertura de ramas de la API (84,94 % frente al mínimo de 85 %). Verificaciones propagó ese fallo. En la ejecución `45850419389` pasaron los casos nuevos de errores de alta de usuarios y terceros, y la cobertura subió a 84,97 %. Se añadió un caso para los procesos y cargos que quedan sin crear al fallar una dependencia. Consulte la última ejecución del PR para verificar el resultado.
 
 **B45, 25/11/2026 (Claude Code).** Rama `feat/b45-carga-inicial-aceptacion-y-pue`. Decisiones en `docs/bloques/B45-cierre.md`; guía funcional en `docs/puesta-en-marcha/`. Puntos para quien continúe:
 
