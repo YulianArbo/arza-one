@@ -13,3 +13,4 @@ export {
   type ServicePeriod,
   type ServiceQualityFigures,
 } from './application/service-figures.js';
+export { legalFigures, scorecard, type LegalFigures } from './application/dashboard-figures.js';

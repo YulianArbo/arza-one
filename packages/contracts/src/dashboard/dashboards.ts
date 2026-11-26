@@ -11,6 +11,11 @@ import { FIGURE_KEYS, FIGURE_UNITS } from './figures.js';
 // Respuestas de los tableros de la Dirección (B46): tablero gerencial, tablero de cumplimiento,
 // cuadro de mando y el detalle de los registros detrás de cada cifra.
 
+export const DASHBOARD_ERROR_CODES = {
+  /** La cifra pedida no pertenece a ese tablero. */
+  figureNotFound: 'DASHBOARD_FIGURE_NOT_FOUND',
+} as const;
+
 export const figureKeySchema = z.enum(FIGURE_KEYS).describe('Cifra');
 export const figureUnitSchema = z.enum(
   Object.keys(FIGURE_UNITS) as [keyof typeof FIGURE_UNITS, ...(keyof typeof FIGURE_UNITS)[]],

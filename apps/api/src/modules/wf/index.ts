@@ -29,3 +29,4 @@ export {
   type Participation,
 } from './application/participant-decisions.js';
 export { taskNoticeFacts, visibleInstanceTitle } from './application/wf-records.js';
+export { overdueTasks } from './application/dashboard-figures.js';

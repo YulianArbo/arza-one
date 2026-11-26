@@ -75,7 +75,7 @@ async function assertRefs(tx: TenantTransaction, input: SaveIndicator): Promise<
 }
 
 /** Las fichas que cumplen el filtro, cada una con su serie. */
-async function loadIndicators(
+export async function loadIndicators(
   tx: TenantTransaction,
   where: Prisma.QmsIndicatorWhereInput,
   today: string,

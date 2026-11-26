@@ -131,6 +131,10 @@ export const DATABASE_BOUND_FILES = [
   // Carga inicial y revisión de puesta en marcha (B45): lo que lee o escribe en la base.
   'src/modules/iam/application/initial-load-accounts.ts',
   'src/modules/golive/application/**/*.ts',
+  // Tableros de la Dirección (B46): las cifras leen la base de cada módulo.
+  'src/modules/iam/application/access-figures.ts',
+  'src/modules/dashboard/application/**/*.ts',
+  'src/modules/dashboard/interface/**/*.ts',
 ];
 
 /** Procesos que solo arrancan algo; se prueban a mano o como proceso real. */

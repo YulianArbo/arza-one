@@ -86,3 +86,4 @@ export {
 export { AccountNotifier } from './application/account-notifier.js';
 export { PasswordSetter } from './application/password-setter.js';
 export { revokeEmployeeAccess, type AccessRevocation } from './application/offboarding-access.js';
+export { accessFigures, type AccessFigureRow } from './application/access-figures.js';
