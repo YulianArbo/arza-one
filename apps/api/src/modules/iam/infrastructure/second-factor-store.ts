@@ -18,6 +18,24 @@ export function isConfirmed(factor: MfaFactor | null): factor is MfaFactor & {
   return factor.secretEncrypted !== null && factor.confirmedAt !== null;
 }
 
+/** Las cuentas, de las indicadas, que tienen el segundo factor confirmado (revisión de accesos). */
+export async function usersWithConfirmedFactor(
+  tx: TenantTransaction,
+  userIds: readonly string[],
+): Promise<Set<string>> {
+  const factors = await tx.mfaFactor.findMany({
+    where: {
+      userId: { in: [...userIds] },
+      type: TOTP,
+      deletedAt: null,
+      secretEncrypted: { not: null },
+      confirmedAt: { not: null },
+    },
+    select: { userId: true },
+  });
+  return new Set(factors.map((factor) => factor.userId));
+}
+
 export async function hasConfirmedFactor(tx: TenantTransaction, userId: string): Promise<boolean> {
   return isConfirmed(await loadFactor(tx, userId));
 }

@@ -155,31 +155,59 @@ describe('delegaciones del administrador', () => {
   });
 });
 
+const REVIEW = {
+  generated_at: '2026-10-09T15:00:00.000Z',
+  unused_days: 60,
+  totals: { users: 2, active: 2, unused: 1, without_roles: 1, without_second_factor: 1 },
+  users: [
+    { ...summary(), unused: true, second_factor: false },
+    { ...summary({ id: ME_ID, roles: [] }), unused: false, second_factor: true },
+  ],
+};
+
+function serveReview(extra: Record<string, () => Response> = {}) {
+  return serve(DIRECTOR_PERMISSIONS, { 'GET /v1/access-review': () => json(REVIEW), ...extra });
+}
+
+function renderReview(): void {
+  renderWithApi(
+    <Screen>
+      <AccessReviewPanel />
+    </Screen>,
+  );
+}
+
 describe('informe de revisión de accesos', () => {
   it('muestra los totales, marca las cuentas sin uso y permite imprimir', async () => {
     const print = vi.fn();
     vi.stubGlobal('print', print);
-    serve(DIRECTOR_PERMISSIONS, {
-      'GET /v1/access-review': () =>
-        json({
-          generated_at: '2026-10-09T15:00:00.000Z',
-          unused_days: 60,
-          totals: { users: 2, active: 2, unused: 1, without_roles: 1 },
-          users: [
-            { ...summary(), unused: true },
-            { ...summary({ id: ME_ID, roles: [] }), unused: false },
-          ],
-        }),
-    });
-    renderWithApi(
-      <Screen>
-        <AccessReviewPanel />
-      </Screen>,
-    );
+    serveReview();
+    renderReview();
     expect(await screen.findByText('Sin uso en 60 días')).toBeVisible();
     expect(screen.getByText('Sin uso', { selector: 'span' })).toBeVisible();
     expect(screen.getByText('Sin roles', { selector: 'td' })).toBeVisible();
     await userEvent.click(screen.getByRole('button', { name: 'Imprimir o guardar en PDF' }));
     expect(print).toHaveBeenCalled();
+  });
+
+  it('dice quién tiene el segundo factor y cuántas internas no lo tienen (B45)', async () => {
+    serveReview();
+    renderReview();
+    expect(await screen.findByText('Internas sin segundo factor')).toBeVisible();
+    expect(screen.getByText('Sin configurar')).toBeVisible();
+    expect(screen.getByText('Activo', { selector: 'span' })).toBeVisible();
+  });
+
+  it('descarga el informe en CSV', async () => {
+    const sent = serveReview({
+      'POST /v1/access-review/export': () =>
+        new Response('Nombre;Correo', {
+          headers: { 'content-disposition': 'attachment; filename="revision-de-accesos.csv"' },
+        }),
+    });
+    renderReview();
+    await userEvent.click(await screen.findByRole('button', { name: 'Descargar CSV' }));
+    expect(await screen.findByText(/revision-de-accesos.csv/)).toBeVisible();
+    expect(sent.some((r) => r.path === '/v1/access-review/export')).toBe(true);
   });
 });

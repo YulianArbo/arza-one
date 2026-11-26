@@ -128,6 +128,9 @@ export const DATABASE_BOUND_FILES = [
   'src/modules/iam/application/platform-terms-gate.ts',
   'src/modules/web/application/**/*.ts',
   'src/modules/web/interface/**/*.ts',
+  // Carga inicial y revisión de puesta en marcha (B45): lo que lee o escribe en la base.
+  'src/modules/iam/application/initial-load-accounts.ts',
+  'src/modules/golive/application/**/*.ts',
 ];
 
 /** Procesos que solo arrancan algo; se prueban a mano o como proceso real. */
@@ -138,4 +141,6 @@ export const ENTRY_POINTS = [
   'src/modules/doc/interface/cli/import-master-list-main.ts',
   'src/modules/doc/interface/cli/import-retention-main.ts',
   'src/modules/contract/interface/cli/link-signer-main.ts',
+  'src/modules/golive/interface/cli/initial-load-main.ts',
+  'src/modules/golive/interface/cli/readiness-main.ts',
 ];

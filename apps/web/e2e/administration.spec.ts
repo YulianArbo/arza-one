@@ -79,8 +79,8 @@ const ADMIN_API: ApiRoutes = {
     body: {
       generated_at: '2026-10-09T15:00:00.000Z',
       unused_days: 60,
-      totals: { users: 1, active: 1, unused: 0, without_roles: 0 },
-      users: [{ ...USER, unused: false }],
+      totals: { users: 1, active: 1, unused: 0, without_roles: 0, without_second_factor: 0 },
+      users: [{ ...USER, unused: false, second_factor: true }],
     },
   },
 };

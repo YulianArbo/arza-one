@@ -40,6 +40,11 @@ export interface InviteUserInput {
   readonly roleIds?: readonly string[];
   /** Empresa cliente de la persona del portal (B22A): un tercero organización con papel de cliente. */
   readonly partyId?: string | null;
+  /**
+   * Cargo de la persona interna, ya revisado por quien llama (carga inicial de B45): existe y está
+   * activo. La pantalla de usuarios lo asigna después, con UserPositionUseCase.
+   */
+  readonly positionId?: string | null;
   readonly meta?: RequestMeta | null;
 }
 
@@ -194,6 +199,7 @@ export class InvitationUseCase {
         email: input.email,
         kind: input.kind,
         partyId,
+        positionId: input.positionId ?? null,
         displayName: input.displayName,
         status: 'invited',
         mfaRequired: input.kind === 'internal' || input.requireSecondFactor === true,
@@ -213,6 +219,7 @@ export class InvitationUseCase {
         status: 'invited',
         mfa_required: user.mfaRequired,
         party_id: partyId,
+        position_id: user.positionId,
       },
       meta: input.meta ?? null,
     });

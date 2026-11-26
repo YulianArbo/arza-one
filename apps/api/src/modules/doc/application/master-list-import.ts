@@ -2,7 +2,7 @@ import type { DocVersion } from '../../../generated/prisma/client.js';
 import type { Clock } from '../../../platform/clock/clock.js';
 import type { DatabaseService } from '../../../platform/database/database.service.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
-import { parseCsv } from '../domain/csv.js';
+import { parseCsv } from '../../../platform/export/csv-read.js';
 import { readListing, type RowProblem } from '../domain/master-list-listing.js';
 import {
   differences,

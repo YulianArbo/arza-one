@@ -1013,6 +1013,32 @@ decisiones en [`B44-cierre.md`](../../docs/bloques/B44-cierre.md) y ADR-026.
 Toda exportación nueva debe dejar en la auditoría el número de registros en `rows` o `row_count`:
 así la alerta la cubre sin código adicional.
 
+## Carga inicial y puesta en marcha (B45, módulo `src/modules/golive`)
+
+Módulo sin tablas ni rutas propias: solo dos comandos que usan los demás módulos por su `index.ts`.
+Guía funcional en [`docs/puesta-en-marcha`](../../docs/puesta-en-marcha/README.md).
+
+- `pnpm puesta:cargar --correo <correo> --carpeta <carpeta> [--aplicar]`
+  ([`initial-load-main.ts`](src/modules/golive/interface/cli/initial-load-main.ts)): lee
+  `areas.csv`, `cargos.csv`, `usuarios.csv` y `terceros.csv`. Las reglas de cada plantilla son
+  funciones puras en `golive/domain` (`planStructure`, `planUsers`, `planCompanies`). La persona del
+  `--correo` debe tener **sin condición** los permisos de las pantallas: `core.org.manage`;
+  `iam.user.invite` e `iam.role.assign`; `party.create`. Si falta uno, no se revisa nada. Con un
+  solo problema no se aplica nada. Cada alta va en su transacción con el evento de la pantalla y
+  `source: import`. Las personas se crean con `InvitationUseCase.invite`, que ahora acepta
+  `positionId`. ADMIN_PLATAFORMA y COLABORADOR nunca se asignan por lote (`loadableRoles`).
+- `pnpm puesta:revisar [--empresa <empresa>]`
+  ([`readiness-main.ts`](src/modules/golive/interface/cli/readiness-main.ts)): solo lee. Revisa:
+  empresas de demostración (`tenantRegistered`), cuentas de dominios reservados y cuentas internas
+  sin segundo factor (`accountFindings`), documentos vigentes y sin regla de retención
+  (`documentFigures`) y textos legales publicados con concepto (`legalTextsWithoutConcept`).
+  Sale con código 1 si algo no cumple.
+- Revisión de accesos: `GET /v1/access-review` agrega `second_factor` por cuenta y
+  `totals.without_second_factor`; `POST /v1/access-review/export` (permiso
+  `iam.access_review.read`) entrega el CSV y deja `iam.access_review.export` con `rows` (dispara
+  la alerta de exportación masiva de B44 si corresponde).
+- El lector de CSV de Excel pasó de `doc/domain/csv.ts` a `platform/export/csv-read.ts`.
+
 ## Imágenes Docker (B05 y B07)
 
 [`Dockerfile`](Dockerfile) produce dos imágenes, sin gestores de paquetes y con usuario sin

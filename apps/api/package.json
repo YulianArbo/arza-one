@@ -94,7 +94,9 @@
     "contratos:vincular-firmante": "node --env-file-if-exists=../../.env dist/modules/contract/interface/cli/link-signer-main.js",
     "iam:reiniciar-segundo-factor": "node --env-file-if-exists=../../.env dist/modules/iam/interface/cli/reset-second-factor-main.js",
     "doc:importar-listado": "node --env-file-if-exists=../../.env dist/modules/doc/interface/cli/import-master-list-main.js",
-    "doc:importar-retencion": "node --env-file-if-exists=../../.env dist/modules/doc/interface/cli/import-retention-main.js"
+    "doc:importar-retencion": "node --env-file-if-exists=../../.env dist/modules/doc/interface/cli/import-retention-main.js",
+    "puesta:cargar": "node --env-file-if-exists=../../.env dist/modules/golive/interface/cli/initial-load-main.js",
+    "puesta:revisar": "node --env-file-if-exists=../../.env dist/modules/golive/interface/cli/readiness-main.js"
   },
   "devDependencies": {
     "@nestjs/testing": "~11.2.7",

@@ -5,6 +5,7 @@ export { WebModule } from './interface/web.module.js';
 export { seedSiteDemo, seedSiteTexts } from './application/site-seed.js';
 export { isUnsubscribed, mayContactCommercially } from './application/submissions.js';
 export { anonymizeExpiredSubmissions } from './application/site-personal-data.js';
+export { legalTextsWithoutConcept } from './application/legal-readiness.js';
 export {
   sendSiteMail,
   sendSiteMailIn,

@@ -14,7 +14,7 @@ import { DatabaseService } from '../../../platform/database/database.service.js'
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
 import { bogotaToday } from '../../core/index.js';
-import { toCsv } from '../domain/csv.js';
+import { toCsv } from '../../../platform/export/csv.js';
 import {
   DOCUMENT_STATUS_LABELS,
   displayDate,

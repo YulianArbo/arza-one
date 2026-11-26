@@ -90,6 +90,7 @@ const GUARDED: readonly (readonly ['get' | 'post', string])[] = [
   ['post', '/v1/delegations'],
   ['post', `/v1/delegations/${UNKNOWN_ID}/actions/revoke`],
   ['get', '/v1/access-review'],
+  ['post', '/v1/access-review/export'],
 ];
 
 describe('permiso denegado en cada punto nuevo', () => {

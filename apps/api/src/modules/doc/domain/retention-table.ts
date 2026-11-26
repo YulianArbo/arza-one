@@ -4,7 +4,7 @@ import {
   type RetentionDisposition,
 } from '@arza/contracts';
 
-import { parseCsv } from './csv.js';
+import { parseCsv } from '../../../platform/export/csv-read.js';
 import { normalized } from './master-list-format.js';
 
 // Lectura de la Tabla de Retención RE-SGC-005 para cargarla (B21, numeral 18.2, paso 4): cada

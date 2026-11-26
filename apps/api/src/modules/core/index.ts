@@ -36,6 +36,18 @@ export {
 } from './application/company-identity.js';
 export { superiorPositionId } from './application/positions.js';
 export {
+  addOrgUnit,
+  addPosition,
+  setUnitOwner,
+  structureSnapshot,
+  tenantRegistered,
+  type NewOrgUnit,
+  type NewPosition,
+  type StructureRef,
+  type StructureSnapshot,
+} from './application/structure-load.js';
+export { type CoreActor } from './application/core-audit.js';
+export {
   activeCatalogOptions,
   catalogLabels,
   isActiveCatalogCode,

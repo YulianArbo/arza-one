@@ -1,10 +1,7 @@
-// CSV del Listado Maestro (B19): se escribe con el formato común de la plataforma (UTF-8 con BOM y
-// punto y coma, para Excel en Colombia); se lee separado por punto y coma o por comas, con comillas
-// dobles para los textos que llevan el separador.
+// Lectura de los CSV que llegan de Excel (Listado Maestro en B19, carga inicial en B45): separados
+// por punto y coma o por comas, con comillas dobles para los textos que llevan el separador.
 
-import { CSV_BOM } from '../../../platform/export/csv.js';
-
-export { toCsv } from '../../../platform/export/csv.js';
+import { CSV_BOM } from './csv.js';
 
 /** El separador del archivo: el que aparece en la primera línea fuera de comillas. */
 function separatorOf(text: string): string {
