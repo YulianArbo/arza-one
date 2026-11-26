@@ -1,5 +1,6 @@
 import { Decimal } from 'decimal.js';
 import { invoiceListResponseSchema, opportunityListResponseSchema } from '@arza/contracts';
+import { v7 as uuidv7 } from 'uuid';
 import { expect, it } from 'vitest';
 
 import type { Person } from '../iam/support/access-scenario.js';
@@ -86,4 +87,54 @@ it('otra empresa no ve las ventas de esta', async () => {
   expect(figure(data, 'sales_year').value).toBe('0.00');
   const rows = await drilldown(scenario, other, 'executive', 'receivables_open');
   expect(rows.rows).toEqual([]);
+});
+
+async function surveyAnswers() {
+  const tenantId = scenario.tenant.id;
+  return scenario.inTenant(async (tx) => {
+    const survey = await tx.svcSurvey.create({
+      data: {
+        tenantId,
+        key: 'dashboard-satisfaction',
+        name: 'Encuesta de prueba',
+        trigger: 'ticket_resolved',
+        recommendQuestion: '¿Nos recomendaría?',
+        satisfactionQuestion: '¿Qué tan satisfecho quedó?',
+        commentQuestion: '¿Qué podemos mejorar?',
+      },
+    });
+    const answers = [
+      [1, 5, 10],
+      [10, 2, 4],
+      [91, 1, 0],
+    ] as const;
+    return Promise.all(
+      answers.map(([days, satisfaction, score]) => {
+        const answeredAt = new Date(scenario.clock.now().getTime() - days * 86_400_000);
+        return tx.svcSurveyResponse.create({
+          data: {
+            tenantId,
+            surveyId: survey.id,
+            entityType: 'svc_ticket',
+            entityId: uuidv7(),
+            satisfaction,
+            score,
+            answeredAt,
+            tokenHash: uuidv7(),
+            sentAt: answeredAt,
+            expiresAt: scenario.clock.now(),
+          },
+        });
+      }),
+    );
+  });
+}
+
+it('la satisfacción promedia las encuestas de los últimos 90 días', async () => {
+  const { director } = await people();
+  const rows = await surveyAnswers();
+  expect(figure(await board(scenario, director, 'executive'), 'satisfaction').value).toBe('3.50');
+  const detail = await drilldown(scenario, director, 'executive', 'satisfaction');
+  expect(detail.rows.map((row) => row.id)).toEqual(rows.slice(0, 2).map((row) => row.id));
+  expect(detail.rows.map((row) => row.cells['score'])).toEqual(['10', '4']);
 });

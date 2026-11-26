@@ -11,6 +11,7 @@
 **CI de B46, 26/11/2026.** En la ejecución `45893015444` del PR #102 pasaron las 1.896 pruebas de integración de la API y las 26 del worker. La cobertura global de ramas de la API quedó en 84,84 % frente al mínimo de 85 %. Por ese resultado fallaron Integración y su resumen, Verificaciones. Se ampliaron los casos de integración de Dirección y Calidad. Pasaron los 18 casos focalizados. La cobertura global del ajuste se comprueba en GitHub.
 
 - La ejecución `45897831968` pasó las 1.897 pruebas de la API y las 26 del worker. La cobertura de ramas subió a 84,99 %. Se amplió la prueba del tablero gerencial para incluir un proyecto en riesgo y se añadió el caso de las solicitudes de cambio radicadas al tablero de cumplimiento. Pasaron los 10 casos de ambos archivos.
+- La ejecución `45911707457` pasó las 1.898 pruebas de la API y las 26 del worker, con 84,98 % de ramas. Se añadieron casos del promedio de satisfacción de los últimos 90 días, el desglose de tareas vencidas y el límite de 200 registros del detalle. Pasaron los 13 casos focalizados de ambos tableros.
 
 **CI de B45, 26/11/2026.** En el PR #101 pasaron los 223 archivos de integración de la API. La cobertura de ramas (84,94 % frente al mínimo de 85 %) hizo fallar Integración y su resumen, Verificaciones. Se añadieron pruebas de carga inicial que comprueban el informe por fila y la continuidad de la carga cuando falla el alta de un usuario o de un tercero.
 

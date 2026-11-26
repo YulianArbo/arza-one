@@ -4,12 +4,13 @@ import { expect, it } from 'vitest';
 import { AccessScenario } from '../iam/support/access-scenario.js';
 import { created, processId, qualityFixture } from '../qms/support/qms-fixture.js';
 import { complies, fails, requirement } from '../qms/support/qms-legal-fixture.js';
+import { WfScenario } from '../wf/support/wf-scenario.js';
 import { board, drilldown, figure } from './support/dashboard-fixture.js';
 
 // Tablero de cumplimiento (B46, ficha 17.17 y decisiones 9 y 10): accesos, segregación de
 // funciones, tareas vencidas, documentos por revisar y requisitos legales.
 
-const scenario = new AccessScenario('tablero de cumplimiento');
+const scenario = new WfScenario('tablero de cumplimiento');
 const legalScenario = new AccessScenario('porcentaje de cumplimiento legal');
 
 it('los accesos coinciden con el informe de revisión de accesos', async () => {
@@ -113,6 +114,35 @@ it('el detalle de solicitudes de cambio muestra las radicadas y su estado', asyn
   });
 });
 
+it('el detalle de tareas vencidas muestra el responsable y la fecha colombiana', async () => {
+  const f = await qualityFixture(scenario, 'vencimientos');
+  const flow = await scenario.publish(await scenario.admin());
+  const assigned = await scenario.onlyOpenTask(await scenario.startAs(f.worker, flow.key));
+  const unassigned = await scenario.onlyOpenTask(await scenario.startAs(f.worker, flow.key));
+  await scenario.inTenant(async (tx) => {
+    await tx.user.update({ where: { id: f.worker.id }, data: { displayName: null } });
+    await tx.workflowTask.update({
+      where: { id: assigned.id },
+      data: { status: 'overdue', dueAt: new Date('2026-10-20T03:00:00Z') },
+    });
+    await tx.workflowTask.update({
+      where: { id: unassigned.id },
+      data: { status: 'overdue', assigneeId: null, assigneeRole: 'CALIDAD', dueAt: null },
+    });
+  });
+  const detail = await drilldown(scenario, f.director, 'compliance', 'overdue_tasks');
+  expect(detail.rows.find((row) => row.id === assigned.id)?.cells).toEqual({
+    title: assigned.title,
+    assignee: f.worker.email,
+    due: '19/10/2026',
+  });
+  expect(detail.rows.find((row) => row.id === unassigned.id)?.cells).toEqual({
+    title: unassigned.title,
+    assignee: 'CALIDAD',
+    due: '',
+  });
+});
+
 it('un colaborador no entra a ningún tablero', async () => {
   const f = await qualityFixture(scenario, 'colaborador');
   for (const path of [
@@ -162,4 +192,22 @@ it('el porcentaje incluye solo requisitos aplicables con evaluación de cumplimi
   expect(detail.rows.find((row) => row.id === met.id)?.cells['article']).toBe('');
   const outstanding = await drilldown(s, f.director, 'compliance', 'legal_pending');
   expect(outstanding.rows.map((row) => row.id)).toEqual([pending.id]);
+});
+
+it('el tablero cuenta todos los requisitos pendientes y limita su detalle a 200 filas', async () => {
+  const f = await qualityFixture(scenario, 'limite-de-detalle');
+  const bulk = Array.from({ length: 201 }, (_, index) => ({
+    tenantId: scenario.tenant.id,
+    code: `NRM-${String(index + 1000)}`,
+    normType: 'law',
+    norm: `Ley ficticia ${String(index)}`,
+    issuer: 'Congreso de la República',
+    requirement: 'Requisito ficticio para la prueba de paginación.',
+  }));
+  await scenario.inTenant((tx) => tx.qmsLegalRequirement.createMany({ data: bulk }));
+  const data = await board(scenario, f.director, 'compliance');
+  expect(Number(figure(data, 'legal_pending').value)).toBeGreaterThanOrEqual(bulk.length);
+  const detail = await drilldown(scenario, f.director, 'compliance', 'legal_pending');
+  expect(detail.truncated).toBe(true);
+  expect(detail.rows).toHaveLength(200);
 });
