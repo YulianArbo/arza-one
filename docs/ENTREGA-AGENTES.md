@@ -1,5 +1,16 @@
 # Entrega entre agentes — ARZA ONE
 
+**B45, 25/11/2026 (Claude Code).** Rama `feat/b45-carga-inicial-aceptacion-y-pue`. Decisiones en `docs/bloques/B45-cierre.md`; guía funcional en `docs/puesta-en-marcha/`. Puntos para quien continúe:
+
+1. `golive` no tiene tablas: usa Núcleo (`structureSnapshot`, `addOrgUnit`, `addPosition`, `setUnitOwner`, `tenantRegistered`), Identidad (`hasFullPermission`, `loadableRoles`, `hasAccount`, `accountFindings`, `InvitationUseCase`), Terceros (`addCompany`, `hasCompanyWithNit`), Documentos (`documentFigures`) y Sitio (`legalTextsWithoutConcept`) por su `index.ts`. Las reglas de las plantillas son funciones puras en `golive/domain`.
+2. `InvitationUseCase.invite` acepta `positionId` (el que llama ya validó el cargo); queda en la auditoría de `iam.user.invite`.
+3. El lector de CSV de Excel vive ahora en `platform/export/csv-read.ts` (antes `doc/domain/csv.ts`).
+4. Cuando se construyan M16 (B46) y M20 (B47), agregue su guion en `docs/aceptacion/` y su capítulo en `docs/manual-usuario/`.
+5. Las pruebas de integración que crean terceros empresa necesitan `seedCore` (catálogo `identification_types`).
+6. El gancho de lint de Git necesita `NODE_OPTIONS=--max-old-space-size=8192` con muchos archivos.
+
+Los cambios sueltos del propietario (respaldos, `.csv`, `CLAUDE.md`, ADR 024/025, `.agents/`, `.claude/`, `.codex-ci-*`, `docs/diagnosticos/`, `.prettierignore`) siguen sin commit y no se tocaron.
+
 **CI de B44, 24/11/2026.** Consulte el PR #100 para el resultado de los trabajos 4, 5, 8, 12 y 13 después de las correcciones. El punto de entrada de PostgreSQL descarta opciones S3 en modo `posix`, también para la recuperación de WAL. La comprobación de humo resuelve redirecciones relativas y verifica el origen y la ruta esperados.
 
 **B44, 24/11/2026 (Claude Code).** Rama `feat/b44-servidor-de-produccion-copias`. Decisiones en `docs/bloques/B44-cierre.md`, ADR-026 y guías en `docs/runbooks/`. Puntos para quien continúe:

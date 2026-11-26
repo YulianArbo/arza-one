@@ -1,5 +1,12 @@
 # Estado del proyecto ARZA ONE
 
+**B45 construido y en revisión, 25/11/2026 (Claude Code). Puesta en marcha pendiente.** El propietario aprobó el plan («Apruebo todo», 11 decisiones). Rama `feat/b45-carga-inicial-aceptacion-y-pue` desde `d303732` (`main` con B44 fusionado, PR #100). Bloque crítico: requiere revisión externa.
+
+- Módulo nuevo `golive` (sin tablas ni rutas): `pnpm puesta:cargar` revisa y carga `areas.csv`, `cargos.csv`, `usuarios.csv` y `terceros.csv` con los permisos y la auditoría de las pantallas (nada se carga con un solo problema; repetible; ADMIN_PLATAFORMA nunca por lote; terceros solo empresas con NIT y por Comercial o Finanzas). `pnpm puesta:revisar` solo lee y revisa los puntos 12, 16, 17 y 22 del anexo E.
+- Revisión de accesos: segundo factor por cuenta, total de internas sin él y descarga CSV auditada (`POST /v1/access-review/export`).
+- Documentos: `docs/puesta-en-marcha/` (guía de carga, plantillas, FT-TEC-007 lista del anexo E, FT-TEC-008 acta, planes de reversión y capacitación), `docs/aceptacion/` (19 guiones) y `docs/manual-usuario/` (20 capítulos).
+- Pendientes principales: carga de datos reales, aceptación por módulo, capacitación, validaciones externas (jurídica, Contador, revisión externa, intrusión), acta firmada. Cierre en `docs/bloques/B45-cierre.md`.
+
 **Corrección de CI de B44, 24/11/2026.** El PR #100 registró fallas de pruebas unitarias, cobertura del worker, ShellCheck, Trivy y ensayo de restauración. Se ajustaron las pruebas de vigilancia y reporte de errores, las redirecciones del ensayo, la configuración local de pgBackRest y la imagen de PostgreSQL. La corrida del PR debe confirmar el ensayo completo.
 
 **B44 construido y en revisión, 24/11/2026 (Claude Code).** El propietario aprobó el plan («Apruebo todo», 10 decisiones). Rama `feat/b44-servidor-de-produccion-copias` desde `5eed7a9` (`main` con B43 fusionado, PR #99). Bloque crítico: requiere revisión externa.
