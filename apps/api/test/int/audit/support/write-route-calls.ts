@@ -33,6 +33,7 @@ import { SERVICE_ROUTE_CALLS } from './service-route-calls.js';
 import { QMS_AUDIT_ROUTE_CALLS } from './qms-audit-route-calls.js';
 import { INN_ROUTE_CALLS } from './inn-route-calls.js';
 import { QMS_REVIEW_ROUTE_CALLS } from './qms-review-route-calls.js';
+import { QMS_LEGAL_ROUTE_CALLS } from './qms-legal-route-calls.js';
 import { QMS_ROUTE_CALLS } from './qms-route-calls.js';
 import { SST_PEOPLE_ROUTE_CALLS } from './sst-people-route-calls.js';
 import { SST_ROUTE_CALLS } from './sst-route-calls.js';
@@ -90,6 +91,8 @@ export const WRITE_ROUTE_CALLS: Readonly<Record<string, RouteCall>> = {
   // Innovación publica todos los formatos piloto (FT-SGC-002 incluido), y con la lista de
   // verificación publicada las versiones de Documentos ya no se aprueban sin ella: va después.
   ...INN_ROUTE_CALLS,
+  // Normograma y objetivos estratégicos (B46): al final, como Innovación.
+  ...QMS_LEGAL_ROUTE_CALLS,
   // El sitio publica los términos de la plataforma (en la otra empresa): va al final.
   ...WEB_ROUTE_CALLS,
 };
