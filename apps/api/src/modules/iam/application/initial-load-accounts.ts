@@ -2,6 +2,7 @@ import type { PermissionCode } from '@arza/contracts';
 
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import { activeGrants } from '../infrastructure/access-store.js';
+import { usersWithConfirmedFactor } from '../infrastructure/second-factor-store.js';
 
 // Lo que la carga inicial (B45, módulo de puesta en marcha) pregunta a Identidad: si quien carga
 // tiene el permiso completo, qué roles se pueden dar por lote y si un correo ya tiene cuenta. Las
@@ -40,4 +41,34 @@ export async function loadableRoles(tx: TenantTransaction): Promise<Map<string, 
 /** El correo ya tiene cuenta en esta empresa (invitada, activa o bloqueada). */
 export async function hasAccount(tx: TenantTransaction, email: string): Promise<boolean> {
   return (await tx.user.count({ where: { email, deletedAt: null } })) > 0;
+}
+
+/** Dominios reservados para pruebas (RFC 2606 y 6761): en producción no debe quedar ninguno. */
+const RESERVED_DOMAINS =
+  /@(?:[^@]+\.)?(?:test|example|invalid|localhost|example\.(?:com|net|org))$/u;
+
+export interface AccountFindings {
+  /** Cuentas con correo de un dominio reservado para pruebas (anexo E, punto 22). */
+  readonly testAccounts: number;
+  /** Cuentas internas activas sin segundo factor confirmado (anexo E, punto 17). */
+  readonly withoutSecondFactor: number;
+  readonly activeInternal: number;
+}
+
+/** Lo que la revisión de puesta en marcha (B45) mira de las cuentas de la empresa. */
+export async function accountFindings(tx: TenantTransaction): Promise<AccountFindings> {
+  const users = await tx.user.findMany({
+    where: { deletedAt: null, kind: { in: ['internal', 'portal'] } },
+    select: { id: true, email: true, kind: true, status: true },
+  });
+  const active = users.filter((user) => user.kind === 'internal' && user.status === 'active');
+  const confirmed = await usersWithConfirmedFactor(
+    tx,
+    active.map((user) => user.id),
+  );
+  return {
+    testAccounts: users.filter((user) => RESERVED_DOMAINS.test(user.email)).length,
+    withoutSecondFactor: active.filter((user) => !confirmed.has(user.id)).length,
+    activeInternal: active.length,
+  };
 }

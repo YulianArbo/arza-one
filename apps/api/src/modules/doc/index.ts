@@ -75,3 +75,4 @@ export { CODE_REVIEW_CODE, TECHNICAL_DELIVERY_CODE } from './domain/code-review-
 export { LOAN_CONTRACT_CODE } from './domain/loan-contract-form.js';
 export { VIABILITY_CODE } from './domain/viability-form.js';
 export { FileStorage } from './infrastructure/file-storage.js';
+export { documentFigures, type DocumentFigures } from './application/go-live-figures.js';

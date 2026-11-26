@@ -76,8 +76,10 @@ export {
 } from './application/holder-accounts.js';
 export { InvitationUseCase, type InviteUserInput } from './application/invitation.js';
 export {
+  accountFindings,
   hasAccount,
   hasFullPermission,
+  type AccountFindings,
   loadableRoles,
   type LoadableRole,
 } from './application/initial-load-accounts.js';
