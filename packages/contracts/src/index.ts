@@ -20,4 +20,5 @@ export * from './portal/index.js';
 export * from './sst/index.js';
 export * from './qms/index.js';
 export * from './innovation/index.js';
+export * from './dashboard/index.js';
 export * from './site/index.js';
