@@ -13,6 +13,11 @@ export {
 } from './application/recruitment-parties.js';
 export { seedPartyDemo } from './application/party-demo-seed.js';
 export { visiblePartyName } from './application/party-records.js';
+export {
+  addCompany,
+  hasCompanyWithNit,
+  type CompanyLoadActor,
+} from './application/company-load.js';
 export { activeSuppliers, financeParties, type FinanceParty } from './application/party-finance.js';
 export {
   activePurchaseSuppliers,

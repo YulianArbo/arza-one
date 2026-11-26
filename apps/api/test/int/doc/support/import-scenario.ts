@@ -7,7 +7,7 @@ import {
   type ImportReport,
 } from '../../../../src/modules/doc/application/master-list-import.js';
 import type { ImportFiles } from '../../../../src/modules/doc/application/import-references.js';
-import { toCsv } from '../../../../src/modules/doc/domain/csv.js';
+import { toCsv } from '../../../../src/platform/export/csv.js';
 import { JOBS, type JobDefinition } from '../../../../src/platform/queues/jobs.js';
 import { apiDatabase } from '../../support/integration-database.js';
 import type { Person } from '../../iam/support/access-scenario.js';

@@ -74,5 +74,13 @@ export {
   anonymizePortalAccount,
   type HolderAccount,
 } from './application/holder-accounts.js';
-export { InvitationUseCase } from './application/invitation.js';
+export { InvitationUseCase, type InviteUserInput } from './application/invitation.js';
+export {
+  hasAccount,
+  hasFullPermission,
+  loadableRoles,
+  type LoadableRole,
+} from './application/initial-load-accounts.js';
+export { AccountNotifier } from './application/account-notifier.js';
+export { PasswordSetter } from './application/password-setter.js';
 export { revokeEmployeeAccess, type AccessRevocation } from './application/offboarding-access.js';

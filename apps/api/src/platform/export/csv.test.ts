@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseCsv, toCsv } from './csv.js';
+import { parseCsv } from './csv-read.js';
+import { toCsv } from './csv.js';
 
-describe('CSV del Listado Maestro', () => {
+describe('CSV para Excel', () => {
   it('escribe con BOM, punto y coma y comillas cuando hace falta', () => {
     const csv = toCsv(['Código', 'Nombre'], [['PR-SGC-001', 'Control; de documentos']]);
     expect(csv).toBe('﻿Código;Nombre\r\nPR-SGC-001;"Control; de documentos"\r\n');

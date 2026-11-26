@@ -1,5 +1,5 @@
 import type { ImportReport } from '../../application/master-list-import.js';
-import { toCsv } from '../../domain/csv.js';
+import { toCsv } from '../../../../platform/export/csv.js';
 
 // Informe de la carga inicial del Listado Maestro (B19, numeral 18.2): el resumen para la consola y
 // el archivo CSV que queda como evidencia («Informe de importación sin diferencias»).
