@@ -6,7 +6,7 @@ import { assertPerson, auditQms, emitQms, qmsInvalid, type QmsActor } from './qm
 
 // Registrar una acción correctiva o de mejora dentro de la transacción de quien la origina: el
 // formulario de la bitácora (B38), un hallazgo de auditoría o una decisión de la revisión por la
-// dirección (B39). Su responsable recibe el aviso.
+// dirección (B39) o una evaluación legal parcial o negativa (B46). Su responsable recibe el aviso.
 
 const ACTIONS = { name: 'Acciones correctivas y de mejora', prefix: 'AC', padding: 4 };
 
@@ -15,6 +15,7 @@ export interface ActionLink {
   readonly riskId: string | null;
   readonly findingId: string | null;
   readonly reviewId: string | null;
+  readonly legalRequirementId: string | null;
   readonly processId: string | null;
 }
 
@@ -23,6 +24,7 @@ export const NO_LINK: ActionLink = {
   riskId: null,
   findingId: null,
   reviewId: null,
+  legalRequirementId: null,
   processId: null,
 };
 

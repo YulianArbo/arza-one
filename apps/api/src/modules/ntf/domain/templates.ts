@@ -198,6 +198,12 @@ export const DEFAULT_TEMPLATES: Readonly<Record<NotificationKind, TemplateText>>
     body: 'Hola, {{nombre}}. El incidente {{codigo}} {{novedad}} (fecha límite para reportar a la SIC: {{fecha}}). Revíselo en ARZA ONE › Privacidad › Incidentes.',
     urgent: false,
   },
+  // Normograma (B46, decisión 8): un aviso por empresa y semestre, a Calidad y a la Dirección.
+  qms_legal_due: {
+    subject: 'Requisitos legales sin evaluar en {{periodo}}',
+    body: 'Hola, {{nombre}}. Hay {{cantidad}} requisitos del normograma sin evaluar en {{periodo}}; el semestre termina el {{fecha}}. Evalúelos en ARZA ONE › Dirección › Normograma.',
+    urgent: false,
+  },
 };
 
 /** Variables que el texto usa y que este tipo de aviso no ofrece. */

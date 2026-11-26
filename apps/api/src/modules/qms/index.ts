@@ -3,6 +3,7 @@
 // un reclamo procedente (decisión 4). El worker calcula los indicadores y genera los PDF (B39).
 export { QmsModule } from './interface/qms.module.js';
 export { runQmsDailyWork } from './application/daily-work.js';
+export { seedLegalDemo } from './application/legal-seed.js';
 export { runQmsIndicatorWork } from './application/indicator-work.js';
 export { renderQualityPdfs } from './application/quality-pdf-work.js';
 export { openNonconformityFromPqrsf } from './application/nonconformity-origins.js';

@@ -8,6 +8,9 @@ import { AuditSteps } from '../application/audit-steps.js';
 import { Audits } from '../application/audits.js';
 import { OrganizationContext } from '../application/context.js';
 import { Indicators } from '../application/indicators.js';
+import { LegalEvaluations } from '../application/legal-evaluations.js';
+import { LegalImport } from '../application/legal-import.js';
+import { LegalRequirements } from '../application/legal-requirements.js';
 import { Lessons } from '../application/lessons.js';
 import { Measurements } from '../application/measurements.js';
 import { Nonconformities } from '../application/nonconformities.js';
@@ -17,17 +20,21 @@ import { QualityFiles } from '../application/quality-files.js';
 import { ReviewSteps } from '../application/review-steps.js';
 import { ManagementReviews } from '../application/reviews.js';
 import { Risks } from '../application/risks.js';
+import { StrategicObjectives } from '../application/strategic-objectives.js';
 import { ActionsController } from './actions.controller.js';
 import { AuditStepsController } from './audit-steps.controller.js';
 import { AuditsController } from './audits.controller.js';
 import { IndicatorsController } from './indicators.controller.js';
+import { LegalController } from './legal.controller.js';
 import { MyQualityController } from './my-quality.controller.js';
 import { NonconformitiesController } from './nonconformities.controller.js';
 import { OrganizationController } from './organization.controller.js';
 import { ReviewsController } from './reviews.controller.js';
 import { RisksController } from './risks.controller.js';
+import { StrategyController } from './strategy.controller.js';
 
 // Calidad y mejora continua (M14, B38): auditorías, indicadores y revisión por la dirección (B39).
+// Desde B46 también el normograma y los objetivos estratégicos de la Dirección (M16).
 
 @Module({
   imports: [DocModule],
@@ -41,6 +48,8 @@ import { RisksController } from './risks.controller.js';
     AuditStepsController,
     IndicatorsController,
     ReviewsController,
+    LegalController,
+    StrategyController,
   ],
   providers: [
     Processes,
@@ -59,6 +68,10 @@ import { RisksController } from './risks.controller.js';
     ManagementReviews,
     ReviewSteps,
     QualityFiles,
+    LegalRequirements,
+    LegalEvaluations,
+    LegalImport,
+    StrategicObjectives,
   ],
 })
 export class QmsModule {}

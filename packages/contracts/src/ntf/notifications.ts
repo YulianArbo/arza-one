@@ -162,6 +162,11 @@ export const NOTIFICATION_KINDS = {
     label: 'Un incidente de datos personales espera su reporte a la SIC',
     variables: ['nombre', 'codigo', 'fecha', 'novedad'],
   },
+  // Normograma (B46, decisión 8).
+  qms_legal_due: {
+    label: 'Hay requisitos legales sin evaluar en el semestre',
+    variables: ['nombre', 'cantidad', 'periodo', 'fecha'],
+  },
 } as const satisfies Record<string, { label: string; variables: readonly string[] }>;
 
 export type NotificationKind = keyof typeof NOTIFICATION_KINDS;

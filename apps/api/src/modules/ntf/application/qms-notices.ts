@@ -113,6 +113,24 @@ const onReviewSubmitted: Handler = (_tx, event) => {
   );
 };
 
+// Normograma (B46, decisión 8): requisitos sin evaluar cerca del fin del semestre.
+const onLegalDue: Handler = (_tx, event) => {
+  const payload = recipientsSchema
+    .extend({ count: z.number().int().positive(), period: z.string(), ends_on: z.iso.date() })
+    .parse(event.payload);
+  return Promise.resolve(
+    toEach(payload.recipients, null, {
+      kind: 'qms_legal_due',
+      values: {
+        cantidad: String(payload.count),
+        periodo: payload.period,
+        fecha: shownDate(payload.ends_on),
+      },
+      link: '/app/direccion/normograma',
+    }),
+  );
+};
+
 export const QMS_HANDLERS: Readonly<Record<string, Handler>> = {
   'qms.nonconformity.reported': onReported,
   'qms.action.assigned': onAssigned,
@@ -121,4 +139,5 @@ export const QMS_HANDLERS: Readonly<Record<string, Handler>> = {
   'qms.audit.assigned': onAuditAssigned,
   'qms.indicator.due': onIndicatorDue,
   'qms.review.submitted': onReviewSubmitted,
+  'qms.legal.due': onLegalDue,
 };

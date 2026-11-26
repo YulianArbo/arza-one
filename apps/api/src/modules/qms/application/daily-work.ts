@@ -3,11 +3,13 @@ import type { Clock } from '../../../platform/clock/clock.js';
 import type { DatabaseService } from '../../../platform/database/database.service.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import { addDays, bogotaToday, fromCalendarDate, toCalendarDate } from '../../core/index.js';
+import { legalTenants, remindLegalTenant } from './legal-work.js';
 import { emitQms, escalationRecipients } from './qms-support.js';
 
 // Trabajo diario de Calidad (B38, decisión 11), a las 6:15 de Colombia: cada acción abierta cuya
 // fecha compromiso ya pasó escala a su responsable, a Calidad y a la Dirección; el aviso se repite
-// cada 7 días mientras siga sin ejecutarse.
+// cada 7 días mientras siga sin ejecutarse. Desde B46 también avisa, una vez por semestre, los
+// requisitos del normograma sin evaluar cuando faltan 30 días para cerrar el semestre (decisión 8).
 
 interface DailyWorkDeps {
   readonly database: Pick<DatabaseService, 'withTenant' | 'withoutTenant'>;
@@ -16,6 +18,7 @@ interface DailyWorkDeps {
 
 export interface QmsDailyWorkResult {
   readonly escalatedActions: number;
+  readonly remindedRequirements: number;
 }
 
 const REPEAT_DAYS = 7;
@@ -91,5 +94,9 @@ export async function runQmsDailyWork(deps: DailyWorkDeps): Promise<QmsDailyWork
   for (const tenantId of await dueTenants(deps.database, today)) {
     escalatedActions += await escalateTenant(deps, { tenantId, today, at });
   }
-  return { escalatedActions };
+  let remindedRequirements = 0;
+  for (const tenantId of await legalTenants(deps.database)) {
+    remindedRequirements += await remindLegalTenant(deps.database, { tenantId, today, at });
+  }
+  return { escalatedActions, remindedRequirements };
 }

@@ -19,6 +19,7 @@ import { seedAccessControl } from '../../../modules/iam/index.js';
 import { seedPartyDemo } from '../../../modules/party/index.js';
 import { seedNotificationTemplates } from '../../../modules/ntf/index.js';
 import { seedPrivacyDemo, seedPrivacyNotices } from '../../../modules/privacy/index.js';
+import { seedLegalDemo } from '../../../modules/qms/index.js';
 import { seedProjects } from '../../../modules/project/index.js';
 import { seedService } from '../../../modules/service/index.js';
 import { seedWorkflowDemo } from '../../../modules/wf/index.js';
@@ -43,6 +44,7 @@ async function seedDemoData(database: DatabaseService): Promise<void> {
   await seedRetentionDemo(database, demoIds, systemClock);
   await seedInnovationDemo(database, demoIds, systemClock);
   await seedSiteDemo(database, demoIds, systemClock);
+  await seedLegalDemo(database, demoIds, systemClock);
 }
 
 async function main(): Promise<void> {

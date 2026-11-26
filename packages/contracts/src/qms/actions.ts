@@ -22,6 +22,8 @@ export const ACTION_ORIGINS = {
   improvement: 'Mejora',
   audit: 'Hallazgo de auditoría',
   management_review: 'Revisión por la dirección',
+  /** B46: un requisito del normograma evaluado como parcial o no cumplido. */
+  legal_evaluation: 'Evaluación del cumplimiento legal',
 } as const;
 export type ActionOrigin = keyof typeof ACTION_ORIGINS;
 export const actionOriginSchema = qmsEnumOf(ACTION_ORIGINS);
