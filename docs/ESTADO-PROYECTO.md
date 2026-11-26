@@ -1,5 +1,13 @@
 # Estado del proyecto ARZA ONE
 
+**B46 construido y en revisión, 26/11/2026 (Claude Code).** El propietario aprobó el plan («Apruebo todo», 12 decisiones). Rama `feat/b46-tableros-gerenciales-y-requisi` desde `e1b2394` (`main` con B45 fusionado, PR #101). Bloque no crítico.
+
+- Módulo nuevo `dashboard` (sin tablas): tablero gerencial, tablero de cumplimiento y cuadro de mando en `/v1/dashboards/...`. Cada cifra sale de una lectura que publica su módulo, solo se calcula con el permiso del listado de origen y lleva a sus registros.
+- En Calidad: normograma (`qms_legal_requirements`), evaluaciones semestrales (`qms_legal_evaluations`, solo se agregan) y objetivos estratégicos (`qms_strategic_objectives`). Migración `20261128000000_qms_legal_requirements_scorecard`. Aviso `qms_legal_due` en el trabajo diario de Calidad.
+- Web: menú «Dirección» con cuatro pantallas; reemplaza la entrada «Indicadores» en construcción.
+- Verificado en este equipo: integración de lo nuevo, recorrido de auditoría 536/536, pruebas unitarias de todos los paquetes, navegador 46/46 y compilación. La suite completa de integración la confirma la CI.
+- Pendientes: validar columnas de RE-DG-001 y los pares de funciones en conflicto, cargar el normograma real, registrar los objetivos de PL-DG-001, decidir 60 o 90 días para «cuentas sin uso». Cierre en `docs/bloques/B46-cierre.md`.
+
 **CI de B45, 26/11/2026.** En el PR #101 pasaron los 223 archivos de integración de la API. La cobertura de ramas (84,94 % frente al mínimo de 85 %) hizo fallar Integración y su resumen, Verificaciones. Se añadieron pruebas de carga inicial que comprueban el informe por fila y la continuidad de la carga cuando falla el alta de un usuario o de un tercero.
 
 **B45 construido y en revisión, 25/11/2026 (Claude Code). Puesta en marcha pendiente.** El propietario aprobó el plan («Apruebo todo», 11 decisiones). Rama `feat/b45-carga-inicial-aceptacion-y-pue` desde `d303732` (`main` con B44 fusionado, PR #100). Bloque crítico: requiere revisión externa.
