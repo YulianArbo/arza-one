@@ -2996,6 +2996,62 @@
         ]
       }
     },
+    "/v1/access-review/export": {
+      "post": {
+        "description": "El mismo informe, separado por punto y coma para Excel. La descarga queda en la auditoría.",
+        "operationId": "DelegationsController_exportAccessReview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Archivo CSV en UTF-8"
+          },
+          "401": {
+            "description": "Sin sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin el permiso de la ruta, o falta confirmar la identidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de peticiones superado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado; incluye el identificador de correlación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse_Output"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Descargar el informe de revisión de accesos en CSV",
+        "tags": [
+          "Usuarios y roles"
+        ]
+      }
+    },
     "/v1/audit-events": {
       "get": {
         "operationId": "AuditController_events",
@@ -72625,13 +72681,20 @@
                 "type": "integer",
                 "minimum": -9007199254740991,
                 "maximum": 9007199254740991
+              },
+              "without_second_factor": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "description": "Cuentas internas activas sin segundo factor confirmado (anexo E, punto 17)"
               }
             },
             "required": [
               "users",
               "active",
               "unused",
-              "without_roles"
+              "without_roles",
+              "without_second_factor"
             ],
             "additionalProperties": false
           },
@@ -72722,6 +72785,10 @@
                 "unused": {
                   "type": "boolean",
                   "description": "Cuenta activa sin ingresar en los últimos días indicados"
+                },
+                "second_factor": {
+                  "type": "boolean",
+                  "description": "Tiene el segundo factor confirmado"
                 }
               },
               "required": [
@@ -72732,7 +72799,8 @@
                 "status",
                 "last_login_at",
                 "roles",
-                "unused"
+                "unused",
+                "second_factor"
               ],
               "additionalProperties": false
             }

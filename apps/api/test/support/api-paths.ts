@@ -12,6 +12,7 @@ const PLATFORM_PATHS = [
   '/health',
   '/ops/status',
   '/v1/access-review',
+  '/v1/access-review/export',
   '/v1/attachments',
   '/v1/attachments/{id}',
   '/v1/attachments/{id}/download-link',

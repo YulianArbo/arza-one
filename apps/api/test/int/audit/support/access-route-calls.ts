@@ -59,6 +59,10 @@ const ACCESS_CALLS: Record<string, RouteCall> = {
     const { id } = createdResponseSchema.parse((await call).body);
     return final(s.post(`/v1/delegations/${id}/actions/revoke`, lead.session));
   },
+  'POST /v1/access-review/export': async (s) => {
+    const director = await s.person('director-descarga', ['DIRECCION']);
+    return final(s.post('/v1/access-review/export', director.session));
+  },
   'POST /v1/roles': async (s) => final(newRole(s, await admin(s))),
   'PATCH /v1/roles/{id}': async (s) => {
     const person = await admin(s);

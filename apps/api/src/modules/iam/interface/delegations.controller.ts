@@ -2,14 +2,16 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   HttpCode,
   HttpStatus,
   Inject,
   Param,
   ParseUUIDPipe,
   Post,
+  Res,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiProduces, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   accessReviewResponseSchema,
   createDelegationRequestSchema,
@@ -17,6 +19,7 @@ import {
   delegationListResponseSchema,
   errorResponseSchema,
 } from '@arza/contracts';
+import type { Response } from 'express';
 import { createZodDto, ZodResponse } from 'nestjs-zod';
 
 import type { AppAbility } from '../../../platform/access/ability.js';
@@ -121,5 +124,27 @@ export class DelegationsController {
     @Meta() meta: RequestMeta,
   ): Promise<AccessReviewResponse> {
     return this.review.execute(principal, meta);
+  }
+
+  @RequirePermission('iam.access_review.read')
+  @Post('access-review/export')
+  @HttpCode(HttpStatus.OK)
+  @Header('Content-Type', 'text/csv; charset=utf-8')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    summary: 'Descargar el informe de revisión de accesos en CSV',
+    description:
+      'El mismo informe, separado por punto y coma para Excel. La descarga queda en la auditoría.',
+  })
+  @ApiProduces('text/csv')
+  @ApiResponse({ status: HttpStatus.OK, description: 'Archivo CSV en UTF-8' })
+  async exportAccessReview(
+    @CurrentPrincipal() principal: Principal,
+    @Meta() meta: RequestMeta,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<string> {
+    const file = await this.review.export(principal, meta);
+    response.attachment(file.fileName);
+    return file.content;
   }
 }

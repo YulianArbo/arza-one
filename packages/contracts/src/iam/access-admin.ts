@@ -150,10 +150,15 @@ export const accessReviewResponseSchema = z.object({
     active: z.number().int(),
     unused: z.number().int(),
     without_roles: z.number().int(),
+    without_second_factor: z
+      .number()
+      .int()
+      .describe('Cuentas internas activas sin segundo factor confirmado (anexo E, punto 17)'),
   }),
   users: z.array(
     userSummarySchema.extend({
       unused: z.boolean().describe('Cuenta activa sin ingresar en los últimos días indicados'),
+      second_factor: z.boolean().describe('Tiene el segundo factor confirmado'),
     }),
   ),
 });

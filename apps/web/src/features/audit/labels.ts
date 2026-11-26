@@ -70,6 +70,7 @@ const ACTION_LABELS: Readonly<Record<string, string>> = {
   'iam.delegation.create': 'Creó una delegación',
   'iam.delegation.revoke': 'Retiró una delegación',
   'iam.access_review.read': 'Consultó la revisión de accesos',
+  'iam.access_review.export': 'Descargó la revisión de accesos',
   'party.create': 'Registró un tercero',
   'party.update': 'Editó los datos de un tercero',
   'party.status.change': 'Cambió el estado de un tercero',
