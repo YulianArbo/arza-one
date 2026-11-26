@@ -142,15 +142,15 @@ const MODULES: readonly NavigationItem[] = [
     permissions: ['hr.employee.read', 'hr.vacancy.manage', 'hr.candidate.manage', 'sst.read'],
   },
   {
-    slug: 'indicadores',
-    label: 'Indicadores',
+    // Tableros de la Dirección y normograma (M16, B46).
+    slug: 'direccion',
+    label: 'Dirección',
     icon: ChartColumn,
     permissions: [
       'dashboard.executive.read',
       'dashboard.process.read',
       'dashboard.compliance.read',
     ],
-    block: 'B46',
   },
   {
     slug: 'sitio-web',
@@ -237,6 +237,7 @@ const APP_NAVIGATION: readonly NavigationGroup[] = [
     label: 'Gobierno',
     icon: Scale,
     items: pick(
+      'direccion',
       'calidad',
       'innovacion',
       'sitio-web',

@@ -94,6 +94,7 @@ describe('grupos del menú (B22B)', () => {
       {
         label: 'Gobierno',
         slugs: [
+          'direccion',
           'calidad',
           'innovacion',
           'sitio-web',
@@ -104,7 +105,6 @@ describe('grupos del menú (B22B)', () => {
           'sistema-de-diseno',
         ],
       },
-      { label: 'Bloques posteriores', slugs: ['indicadores'] },
     ]);
   });
 });
