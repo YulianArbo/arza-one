@@ -1,5 +1,7 @@
 # Entrega entre agentes — ARZA ONE
 
+**CI de B45, 26/11/2026 (Codex).** El trabajo de integración de la ejecución `45846284790` del PR #101 falló por cobertura de ramas de la API (84,94 % frente al mínimo de 85 %). Verificaciones propagó ese fallo. El ajuste está en `apps/api/test/int/golive/initial-load.int.test.ts`, con casos de error de alta por fila y continuidad de la carga. Consulte la ejecución del commit de corrección en el PR para verificar el resultado.
+
 **B45, 25/11/2026 (Claude Code).** Rama `feat/b45-carga-inicial-aceptacion-y-pue`. Decisiones en `docs/bloques/B45-cierre.md`; guía funcional en `docs/puesta-en-marcha/`. Puntos para quien continúe:
 
 1. `golive` no tiene tablas: usa Núcleo (`structureSnapshot`, `addOrgUnit`, `addPosition`, `setUnitOwner`, `tenantRegistered`), Identidad (`hasFullPermission`, `loadableRoles`, `hasAccount`, `accountFindings`, `InvitationUseCase`), Terceros (`addCompany`, `hasCompanyWithNit`), Documentos (`documentFigures`) y Sitio (`legalTextsWithoutConcept`) por su `index.ts`. Las reglas de las plantillas son funciones puras en `golive/domain`.

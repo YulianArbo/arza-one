@@ -1,6 +1,6 @@
 import { nitCheckDigit } from '@arza/contracts';
 import { v7 as uuidv7 } from 'uuid';
-import { beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 import {
   runInitialLoad,
@@ -168,6 +168,73 @@ describe('aplicar', () => {
     expect(report.applied).toBe(false);
     expect(report.sheets.find((sheet) => sheet.sheet === 'terceros')?.problems).toHaveLength(1);
     expect((await loaded(suffix)).unit).toBeNull();
+  });
+});
+
+function filesWithWriteFailures(rejectedEmail: string, acceptedEmail: string, nits: string[]) {
+  return {
+    users: toCsv(
+      ['Correo', 'Nombre', 'Cargo', 'Roles'],
+      [
+        [rejectedEmail, 'Persona Rechazada', null, null],
+        [acceptedEmail, 'Persona Aceptada', null, null],
+      ],
+    ),
+    companies: toCsv(
+      ['NIT', 'DV', 'Razón social', 'Papel'],
+      nits.map((nit) => [nit, String(nitCheckDigit(nit)), `Empresa ${nit} S.A.S.`, 'Cliente']),
+    ),
+  };
+}
+
+function dependenciesWithWriteFailures(failure: unknown) {
+  const invitations = scenario.app.get(InvitationUseCase);
+  const invite = vi.fn(invitations.invite.bind(invitations)).mockRejectedValueOnce(failure);
+  // La primera lectura valida los permisos y la segunda corresponde al alta del primer tercero.
+  const now = vi
+    .fn(() => scenario.clock.now())
+    .mockImplementationOnce(() => scenario.clock.now())
+    .mockImplementationOnce(() => {
+      throw new Error('Alta de tercero no disponible');
+    });
+  return { database: scenario.db, clock: { now }, invitations: { invite } };
+}
+
+describe('errores durante la carga', () => {
+  it.each([
+    { failure: new Error('Alta no disponible'), problem: 'Alta no disponible', nit: '901234569' },
+    { failure: 'Alta no disponible', problem: 'no se pudo crear', nit: '901234570' },
+  ])('informa por fila los errores de alta como «$problem»', async ({ failure, problem, nit }) => {
+    const suffix = uuidv7().slice(-6);
+    const rejectedEmail = `rechazada-${suffix}@pruebas.test`;
+    const acceptedEmail = `aceptada-${suffix}@pruebas.test`;
+    const rejectedNit = '901234568';
+    const person = await loader('errores-de-alta');
+    const report = await runInitialLoad(dependenciesWithWriteFailures(failure), {
+      tenantId: scenario.tenant.id,
+      userId: person.id,
+      apply: true,
+      files: filesWithWriteFailures(rejectedEmail, acceptedEmail, [rejectedNit, nit]),
+    });
+
+    expect(report.applied).toBe(true);
+    expect(report.sheets).toEqual([
+      { sheet: 'estructura', planned: 0, created: 0, existing: 0, problems: [] },
+      {
+        sheet: 'usuarios',
+        planned: 2,
+        created: 1,
+        existing: 0,
+        problems: [{ row: 2, key: rejectedEmail, problem }],
+      },
+      {
+        sheet: 'terceros',
+        planned: 2,
+        created: 1,
+        existing: 0,
+        problems: [{ row: 2, key: rejectedNit, problem: 'Alta de tercero no disponible' }],
+      },
+    ]);
   });
 });
 

@@ -1,5 +1,7 @@
 # Estado del proyecto ARZA ONE
 
+**CI de B45, 26/11/2026.** En el PR #101 pasaron los 223 archivos de integración de la API. La cobertura de ramas (84,94 % frente al mínimo de 85 %) hizo fallar Integración y su resumen, Verificaciones. Se añadieron pruebas de carga inicial que comprueban el informe por fila y la continuidad de la carga cuando falla el alta de un usuario o de un tercero.
+
 **B45 construido y en revisión, 25/11/2026 (Claude Code). Puesta en marcha pendiente.** El propietario aprobó el plan («Apruebo todo», 11 decisiones). Rama `feat/b45-carga-inicial-aceptacion-y-pue` desde `d303732` (`main` con B44 fusionado, PR #100). Bloque crítico: requiere revisión externa.
 
 - Módulo nuevo `golive` (sin tablas ni rutas): `pnpm puesta:cargar` revisa y carga `areas.csv`, `cargos.csv`, `usuarios.csv` y `terceros.csv` con los permisos y la auditoría de las pantallas (nada se carga con un solo problema; repetible; ADMIN_PLATAFORMA nunca por lote; terceros solo empresas con NIT y por Comercial o Finanzas). `pnpm puesta:revisar` solo lee y revisa los puntos 12, 16, 17 y 22 del anexo E.
