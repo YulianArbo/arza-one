@@ -25,7 +25,9 @@
         "src/modules/iam/interface/cli/assign-role-main.ts",
         "src/modules/doc/interface/cli/import-master-list-main.ts",
         "src/modules/doc/interface/cli/import-retention-main.ts",
-        "src/modules/contract/interface/cli/link-signer-main.ts"
+        "src/modules/contract/interface/cli/link-signer-main.ts",
+        "src/modules/golive/interface/cli/initial-load-main.ts",
+        "src/modules/golive/interface/cli/readiness-main.ts"
       ],
       "ignoreDependencies": ["@prisma/client"]
     },

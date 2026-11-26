@@ -35,7 +35,7 @@ export const AREA_COLUMNS: SheetColumns<AreaColumn> = {
   },
 };
 
-export const POSITION_COLUMNS: SheetColumns<PositionColumn> = {
+const POSITION_COLUMNS: SheetColumns<PositionColumn> = {
   headers: {
     name: ['cargo', 'nombre'],
     unit: ['procesoarea', 'proceso', 'area'],

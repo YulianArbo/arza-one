@@ -12,7 +12,7 @@ export interface SheetProblem {
 
 export type Cells<C extends string> = Readonly<Partial<Record<C, string>>>;
 
-export interface SheetRow<C extends string> {
+interface SheetRow<C extends string> {
   readonly row: number;
   readonly cells: Cells<C>;
 }

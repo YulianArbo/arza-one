@@ -1,7 +1,7 @@
 // Lo que la empresa ya tiene, como lo necesita la revisión de las plantillas (B45). Se arma en la
 // capa de aplicación con lo que entregan Núcleo, Identidad y Terceros por su index.ts.
 
-export interface KnownItem {
+interface KnownItem {
   readonly id: string;
   readonly isActive: boolean;
 }

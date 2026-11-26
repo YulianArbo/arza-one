@@ -47,7 +47,7 @@ async function demoCheck(database: Reader, ids: readonly string[]): Promise<Read
     detail:
       found === 0
         ? 'No hay empresas ficticias.'
-        : `Hay ${String(found)} empresas ficticias: no se cargó la semilla de producción.`,
+        : `Empresas ficticias registradas: ${String(found)}. Esta base tiene datos de demostración y no sirve para producción.`,
   };
 }
 
@@ -72,25 +72,25 @@ async function tenantChecks(tx: TenantTransaction): Promise<ReadinessCheck[]> {
       item: 22,
       title: 'Sin cuentas de prueba',
       ok: accounts.testAccounts === 0,
-      detail: `${String(accounts.testAccounts)} cuentas con correo de un dominio de pruebas (.test, .example, .invalid, .localhost).`,
+      detail: `Cuentas con correo de un dominio de pruebas (.test, .example, .invalid, .localhost): ${String(accounts.testAccounts)}.`,
     },
     {
       item: 17,
       title: 'Usuarios internos con segundo factor',
       ok: accounts.activeInternal > 0 && accounts.withoutSecondFactor === 0,
-      detail: `${String(accounts.activeInternal)} cuentas internas activas; ${String(accounts.withoutSecondFactor)} sin segundo factor.`,
+      detail: `Cuentas internas activas: ${String(accounts.activeInternal)}; sin segundo factor: ${String(accounts.withoutSecondFactor)}.`,
     },
     {
       item: 16,
       title: 'Listado Maestro cargado',
       ok: documents.currentControlled > 0,
-      detail: `${String(documents.currentControlled)} documentos del SGC vigentes. Compare con el informe de importación.`,
+      detail: `Documentos del SGC vigentes: ${String(documents.currentControlled)}. Compare con el informe de importación.`,
     },
     {
       item: 16,
       title: 'Todo documento con regla de retención',
       ok: documents.withoutRetention === 0,
-      detail: `${String(documents.withoutRetention)} documentos sin regla de retención (numeral 18.2, paso 4).`,
+      detail: `Documentos sin regla de retención (numeral 18.2, paso 4): ${String(documents.withoutRetention)}.`,
     },
     legalCheck(await legalTextsWithoutConcept(tx)),
   ];

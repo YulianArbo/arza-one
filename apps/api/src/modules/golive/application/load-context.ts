@@ -35,7 +35,7 @@ export interface LoadRequest {
   readonly apply: boolean;
 }
 
-export interface Invitations {
+interface Invitations {
   invite(input: InviteUserInput): Promise<unknown>;
 }
 
@@ -45,7 +45,7 @@ export interface LoadDependencies {
   readonly invitations: Invitations;
 }
 
-export type Rows = readonly (readonly string[])[];
+type Rows = readonly (readonly string[])[];
 
 export interface ParsedFiles {
   readonly areas: Rows;
@@ -72,7 +72,7 @@ export function parsedFiles(files: LoadFiles): ParsedFiles {
 }
 
 /** Permisos completos que pide cada plantilla presente, los mismos de las pantallas. */
-export function neededPermissions(files: LoadFiles): PermissionCode[] {
+function neededPermissions(files: LoadFiles): PermissionCode[] {
   const needed: PermissionCode[] = [];
   if (files.areas !== undefined || files.positions !== undefined) needed.push('core.org.manage');
   if (files.users !== undefined) needed.push('iam.user.invite', 'iam.role.assign');

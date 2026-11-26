@@ -25,7 +25,7 @@ import { applyStructure } from './structure-apply.js';
 // Al aplicar, primero se revisa todo: con un solo problema no se carga nada. Cada alta va en su
 // propia transacción con su auditoría; se puede repetir: lo que ya existe se informa y no se toca.
 
-export type SheetName = 'estructura' | 'usuarios' | 'terceros';
+type SheetName = 'estructura' | 'usuarios' | 'terceros';
 
 export interface SheetReport {
   readonly sheet: SheetName;
