@@ -2,7 +2,7 @@ import { accessReviewResponseSchema } from '@arza/contracts';
 import { expect, it } from 'vitest';
 
 import { AccessScenario } from '../iam/support/access-scenario.js';
-import { created, qualityFixture } from '../qms/support/qms-fixture.js';
+import { created, processId, qualityFixture } from '../qms/support/qms-fixture.js';
 import { complies, fails, requirement } from '../qms/support/qms-legal-fixture.js';
 import { board, drilldown, figure } from './support/dashboard-fixture.js';
 
@@ -85,6 +85,32 @@ it('Calidad no ve las cifras de accesos; una cifra de otro tablero no existe', a
   const path = '/v1/dashboards/compliance/drilldown?figure=';
   expect((await scenario.get(`${path}sod_conflicts`, f.quality.session)).status).toBe(403);
   expect((await scenario.get(`${path}sales_month`, f.director.session)).status).toBe(404);
+});
+
+it('el detalle de solicitudes de cambio muestra las radicadas y su estado', async () => {
+  const f = await qualityFixture(scenario, 'solicitudes');
+  const targetProcess = await processId(scenario, 0);
+  const request = await scenario.inTenant((tx) =>
+    tx.docChangeRequest.create({
+      data: {
+        tenantId: scenario.tenant.id,
+        code: 'SAD-2026-0000001',
+        action: 'create',
+        docType: 'PR',
+        processId: targetProcess,
+        title: 'Actualizar el procedimiento de prueba',
+        justification: 'Solicitud ficticia para el tablero de cumplimiento.',
+        status: 'filed',
+        requestedBy: f.worker.id,
+      },
+    }),
+  );
+  const detail = await drilldown(scenario, f.director, 'compliance', 'change_requests_pending');
+  expect(detail.rows.find((row) => row.id === request.id)?.cells).toEqual({
+    code: request.code,
+    title: request.title,
+    status: 'Radicada',
+  });
 });
 
 it('un colaborador no entra a ningún tablero', async () => {

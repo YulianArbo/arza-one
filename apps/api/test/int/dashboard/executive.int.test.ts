@@ -42,6 +42,9 @@ async function openPipeline(person: Person): Promise<string> {
 it('las cifras coinciden con Finanzas, Comercial y Proyectos', async () => {
   const world = await scenario.deliveryProject();
   await scenario.emittedInvoice(world);
+  const reason = 'El cliente aún no ha entregado los accesos.';
+  const risk = await scenario.projectStep(world.leader, world.projectId, 'risk', { reason });
+  expect(risk.status, risk.text).toBe(204);
   const p = await people();
   const data = await board(scenario, p.director, 'executive');
   // 1000 de subtotal menos la parte sin IVA de la nota crédito de 200 (200 × 1000 ÷ 1190).
@@ -54,6 +57,8 @@ it('las cifras coinciden con Finanzas, Comercial y Proyectos', async () => {
     tx.prjProject.count({ where: { status: 'at_risk', deletedAt: null } }),
   );
   expect(figure(data, 'projects_at_risk').value).toBe(String(atRisk));
+  const projects = await drilldown(scenario, p.director, 'executive', 'projects_at_risk');
+  expect(projects.rows.find((row) => row.id === world.projectId)?.cells['reason']).toBe(reason);
   expect(figure(data, 'satisfaction')).toMatchObject({ value: null, allowed: true });
   const sales = await drilldown(scenario, p.director, 'executive', 'sales_month');
   expect(sales.rows).toHaveLength(2);
