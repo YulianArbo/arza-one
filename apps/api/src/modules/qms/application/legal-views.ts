@@ -68,7 +68,7 @@ function requirementView(
 }
 
 /** La última evaluación de cada requisito (la más reciente por fecha y por registro). */
-export async function lastEvaluations(
+async function lastEvaluations(
   tx: TenantTransaction,
   requirementIds: readonly string[],
 ): Promise<Map<string, EvaluationRow>> {

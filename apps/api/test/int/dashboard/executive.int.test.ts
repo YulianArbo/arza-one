@@ -57,7 +57,7 @@ it('las cifras coinciden con Finanzas, Comercial y Proyectos', async () => {
   expect(figure(data, 'satisfaction')).toMatchObject({ value: null, allowed: true });
   const sales = await drilldown(scenario, p.director, 'executive', 'sales_month');
   expect(sales.rows).toHaveLength(2);
-  expect(sales.rows.map((row) => row.cells.amount)).toEqual(['$ 1.000', '-$ 168']);
+  expect(sales.rows.map((row) => row.cells['amount'])).toEqual(['$ 1.000', '-$ 168']);
 });
 
 it('Calidad ve el tablero pero no las cifras de Finanzas, ni su detalle', async () => {

@@ -19,12 +19,12 @@ export interface FigureContext {
   readonly once: <T>(key: string, load: () => Promise<T>) => Promise<T>;
 }
 
-export interface FigureColumn {
+interface FigureColumn {
   readonly key: string;
   readonly label: string;
 }
 
-export interface FigureRow {
+interface FigureRow {
   readonly id: string;
   readonly cells: Readonly<Record<string, string>>;
 }

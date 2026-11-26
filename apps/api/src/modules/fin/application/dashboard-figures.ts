@@ -14,7 +14,7 @@ const ZERO = new Money(0);
 const SOLD = ['issued', 'partially_paid', 'paid'];
 const OPEN = ['issued', 'partially_paid'];
 
-export interface FinanceFigureRow {
+interface FinanceFigureRow {
   readonly id: string;
   readonly code: string;
   readonly client: string;

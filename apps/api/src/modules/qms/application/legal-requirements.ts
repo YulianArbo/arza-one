@@ -66,7 +66,7 @@ export function requirementData(input: SaveLegalRequirement): RequirementData {
   };
 }
 
-export async function assertRequirementRefs(
+async function assertRequirementRefs(
   tx: TenantTransaction,
   input: Pick<SaveLegalRequirement, 'process_id' | 'responsible_id'>,
 ): Promise<void> {

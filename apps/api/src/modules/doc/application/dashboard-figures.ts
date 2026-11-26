@@ -8,7 +8,7 @@ import { visibleRequests } from './change-request-views.js';
 // filtros de visibilidad que el listado de documentos y el de solicitudes, para que nadie vea por
 // el tablero un documento reservado que no ve en su listado.
 
-export interface DocumentFigureRow {
+interface DocumentFigureRow {
   readonly id: string;
   readonly code: string;
   readonly title: string;

@@ -26,7 +26,7 @@ it('los accesos coinciden con el informe de revisión de accesos', async () => {
   expect(admins.rows.map((row) => row.id)).toContain(admin.id);
   const conflicts = await drilldown(scenario, f.director, 'compliance', 'sod_conflicts');
   const row = conflicts.rows.find((item) => item.id === admin.id);
-  expect(row?.cells.detail).toContain('Crear roles y asignarlos');
+  expect(row?.cells['detail']).toContain('Crear roles y asignarlos');
 });
 
 it('tareas, documentos y requisitos coinciden con su módulo', async () => {
@@ -53,7 +53,7 @@ it('tareas, documentos y requisitos coinciden con su módulo', async () => {
   expect(figure(data, 'overdue_tasks').value).toBe(String(overdue));
   expect(figure(data, 'documents_in_review').value).toBe(String(inReview));
   const failing = await drilldown(scenario, f.director, 'compliance', 'legal_failing');
-  expect(failing.rows.find((item) => item.id === id)?.cells.result).toBe('No cumple');
+  expect(failing.rows.find((item) => item.id === id)?.cells['result']).toBe('No cumple');
 });
 
 it('Calidad no ve las cifras de accesos; una cifra de otro tablero no existe', async () => {

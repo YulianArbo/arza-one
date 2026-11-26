@@ -19,7 +19,7 @@ interface Scope {
 }
 
 /** El primer día del semestre si ya empezó el aviso; si no, nada. */
-export function legalNoticePeriod(today: string): { start: string; endsOn: string } | null {
+function legalNoticePeriod(today: string): { start: string; endsOn: string } | null {
   const start = legalPeriodStart(today);
   const endsOn = addDays(periodEndOf('semiannual', start), -1);
   return today >= addDays(endsOn, -NOTICE_DAYS) ? { start, endsOn } : null;

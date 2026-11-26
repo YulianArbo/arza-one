@@ -22,7 +22,7 @@ describe('registro del normograma', () => {
     const f = await qualityFixture(scenario, 'registro');
     const body = requirementBody();
     expect((await scenario.post(BASE, f.director.session, body)).status).toBe(403);
-    const { id, code } = await requirement(scenario, f, { norm: body.norm });
+    const { id, code } = await requirement(scenario, f, { norm: body['norm'] });
     expect(code).toMatch(/^NRM-\d{3,}$/u);
     const changed = { ...body, applies: false };
     expect((await scenario.patch(`${BASE}/${id}`, f.quality.session, changed, 1)).status).toBe(204);

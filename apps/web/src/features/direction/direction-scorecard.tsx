@@ -164,11 +164,7 @@ function prepareObjective(values: Record<string, string>): unknown {
   };
 }
 
-export function ObjectiveForm({
-  item,
-}: {
-  readonly item?: StrategicObjective;
-}): JSX.Element | null {
+function ObjectiveForm({ item }: { readonly item?: StrategicObjective }): JSX.Element | null {
   const api = useApiClient();
   const { canAll } = usePermissions();
   const editing = item !== undefined;
