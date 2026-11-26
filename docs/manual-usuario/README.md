@@ -22,12 +22,13 @@ claro, un capítulo por módulo (decisión 7 de B45). Empiece por **Primeros pas
 | [M13 Seguridad y salud en el trabajo](M13-sst.md)     | SST y todas las personas                      |
 | [M14 Calidad](M14-calidad.md)                         | Calidad y líderes de proceso                  |
 | [M15 Innovación](M15-innovacion.md)                   | Calidad, Dirección y quien proponga ideas     |
+| [M16 Dirección](M16-direccion.md)                     | Dirección, Calidad y líderes de proceso       |
 | [M17 Sitio web](M17-sitio-web.md)                     | Dirección y Oficial de datos                  |
 | [M18 Privacidad](M18-privacidad.md)                   | Oficial de datos                              |
 | [M19 Auditoría](M19-auditoria.md)                     | Auditor, Dirección y administrador            |
 
-Los módulos M16 (tableros) y M20 (asistente de inteligencia artificial) se agregan cuando se
-construyan (B46 y B47).
+El módulo M20 (asistente de inteligencia artificial) se agrega cuando se construya (B47). M16 se
+agregó con B46.
 
 ## Publicarlo como documento controlado
 

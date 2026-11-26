@@ -37,7 +37,7 @@ const PAGES = [
   { path: '/app', ready: 'Mis tareas' },
   { path: '/app/estado-del-sistema', ready: 'Todo funciona' },
   { path: '/app/sistema-de-diseno', ready: 'Estados de pantalla' },
-  { path: '/app/indicadores', ready: 'Este módulo está en construcción' },
+  { path: '/app/direccion', ready: 'Tablero gerencial' },
   { path: '/portal', ready: 'Su espacio de cliente', session: 'portal', api: PORTAL_API },
   { path: '/iniciar-sesion', ready: '¿Olvidó su contraseña?', session: 'none' },
   { path: '/recuperar-contrasena', ready: 'Enviar enlace', session: 'none' },

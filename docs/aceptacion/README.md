@@ -32,9 +32,10 @@ requisito del acta de salida a producción ([FT-TEC-008](../puesta-en-marcha/FT-
 | M13    | [Seguridad y salud en el trabajo](M13-sst.md)     | Líder de Seguridad y Salud en el Trabajo       |
 | M14    | [Calidad](M14-calidad.md)                         | Coordinador de Calidad e Innovación            |
 | M15    | [Innovación](M15-innovacion.md)                   | Coordinador de Calidad e Innovación            |
+| M16    | [Dirección](M16-direccion.md)                     | Director General                               |
 | M17    | [Sitio público](M17-sitio-web.md)                 | Director General                               |
 | M18    | [Privacidad](M18-privacidad.md)                   | Oficial de Protección de Datos Personales      |
 | M19    | [Auditoría](M19-auditoria.md)                     | Director General                               |
 
-**M16 (tableros y requisitos legales) y M20 (asistente de inteligencia artificial)** todavía no
-están construidos: se construyen en B46 y B47, que agregarán su guion.
+**M20 (asistente de inteligencia artificial)** todavía no está construido: se construye en B47, que
+agregará su guion. M16 se agregó con B46.
