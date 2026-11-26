@@ -34,11 +34,15 @@ it('Calidad registra el objetivo y le asigna indicadores; la Dirección lo consu
   expect((await link([first, second])).status).toBe(204);
   expect((await link([second])).status).toBe(204);
   expect((await objectives(f)).find((item) => item.id === id)?.indicator_ids).toEqual([second]);
+  expect((await link([])).status).toBe(204);
+  expect((await objectives(f)).find((item) => item.id === id)?.indicator_ids).toEqual([]);
   const changed = objectiveBody({ name: 'Clientes fieles', active: false });
   expect((await scenario.patch(`${BASE}/${id}`, f.quality.session, changed, 1)).status).toBe(204);
+  expect((await scenario.patch(`${BASE}/${id}`, f.quality.session, changed, 1)).status).toBe(409);
   expect((await objectives(f)).find((item) => item.id === id)).toMatchObject({ active: false });
   expect(await auditActions(scenario.db, scenario.tenant.id, id)).toEqual([
     'qms.strategic_objective.create:success',
+    'qms.strategic_objective.link:success',
     'qms.strategic_objective.link:success',
     'qms.strategic_objective.link:success',
     'qms.strategic_objective.update:success',
@@ -63,6 +67,9 @@ it('no se asignan indicadores de otra empresa ni objetivos ajenos', async () => 
     indicator_ids: [],
   });
   expect(foreign.status).toBe(404);
+  expect((await scenario.patch(`${BASE}/${id}`, other.session, objectiveBody(), 1)).status).toBe(
+    404,
+  );
   const otherObjective = coded(await scenario.post(BASE, other.session, objectiveBody())).id;
   const crossed = await put(scenario, `${BASE}/${otherObjective}/indicators`, other, 1, {
     indicator_ids: [own],

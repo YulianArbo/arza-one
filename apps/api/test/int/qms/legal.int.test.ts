@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { AccessScenario } from '../iam/support/access-scenario.js';
 import { auditActions } from '../iam/support/iam-fixtures.js';
-import { created, later, qualityFixture } from './support/qms-fixture.js';
+import { created, later, processId, qualityFixture, today } from './support/qms-fixture.js';
 import {
   complies,
   fails,
@@ -124,7 +124,7 @@ describe('reglas de la evaluación', () => {
   });
 });
 
-describe('aislamiento y descarga', () => {
+describe('aislamiento del normograma', () => {
   it('otra empresa no ve ni evalúa el normograma', async () => {
     const f = await qualityFixture(scenario, 'aislamiento');
     const { id } = await requirement(scenario, f);
@@ -135,16 +135,38 @@ describe('aislamiento y descarga', () => {
     const path = `${BASE}/${id}/evaluations`;
     expect((await scenario.post(path, other.session, complies(scenario))).status).toBe(404);
     expect((await scenario.get(path, other.session)).status).toBe(404);
+    expect(
+      (await scenario.patch(`${BASE}/${id}`, other.session, requirementBody(), 1)).status,
+    ).toBe(404);
   });
+});
 
+describe('descarga del normograma', () => {
   it('el normograma se descarga en CSV y la descarga queda en la auditoría', async () => {
     const f = await qualityFixture(scenario, 'descarga');
-    const { code } = await requirement(scenario, f);
+    const { id, code } = await requirement(scenario, f, {
+      process_id: await processId(scenario, 0),
+      responsible_id: f.worker.id,
+    });
+    created(
+      await scenario.post(
+        `${BASE}/${id}/evaluations`,
+        f.quality.session,
+        fails(scenario, f.worker.id),
+      ),
+    );
+    const row = (await normograma(scenario, f.auditor)).data.find((item) => item.id === id);
+    const action = row?.last_evaluation?.action?.code;
+    expect(action).toMatch(/^AC-/u);
     const response = await scenario.post(`${BASE}/export`, f.auditor.session);
     expect(response.status).toBe(200);
     expect(response.headers['content-type']).toContain('text/csv');
     expect(response.text).toContain('Código;Tipo de norma;Norma');
-    expect(response.text).toContain(code);
+    const exported = response.text.split(/\r?\n/u).find((line) => line.startsWith(`${code};`));
+    expect(exported).toContain(today(scenario).split('-').reverse().join('/'));
+    expect(exported?.split(';').slice(-2)).toEqual(['No cumple', action]);
+    expect(exported).toContain(row?.process?.name);
+    expect(exported).toContain(row?.responsible?.name);
     expect(await auditActions(scenario.db, scenario.tenant.id, scenario.tenant.id)).toContain(
       'qms.legal_requirement.export:success',
     );

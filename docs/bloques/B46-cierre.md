@@ -116,6 +116,7 @@ Verificaciones ejecutadas en este equipo el 26/11/2026:
 
 ## Pendientes
 
+- **Confirmar la cobertura en GitHub.** En la primera ejecución del PR #102 pasaron las 1.896 pruebas de integración de la API y las 26 del worker. La cobertura global de ramas de la API quedó en 84,84 % frente al mínimo de 85 %. Se agregaron casos de integración de Dirección y Calidad para ejercitar ramas del B46 que faltaban.
 - **Validar las columnas del normograma** frente al formato RE-DG-001 y cargar el normograma real con la pantalla de carga. Los 14 requisitos de ejemplo no reemplazan el concepto del asesor jurídico.
 - **Validar los pares de funciones en conflicto** (decisión 9) y decidir si «cuentas sin uso» sigue en 60 días.
 - **Registrar los objetivos del plan estratégico** (PL-DG-001) y asignarles indicadores: el cuadro de mando arranca vacío.

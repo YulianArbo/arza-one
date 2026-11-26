@@ -1,5 +1,7 @@
 # Entrega entre agentes — ARZA ONE
 
+**CI de B46, 26/11/2026 (Codex).** El registro de integración del PR #102 (ejecución `45893015444`, trabajo `140160101671`) confirma 84,84 % de cobertura de ramas de la API frente al 85 % exigido. Se ampliaron las pruebas en `apps/api/test/int/dashboard/{compliance,scorecard}.int.test.ts` y `apps/api/test/int/qms/{legal,strategy}.int.test.ts`. Los casos cubren cuentas sin uso, el porcentaje de cumplimiento y su desglose, indicadores sin mediciones, descarga CSV con evaluación y acción, aislamiento y edición con versión obsoleta. Pasaron los 18 casos de los cuatro archivos con PostgreSQL y Valkey en contenedores desechables. La ejecución local de `pnpm test:int` se detuvo durante el arranque de un contenedor por un tiempo de espera de 120 segundos. Consulte la ejecución más reciente del PR para confirmar la cobertura global.
+
 **B46, 26/11/2026 (Claude Code).** Rama `feat/b46-tableros-gerenciales-y-requisi`. Decisiones en `docs/bloques/B46-cierre.md`; ficha del módulo en `docs/manual/datos/direccion.md`. Puntos para quien continúe:
 
 1. Las cifras de los tableros se declaran en `packages/contracts/src/dashboard/figures.ts`: etiqueta, unidad, cómo se calcula, permiso del listado de origen y enlace. Para agregar una, declárela ahí y escriba su fuente en `apps/api/src/modules/dashboard/application/{executive,compliance}-sources.ts`, leyendo por el `index.ts` del módulo dueño.

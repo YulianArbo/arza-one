@@ -33,6 +33,10 @@ it('el objetivo muestra sus indicadores y si cumplen, según quién mira', async
   const f = await qualityFixture(scenario, 'mando');
   const body = await indicatorBody(scenario, f.worker.id);
   const indicator = coded(await scenario.post('/v1/qms/indicators', f.quality.session, body)).id;
+  const unmeasuredBody = await indicatorBody(scenario, f.worker.id);
+  const unmeasured = coded(
+    await scenario.post('/v1/qms/indicators', f.quality.session, unmeasuredBody),
+  ).id;
   const path = `/v1/qms/indicators/${indicator}/measurements`;
   created(
     await scenario.post(path, f.worker.session, measurementBody(monthStart(scenario, 1), '4.5')),
@@ -56,6 +60,15 @@ it('el objetivo muestra sus indicadores y si cumplen, según quién mira', async
   const own = await scorecardOf(seller);
   expect(own.scope).toBe('own');
   expect(objectiveIn(own, id)?.indicators).toHaveLength(1);
+
+  const link = await put(scenario, `${objectives}/${id}/indicators`, f.quality, 1, {
+    indicator_ids: [unmeasured],
+  });
+  expect(link.status).toBe(204);
+  expect(objectiveIn(await scorecardOf(f.director), id)).toMatchObject({
+    status: 'no_data',
+    indicators: [{ id: unmeasured, value: null, period: null, meets: null, trend: null }],
+  });
 
   const outsider = await scenario.person('comercial-sin-cargo', ['COMERCIAL']);
   expect(objectiveIn(await scorecardOf(outsider), id)).toBeUndefined();
