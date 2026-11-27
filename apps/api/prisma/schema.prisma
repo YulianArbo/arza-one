@@ -167,6 +167,10 @@ model Tenant {
   qmsLegalRequirements     QmsLegalRequirement[]
   qmsLegalEvaluations      QmsLegalEvaluation[]
   qmsStrategicObjectives   QmsStrategicObjective[]
+  aiUseCases               AiUseCase[]
+  aiPrompts                AiPrompt[]
+  aiRequests               AiRequest[]
+  aiIndexChunks            AiIndexChunk[]
   innIdeas                 InnIdea[]
   innRoadmapItems          InnRoadmapItem[]
   innIpAssets              InnIpAsset[]
@@ -6001,4 +6005,106 @@ model PrivacyIncidentMeasure {
   @@unique([tenantId, id])
   @@index([tenantId, incidentId])
   @@map("prv_incident_measures")
+}
+
+/// Activación de un uso del asistente de IA con su evaluación de impacto (B47, decisión 7).
+model AiUseCase {
+  id                   String    @id @default(uuid(7)) @db.Uuid
+  tenantId             String    @map("tenant_id") @db.Uuid
+  useCase              String    @map("use_case")
+  enabled              Boolean   @default(false)
+  assessmentReference  String?   @map("assessment_reference")
+  assessmentApprovedOn DateTime? @map("assessment_approved_on") @db.Date
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy            String?   @map("created_by") @db.Uuid
+  updatedAt            DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy            String?   @map("updated_by") @db.Uuid
+  version              Int       @default(1)
+  deletedAt            DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant               Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, useCase])
+  @@map("ai_use_cases")
+}
+
+/// Instrucción versionada de un uso del asistente (B47); rige la última aprobada.
+model AiPrompt {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  tenantId      String    @map("tenant_id") @db.Uuid
+  useCase       String    @map("use_case")
+  promptVersion Int       @map("prompt_version")
+  body          String
+  status        String    @default("draft")
+  approvedBy    String?   @map("approved_by") @db.Uuid
+  approvedAt    DateTime? @map("approved_at") @db.Timestamptz(6)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?   @map("created_by") @db.Uuid
+  updatedAt     DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?   @map("updated_by") @db.Uuid
+  version       Int       @default(1)
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, useCase, promptVersion])
+  @@map("ai_prompts")
+}
+
+/// Uso registrado del asistente (B47, decisión 5): sin el texto enviado ni la respuesta.
+model AiRequest {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  tenantId      String    @map("tenant_id") @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  useCase       String    @map("use_case")
+  provider      String
+  model         String
+  promptVersion Int       @default(0) @map("prompt_version")
+  inputClass    String    @map("input_class")
+  inputChars    Int       @default(0) @map("input_chars")
+  outputChars   Int       @default(0) @map("output_chars")
+  tokensIn      Int       @default(0) @map("tokens_in")
+  tokensOut     Int       @default(0) @map("tokens_out")
+  redactions    Int       @default(0)
+  outcome       String
+  targetKind    String?   @map("target_kind")
+  targetId      String?   @map("target_id") @db.Uuid
+  sources       Json      @default("[]")
+  review        String?
+  reviewedAt    DateTime? @map("reviewed_at") @db.Timestamptz(6)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?   @map("created_by") @db.Uuid
+  updatedAt     DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?   @map("updated_by") @db.Uuid
+  version       Int       @default(1)
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, userId, createdAt])
+  @@index([tenantId, createdAt])
+  @@map("ai_requests")
+}
+
+/// Fragmento del texto vigente de un documento para la búsqueda del asistente (B47, decisión 3).
+model AiIndexChunk {
+  id                String    @id @default(uuid(7)) @db.Uuid
+  tenantId          String    @map("tenant_id") @db.Uuid
+  documentId        String    @map("document_id") @db.Uuid
+  documentVersionId String    @map("document_version_id") @db.Uuid
+  chunkNo           Int       @map("chunk_no")
+  content           String
+  classification    String
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy         String?   @map("created_by") @db.Uuid
+  updatedAt         DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy         String?   @map("updated_by") @db.Uuid
+  version           Int       @default(1)
+  deletedAt         DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant            Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, documentVersionId, chunkNo])
+  @@index([tenantId, documentId])
+  @@map("ai_index_chunks")
 }
