@@ -112,6 +112,16 @@ Luego, en el navegador (`http://localhost:3000/app`):
 | Navegador (Playwright) de multiempresa, administración, menú y portal, claro y oscuro, con revisión de accesibilidad | 25 de 25 tras agregar a los datos simulados la marca y la lista de exportaciones.                                                                                                                                                                                                                                                                                                                                                                |
 | `pnpm check` por partes                                                                                              | Pasaron: compilación de tipos, análisis de estilo de lo cambiado, tipos (`typecheck`), fronteras entre módulos, búsqueda de secretos y compilación de la web. `pnpm unused` solo reporta los 7.993 archivos de sus carpetas sueltas `.codex-ci-*` (ya pasaba antes de B48); `format:check` falla por esos mismos archivos sueltos. La integración completa (más de 230 archivos) no cabe en la memoria de este equipo: la confirma la CI del PR. |
 
+## Corrección de la integración continua
+
+La [ejecución 45977691330](https://github.com/YulianArbo/arza-one/actions/runs/45977691330) del PR #104 falló en tres puntos. Los diagnosticó y empezó a corregir otro agente (Codex) mientras Claude Code estaba detenido; Claude Code revisó sus cambios con el visto bueno del propietario.
+
+- **Cupo de usuarios en las pruebas.** 497 pruebas de integración fallaron porque el recorrido de auditoría y las auditorías de Calidad crean más de 50 personas en una empresa ficticia, el tope del plan Profesional. `IamScenario` acepta ahora un cupo propio (2.000 y 100). Se conservó tal cual.
+- **Cobertura unitaria.** El código de multiempresa que necesita PostgreSQL se mide en la integración (`vitest.shared.ts`) y hay pruebas nuevas de los mensajes de error (`tenancy-messages.test.ts`). Se conservó tal cual.
+- **Control de migraciones.** Marcó el renombre de las funciones del worker y el borrado de la eliminación. El otro agente había hecho que el control ignorara esos dos puntos para la huella exacta del archivo; **se retiró esa excepción** y se usó la marca `-- arza:contract` con su motivo, el mecanismo previsto (como en B11 y B42). El control no cambió.
+
+Verificado en este equipo después de la corrección: control de migraciones sin hallazgos y sus 37 pruebas; integración del recorrido de auditoría, auditorías de Calidad y multiempresa 591/591; unitarias de la API 571/571, con 97 % de líneas, 95,38 % de funciones, 96,4 % de sentencias y 89,31 % de ramas.
+
 ## Pendientes
 
 - **Revisión externa** del bloque (es crítico).

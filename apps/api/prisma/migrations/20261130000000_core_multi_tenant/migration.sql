@@ -1,6 +1,8 @@
 -- B48: multiempresa. Plan y límites, marca, suspensión, exportación completa y eliminación de
 -- empresas. Ficha 17.1, capítulos 12, 13 y 15, ADR-007 y ADR-028.
 --
+-- arza:contract no borra datos al aplicarse: el DELETE está dentro de core_purge_tenant, que solo borra una empresa suspendida con su eliminación vencida (ADR-028); y el RENAME deja cada función *_tenants_with_* del worker con su mismo nombre y argumentos (la original queda como *_any), así la versión anterior la sigue llamando igual
+--
 -- Principio: la base de datos protege aunque el código falle. Solo el contexto de la empresa que
 -- opera la plataforma cambia el plan o el estado de otra empresa; una empresa nunca se cambia a sí
 -- misma el plan ni el estado; los límites del plan los hacen cumplir disparadores.

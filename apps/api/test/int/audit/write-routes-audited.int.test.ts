@@ -11,7 +11,7 @@ import { WRITE_ROUTE_CALLS } from './support/write-route-calls.js';
 // produce su evento de auditoría. Las rutas salen del OpenAPI de la API en marcha: una ruta nueva
 // que escribe y no tiene su llamada aquí hace fallar la prueba.
 
-const scenario = new AccessScenario('recorrido de escrituras');
+const scenario = new AccessScenario('recorrido de escrituras', 2_000);
 const WRITE_METHODS = ['post', 'put', 'patch', 'delete'] as const;
 
 function writeRoutes(): string[] {
