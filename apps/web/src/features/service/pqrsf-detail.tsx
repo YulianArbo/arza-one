@@ -20,6 +20,7 @@ import { FormError } from '../access/form-alert';
 import { QueryState } from '../administration/query-state';
 import { FactsCard, type Fact } from '../crm/crm-facts';
 import { RecordDialog } from '../organization/record-dialog';
+import { AssistantPanel } from '../assistant/assistant-panel';
 import { usePqrsf } from './care-queries';
 import {
   PQRSF_APPROVALS,
@@ -257,6 +258,9 @@ function Detail({ pqrsf }: Props): JSX.Element {
         </Alert>
       ))}
       <PqrsfActions pqrsf={pqrsf} />
+      {pqrsf.privacy_kind === null ? (
+        <AssistantPanel targetId={pqrsf.id} useCases={['pqrsf_classify', 'pqrsf_reply']} />
+      ) : null}
       <ResponseCard pqrsf={pqrsf} />
       <FactsCard title="Datos de la PQRSF" facts={facts(pqrsf)} />
     </>

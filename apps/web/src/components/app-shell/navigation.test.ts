@@ -57,7 +57,7 @@ describe('menú por permisos (permiso denegado, 16.3)', () => {
   });
 
   it('con todos los permisos del menú se ven todos los módulos', () => {
-    expect(visibleSlugs([...navigationPermissions()])).toHaveLength(22); // B13 agrega Terceros; B14, Archivos; B17, Privacidad; B33, Compras; B36, Mi espacio; B41, Sitio web.
+    expect(visibleSlugs([...navigationPermissions()])).toHaveLength(23); // B13 agrega Terceros; B14, Archivos; B17, Privacidad; B33, Compras; B36, Mi espacio; B41, Sitio web; B47, Asistente.
   });
 
   it('«Mi espacio» aparece a todo colaborador que ve su ficha (B36)', () => {
@@ -74,6 +74,14 @@ describe('menú por permisos (permiso denegado, 16.3)', () => {
   });
 });
 
+describe('asistente en el menú (B47)', () => {
+  it('muestra el asistente a quien lo usa o lo gobierna', () => {
+    expect(visibleSlugs(['ai.assist.use'])).toContain('asistente');
+    expect(visibleSlugs(['ai.request.read'])).toContain('asistente');
+    expect(visibleSlugs(['portal.ticket.read'])).not.toContain('asistente');
+  });
+});
+
 describe('grupos del menú (B22B)', () => {
   it('agrupa los módulos como los bocetos de B22B, cada uno en un solo grupo', () => {
     const groups = visibleNavigation(navigationPermissions()).map((group) => ({
@@ -82,7 +90,7 @@ describe('grupos del menú (B22B)', () => {
     }));
     expect(groups).toEqual([
       { label: 'Inicio', slugs: [''] },
-      { label: 'Trabajo diario', slugs: ['mis-tareas', 'mi-espacio'] },
+      { label: 'Trabajo diario', slugs: ['mis-tareas', 'mi-espacio', 'asistente'] },
       {
         label: 'Clientes y operación',
         slugs: ['terceros', 'comercial', 'contratos', 'proyectos', 'servicio'],

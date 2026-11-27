@@ -23,12 +23,14 @@ import {
   Settings,
   ShieldCheck,
   ShoppingCart,
+  Sparkles,
   Sun,
   UserRound,
   Users,
   type LucideIcon,
 } from 'lucide-react';
 
+import { ASSISTANT_PERMISSIONS } from '../../features/assistant/labels';
 import { currentSubmodule } from './submodules';
 
 export const APP_HOME = '/app';
@@ -152,6 +154,7 @@ const MODULES: readonly NavigationItem[] = [
       'dashboard.compliance.read',
     ],
   },
+  { slug: 'asistente', label: 'Asistente', icon: Sparkles, permissions: ASSISTANT_PERMISSIONS },
   {
     slug: 'sitio-web',
     label: 'Sitio web',
@@ -219,7 +222,12 @@ function pick(...slugs: readonly string[]): NavigationItem[] {
 
 const APP_NAVIGATION: readonly NavigationGroup[] = [
   { key: 'inicio', label: 'Inicio', items: pick('') },
-  { key: 'trabajo', label: 'Trabajo diario', icon: Sun, items: pick('mis-tareas', 'mi-espacio') },
+  {
+    key: 'trabajo',
+    label: 'Trabajo diario',
+    icon: Sun,
+    items: pick('mis-tareas', 'mi-espacio', 'asistente'),
+  },
   {
     key: 'clientes',
     label: 'Clientes y operación',
