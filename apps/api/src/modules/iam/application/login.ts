@@ -37,6 +37,7 @@ import { newSecretToken } from '../infrastructure/secret-token.js';
 import { accountLocked, invalidCredentials, loginDelayed } from './iam-messages.js';
 import { SessionService, type SessionView } from './session-service.js';
 import { SignInCompletion, type Completion } from './sign-in-completion.js';
+import { TENANT_GATE, tenantSuspended, type TenantGate } from './tenant-gate.js';
 
 export interface StartedSession {
   /** Llave para la cookie. Nunca se guarda ni se registra. */
@@ -55,6 +56,8 @@ interface CreatedSession {
 interface Account {
   readonly ref: IdentityRef;
   readonly user: User;
+  /** La empresa de la cuenta está activa (B48): una suspendida no entra. */
+  readonly tenantOpen: boolean;
 }
 
 /**
@@ -73,6 +76,7 @@ export class LoginUseCase {
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(SessionService) private readonly sessions: SessionService,
     @Inject(SignInCompletion) private readonly completion: SignInCompletion,
+    @Inject(TENANT_GATE) private readonly gate: TenantGate,
   ) {}
 
   async execute(
@@ -94,6 +98,8 @@ export class LoginUseCase {
     if (account === null || !(await this.passwordMatches(account.user, input.password))) {
       return this.fail(input.email, account, failures.count + 1, meta, now);
     }
+    // Solo quien conoce la contraseña llega a saber que la empresa está suspendida.
+    if (!account.tenantOpen) throw tenantSuspended();
     const started = await this.start(account, meta, now, deviceToken);
     await recordLoginAttempt(this.database, {
       email: input.email,
@@ -108,10 +114,14 @@ export class LoginUseCase {
   private async findAccount(email: string): Promise<Account | null> {
     const ref = await findLoginUser(this.database, email);
     if (ref === null) return null;
-    const user = await this.database.withTenant({ tenantId: ref.tenantId, userId: null }, (tx) =>
-      loadUser(tx, ref.userId),
+    const found = await this.database.withTenant(
+      { tenantId: ref.tenantId, userId: null },
+      async (tx) => ({
+        user: await loadUser(tx, ref.userId),
+        tenantOpen: await this.gate.isOpen(tx),
+      }),
     );
-    return user === null ? null : { ref, user };
+    return found.user === null ? null : { ref, user: found.user, tenantOpen: found.tenantOpen };
   }
 
   /** Solo una cuenta activa con contraseña puede coincidir; las demás gastan el mismo tiempo. */

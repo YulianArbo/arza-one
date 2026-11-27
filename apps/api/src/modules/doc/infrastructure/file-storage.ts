@@ -3,6 +3,7 @@ import { Readable } from 'node:stream';
 import {
   DeleteObjectCommand,
   GetObjectCommand,
+  ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
@@ -66,6 +67,36 @@ export class FileStorage {
     );
     if (Body === undefined) throw new Error(`El objeto ${key} no trajo contenido.`);
     return Buffer.from(await Body.transformToByteArray());
+  }
+
+  /** Llaves y tamaños de todos los objetos que empiezan por el prefijo (B48: los de una empresa). */
+  async list(prefix: string): Promise<{ key: string; sizeBytes: number }[]> {
+    const found: { key: string; sizeBytes: number }[] = [];
+    let token: string | undefined;
+    do {
+      const page = await this.client.send(
+        new ListObjectsV2Command({
+          Bucket: this.options.bucket,
+          Prefix: prefix,
+          ContinuationToken: token,
+        }),
+      );
+      for (const item of page.Contents ?? []) {
+        if (item.Key !== undefined) found.push({ key: item.Key, sizeBytes: item.Size ?? 0 });
+      }
+      token = page.IsTruncated === true ? page.NextContinuationToken : undefined;
+    } while (token !== undefined);
+    return found;
+  }
+
+  /** Borra todos los objetos del prefijo. Devuelve cuántos borró. */
+  async deletePrefix(prefix: string): Promise<number> {
+    if (prefix.length < 10 || !prefix.endsWith('/')) {
+      throw new Error('El prefijo a borrar debe ser la carpeta de una empresa.');
+    }
+    const objects = await this.list(prefix);
+    for (const object of objects) await this.delete(object.key);
+    return objects.length;
   }
 
   /** Borra el objeto; si ya no existe, no pasa nada. */

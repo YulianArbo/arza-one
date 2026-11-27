@@ -5,6 +5,7 @@ import type { Role, User } from '../../../generated/prisma/client.js';
 import type { Principal } from '../../../platform/access/principal.js';
 import { CLOCK, type Clock } from '../../../platform/clock/clock.js';
 import { DatabaseService } from '../../../platform/database/database.service.js';
+import { isOperatorTenant } from '../../../platform/database/operator-tenant.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
 import { assignmentExpiryProblem, fitsAudience } from '../domain/access-policy.js';
@@ -50,6 +51,10 @@ export async function grantRole(tx: TenantTransaction, request: GrantRequest): P
   if (request.actorId === user.id) throw selfPermissionChange();
   if (user.status === 'inactive') throw userStateInvalid('La cuenta está inactiva.');
   if (!fitsAudience(role.audience, user.kind)) throw roleAudienceMismatch();
+  // El operador de la plataforma solo existe en la empresa que la opera (B48, decisión 1).
+  if (role.code === ACCESS_RULES.operatorRole && !isOperatorTenant(request.tenantId)) {
+    throw roleNotFound();
+  }
   const expiry = assignmentExpiryProblem(role.code, request.validUntil, now);
   if (expiry !== null) throw roleExpiryInvalid(expiry);
   if (await hasActiveAssignment(tx, user.id, role.id, now)) throw roleAlreadyAssigned();

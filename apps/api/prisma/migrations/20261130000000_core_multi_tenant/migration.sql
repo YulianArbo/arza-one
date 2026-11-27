@@ -111,6 +111,17 @@ CREATE POLICY "core_tenants_platform_update" ON "core_tenants"
     USING (core_current_tenant_id() = core_operator_tenant_id())
     WITH CHECK (core_current_tenant_id() = core_operator_tenant_id());
 
+-- Suspender una empresa cierra todas sus sesiones con su propio motivo.
+ALTER TABLE "iam_sessions" DROP CONSTRAINT "iam_sessions_revoked_reason_check";
+ALTER TABLE "iam_sessions" ADD CONSTRAINT "iam_sessions_revoked_reason_check" CHECK (
+    "revoked_reason" IS NULL
+    OR "revoked_reason" IN (
+        'logout', 'idle', 'password_changed', 'password_reset',
+        'remote_revoke', 'mfa_failures', 'mfa_changed', 'mfa_reset', 'account_locked',
+        'offboarding', 'tenant_suspended'
+    )
+);
+
 -- Exportaciones completas (decisiones 3 a 5) ----------------------------------------------------
 
 CREATE TABLE "core_tenant_exports" (

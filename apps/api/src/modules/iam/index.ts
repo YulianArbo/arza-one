@@ -87,3 +87,10 @@ export { AccountNotifier } from './application/account-notifier.js';
 export { PasswordSetter } from './application/password-setter.js';
 export { revokeEmployeeAccess, type AccessRevocation } from './application/offboarding-access.js';
 export { accessFigures, type AccessFigureRow } from './application/access-figures.js';
+export { TENANT_GATE, tenantSuspended, type TenantGate } from './application/tenant-gate.js';
+export {
+  accountUsage,
+  closeTenantSessions,
+  systemRoleId,
+  type AccountUsage,
+} from './application/tenant-accounts.js';

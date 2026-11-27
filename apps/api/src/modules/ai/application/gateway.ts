@@ -6,7 +6,7 @@ import { CLOCK, type Clock } from '../../../platform/clock/clock.js';
 import { DatabaseService } from '../../../platform/database/database.service.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
-import { bogotaStartOf, bogotaToday } from '../../core/index.js';
+import { bogotaStartOf, bogotaToday, tenantPlan } from '../../core/index.js';
 import { readAnswer, type ModelAnswer } from '../domain/answer-rules.js';
 import { DEFAULT_PROMPTS } from '../domain/default-prompts.js';
 import {
@@ -30,6 +30,7 @@ import {
   aiActorOf,
   dailyLimitReached,
   gatewayOff,
+  notInPlan,
   providerFailed,
   recordAiChange,
   useCaseDisabled,
@@ -148,6 +149,7 @@ export class AiGateway {
     const model = this.model;
     if (model === null) throw gatewayOff();
     return this.database.withTenant(viewer.principal, async (tx) => {
+      if (!(await tenantPlan(tx)).limits.aiAssistant) throw notInPlan();
       const setting = await tx.aiUseCase.findFirst({ where: { useCase, deletedAt: null } });
       if (setting?.enabled !== true) throw useCaseDisabled();
       if ((await this.usedToday(tx, viewer.principal.userId)) >= this.settings.dailyLimit) {

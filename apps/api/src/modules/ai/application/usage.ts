@@ -17,7 +17,7 @@ import { CLOCK, type Clock } from '../../../platform/clock/clock.js';
 import { DatabaseService } from '../../../platform/database/database.service.js';
 import { versionConflict } from '../../../platform/http/if-match.js';
 import type { RequestMeta } from '../../../platform/http/request-meta.js';
-import { addDays, bogotaStartOf } from '../../core/index.js';
+import { addDays, bogotaStartOf, tenantPlan } from '../../core/index.js';
 import { aiActorOf, aiNotFound, recordAiChange, refOf, userRefs } from './ai-support.js';
 import { AiGateway } from './gateway.js';
 
@@ -75,10 +75,12 @@ export class AiUsage {
         select: { useCase: true },
         orderBy: { useCase: 'asc' },
       });
+      // Sin proveedor, o si el plan de la empresa no incluye el asistente (B48), no hay usos activos.
+      const available = model !== null && (await tenantPlan(tx)).limits.aiAssistant;
       return {
         provider: model?.provider ?? 'off',
         model: model?.model ?? null,
-        enabled_use_cases: model === null ? [] : enabled.map((row) => row.useCase as AiUseCase),
+        enabled_use_cases: available ? enabled.map((row) => row.useCase as AiUseCase) : [],
         used_today: await this.gateway.usedToday(tx, principal.userId),
         daily_limit: this.gateway.dailyLimit,
       };

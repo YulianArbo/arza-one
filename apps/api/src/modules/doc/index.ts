@@ -87,3 +87,4 @@ export {
   type IndexableVersion,
 } from './application/assistant-sources.js';
 export { anyOfTerms } from './domain/search-terms.js';
+export { storageUsedMb } from './application/storage-usage.js';
