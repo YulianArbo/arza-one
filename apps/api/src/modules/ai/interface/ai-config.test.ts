@@ -27,7 +27,7 @@ const KEY = 'k'.repeat(40);
 
 describe('configuración del asistente de IA (B47)', () => {
   it('sin proveedor el asistente queda apagado', () => {
-    const config = loadConfig(testEnv({ AI_GATEWAY_PROVIDER: undefined }));
+    const config = loadConfig(testEnv());
     expect(config.AI_GATEWAY_PROVIDER).toBe('off');
     expect(config.AI_GATEWAY_DAILY_LIMIT).toBe(50);
     expect(aiModelFor(config)).toBeNull();
@@ -37,7 +37,8 @@ describe('configuración del asistente de IA (B47)', () => {
     expect(problemsOf(testEnv({ AI_GATEWAY_PROVIDER: 'anthropic' }))).toEqual([
       'AI_GATEWAY_API_KEY: falta; es obligatoria',
     ]);
-    expect(problemsOf(testEnv({ APP_ENV: 'production' })).join('\n')).toContain(
+    const production = testEnv({ APP_ENV: 'production', AI_GATEWAY_PROVIDER: 'rehearsal' });
+    expect(problemsOf(production).join('\n')).toContain(
       'AI_GATEWAY_PROVIDER: el modo de ensayo no se usa en producción',
     );
     const problems = problemsOf(testEnv({ AI_GATEWAY_MODEL: 'gpt-x' }));
@@ -45,7 +46,7 @@ describe('configuración del asistente de IA (B47)', () => {
   });
 
   it('elige el adaptador del proveedor configurado', () => {
-    const rehearsal = aiModelFor(loadConfig(testEnv()));
+    const rehearsal = aiModelFor(loadConfig(testEnv({ AI_GATEWAY_PROVIDER: 'rehearsal' })));
     expect(rehearsal).toMatchObject({ provider: 'rehearsal', model: 'ensayo-local' });
     const claude = aiModelFor(
       loadConfig(testEnv({ AI_GATEWAY_PROVIDER: 'anthropic', AI_GATEWAY_API_KEY: KEY })),
