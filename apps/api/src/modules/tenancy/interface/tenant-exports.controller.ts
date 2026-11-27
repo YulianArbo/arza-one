@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Header,
+  HttpCode,
   HttpStatus,
   Inject,
   Param,
@@ -81,7 +82,8 @@ export class TenantExportsController {
 
   @RequirePermission('core.tenant.export')
   @RecentAuthentication()
-  @Get(':id/download')
+  @Post(':id/download')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Descargar la exportación (ZIP); queda en la auditoría' })
   @ApiProduces('application/zip')
   @ApiResponse({ status: HttpStatus.OK, description: 'El archivo ZIP' })

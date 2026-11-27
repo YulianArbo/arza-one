@@ -39,6 +39,7 @@ import type { RequestMeta } from '../../../platform/http/request-meta.js';
 import {
   assertOperator,
   cardOf,
+  isTaxIdTaken,
   isUniqueViolation,
   NO_OVERRIDES,
   type Usage,
@@ -115,7 +116,7 @@ export class PlatformTenantsUseCase {
         });
       })
       .catch((error: unknown) => {
-        throw isUniqueViolation(error) ? taxIdTaken() : platformError(error);
+        throw isUniqueViolation(error) || isTaxIdTaken(error) ? taxIdTaken() : platformError(error);
       });
     await seedTenantBasics(this.database, [id], this.clock);
     await this.note(id, action, { action: 'core.tenant.create', changes: { plan: input.plan } });

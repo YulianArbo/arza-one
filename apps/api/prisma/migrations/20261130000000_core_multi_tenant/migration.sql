@@ -64,7 +64,10 @@ ALTER TABLE "core_tenants"
     ADD CONSTRAINT "core_tenants_operator_active_check"
         CHECK ("id" <> core_operator_tenant_id() OR "status" = 'active');
 
--- La empresa que opera la plataforma nace con el plan Empresarial.
+-- Plan con que nace una empresa. La empresa operadora, con el plan Empresarial. Una empresa creada
+-- fuera de las funciones de la plataforma (la semilla, las pruebas) nace activa y con el plan
+-- Profesional, envíe lo que envíe: solo core_platform_register_tenant, que corre como dueña del
+-- esquema (current_user distinto de session_user), elige otro plan.
 CREATE FUNCTION "core_tenants_operator_plan"() RETURNS TRIGGER
     LANGUAGE plpgsql
     AS $$
@@ -75,7 +78,14 @@ BEGIN
         NEW.limit_portal_users := NULL;
         NEW.limit_storage_mb := 512000;
         NEW.limit_ai_assistant := true;
+    ELSIF current_user = session_user THEN
+        NEW.plan := 'professional';
+        NEW.limit_internal_users := 50;
+        NEW.limit_portal_users := 200;
+        NEW.limit_storage_mb := 51200;
+        NEW.limit_ai_assistant := true;
     END IF;
+    NEW.status := 'active';
     RETURN NEW;
 END;
 $$;
@@ -96,10 +106,16 @@ SELECT set_config('app.tenant_id', '', false);
 -- Lo que la propia empresa puede cambiar: sus datos legales y su marca. El plan, los límites, el
 -- estado y la eliminación solo los cambian las funciones de la plataforma (más abajo).
 REVOKE INSERT, UPDATE ON "core_tenants" FROM app_user;
-GRANT INSERT ("id", "legal_name", "trade_name", "tax_id", "settings", "created_at", "created_by",
-              "updated_at", "updated_by", "version") ON "core_tenants" TO app_user;
+-- Prisma envía también los valores por defecto (estado, plan y límites); el disparador anterior los
+-- fija, así que enviarlos no cambia nada.
+GRANT INSERT ("id", "legal_name", "trade_name", "tax_id", "status", "settings", "plan",
+              "limit_internal_users", "limit_portal_users", "limit_storage_mb",
+              "limit_ai_assistant", "created_at", "created_by", "updated_at", "updated_by",
+              "version") ON "core_tenants" TO app_user;
+-- Las columnas de control se pueden enviar, pero el disparador core_set_control_columns las fija.
 GRANT UPDATE ("legal_name", "trade_name", "tax_id", "brand_display_name", "brand_color",
-              "brand_logo_file_id") ON "core_tenants" TO app_user;
+              "brand_logo_file_id", "created_at", "created_by", "updated_at", "updated_by",
+              "version") ON "core_tenants" TO app_user;
 
 -- Políticas del dueño para las funciones de la plataforma: solo valen cuando la transacción corre
 -- en el contexto de la empresa operadora.
@@ -540,19 +556,62 @@ CREATE FUNCTION "core_tenants_due_for_purge"(p_today DATE) RETURNS SETOF UUID
 REVOKE EXECUTE ON FUNCTION "core_tenants_due_for_purge"(DATE) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION "core_tenants_due_for_purge"(DATE) TO app_user;
 
+-- Empresa que se está borrando, dentro de la transacción de core_purge_tenant. Solo esa función
+-- la fija, y las políticas «_purge» que la usan valen solo para el dueño del esquema: app_user no
+-- puede borrar nada aunque fije la variable por su cuenta.
+CREATE FUNCTION "core_purging_tenant"() RETURNS UUID
+    LANGUAGE sql STABLE
+    AS $$ SELECT NULLIF(current_setting('app.purge_tenant', true), '')::uuid $$;
+
+-- Una política «_purge» en cada tabla con tenant_id (no en las particiones: se borra por la tabla
+-- particionada). Así el borrado no cambia la estructura de ninguna tabla ni desactiva su seguridad
+-- por fila mientras las demás empresas trabajan. Una tabla nueva de un bloque posterior debe traer
+-- su política «_purge»; si falta, core_purge_tenant no borra nada y lo dice.
+DO $$
+DECLARE
+    tbl TEXT;
+BEGIN
+    FOR tbl IN
+        SELECT c.relname FROM pg_class c
+        JOIN pg_namespace n ON n.oid = c.relnamespace
+        WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p') AND NOT c.relispartition
+          AND c.relname <> 'core_tenants'
+          AND EXISTS (SELECT 1 FROM pg_attribute a
+                      WHERE a.attrelid = c.oid AND a.attname = 'tenant_id' AND NOT a.attisdropped)
+    LOOP
+        EXECUTE format(
+            'CREATE POLICY %I ON %I FOR ALL TO migration_user USING (tenant_id = core_purging_tenant())',
+            tbl || '_purge', tbl);
+    END LOOP;
+END;
+$$;
+
+-- La evidencia de la firma solo se agrega; la única excepción es el borrado de la empresa entera.
+CREATE OR REPLACE FUNCTION "sig_append_only"() RETURNS TRIGGER
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    IF TG_OP = 'DELETE' AND current_user <> session_user
+       AND OLD.tenant_id = core_purging_tenant() THEN
+        RETURN OLD;
+    END IF;
+    RAISE EXCEPTION 'La evidencia de la firma solo se agrega: no se cambia ni se borra.'
+        USING ERRCODE = 'check_violation', CONSTRAINT = 'sig_evidence_append_only';
+END;
+$$;
+
 -- Borra todos los datos de una empresa cuya eliminación venció. Exige el contexto de la empresa
--- operadora (el worker la usa así y deja la auditoría allí). Por cada tabla con tenant_id, en
--- varias pasadas para respetar las llaves foráneas, quita por un momento sus disparadores (que
--- impiden borrar registros que solo se agregan) y la seguridad por fila forzada, y borra solo las
--- filas de esa empresa. Todo ocurre en una transacción: si algo falla, no se borra nada.
--- Queda la constancia mínima en core_tenants: razón social, NIT, fechas y huella de la exportación.
+-- operadora (el worker la usa así y deja la auditoría allí). Borra tabla por tabla, en varias
+-- pasadas para respetar las llaves foráneas, solo las filas de esa empresa. Todo ocurre en una
+-- transacción: si algo falla, no se borra nada. Queda la constancia mínima en core_tenants: razón
+-- social, NIT, fechas y huella de la exportación.
 CREATE FUNCTION "core_purge_tenant"(p_tenant UUID, p_today DATE) RETURNS JSONB
     LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp
     AS $$
 DECLARE
     target core_tenants;
     manifest TEXT;
-    tables TEXT[];
+    missing TEXT;
     pending TEXT[];
     remaining TEXT[];
     tbl TEXT;
@@ -569,24 +628,23 @@ BEGIN
     SELECT manifest_sha256 INTO manifest FROM core_tenant_exports
         WHERE id = target.deletion_export_id;
 
-    SELECT array_agg(c.relname::text ORDER BY c.relname) INTO tables
+    SELECT array_agg(c.relname::text ORDER BY c.relname) INTO pending
     FROM pg_class c
     JOIN pg_namespace n ON n.oid = c.relnamespace
-    WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p') AND c.relname <> 'core_tenants'
+    WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p') AND NOT c.relispartition
+      AND c.relname <> 'core_tenants'
       AND EXISTS (SELECT 1 FROM pg_attribute a
                   WHERE a.attrelid = c.oid AND a.attname = 'tenant_id' AND NOT a.attisdropped);
 
-    FOREACH tbl IN ARRAY tables LOOP
-        EXECUTE format('ALTER TABLE %I DISABLE TRIGGER USER', tbl);
-        EXECUTE format('ALTER TABLE %I NO FORCE ROW LEVEL SECURITY', tbl);
-    END LOOP;
+    SELECT string_agg(t, ', ') INTO missing FROM unnest(pending) AS t
+        WHERE NOT EXISTS (SELECT 1 FROM pg_policies p
+                          WHERE p.schemaname = 'public' AND p.tablename = t
+                            AND p.policyname = t || '_purge');
+    IF missing IS NOT NULL THEN
+        RAISE EXCEPTION 'TENANCY_PURGE_POLICY_MISSING: %', missing USING ERRCODE = 'check_violation';
+    END IF;
 
-    -- Solo las tablas raíz: borrar en la tabla particionada borra en sus particiones.
-    SELECT array_agg(t ORDER BY t) INTO pending
-        FROM unnest(tables) AS t
-        WHERE NOT (SELECT c.relispartition FROM pg_class c
-                   JOIN pg_namespace n ON n.oid = c.relnamespace
-                   WHERE n.nspname = 'public' AND c.relname = t);
+    PERFORM set_config('app.purge_tenant', p_tenant::text, true);
     WHILE coalesce(array_length(pending, 1), 0) > 0 LOOP
         pass := pass + 1;
         IF pass > 50 THEN
@@ -605,11 +663,7 @@ BEGIN
         END LOOP;
         pending := remaining;
     END LOOP;
-
-    FOREACH tbl IN ARRAY tables LOOP
-        EXECUTE format('ALTER TABLE %I FORCE ROW LEVEL SECURITY', tbl);
-        EXECUTE format('ALTER TABLE %I ENABLE TRIGGER USER', tbl);
-    END LOOP;
+    PERFORM set_config('app.purge_tenant', '', true);
 
     UPDATE core_tenants
         SET status = 'closed', closed_at = now(), closing_manifest_sha256 = manifest,

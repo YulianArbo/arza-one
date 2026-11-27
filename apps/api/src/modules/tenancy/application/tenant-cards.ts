@@ -13,6 +13,14 @@ export function isUniqueViolation(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002';
 }
 
+/**
+ * El NIT ya existe: la función de la plataforma lo inserta con SQL, y la base de datos lo dice con
+ * el nombre de su índice único.
+ */
+export function isTaxIdTaken(error: unknown): boolean {
+  return error instanceof Error && error.message.includes('core_tenants_tax_id_key');
+}
+
 export interface Usage {
   readonly internal_users: number;
   readonly portal_users: number;
