@@ -19,9 +19,11 @@ function codesOf(role: SystemRoleCode, own?: boolean): readonly string[] {
 const ALL_ROLES = SYSTEM_ROLES.map((role) => role.code);
 
 describe('roles del sistema (numeral 15.2)', () => {
-  it('son los 16 del manual, 14 internos y 2 del portal', () => {
-    expect(ALL_ROLES).toHaveLength(16);
+  it('son los 16 del manual, 14 internos y 2 del portal, más el operador de la plataforma (B48)', () => {
+    expect(ALL_ROLES).toHaveLength(17);
     expect(INTERNAL_ROLE_CODES).toHaveLength(14);
+    const operatorOnly = SYSTEM_ROLES.filter((role) => role.operatorOnly === true);
+    expect(operatorOnly.map((role) => role.code)).toEqual(['OPERADOR_PLATAFORMA']);
     const portal = SYSTEM_ROLES.filter((role) => role.audience === 'portal');
     expect(portal.map((role) => role.code)).toEqual(['CLIENTE_ADMIN', 'CLIENTE_USUARIO']);
   });
@@ -124,6 +126,29 @@ describe('permisos limitados y sensibles', () => {
       { code: 'portal.personal_data.manage', own: true },
     ]);
     expect(codesOf('CLIENTE_ADMIN')).toContain('portal.user.manage');
+  });
+});
+
+describe('operador de la plataforma (B48, decisiones 1 a 3)', () => {
+  it('solo administra las fichas de las empresas', () => {
+    expect(codesOf('OPERADOR_PLATAFORMA')).toEqual([
+      'platform.tenant.read',
+      'platform.tenant.manage',
+      'platform.tenant.delete',
+    ]);
+  });
+
+  it('ningún otro rol recibe los permisos de la plataforma', () => {
+    const others = ALL_ROLES.filter((role) => role !== 'OPERADOR_PLATAFORMA');
+    const leaked = others
+      .flatMap((role) => codesOf(role))
+      .filter((code) => code.startsWith('platform.'));
+    expect(leaked).toEqual([]);
+  });
+
+  it('la exportación completa de la empresa es solo de la Dirección', () => {
+    const holders = ALL_ROLES.filter((role) => codesOf(role).includes('core.tenant.export'));
+    expect(holders).toEqual(['DIRECCION']);
   });
 });
 

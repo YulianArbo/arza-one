@@ -23,3 +23,4 @@ export * from './innovation/index.js';
 export * from './dashboard/index.js';
 export * from './site/index.js';
 export * from './ai/index.js';
+export * from './tenancy/index.js';
