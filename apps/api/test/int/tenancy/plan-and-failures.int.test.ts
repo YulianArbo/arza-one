@@ -83,3 +83,18 @@ describe('exportación que falla', () => {
     expect(again.status, again.text).toBe(201);
   });
 });
+
+describe('dos pasadas del worker a la vez', () => {
+  it('generan la exportación una sola vez', async () => {
+    const boss = await s.person('direccion-doble', ['DIRECCION']);
+    const id = await requestExport(s, boss);
+    const deps = { database: apiDatabase(), clock: s.clock, storage: storage() };
+    await Promise.all([runTenantExportWork(deps), runTenantExportWork(deps)]);
+    const ready = (await exportsOf(s, boss)).find((entry) => entry.id === id);
+    expect(ready?.status).toBe('ready');
+    const generated = await s.db.withTenant({ tenantId: s.tenant.id, userId: null }, (tx) =>
+      tx.auditEvent.count({ where: { entityId: id, action: 'core.tenant.export_ready' } }),
+    );
+    expect(generated).toBe(1);
+  });
+});

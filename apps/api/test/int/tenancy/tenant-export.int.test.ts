@@ -66,6 +66,8 @@ describe('pedir la exportación', () => {
     expect(again.status).toBe(409);
     expect(errorCode(again)).toBe('TENANCY_EXPORT_IN_PROGRESS');
     expect((await exportsOf(s, director))[0]?.status).toBe('queued');
+    const early = await download(s, director, exportId);
+    expect(early.status).toBe(409);
   });
 });
 

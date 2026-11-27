@@ -194,3 +194,29 @@ describe('suspensión', () => {
     expect(errorCode(noExport)).toBe('TENANCY_EXPORT_REQUIRED');
   });
 });
+
+describe('versiones y empresas inexistentes', () => {
+  it('suspender con una versión vieja no cambia nada y una empresa inexistente no existe', async () => {
+    const op = await operator(s, 'operador-versiones');
+    const tenantId = await freshTenant('version-vieja');
+    const { version } = await card(s, op, tenantId);
+    const path = `/v1/platform/tenants/${tenantId}/suspend`;
+    const body = { reason: 'Prueba de versión vieja del operador.' };
+    const stale = await sendAs(s, 'post', path, op.session, { body, version: version + 5 });
+    expect(stale.status).toBe(409);
+    expect((await card(s, op, tenantId)).status).toBe('active');
+    const missing = '01900000-0000-7000-8000-00000000dead';
+    const deletion = await sendAs(
+      s,
+      'post',
+      `/v1/platform/tenants/${missing}/deletion`,
+      op.session,
+      {
+        body: { reason: 'Empresa que no existe en la plataforma.', confirm_tax_id: '900123456-8' },
+        version: 1,
+      },
+    );
+    expect(deletion.status).toBe(404);
+    expect(errorCode(deletion)).toBe('TENANCY_TENANT_NOT_FOUND');
+  });
+});

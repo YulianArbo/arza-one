@@ -121,7 +121,7 @@ export async function setTenantPlan(
       ${change.id}::uuid, ${change.version}::integer, ${change.plan},
       ${limits.maxInternalUsers}::integer, ${limits.maxPortalUsers}::integer,
       ${limits.storageMb}::integer, ${limits.aiAssistant}::boolean) AS changed`;
-  return (rows[0]?.changed ?? 0) > 0;
+  return rows.some((row) => row.changed > 0);
 }
 
 export type StatusAction = 'suspend' | 'reactivate' | 'request_deletion' | 'cancel_deletion';
@@ -145,7 +145,7 @@ export async function changeTenantStatus(
     SELECT core_platform_change_status(
       ${change.id}::uuid, ${change.version}::integer, ${change.action}, ${change.reason},
       ${change.dueOn}::date, ${change.exportId}::uuid) AS changed`;
-  return (rows[0]?.changed ?? 0) > 0;
+  return rows.some((row) => row.changed > 0);
 }
 
 /** Empresas cuya eliminación venció, o cerradas con archivos por borrar. Sin contexto. */
@@ -163,7 +163,7 @@ export async function purgeTenantData(
 ): Promise<Record<string, number>> {
   const rows = await tx.$queryRaw<{ counts: Record<string, number> }[]>`
     SELECT core_purge_tenant(${tenantId}::uuid, ${today}::date) AS counts`;
-  return rows[0]?.counts ?? {};
+  return Object.assign({}, ...rows.map((row) => row.counts)) as Record<string, number>;
 }
 
 export async function markFilesPurged(tx: TenantTransaction, tenantId: string): Promise<void> {

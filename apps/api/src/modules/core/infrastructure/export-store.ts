@@ -27,7 +27,7 @@ export async function omittedTables(tx: TenantTransaction): Promise<OmittedTable
 export async function omittedColumns(tx: TenantTransaction, table: string): Promise<string[]> {
   const rows = await tx.$queryRaw<{ columns: string[] }[]>`
     SELECT core_export_omitted_columns(${table}) AS columns`;
-  return rows[0]?.columns ?? [];
+  return rows.flatMap((row) => row.columns);
 }
 
 /** Columnas que salen de la tabla, en su orden; sin las que nunca se exportan. */
@@ -84,20 +84,40 @@ export async function queueTenantExport(
   return created.id;
 }
 
-/** La siguiente exportación en cola (o una que quedó a medias), marcada como en curso. */
+/** Una exportación en curso que no terminó en este tiempo se da por abandonada y se retoma. */
+const ABANDONED_MS = 60 * 60 * 1000;
+
+/** La exportación que trabaja una pasada: su identificador y su intento. */
+export interface ClaimedExport {
+  readonly id: string;
+  readonly attempt: number;
+}
+
+/**
+ * Toma la siguiente exportación en cola, o una abandonada, para esta pasada. La toma es atómica:
+ * si otra pasada del worker la tomó primero, esta no la trabaja.
+ */
 export async function claimQueuedExport(
   tx: TenantTransaction,
   at: Date,
-): Promise<TenantExportRow | null> {
+): Promise<ClaimedExport | null> {
+  const available = {
+    OR: [
+      { status: 'queued' },
+      { status: 'running', startedAt: { lt: new Date(at.getTime() - ABANDONED_MS) } },
+    ],
+  };
   const next = await tx.tenantExport.findFirst({
-    where: { status: { in: ['queued', 'running'] } },
+    where: available,
     orderBy: { requestedAt: 'asc' },
   });
   if (next === null) return null;
-  return tx.tenantExport.update({
-    where: { id: next.id },
-    data: { status: 'running', startedAt: at, attempts: { increment: 1 } },
+  const attempt = next.attempts + 1;
+  const { count } = await tx.tenantExport.updateMany({
+    where: { id: next.id, attempts: next.attempts, ...available },
+    data: { status: 'running', startedAt: at, attempts: attempt },
   });
+  return count === 0 ? null : { id: next.id, attempt };
 }
 
 export interface ReadyExport {
@@ -111,13 +131,14 @@ export interface ReadyExport {
   readonly expiresAt: Date;
 }
 
+/** Deja lista la exportación, solo si sigue en manos de esta pasada. false si ya no. */
 export async function markExportReady(
   tx: TenantTransaction,
-  id: string,
+  job: ClaimedExport,
   ready: ReadyExport,
-): Promise<void> {
-  await tx.tenantExport.update({
-    where: { id },
+): Promise<boolean> {
+  const { count } = await tx.tenantExport.updateMany({
+    where: { id: job.id, status: 'running', attempts: job.attempt },
     data: {
       status: 'ready',
       storageKey: ready.storageKey,
@@ -130,10 +151,19 @@ export async function markExportReady(
       expiresAt: ready.expiresAt,
     },
   });
+  return count > 0;
 }
 
-export async function markExportFailed(tx: TenantTransaction, id: string): Promise<void> {
-  await tx.tenantExport.update({ where: { id }, data: { status: 'failed' } });
+/** La marca fallida, solo si sigue en manos de esta pasada. false si ya no. */
+export async function markExportFailed(
+  tx: TenantTransaction,
+  job: ClaimedExport,
+): Promise<boolean> {
+  const { count } = await tx.tenantExport.updateMany({
+    where: { id: job.id, status: 'running', attempts: job.attempt },
+    data: { status: 'failed' },
+  });
+  return count > 0;
 }
 
 /** Exportaciones listas cuyo plazo venció: pasan a vencidas y se devuelve su archivo. */

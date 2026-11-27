@@ -1,4 +1,4 @@
-import type { PlanLimits, TenantPlan } from '@arza/contracts';
+import { tenantPlanSchema, type PlanLimits, type TenantPlan } from '@arza/contracts';
 
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 
@@ -16,10 +16,6 @@ export interface TenantPlanView {
   readonly limits: PlanLimits;
 }
 
-function isPlan(value: string): value is TenantPlan {
-  return value === 'basic' || value === 'professional' || value === 'enterprise';
-}
-
 /** Plan y límites que rigen para la empresa del contexto. */
 export async function tenantPlan(tx: TenantTransaction): Promise<TenantPlanView> {
   const tenant = await tx.tenant.findFirstOrThrow({
@@ -31,9 +27,9 @@ export async function tenantPlan(tx: TenantTransaction): Promise<TenantPlanView>
       limitAiAssistant: true,
     },
   });
-  if (!isPlan(tenant.plan)) throw new Error(`Plan desconocido: ${tenant.plan}`);
   return {
-    plan: tenant.plan,
+    // La base de datos solo admite los tres planes (core_tenants_plan_check).
+    plan: tenantPlanSchema.parse(tenant.plan),
     limits: {
       maxInternalUsers: tenant.limitInternalUsers,
       maxPortalUsers: tenant.limitPortalUsers,

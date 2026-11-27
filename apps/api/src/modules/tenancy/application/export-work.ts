@@ -24,7 +24,7 @@ import {
   markExportReady,
   omittedColumns,
   omittedTables,
-  type TenantExportRow,
+  type ClaimedExport,
 } from '../../core/index.js';
 import type { FileStorage } from '../../doc/index.js';
 import { recordAuditEvent } from '../../../platform/audit/audit-recorder.js';
@@ -66,9 +66,12 @@ const README = [
   '',
 ].join('\r\n');
 
-/** Clave del ZIP en el almacenamiento: fuera de la carpeta de la empresa, para no exportarlo. */
-function exportStorageKey(tenantId: string, exportId: string): string {
-  return `exports/${tenantId}/${exportId}.zip`;
+/**
+ * Clave del ZIP en el almacenamiento: fuera de la carpeta de la empresa, para no exportarlo, y
+ * propia de cada intento, para que un intento abandonado no pise el archivo de otro.
+ */
+function exportStorageKey(tenantId: string, job: ClaimedExport): string {
+  return `exports/${tenantId}/${job.id}-${String(job.attempt)}.zip`;
 }
 
 function system(tenantId: string): { tenantId: string; userId: null } {
@@ -188,11 +191,11 @@ async function buildZip(
 async function publish(
   deps: ExportWorkDependencies,
   tenantId: string,
-  job: TenantExportRow,
+  job: ClaimedExport,
   built: BuiltZip & { readonly path: string },
 ): Promise<void> {
   const sizeBytes = (await stat(built.path)).size;
-  const storageKey = exportStorageKey(tenantId, job.id);
+  const storageKey = exportStorageKey(tenantId, job);
   await deps.storage.put(
     { key: storageKey, contentType: 'application/zip', sizeBytes },
     createReadStream(built.path),
@@ -209,20 +212,23 @@ async function publish(
     readyAt,
     expiresAt: new Date(readyAt.getTime() + TENANT_EXPORT_TTL_DAYS * DAY_MS),
   };
-  await deps.database.withTenant(system(tenantId), async (tx) => {
-    await markExportReady(tx, job.id, ready);
+  const kept = await deps.database.withTenant(system(tenantId), async (tx) => {
+    if (!(await markExportReady(tx, job, ready))) return false;
     await auditExport(tx, tenantId, readyAt, {
       action: 'core.tenant.export_ready',
       id: job.id,
       changes: { tables: ready.tables, rows, files: ready.files, size_bytes: sizeBytes },
     });
+    return true;
   });
+  // Otra pasada retomó la exportación: este archivo sobra.
+  if (!kept) await deps.storage.delete(storageKey);
 }
 
 async function generate(
   deps: ExportWorkDependencies,
   tenantId: string,
-  job: TenantExportRow,
+  job: ClaimedExport,
 ): Promise<void> {
   const folder = await mkdtemp(join(tmpdir(), 'arza-export-'));
   try {
@@ -234,12 +240,16 @@ async function generate(
   }
 }
 
-async function fail(deps: ExportWorkDependencies, tenantId: string, id: string): Promise<void> {
+async function fail(
+  deps: ExportWorkDependencies,
+  tenantId: string,
+  job: ClaimedExport,
+): Promise<void> {
   await deps.database.withTenant(system(tenantId), async (tx) => {
-    await markExportFailed(tx, id);
+    if (!(await markExportFailed(tx, job))) return;
     await auditExport(tx, tenantId, deps.clock.now(), {
       action: 'core.tenant.export_fail',
-      id,
+      id: job.id,
       changes: {},
     });
   });
@@ -268,14 +278,14 @@ async function expire(deps: ExportWorkDependencies, tenantId: string): Promise<n
 async function claim(
   deps: ExportWorkDependencies,
   tenantId: string,
-): Promise<TenantExportRow | null> {
+): Promise<ClaimedExport | null> {
   return deps.database.withTenant(system(tenantId), async (tx) => {
     const job = await claimQueuedExport(tx, deps.clock.now());
     if (job !== null) {
       await auditExport(tx, tenantId, deps.clock.now(), {
         action: 'core.tenant.export_start',
         id: job.id,
-        changes: { attempt: job.attempts },
+        changes: { attempt: job.attempt },
       });
     }
     return job;
@@ -298,7 +308,7 @@ export async function runTenantExportWork(deps: ExportWorkDependencies): Promise
       result.generated += 1;
     } catch (error) {
       // La Dirección ve «fallida» y puede pedirla de nuevo; las demás empresas siguen su turno.
-      await fail(deps, tenantId, job.id);
+      await fail(deps, tenantId, job);
       result.failed += 1;
       errors.push(error);
     }

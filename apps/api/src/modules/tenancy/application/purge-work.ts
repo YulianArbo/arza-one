@@ -4,6 +4,7 @@ import {
   platformTenants,
   purgeTenantData,
   tenantsDueForPurge,
+  type TenantRecord,
 } from '../../core/index.js';
 import type { FileStorage } from '../../doc/index.js';
 import { recordAuditEvent } from '../../../platform/audit/audit-recorder.js';
@@ -52,20 +53,20 @@ async function auditPurge(
   });
 }
 
-async function purgeData(deps: PurgeWorkDependencies, tenantId: string, today: string) {
+async function purgeData(deps: PurgeWorkDependencies, target: TenantRecord, today: string) {
   const at = deps.clock.now();
+  const tenantId = target.id;
   await deps.database.withTenantFor(
     OPERATOR,
     async (tx) => {
-      const target = (await platformTenants(tx)).find((record) => record.id === tenantId);
       const counts = await purgeTenantData(tx, tenantId, today);
       const rows = Object.values(counts).reduce((total, count) => total + count, 0);
       await auditPurge(tx, at, {
         action: 'platform.tenant.purge',
         tenantId,
         changes: {
-          tax_id: target?.taxId ?? '',
-          legal_name: target?.legalName ?? '',
+          tax_id: target.taxId,
+          legal_name: target.legalName,
           tables: Object.keys(counts).length,
           rows_deleted: rows,
         },
@@ -100,14 +101,15 @@ async function purgeFiles(deps: PurgeWorkDependencies, tenantId: string): Promis
 export async function runTenantPurgeWork(deps: PurgeWorkDependencies): Promise<PurgeWorkResult> {
   const today = bogotaToday(deps.clock.now());
   const due = await deps.database.withoutTenant((tx) => tenantsDueForPurge(tx, today));
-  const statuses = await deps.database.withTenant(OPERATOR, async (tx) => {
-    const records = await platformTenants(tx);
-    return new Map(records.map((record) => [record.id, record.status]));
+  const records = await deps.database.withTenant(OPERATOR, async (tx) => {
+    const all = await platformTenants(tx);
+    return new Map(all.map((record) => [record.id, record]));
   });
   const result = { purged: 0, filesPurged: 0 };
   for (const tenantId of due) {
-    if (statuses.get(tenantId) === 'suspended') {
-      await purgeData(deps, tenantId, today);
+    const record = records.get(tenantId);
+    if (record?.status === 'suspended') {
+      await purgeData(deps, record, today);
       result.purged += 1;
     }
     await purgeFiles(deps, tenantId);

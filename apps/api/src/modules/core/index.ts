@@ -85,6 +85,7 @@ export {
 } from './infrastructure/platform-store.js';
 export {
   claimQueuedExport,
+  type ClaimedExport,
   expireDueExports,
   exportColumns,
   exportInProgress,
