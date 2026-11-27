@@ -1039,6 +1039,38 @@ Guía funcional en [`docs/puesta-en-marcha`](../../docs/puesta-en-marcha/README.
   la alerta de exportación masiva de B44 si corresponde).
 - El lector de CSV de Excel pasó de `doc/domain/csv.ts` a `platform/export/csv-read.ts`.
 
+## Asistente de inteligencia artificial (B47, módulo `src/modules/ai`)
+
+Pasarela de IA (ADR-022, ADR-027). Ficha del módulo en
+[`docs/manual/datos/ai.md`](../../docs/manual/datos/ai.md); evaluación de impacto en
+[`docs/privacidad/evaluacion-impacto-ia.md`](../../docs/privacidad/evaluacion-impacto-ia.md).
+
+- Toda llamada al modelo pasa por `AiGateway`, en este orden:
+  1. `admit`: revisa el proveedor, que el uso esté activo y el límite del día.
+  2. Lee el registro con el módulo dueño (`assistantCandidates`, `assistantDocument`,
+     `ticketForAssistant`, `pqrsfForAssistant`).
+  3. `minimized`: borra datos personales y recorta al tope.
+  4. `frameOf`: arma el marco con las reglas fijas.
+  5. Llama al modelo y `readAnswer` valida el JSON y las citas.
+  6. Registra en `ai_requests` con `ai.request.create` y el evento `ai.request.recorded`.
+- Un fallo del proveedor queda registrado como `failed` y responde 502. Un registro restringido o
+  una PQRSF de datos personales queda como `blocked` y responde 422 `AI_SOURCE_EXCLUDED`.
+- El proveedor es una pieza intercambiable (`AI_MODEL`):
+  - `rehearsalModel()`: sin IA. Las pruebas de integración lo usan (`createIamTestApp`).
+  - `anthropicModel()`: `fetch` a `https://api.anthropic.com/v1/messages` con
+    `output_config.format` y `fallbacks: "default"`.
+  - Las variables `AI_GATEWAY_*` se validan en `env-schema.ts`: rehearsal no se acepta en
+    producción y anthropic exige la llave.
+- El índice lo mantiene el worker (`ai.index-work`, cada 5 minutos, `refreshAiIndex`): lee
+  `indexableVersions` y `versionText` de Documentos y escribe `ai_index_chunks`.
+- Para agregar un uso:
+  1. Agregue la clave en `AI_USE_CASES` (contratos) y en los `CHECK` de `ai_use_cases`,
+     `ai_prompts` y `ai_requests`.
+  2. Escriba su instrucción de fábrica en `domain/default-prompts.ts` y su esquema en
+     `answerSchema`.
+  3. Haga que el módulo dueño publique la lectura por su `index.ts`.
+  4. Actualice la evaluación de impacto.
+
 ## Imágenes Docker (B05 y B07)
 
 [`Dockerfile`](Dockerfile) produce dos imágenes, sin gestores de paquetes y con usuario sin

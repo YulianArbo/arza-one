@@ -26,9 +26,9 @@ claro, un capítulo por módulo (decisión 7 de B45). Empiece por **Primeros pas
 | [M17 Sitio web](M17-sitio-web.md)                     | Dirección y Oficial de datos                  |
 | [M18 Privacidad](M18-privacidad.md)                   | Oficial de datos                              |
 | [M19 Auditoría](M19-auditoria.md)                     | Auditor, Dirección y administrador            |
+| [M20 Asistente de IA](M20-asistente.md)               | Todas las personas; Oficial de datos          |
 
-El módulo M20 (asistente de inteligencia artificial) se agrega cuando se construya (B47). M16 se
-agregó con B46.
+M16 se agregó con B46 y M20 con B47.
 
 ## Publicarlo como documento controlado
 

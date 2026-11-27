@@ -31,3 +31,4 @@ aprobación del Director General. El resumen oficial está en el numeral 8.4 del
 | [ADR-023](023-seguimiento-de-tramites-en-la-transaccion.md)   | Los módulos siguen los pasos de sus trámites dentro de la misma transacción       | Propuesta |
 | [ADR-024](024-integracion-continua-sin-repeticiones.md)       | Integración continua sin repetir verificaciones sobre el mismo código             | Aceptada  |
 | [ADR-026](026-vigilancia-fuera-del-servidor-de-produccion.md) | Vigilancia y errores en un servidor aparte del de producción                      | Aceptada  |
+| [ADR-027](027-busqueda-del-asistente-sin-vectores.md)         | Búsqueda del asistente de IA con palabras clave, sin vectores                     | Aceptada  |

@@ -63,8 +63,9 @@ C: crear y editar. L: leer. A: aprobar o ejecutar transiciones críticas. P: sol
 | **M17 Sitio y textos**    | LA      | C       | L       | C       | —       | —       | —       | —       | —       | —       | —       | CA      | —       | L       |
 | **M18 Privacidad**        | LA      | —       | L       | —       | —       | —       | —       | —       | —       | —       | —       | CA      | P       | L       |
 | **M19 Auditoría**         | L       | L       | L       | —       | —       | —       | —       | —       | —       | —       | —       | L       | —       | L       |
+| **M20 Asistente de IA**   | L       | CA      | CA      | L       | L       | L       | L       | L       | L       | L       | L       | L       | L       | L       |
 
-Siglas de columnas: DIR Dirección, ADM Administrador de plataforma, CAL Calidad, COM Comercial, TEC Líder técnico, EQP Equipo de proyecto, SAC Servicio, FIN Administrativo y financiero, CON Contador, GTH Talento humano, SST Seguridad y salud, DAT Oficial de datos, COL Colaborador, AUD Auditor. El portal M09 aplica a los roles de cliente y la IA M20 hereda los permisos del usuario que la usa.
+Siglas de columnas: DIR Dirección, ADM Administrador de plataforma, CAL Calidad, COM Comercial, TEC Líder técnico, EQP Equipo de proyecto, SAC Servicio, FIN Administrativo y financiero, CON Contador, GTH Talento humano, SST Seguridad y salud, DAT Oficial de datos, COL Colaborador, AUD Auditor. El portal M09 aplica a los roles de cliente y la IA M20 hereda los permisos del usuario que la usa: la fila M20 solo dice quién puede usar el asistente (L) y quién administra sus instrucciones (CA). Activar sus usos es del Oficial de datos, y ver su registro, del Oficial de datos, el Auditor y el administrador (permisos sensibles, B47).
 
 ## 15.4 Reglas de autorización por contexto (ABAC)
 

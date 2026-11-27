@@ -36,6 +36,6 @@ requisito del acta de salida a producción ([FT-TEC-008](../puesta-en-marcha/FT-
 | M17    | [Sitio público](M17-sitio-web.md)                 | Director General                               |
 | M18    | [Privacidad](M18-privacidad.md)                   | Oficial de Protección de Datos Personales      |
 | M19    | [Auditoría](M19-auditoria.md)                     | Director General                               |
+| M20    | [Asistente de IA](M20-asistente.md)               | Oficial de Protección de Datos Personales      |
 
-**M20 (asistente de inteligencia artificial)** todavía no está construido: se construye en B47, que
-agregará su guion. M16 se agregó con B46.
+M16 se agregó con B46 y M20 con B47.
