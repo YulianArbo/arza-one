@@ -6,7 +6,7 @@
 2. **Toda función nueva `*_tenants_with_*` del worker debe filtrar con `core_tenant_runs_jobs(id)`**: la migración de B48 envolvió las 31 que existían (las originales quedaron como `<nombre>_any`).
 3. La empresa operadora tiene identificador fijo (`OPERATOR_TENANT_ID` en `platform/database/operator-tenant.ts` = `core_operator_tenant_id()`). Las pruebas la crean con `operator()` (`test/int/tenancy/support/tenancy-fixture.ts`).
 4. `core_tenants`: la aplicación solo puede cambiar datos legales, marca y columnas de control. El plan, los límites y el estado se cambian con las funciones `core_platform_*`. Prisma envía los valores por defecto al crear; el disparador `core_tenants_operator_plan` los fija.
-5. Los límites del plan los hacen cumplir disparadores; el error `PLAN_LIMIT:<tipo>` lo traduce `platform/errors/database-raised.ts`. Una prueba que cree más de 50 usuarios internos en una empresa de prueba debe subirle el plan.
+5. Los límites del plan los hacen cumplir disparadores; el error `PLAN_LIMIT:<tipo>` lo traduce `platform/errors/database-raised.ts`. Una prueba que cree más de 50 usuarios internos en una empresa de prueba le da cupo con el segundo argumento de `AccessScenario` (como el recorrido de auditoría).
 6. `DatabaseService.withTenantFor(context, work, timeoutMs)` abre una transacción con tiempo propio (lo usa la eliminación).
 7. La base local se puede reiniciar sola si se corren muchos archivos de integración a la vez (falta de memoria): repita en grupos pequeños los que fallen.
 
