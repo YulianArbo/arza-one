@@ -70,8 +70,8 @@ const BUSINESS_MODULES = [
   QmsModule,
   InnModule,
   DashboardModule,
-  AiModule,
   WebModule,
+  AiModule,
 ];
 
 /**
