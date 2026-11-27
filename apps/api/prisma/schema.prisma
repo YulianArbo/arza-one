@@ -28,6 +28,25 @@ model Tenant {
   updatedBy                String?                   @map("updated_by") @db.Uuid
   version                  Int                       @default(1)
   deletedAt                DateTime?                 @map("deleted_at") @db.Timestamptz(6)
+  /// Plan y límites que rigen (B48). null en usuarios es «sin tope».
+  plan                     String                    @default("professional")
+  limitInternalUsers       Int?                      @default(50) @map("limit_internal_users")
+  limitPortalUsers         Int?                      @default(200) @map("limit_portal_users")
+  limitStorageMb           Int                       @default(51200) @map("limit_storage_mb")
+  limitAiAssistant         Boolean                   @default(true) @map("limit_ai_assistant")
+  brandDisplayName         String?                   @map("brand_display_name")
+  brandColor               String?                   @map("brand_color")
+  brandLogoFileId          String?                   @map("brand_logo_file_id") @db.Uuid
+  suspendedAt              DateTime?                 @map("suspended_at") @db.Timestamptz(6)
+  suspensionReason         String?                   @map("suspension_reason")
+  deletionRequestedAt      DateTime?                 @map("deletion_requested_at") @db.Timestamptz(6)
+  deletionDueOn            DateTime?                 @map("deletion_due_on") @db.Date
+  deletionReason           String?                   @map("deletion_reason")
+  deletionExportId         String?                   @map("deletion_export_id") @db.Uuid
+  closedAt                 DateTime?                 @map("closed_at") @db.Timestamptz(6)
+  filesPurgedAt            DateTime?                 @map("files_purged_at") @db.Timestamptz(6)
+  closingManifestSha256    String?                   @map("closing_manifest_sha256")
+  tenantExports            TenantExport[]
   outboxEvents             OutboxEvent[]
   users                    User[]
   sessions                 Session[]
@@ -226,6 +245,35 @@ model Tenant {
   prjSharedFiles           PrjSharedFile[]
 
   @@map("core_tenants")
+}
+
+/// Exportaciones completas de una empresa (B48, decisiones 3 a 5).
+model TenantExport {
+  id             String    @id @default(uuid(7)) @db.Uuid
+  tenantId       String    @map("tenant_id") @db.Uuid
+  status         String    @default("queued")
+  requestedBy    String    @map("requested_by") @db.Uuid
+  requestedAt    DateTime  @map("requested_at") @db.Timestamptz(6)
+  startedAt      DateTime? @map("started_at") @db.Timestamptz(6)
+  readyAt        DateTime? @map("ready_at") @db.Timestamptz(6)
+  expiresAt      DateTime? @map("expires_at") @db.Timestamptz(6)
+  storageKey     String?   @map("storage_key")
+  sizeBytes      BigInt?   @map("size_bytes")
+  tablesCount    Int?      @map("tables_count")
+  rowsCount      BigInt?   @map("rows_count")
+  filesCount     Int?      @map("files_count")
+  manifestSha256 String?   @map("manifest_sha256")
+  attempts       Int       @default(0)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy      String?   @map("created_by") @db.Uuid
+  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  updatedBy      String?   @map("updated_by") @db.Uuid
+  version        Int       @default(1)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(6)
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onUpdate: Cascade)
+
+  @@index([tenantId, requestedAt])
+  @@map("core_tenant_exports")
 }
 
 /// Eventos de dominio pendientes de publicar (bandeja de salida, numeral 13.2).
