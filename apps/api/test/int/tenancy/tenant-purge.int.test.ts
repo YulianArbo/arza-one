@@ -86,6 +86,25 @@ describe('eliminación definitiva', () => {
   });
 });
 
+describe('archivos que no se pudieron borrar', () => {
+  it('la empresa queda cerrada y la siguiente pasada borra solo sus archivos', async () => {
+    const doomed = await doomedTenant();
+    const op = await operator(s, 'operador-reintenta');
+    await scheduleDeletion(op, doomed);
+    const due = workDeps(s, later(s, 31));
+    const broken = {
+      ...due,
+      storage: { deletePrefix: () => Promise.reject(new Error('Almacenamiento no disponible')) },
+    };
+    await expect(runTenantPurgeWork(broken)).rejects.toThrow('Almacenamiento no disponible');
+    expect((await card(s, op, doomed.id)).status).toBe('closed');
+    expect(await storage().list(`${doomed.id}/`)).not.toEqual([]);
+
+    await runTenantPurgeWork(due);
+    expect(await storage().list(`${doomed.id}/`)).toEqual([]);
+  });
+});
+
 describe('toda tabla de empresa se puede borrar', () => {
   it('cada tabla con tenant_id tiene su política de borrado (también las de bloques futuros)', async () => {
     expect(await tablesWithoutPurgePolicy()).toEqual([]);
