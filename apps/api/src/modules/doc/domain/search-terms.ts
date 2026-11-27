@@ -29,3 +29,12 @@ export function searchTerms(text: string): SearchTerms {
     codePrefix: /^[A-Z0-9][A-Z0-9-]{1,29}$/u.test(code) ? code : null,
   };
 }
+
+/**
+ * Consulta que encuentra cualquiera de las palabras (B47): las palabras clave que el asistente de
+ * IA saca de una pregunta. Pasan por el mismo filtro: solo letras, números y guiones.
+ */
+export function anyOfTerms(keywords: readonly string[]): string | null {
+  const words = [...new Set(keywords.flatMap(wordsOf))].slice(0, MAX_WORDS * 2);
+  return words.length === 0 ? null : words.map((word) => `${word}:*`).join(' | ');
+}

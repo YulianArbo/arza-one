@@ -52,6 +52,9 @@ export const aiAnswerSchema = z.object({
   sources: z.array(aiSourceSchema),
   model: z.string(),
   rehearsal: z.boolean().describe('Respuesta del modo de ensayo, sin inteligencia artificial'),
+  truncated: z
+    .boolean()
+    .describe('El texto era más largo que el límite: se envió solo el comienzo (decisión 8)'),
 });
 
 export const aiReviewRequestSchema = z.strictObject({ decision: aiReviewSchema });
