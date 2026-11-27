@@ -8,7 +8,7 @@ import { serviceNotFound } from './service-support.js';
 // Lo que el asistente de IA (B47) puede leer de Servicio: lo mismo que la persona ve en la ficha
 // del tiquete o de la PQRSF, con las mismas reglas. El asistente nunca lee las tablas svc_.
 
-export interface AssistantTicketMessage {
+interface AssistantTicketMessage {
   readonly fromClient: boolean;
   readonly internal: boolean;
   readonly body: string;

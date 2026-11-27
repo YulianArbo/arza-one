@@ -59,7 +59,7 @@ function AskForm(): JSX.Element {
               }}
             />
             <div>
-              <Button type="submit" className="bg-action" disabled={ask.pending}>
+              <Button type="submit" disabled={ask.pending}>
                 <Send aria-hidden="true" /> {ask.pending ? 'Buscando…' : 'Preguntar'}
               </Button>
             </div>

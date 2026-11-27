@@ -18,7 +18,7 @@ import { usePermissions } from '../session/permissions';
 // Consultas del asistente de IA (B47). La API revisa el permiso, lo que la persona puede ver, el
 // uso activo, el límite del día y el aislamiento entre empresas en cada petición.
 
-export const ASSISTANT_KEY = ['assistant'] as const;
+const ASSISTANT_KEY = ['assistant'] as const;
 const REASON = 'Cada uso del asistente queda en la auditoría.';
 
 export function useAssistantQuery<T>(

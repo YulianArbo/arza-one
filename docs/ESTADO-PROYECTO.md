@@ -1,5 +1,14 @@
 # Estado del proyecto ARZA ONE
 
+**B47 construido y en revisión, 26/11/2026 (Claude Code).** El propietario aprobó el plan («Apruebo todo», 12 decisiones). Rama `feat/b47-asistente-de-inteligencia-arti` encima de `feat/b46-tableros-gerenciales-y-requisi` (`e481b487`; PR #102 aún sin fusionar). **Bloque crítico: requiere revisión externa.**
+
+- Módulo nuevo `ai` (M20): pasarela de IA con control de permisos, minimización y registro. Tablas `ai_use_cases`, `ai_prompts`, `ai_requests`, `ai_index_chunks`. Migración `20261129000000_ai_assistant_gateway`.
+- Usos: preguntas sobre documentos con fuentes, resumen de documento, resumen, borrador y clasificación de tiquetes, borrador y tipo de PQRSF. Nunca lo restringido ni las PQRSF de datos personales.
+- Proveedor `AI_GATEWAY_PROVIDER`: off por defecto, rehearsal (sin IA, nunca en producción) o anthropic. Búsqueda sin vectores (ADR-027).
+- Web: menú «Asistente» con registro de usos, usos activos e instrucciones, y panel en las fichas de documento, tiquete y PQRSF.
+- Verificado en este equipo: integración del asistente 18/18, recorrido de auditoría de las rutas nuevas 7/7, pantallas 45/45, contratos 325/325. Resto de verificaciones en `docs/bloques/B47-cierre.md`; la suite completa de integración la confirma la CI.
+- Pendientes: revisión externa, contrato de transmisión con Anthropic, firma de la evaluación de impacto (`docs/privacidad/evaluacion-impacto-ia.md`), variables de producción.
+
 **B46 construido y en revisión, 26/11/2026 (Claude Code).** El propietario aprobó el plan («Apruebo todo», 12 decisiones). Rama `feat/b46-tableros-gerenciales-y-requisi` desde `e1b2394` (`main` con B45 fusionado, PR #101). Bloque no crítico.
 
 - Módulo nuevo `dashboard` (sin tablas): tablero gerencial, tablero de cumplimiento y cuadro de mando en `/v1/dashboards/...`. Cada cifra sale de una lectura que publica su módulo, solo se calcula con el permiso del listado de origen y lleva a sus registros.

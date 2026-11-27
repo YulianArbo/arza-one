@@ -2,9 +2,4 @@
 // «@arza/api/ai» para el worker, que mantiene el índice de los documentos (refreshAiIndex). Nadie
 // más lee las tablas ai_; el asistente lee Gestión documental y Servicio por sus index.ts.
 export { AiModule } from './interface/ai.module.js';
-export { AI_MODEL, type AiModel, type AiCompletion } from './infrastructure/ai-model.js';
-export {
-  refreshAiIndex,
-  type AiIndexDependencies,
-  type AiIndexResult,
-} from './application/index-work.js';
+export { refreshAiIndex, type AiIndexResult } from './application/index-work.js';
