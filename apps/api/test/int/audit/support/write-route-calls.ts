@@ -38,6 +38,7 @@ import { QMS_LEGAL_ROUTE_CALLS } from './qms-legal-route-calls.js';
 import { QMS_ROUTE_CALLS } from './qms-route-calls.js';
 import { SST_PEOPLE_ROUTE_CALLS } from './sst-people-route-calls.js';
 import { SST_ROUTE_CALLS } from './sst-route-calls.js';
+import { TENANCY_ROUTE_CALLS } from './tenancy-route-calls.js';
 import { WEB_ROUTE_CALLS } from './web-route-calls.js';
 import { WF_ROUTE_CALLS } from './wf-route-calls.js';
 
@@ -56,6 +57,7 @@ export type RouteCall = (scenario: AccessScenario) => Promise<PendingRequest>;
 export const WRITE_ROUTE_CALLS: Readonly<Record<string, RouteCall>> = {
   ...AUTH_ROUTE_CALLS,
   ...AI_ROUTE_CALLS,
+  ...TENANCY_ROUTE_CALLS,
   ...ACCESS_ROUTE_CALLS,
   ...HR_ROUTE_CALLS,
   ...HR_ABSENCE_ROUTE_CALLS,

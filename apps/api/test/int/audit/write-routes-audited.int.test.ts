@@ -1,6 +1,7 @@
 import { v7 as uuidv7 } from 'uuid';
 import { describe, expect, it } from 'vitest';
 
+import { OPERATOR_TENANT_ID } from '../../../src/platform/database/operator-tenant.js';
 import { buildOpenApiDocument } from '../../../src/platform/openapi/openapi.js';
 import { tenantScope } from '../iam/support/iam-fixtures.js';
 import { AccessScenario } from '../iam/support/access-scenario.js';
@@ -23,7 +24,8 @@ function writeRoutes(): string[] {
 }
 
 async function auditedActions(correlationId: string): Promise<string[]> {
-  const tenants = [scenario.tenant.id, scenario.otherTenant.id];
+  // Lo que hace el operador de la plataforma queda en la empresa operadora (B48).
+  const tenants = [scenario.tenant.id, scenario.otherTenant.id, OPERATOR_TENANT_ID];
   const found = await Promise.all(
     tenants.map((tenantId) =>
       tenantScope(
