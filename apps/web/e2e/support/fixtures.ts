@@ -53,6 +53,14 @@ const EMPTY_LISTS: Readonly<Record<string, unknown>> = {
   '/v1/comments': { items: [] },
   '/v1/attachments': { items: [] },
   '/v1/files': { data: [] },
+  // Las fichas de documento, tiquete y PQRSF piden el estado del asistente (B47): apagado.
+  '/v1/ai/status': {
+    provider: 'off',
+    model: null,
+    enabled_use_cases: [],
+    used_today: 0,
+    daily_limit: 50,
+  },
   // El acceso pide los comunicados vigentes (B36A); sin comunicados, no muestra nada.
   '/v1/public/announcements': { data: [] },
   // El sitio pide sus páginas publicadas, el aviso de los formularios y la versión de la política

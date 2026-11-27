@@ -5,6 +5,7 @@ import { Alert, AlertDescription, Badge } from '@arza/ui';
 import type { JSX } from 'react';
 
 import { PageHeader } from '../../components/app-shell/page-header';
+import { AssistantPanel } from '../assistant/assistant-panel';
 import { formatDate, formatDateTime } from '../../lib/format/date-time';
 import { QueryState } from '../administration/query-state';
 import { FactsCard, factLink, type Fact } from '../crm/crm-facts';
@@ -169,6 +170,10 @@ function Detail({ ticket }: Props): JSX.Element {
         </Alert>
       )}
       <TicketActions ticket={ticket} />
+      <AssistantPanel
+        targetId={ticket.id}
+        useCases={['ticket_summary', 'ticket_reply', 'ticket_classify']}
+      />
       <SectionTabs label="Secciones del tiquete" tabs={tabsOf(ticket)} />
     </>
   );

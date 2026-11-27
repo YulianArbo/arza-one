@@ -1,5 +1,16 @@
 # Entrega entre agentes — ARZA ONE
 
+**B47, 26/11/2026 (Claude Code).** Rama `feat/b47-asistente-de-inteligencia-arti`. Decisiones en `docs/bloques/B47-cierre.md`; ficha del módulo en `docs/manual/datos/ai.md`; ADR-027. Puntos para quien continúe:
+
+1. Toda llamada al modelo pasa por `AiGateway` (`apps/api/src/modules/ai/application/gateway.ts`). Para un uso nuevo: clave en `AI_USE_CASES` y en los `CHECK` de las tres tablas `ai_`, instrucción de fábrica en `domain/default-prompts.ts`, esquema en `answerSchema`, y la lectura publicada por el `index.ts` del módulo dueño (como `doc/application/assistant-sources.ts` y `service/application/assistant-sources.ts`).
+2. Las pruebas de integración usan el proveedor de ensayo: `createIamTestApp` pone `AI_GATEWAY_PROVIDER=rehearsal`. No lo ponga en `TEST_ENV`, porque la prueba de producción de OpenAPI fallaría (el ensayo se rechaza con `APP_ENV=production`).
+3. `ai_requests` no guarda textos y solo se le cambia `review`/`reviewed_at` (permiso por columna). `ai_index_chunks` solo admite SELECT, INSERT y DELETE.
+4. El worker corre `ai.index-work` cada 5 minutos (`refreshAiIndex` en `@arza/api/ai`).
+5. La minimización borra corridas de 7 o más dígitos, aunque estén pegadas a una palabra. Las pruebas que buscan palabras con números al azar las verán como «[número]» en la respuesta.
+6. Para publicar un documento restringido en pruebas, la Dirección también necesita `doc.restricted.read` (ver `test/int/ai/ai-documents.int.test.ts`).
+
+Los cambios sueltos del propietario (respaldos, `.csv`, `CLAUDE.md`, ADR 024/025, la fila de ADR-025 en `docs/adr/README.md`, `.agents/`, `.claude/`, `.codex-ci-*`, `docs/diagnosticos/`, `.prettierignore`) y las notas de CI de B46 que otro agente dejó sin commit en `docs/ESTADO-PROYECTO.md`, `docs/ENTREGA-AGENTES.md` y `docs/bloques/B46-cierre.md` siguen sin commit y no se tocaron.
+
 **CI de B46, 26/11/2026 (Codex).** El registro de integración del PR #102 (ejecución `45893015444`, trabajo `140160101671`) confirma 84,84 % de cobertura de ramas de la API frente al 85 % exigido. Se ampliaron las pruebas en `apps/api/test/int/dashboard/{compliance,scorecard}.int.test.ts` y `apps/api/test/int/qms/{legal,strategy}.int.test.ts`. Los casos cubren cuentas sin uso, el porcentaje de cumplimiento y su desglose, indicadores sin mediciones, descarga CSV con evaluación y acción, aislamiento y edición con versión obsoleta. Pasaron los 18 casos de los cuatro archivos con PostgreSQL y Valkey en contenedores desechables. La ejecución local de `pnpm test:int` se detuvo durante el arranque de un contenedor por un tiempo de espera de 120 segundos. Consulte la ejecución más reciente del PR para confirmar la cobertura global.
 
 **B46, 26/11/2026 (Claude Code).** Rama `feat/b46-tableros-gerenciales-y-requisi`. Decisiones en `docs/bloques/B46-cierre.md`; ficha del módulo en `docs/manual/datos/direccion.md`. Puntos para quien continúe:

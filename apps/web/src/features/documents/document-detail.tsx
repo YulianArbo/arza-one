@@ -7,6 +7,7 @@ import type { JSX } from 'react';
 
 import { PageHeader } from '../../components/app-shell/page-header';
 import { QueryState } from '../administration/query-state';
+import { AssistantPanel } from '../assistant/assistant-panel';
 import { SectionTabs, type SectionTab } from '../parties/section-tabs';
 import { usePermissions } from '../session/permissions';
 import { DocumentLinks } from './document-links';
@@ -167,6 +168,9 @@ function DocumentView({ document }: { readonly document: Document }): JSX.Elemen
           </Badge>
         </div>
       </PageHeader>
+      {document.status === 'current' && document.classification !== 'restricted' ? (
+        <AssistantPanel targetId={document.id} useCases={['doc_summary']} />
+      ) : null}
       <QueryState query={versions} loadingLabel="Cargando las versiones">
         {(data) => <DocumentTabs document={document} versions={data.data} />}
       </QueryState>

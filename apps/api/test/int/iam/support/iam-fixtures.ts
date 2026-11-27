@@ -74,6 +74,8 @@ export async function createIamTestApp(
       DATABASE_URL: integrationDatabase().appUrl,
       VALKEY_URL: iamValkeyUrl(),
       ...storageEnv(),
+      // El asistente de IA responde en modo de ensayo: nada sale del equipo (B47).
+      AI_GATEWAY_PROVIDER: 'rehearsal',
       ...env,
     },
   });

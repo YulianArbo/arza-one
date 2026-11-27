@@ -77,3 +77,13 @@ export { VIABILITY_CODE } from './domain/viability-form.js';
 export { FileStorage } from './infrastructure/file-storage.js';
 export { documentFigures, type DocumentFigures } from './application/go-live-figures.js';
 export { documentReviewFigures } from './application/dashboard-figures.js';
+export {
+  assistantCandidates,
+  assistantDocument,
+  indexableVersions,
+  tenantsWithReadyTexts,
+  versionText,
+  type AssistantDocument,
+  type IndexableVersion,
+} from './application/assistant-sources.js';
+export { anyOfTerms } from './domain/search-terms.js';

@@ -32,7 +32,7 @@ export interface PermissionGroupDefinition {
   /** Nombre de la fila del anexo G. */
   readonly key: string;
   readonly label: string;
-  /** Módulo del capítulo 7 (M00 a M19). */
+  /** Módulo del capítulo 7 (M00 a M20). */
   readonly module: string;
   readonly entries: readonly PermissionEntry[];
 }

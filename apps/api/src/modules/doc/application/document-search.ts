@@ -32,7 +32,7 @@ interface Candidate {
 }
 
 /** Los documentos que coinciden, del más al menos relacionado; el código pesa más que el texto. */
-async function candidates(
+export async function candidates(
   tx: TenantTransaction,
   query: string,
   codePrefix: string | null,

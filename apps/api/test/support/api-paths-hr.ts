@@ -1,4 +1,5 @@
 import { INN_PATHS } from './api-paths-inn.js';
+import { AI_PATHS } from './api-paths-ai.js';
 import { DIRECTION_PATHS } from './api-paths-direction.js';
 import { QMS_PATHS } from './api-paths-qms.js';
 import { PRIVACY_B42_PATHS } from './api-paths-privacy.js';
@@ -81,4 +82,5 @@ export const PEOPLE_PATHS = HR_PATHS.concat(
   SITE_PATHS,
   PRIVACY_B42_PATHS,
   DIRECTION_PATHS,
+  AI_PATHS,
 );

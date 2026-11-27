@@ -75,6 +75,10 @@
     "./privacy": {
       "types": "./dist/modules/privacy/index.d.ts",
       "default": "./dist/modules/privacy/index.js"
+    },
+    "./ai": {
+      "types": "./dist/modules/ai/index.d.ts",
+      "default": "./dist/modules/ai/index.js"
     }
   },
   "scripts": {

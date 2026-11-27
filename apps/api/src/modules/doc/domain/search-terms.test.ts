@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { searchTerms } from './search-terms.js';
+import { anyOfTerms, searchTerms } from './search-terms.js';
 
 describe('términos de la búsqueda', () => {
   it('cada palabra busca también su comienzo, en minúsculas', () => {
@@ -26,5 +26,19 @@ describe('términos de la búsqueda', () => {
   it('toma a lo más diez palabras', () => {
     const many = Array.from({ length: 15 }, (_, i) => `p${String(i)}`).join(' ');
     expect(searchTerms(many).query?.split(' & ')).toHaveLength(10);
+  });
+});
+
+describe('palabras clave del asistente (B47)', () => {
+  it('encuentra cualquiera de las palabras, sin repetirlas ni dejar operadores', () => {
+    expect(anyOfTerms(['Aprobación', 'documento', 'aprobación'])).toBe(
+      'aprobación:* | documento:*',
+    );
+    expect(anyOfTerms(['a & b', "x' | !y"])).toBe('a:* | b:* | x:* | y:*');
+  });
+
+  it('sin palabras no hay consulta', () => {
+    expect(anyOfTerms([])).toBeNull();
+    expect(anyOfTerms(['¿?', '&&'])).toBeNull();
   });
 });

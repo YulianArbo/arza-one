@@ -28,6 +28,7 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   Smile,
+  Sparkles,
   Tags,
   Trash2,
   Truck,
@@ -42,6 +43,7 @@ import {
 } from 'lucide-react';
 
 import { ADMIN_PATHS } from '../../features/administration/labels';
+import { ASSISTANT_PATHS } from '../../features/assistant/labels';
 import { AUDIT_PATHS } from '../../features/audit/labels';
 import { CRM_PATHS } from '../../features/crm/labels';
 import {
@@ -210,6 +212,14 @@ const TALENT = [
   sub('/app/talento-y-sst/sst', 'Seguridad y salud', HardHat, 'sst.read'),
 ];
 
+// Asistente de IA (B47): preguntar, y el gobierno del asistente según el rol.
+const ASSISTANT = [
+  sub(ASSISTANT_PATHS.home, 'Preguntar', Sparkles, 'ai.assist.use'),
+  sub(ASSISTANT_PATHS.usage, 'Registro de usos', ListChecks, 'ai.request.read'),
+  sub(ASSISTANT_PATHS.useCases, 'Usos activos', SlidersHorizontal, 'ai.use_case.manage'),
+  sub(ASSISTANT_PATHS.prompts, 'Instrucciones', FileText, 'ai.prompt.manage'),
+];
+
 /** Submódulos por módulo (slug del menú). Los módulos que no figuran se abren desde su portada. */
 const SUBMODULES: Readonly<Record<string, readonly Submodule[]>> = {
   comercial: COMMERCIAL,
@@ -222,6 +232,7 @@ const SUBMODULES: Readonly<Record<string, readonly Submodule[]>> = {
   'sitio-web': WEBSITE,
   administracion: ADMINISTRATION,
   auditoria: AUDIT,
+  asistente: ASSISTANT,
 };
 
 /**

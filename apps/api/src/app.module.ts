@@ -10,6 +10,7 @@ import { SstModule } from './modules/sst/index.js';
 import { QmsModule } from './modules/qms/index.js';
 import { InnModule } from './modules/inn/index.js';
 import { DashboardModule } from './modules/dashboard/index.js';
+import { AiModule } from './modules/ai/index.js';
 import { WebModule } from './modules/web/index.js';
 import { AuditModule } from './modules/audit/index.js';
 import { ContractModule } from './modules/contract/index.js';
@@ -70,6 +71,7 @@ const BUSINESS_MODULES = [
   InnModule,
   DashboardModule,
   WebModule,
+  AiModule,
 ];
 
 /**

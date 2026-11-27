@@ -35,3 +35,9 @@ export {
 export type { ServiceActor } from './application/service-support.js';
 export { serviceQualityFigures } from './application/quality-figures.js';
 export { satisfactionAnswers } from './application/dashboard-figures.js';
+export {
+  pqrsfForAssistant,
+  ticketForAssistant,
+  type AssistantPqrsf,
+  type AssistantTicket,
+} from './application/assistant-sources.js';

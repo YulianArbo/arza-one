@@ -135,6 +135,12 @@ export const DATABASE_BOUND_FILES = [
   'src/modules/iam/application/access-figures.ts',
   'src/modules/dashboard/application/**/*.ts',
   'src/modules/dashboard/interface/**/*.ts',
+  // Asistente de IA (B47): la pasarela, sus usos y lo que lee de Documentos y Servicio.
+  'src/modules/ai/application/**/*.ts',
+  'src/modules/ai/interface/ai.controller.ts',
+  'src/modules/ai/interface/ai-admin.controller.ts',
+  'src/modules/doc/application/assistant-sources.ts',
+  'src/modules/service/application/assistant-sources.ts',
 ];
 
 /** Procesos que solo arrancan algo; se prueban a mano o como proceso real. */

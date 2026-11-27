@@ -2,6 +2,7 @@ import type request from 'supertest';
 
 import type { AccessScenario } from '../../iam/support/access-scenario.js';
 import { ACCESS_ROUTE_CALLS } from './access-route-calls.js';
+import { AI_ROUTE_CALLS } from './ai-route-calls.js';
 import { ASSET_ROUTE_CALLS } from './asset-route-calls.js';
 import { AUTH_ROUTE_CALLS } from './auth-route-calls.js';
 import { CARE_ROUTE_CALLS } from './care-route-calls.js';
@@ -54,6 +55,7 @@ export type RouteCall = (scenario: AccessScenario) => Promise<PendingRequest>;
 /** Ruta del OpenAPI («POST /v1/users/{id}/roles») → cómo llamarla. */
 export const WRITE_ROUTE_CALLS: Readonly<Record<string, RouteCall>> = {
   ...AUTH_ROUTE_CALLS,
+  ...AI_ROUTE_CALLS,
   ...ACCESS_ROUTE_CALLS,
   ...HR_ROUTE_CALLS,
   ...HR_ABSENCE_ROUTE_CALLS,

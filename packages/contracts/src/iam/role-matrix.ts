@@ -56,6 +56,7 @@ const MATRIX: Readonly<Record<string, string>> = {
   web: '   LA C  L  C  -  -  -  -  -  -  -  CA -  L',
   privacy: 'LA -  L  -  -  -  -  -  -  -  -  CA P  L',
   audit: ' L  L  L  -  -  -  -  -  -  -  -  L  -  L',
+  ai: '    L  CA CA L  L  L  L  L  L  L  L  L  L  L',
 };
 
 /** Permisos sensibles (nivel restricted) y su porqué en el numeral 15.2. */
@@ -71,6 +72,8 @@ const EXTRAS: Readonly<Partial<Record<InternalRoleCode, readonly PermissionCode[
     'hr.salary.read',
     'core.announcement.manage',
   ],
+  // Quien administra la plataforma vigila el uso del asistente (B47, decisión 6).
+  ADMIN_PLATAFORMA: ['ai.request.read'],
   // Las cuentas bancarias de terceros se registran y aprueban en finanzas (doble aprobación).
   ADMIN_FINANCIERO: [
     'party.bank_account.read',
@@ -89,10 +92,12 @@ const EXTRAS: Readonly<Partial<Record<InternalRoleCode, readonly PermissionCode[
   TALENTO_HUMANO: ['hr.file.read', 'hr.salary.read'],
   // «Incluidos los conceptos de aptitud; nunca diagnósticos».
   SST: ['sst.medical.read', 'sst.medical.manage'],
-  // «Solo lectura de evidencias y auditoría».
-  AUDITOR: ['audit.event.export'],
+  // «Solo lectura de evidencias y auditoría». El registro de usos del asistente es evidencia (B47).
+  AUDITOR: ['audit.event.export', 'ai.request.read'],
   // Las PQRSF sobre datos personales se le trasladan (B29, decisión 5): debe poder abrirlas.
-  OFICIAL_DATOS: ['service.pqrsf.read'],
+  // Activa los usos del asistente tras la evaluación de impacto y revisa su registro (B47,
+  // decisiones 6 y 7).
+  OFICIAL_DATOS: ['service.pqrsf.read', 'ai.use_case.manage', 'ai.request.read'],
 };
 
 /**
