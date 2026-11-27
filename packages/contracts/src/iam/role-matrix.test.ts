@@ -97,7 +97,9 @@ describe('permisos limitados y sensibles', () => {
       PERMISSIONS.map((permission) => [permission.code, permission.level]),
     );
     const writes = codesOf('AUDITOR').filter((code) => levels.get(code) !== 'read');
-    expect(writes).toEqual(['audit.event.export']);
+    // Los dos son lecturas de evidencia con nivel sensible: exportar la auditoría y ver el registro
+    // de usos del asistente (B47, decisión 6).
+    expect(writes).toEqual(['audit.event.export', 'ai.request.read']);
   });
 
   it('EQUIPO_PROYECTO ve solo los proyectos donde es miembro', () => {

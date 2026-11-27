@@ -142,4 +142,17 @@ export const CORE_PERMISSION_GROUPS = [
       ['audit.chain.verify', 'read', 'Verificar la cadena de la auditoría'],
     ],
   },
+  {
+    key: 'ai',
+    label: 'Asistente de inteligencia artificial',
+    module: 'M20',
+    entries: [
+      // La IA hereda los permisos de quien la usa (numeral 15.3): este permiso solo abre la puerta.
+      ['ai.assist.use', 'read', 'Usar el asistente de inteligencia artificial'],
+      ['ai.prompt.manage', 'manage', 'Administrar las instrucciones del asistente'],
+      // B47, decisiones 6 y 7: solo el Oficial de datos activa un uso, con su evaluación de impacto.
+      ['ai.use_case.manage', 'restricted', 'Activar los usos del asistente'],
+      ['ai.request.read', 'restricted', 'Ver el registro de usos del asistente'],
+    ],
+  },
 ] as const satisfies readonly PermissionGroupDefinition[];
