@@ -1,3 +1,4 @@
+import { refreshAiIndex } from '@arza/api/ai';
 import { JOBS } from '@arza/api/platform';
 import { expireRecruitmentData, runHrDailyWork } from '@arza/api/hr';
 import { runInnDailyWork } from '@arza/api/inn';
@@ -115,6 +116,14 @@ function privacyHandlers(deps: JobDependencies): [string, JobHandler][] {
   ];
 }
 
+/** Innovación (B40) y el índice del asistente de IA (B47). */
+function innovationAndAiHandlers(deps: JobDependencies): [string, JobHandler][] {
+  return [
+    [JOBS.innDailyWork.name, withoutData(async () => runInnDailyWork(deps))],
+    [JOBS.aiIndexWork.name, withoutData(async () => refreshAiIndex(deps))],
+  ];
+}
+
 /** Procesadores de cada trabajo, por su nombre. Cada bloque agrega los suyos. */
 function handlers(deps: JobDependencies): ReadonlyMap<string, JobHandler> {
   return new Map<string, JobHandler>([
@@ -149,11 +158,11 @@ function handlers(deps: JobDependencies): ReadonlyMap<string, JobHandler> {
       ),
     ],
     [JOBS.qmsPdfWork.name, withoutData(async () => renderQualityPdfs(deps))],
-    [JOBS.innDailyWork.name, withoutData(async () => runInnDailyWork(deps))],
     [JOBS.svcSlaWork.name, withoutData(async () => processSlaWork(deps))],
     [JOBS.svcCareWork.name, withoutData(async () => processCareWork(deps))],
     [JOBS.webSiteWork.name, withoutData(async () => processSiteWork(deps))],
     ...privacyHandlers(deps),
+    ...innovationAndAiHandlers(deps),
   ]);
 }
 

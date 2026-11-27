@@ -143,6 +143,8 @@ const sstDailyWorkJobSchema = z.object({});
 const qmsDailyWorkJobSchema = z.object({});
 /** Alertas de renovación de marcas y dominios de Innovación (B40, decisión 6). Del sistema. */
 const innDailyWorkJobSchema = z.object({});
+/** Índice del asistente de IA (B47, decisión 3): fragmentos del texto vigente. Del sistema. */
+const aiIndexWorkJobSchema = z.object({});
 /** Indicadores de Calidad (B39): cálculo de los automáticos y aviso de los manuales sin medir. */
 const qmsIndicatorWorkJobSchema = z.object({});
 /** PDF del informe de auditoría y del acta de revisión por la dirección (B39). Del sistema. */
@@ -294,6 +296,11 @@ export const JOBS = {
     name: 'inn.daily-work',
     schema: innDailyWorkJobSchema,
   },
+  aiIndexWork: {
+    queue: QUEUES.platform,
+    name: 'ai.index-work',
+    schema: aiIndexWorkJobSchema,
+  },
   qmsIndicatorWork: {
     queue: QUEUES.platform,
     name: 'qms.indicator-work',
@@ -393,6 +400,9 @@ export const SCHEDULED_JOBS = [
   // Cada día a las 6:45: el responsable de una marca a seis meses de vencer o de un dominio a 60
   // días recibe la tarea de renovarlo, y lo vencido queda vencido (B40, decisión 6).
   { id: 'inn.daily-work.daily', job: JOBS.innDailyWork, pattern: '45 6 * * *' },
+  // Cada 5 minutos: un documento publicado entra al índice del asistente, y uno que dejó de estar
+  // vigente o pasó a restringido sale de él, a lo sumo cinco minutos después de su texto (B47).
+  { id: 'ai.index-work.every-5-minutes', job: JOBS.aiIndexWork, pattern: '*/5 * * * *' },
   // Cada 5 minutos: la alerta del 80 % y la del plazo vencido llegan a lo sumo cinco minutos tarde,
   // y los tiquetes resueltos que nadie reabrió se cierran (B28).
   { id: 'svc.sla-work.every-5-minutes', job: JOBS.svcSlaWork, pattern: '*/5 * * * *' },
