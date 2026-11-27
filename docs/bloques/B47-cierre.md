@@ -2,7 +2,7 @@
 
 - Módulo: M20 · Fase F9 · Depende de B46.
 - Construido por Claude Code el 26/11/2026, con el plan aprobado por el propietario («Apruebo todo», 12 decisiones).
-- Rama `feat/b47-asistente-de-inteligencia-arti`, creada encima de la rama de B46 (`e481b487`). El PR #102 de B46 aún no está fusionado (decisión 1).
+- Rama `feat/b47-asistente-de-inteligencia-arti`, creada encima de la rama de B46 (`e481b487`, decisión 1). B46 se fusionó en `main` (PR #102) mientras se construía B47; el PR #103 apunta a `main`.
 - Documentación del módulo: `docs/manual/datos/ai.md`.
 - Evaluación de impacto: `docs/privacidad/evaluacion-impacto-ia.md` (borrador para firmar).
 - Decisiones técnicas: ADR-027.
@@ -165,5 +165,5 @@ Lo que no se pudo correr completo en este equipo:
 4. **Producción.** Poner `AI_GATEWAY_PROVIDER=anthropic` y la llave en el servidor y en el gestor de contraseñas, solo después de los puntos 2 y 3. No modifiqué `infra/compose/production.yml`: sin esas variables, producción arranca con el asistente apagado.
 5. **Borradores de actas y propuestas comerciales** (decisión 4).
 6. **Búsqueda por significado con vectores**, si se pide más adelante (ADR-027).
-7. **Fusionar primero B46 (PR #102).** Este PR está encima de esa rama.
+7. B46 (PR #102) ya está en `main`: el PR #103 apunta a `main` y solo trae los commits de B47.
 8. **Contraste de los botones principales en modo oscuro (sistema de diseño, no es de B47).** Con el puntero encima, el azul `--action-hover` (#2f7bff) con texto blanco mide unos 3,9:1, y la norma pide 4,5:1. Lo encontró la prueba nueva del asistente. Las pruebas revisan las pantallas en reposo, así que no lo detectaban. Cambiar el token es una decisión de diseño suya: no lo toqué.

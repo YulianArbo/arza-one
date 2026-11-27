@@ -7,7 +7,7 @@
 - Proveedor `AI_GATEWAY_PROVIDER`: off por defecto, rehearsal (sin IA, nunca en producción) o anthropic. Búsqueda sin vectores (ADR-027).
 - Web: menú «Asistente» con registro de usos, usos activos e instrucciones, y panel en las fichas de documento, tiquete y PQRSF.
 - Verificado en este equipo: integración del asistente 18/18, recorrido de auditoría de las rutas nuevas 7/7, pantallas 45/45, contratos 325/325. Resto de verificaciones en `docs/bloques/B47-cierre.md`; la suite completa de integración la confirma la CI.
-- Pendientes: revisión externa, contrato de transmisión con Anthropic, firma de la evaluación de impacto (`docs/privacidad/evaluacion-impacto-ia.md`), variables de producción.
+- PR #103 abierto contra `main` (B46 ya fusionado en el PR #102). Pendientes: revisión externa, contrato de transmisión con Anthropic, firma de la evaluación de impacto (`docs/privacidad/evaluacion-impacto-ia.md`), variables de producción.
 
 **B46 construido y en revisión, 26/11/2026 (Claude Code).** El propietario aprobó el plan («Apruebo todo», 12 decisiones). Rama `feat/b46-tableros-gerenciales-y-requisi` desde `e1b2394` (`main` con B45 fusionado, PR #101). Bloque no crítico.
 
