@@ -76,3 +76,4 @@ export { LOAN_CONTRACT_CODE } from './domain/loan-contract-form.js';
 export { VIABILITY_CODE } from './domain/viability-form.js';
 export { FileStorage } from './infrastructure/file-storage.js';
 export { documentFigures, type DocumentFigures } from './application/go-live-figures.js';
+export { documentReviewFigures } from './application/dashboard-figures.js';

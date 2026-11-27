@@ -15,3 +15,4 @@ export {
   type QuoteWorkDependencies,
   type QuoteWorkResult,
 } from './application/quote-work.js';
+export { openPipeline } from './application/dashboard-figures.js';

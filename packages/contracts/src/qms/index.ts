@@ -8,3 +8,5 @@ export * from './lessons.js';
 export * from './audits.js';
 export * from './indicators.js';
 export * from './reviews.js';
+export * from './legal.js';
+export * from './strategy.js';

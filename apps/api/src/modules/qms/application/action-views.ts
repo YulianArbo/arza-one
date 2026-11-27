@@ -31,7 +31,9 @@ interface ViewRefs {
 }
 
 function originKey(row: QmsActionRow): string | null {
-  return row.nonconformityId ?? row.riskId ?? row.findingId ?? row.reviewId;
+  return (
+    row.nonconformityId ?? row.riskId ?? row.findingId ?? row.reviewId ?? row.legalRequirementId
+  );
 }
 
 function idsOf(rows: readonly QmsActionRow[], pick: (row: QmsActionRow) => string | null) {
@@ -42,12 +44,15 @@ async function auditOrigins(
   tx: TenantTransaction,
   rows: readonly QmsActionRow[],
 ): Promise<[string, OriginFacts][]> {
-  const [findings, reviews] = await Promise.all([
+  const [findings, reviews, requirements] = await Promise.all([
     tx.qmsFinding.findMany({
       where: { id: { in: idsOf(rows, (row) => row.findingId) } },
       include: { audit: { select: { code: true, processId: true } } },
     }),
     tx.qmsManagementReview.findMany({ where: { id: { in: idsOf(rows, (row) => row.reviewId) } } }),
+    tx.qmsLegalRequirement.findMany({
+      where: { id: { in: idsOf(rows, (row) => row.legalRequirementId) } },
+    }),
   ]);
   return [
     ...findings.map((finding): [string, OriginFacts] => [
@@ -62,6 +67,16 @@ async function auditOrigins(
     ...reviews.map((review): [string, OriginFacts] => [
       review.id,
       { code: review.code, finding: REVIEW_FINDING, rootCause: null, processId: null },
+    ]),
+    // B46: el requisito del normograma que no se cumple del todo.
+    ...requirements.map((requirement): [string, OriginFacts] => [
+      requirement.id,
+      {
+        code: requirement.code,
+        finding: `${requirement.norm}: ${requirement.requirement}`,
+        rootCause: null,
+        processId: requirement.processId,
+      },
     ]),
   ];
 }

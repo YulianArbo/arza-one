@@ -40,3 +40,4 @@ export {
   type ClientProjectScope,
 } from './application/client-projects.js';
 export { setClientAccess } from './application/client-sharing.js';
+export { projectsAtRisk } from './application/dashboard-figures.js';

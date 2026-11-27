@@ -123,3 +123,20 @@ it('el acta por aprobar llega a la Dirección, no a quien la envió (B39)', asyn
   expect(notices.map((notice) => notice.userId)).toEqual([QUALITY]);
   expect(notices[0]?.link).toBe('/app/calidad/revision-direccion');
 });
+
+it('los requisitos legales sin evaluar avisan a Calidad y a la Dirección (B46)', async () => {
+  const payload = { count: 3, period: 'S2 2026', ends_on: '2026-12-31', recipients: [QUALITY] };
+  const notices = await handlerOf('qms.legal.due')(
+    tx,
+    event('qms.legal.due', payload, null),
+    new Date(),
+  );
+  expect(notices).toEqual([
+    {
+      userId: QUALITY,
+      kind: 'qms_legal_due',
+      values: { cantidad: '3', periodo: 'S2 2026', fecha: '31/12/2026' },
+      link: '/app/direccion/normograma',
+    },
+  ]);
+});

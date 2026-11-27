@@ -9,3 +9,9 @@ export {
   clientInvoiceFile,
   clientInvoices,
 } from './application/invoice-queries.js';
+// Cifras del tablero gerencial (B46).
+export {
+  receivableFigures,
+  salesFigure,
+  type FinanceFigure,
+} from './application/dashboard-figures.js';
