@@ -44,6 +44,23 @@ describe('el plan decide el asistente', () => {
     });
     expect(asked.status).toBe(409);
     expect(errorCode(asked)).toBe('PLAN_LIMIT_REACHED');
+
+    const upgraded = await card(s, op, s.tenant.id);
+    const enterprise = { ...BASIC, plan: 'enterprise', max_internal_users: null };
+    const back = await sendAs(s, 'put', path, op.session, {
+      body: enterprise,
+      version: upgraded.version,
+    });
+    expect(back.status, back.text).toBe(204);
+    const again = aiStatusSchema.parse((await s.get('/v1/ai/status', worker.session)).body);
+    expect(again.enabled_use_cases).toContain('doc_search');
+  });
+});
+
+describe('borrar archivos de una empresa', () => {
+  it('el almacenamiento solo borra la carpeta completa de una empresa', async () => {
+    await expect(storage().deletePrefix('corto/')).rejects.toThrow('carpeta de una empresa');
+    await expect(storage().deletePrefix(s.tenant.id)).rejects.toThrow('carpeta de una empresa');
   });
 });
 

@@ -89,3 +89,43 @@ describe('marca de la empresa', () => {
     expect((await brandingOf(worker)).has_logo).toBe(false);
   });
 });
+
+describe('marca de la empresa', () => {
+  it('una versión vieja no pisa el cambio de otra persona', async () => {
+    const admin = await s.person('admin-version-marca', ['ADMIN_PLATAFORMA']);
+    const { version } = await brandingOf(admin);
+    const first = await sendAs(s, 'put', '/v1/tenant/branding', admin.session, {
+      body: { display_name: 'Primera', primary_color: null },
+      version,
+    });
+    expect(first.status, first.text).toBe(200);
+    const stale = await sendAs(s, 'put', '/v1/tenant/branding', admin.session, {
+      body: { display_name: 'Segunda', primary_color: null },
+      version,
+    });
+    expect(stale.status).toBe(409);
+    expect((await brandingOf(admin)).display_name).toBe('Primera');
+  });
+});
+
+describe('marca de la empresa', () => {
+  it('poner el mismo logo dos veces no deja un cambio de más en la auditoría', async () => {
+    const admin = await s.person('admin-logo-repetido', ['ADMIN_PLATAFORMA']);
+    const fileId = await uploadImage(s, admin, '/v1/tenant/branding/logo/uploads');
+    for (let time = 0; time < 2; time += 1) {
+      const set = await sendAs(s, 'put', '/v1/tenant/branding/logo', admin.session, {
+        body: { file_id: fileId },
+      });
+      expect(set.status, set.text).toBe(204);
+    }
+    const changes = await s.db.withTenant({ tenantId: s.tenant.id, userId: null }, (tx) =>
+      tx.auditEvent.count({
+        where: {
+          action: 'core.tenant.logo_update',
+          changes: { path: ['brand_logo_file_id', 'to'], equals: fileId },
+        },
+      }),
+    );
+    expect(changes).toBe(1);
+  });
+});
