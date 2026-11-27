@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { JSX } from 'react';
 
 import { NotificationsMenu } from '../../features/notifications/notifications-menu';
+import { CompanyBrand } from '../../features/tenancy/company-brand';
 import { BrandLogo } from '../brand-logo';
 import { ThemeMenu } from '../theme-menu';
 import { AppBreadcrumb } from './app-breadcrumb';
@@ -13,7 +14,7 @@ import { HelpMenu, UserMenu } from './top-bar-menus';
 
 /**
  * Zona 2 de la figura 16.3 (B22B): «Volver a» y la ruta a la izquierda; a la derecha búsqueda,
- * ayuda, avisos, apariencia y la persona. El logo va en el menú; en celular, aquí.
+ * ayuda, avisos, apariencia y la persona; la marca de la empresa (B48) en pantallas anchas. El logo va en el menú; en celular, aquí.
  */
 export function TopBar({
   permissions,
@@ -33,6 +34,9 @@ export function TopBar({
         <AppBreadcrumb />
       </div>
       <div className="ml-auto flex items-center gap-1.5">
+        <div className="hidden lg:block">
+          <CompanyBrand />
+        </div>
         <GlobalSearch />
         <HelpMenu />
         <NotificationsMenu />

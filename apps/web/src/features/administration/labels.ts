@@ -46,7 +46,27 @@ export const ADMIN_PATHS = {
   sequences: '/app/administracion/consecutivos',
   holidays: '/app/administracion/festivos',
   announcements: '/app/administracion/comunicados',
+  tenants: '/app/administracion/empresas',
 } as const;
+
+/**
+ * Permisos que muestran el módulo Administración en el menú: basta con uno. Incluye el del operador
+ * de la plataforma (B48), que solo administra las empresas.
+ */
+export const ADMINISTRATION_PERMISSIONS: readonly string[] = [
+  'core.tenant.update',
+  'core.org.manage',
+  'core.catalog.manage',
+  'core.parameter.manage',
+  'core.sequence.manage',
+  'iam.user.read',
+  'iam.role.read',
+  'iam.delegation.manage',
+  'iam.access_review.read',
+  'wf.definition.manage',
+  'ntf.template.manage',
+  'platform.tenant.read',
+];
 
 export function userPath(id: string): string {
   return `${ADMIN_PATHS.users}/${id}`;

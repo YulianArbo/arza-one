@@ -30,6 +30,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
+import { ADMINISTRATION_PERMISSIONS } from '../../features/administration/labels';
 import { ASSISTANT_PERMISSIONS } from '../../features/assistant/labels';
 import { currentSubmodule } from './submodules';
 
@@ -181,19 +182,7 @@ const MODULES: readonly NavigationItem[] = [
     slug: 'administracion',
     label: 'Administración',
     icon: Settings,
-    permissions: [
-      'core.tenant.update',
-      'core.org.manage',
-      'core.catalog.manage',
-      'core.parameter.manage',
-      'core.sequence.manage',
-      'iam.user.read',
-      'iam.role.read',
-      'iam.delegation.manage',
-      'iam.access_review.read',
-      'wf.definition.manage',
-      'ntf.template.manage',
-    ],
+    permissions: ADMINISTRATION_PERMISSIONS,
   },
   {
     slug: 'auditoria',

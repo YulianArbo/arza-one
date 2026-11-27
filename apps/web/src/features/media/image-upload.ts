@@ -37,13 +37,15 @@ export interface ImageTarget {
   readonly uploads: string;
   /** Ruta que usa la imagen (PUT), la quita (DELETE) y la muestra (GET). */
   readonly image: string;
+  /** Ruta que la muestra, si no es la misma (el logo de la empresa, B48). */
+  readonly view?: string;
   /** Consultas que cambian con la imagen, como el perfil o la ficha del tercero. */
   readonly refresh: readonly QueryKey[];
 }
 
 /** Vuelve a pedir la imagen desde cero (sin mostrar la anterior) y lo que depende de ella. */
 async function refreshAfter(client: QueryClient, target: ImageTarget): Promise<void> {
-  await client.resetQueries({ queryKey: MEDIA_KEYS.image(target.image) });
+  await client.resetQueries({ queryKey: MEDIA_KEYS.image(target.view ?? target.image) });
   await Promise.all(target.refresh.map((queryKey) => client.invalidateQueries({ queryKey })));
 }
 
