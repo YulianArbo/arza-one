@@ -79,6 +79,10 @@
     "./ai": {
       "types": "./dist/modules/ai/index.d.ts",
       "default": "./dist/modules/ai/index.js"
+    },
+    "./tenancy": {
+      "types": "./dist/modules/tenancy/index.d.ts",
+      "default": "./dist/modules/tenancy/index.js"
     }
   },
   "scripts": {

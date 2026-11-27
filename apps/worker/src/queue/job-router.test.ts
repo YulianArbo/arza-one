@@ -8,6 +8,7 @@ const unusedDeps: JobDependencies = {
   database: {
     withTenant: async () => Promise.reject(new Error('no se usa')),
     withoutTenant: async () => Promise.reject(new Error('no se usa')),
+    withTenantFor: async () => Promise.reject(new Error('no se usa')),
   },
   mailer: {
     send: async () => Promise.reject(new Error('no se usa')),
@@ -20,6 +21,8 @@ const unusedDeps: JobDependencies = {
     put: async () => Promise.reject(new Error('no se usa')),
     delete: async () => Promise.reject(new Error('no se usa')),
     stream: async () => Promise.reject(new Error('no se usa')),
+    list: async () => Promise.reject(new Error('no se usa')),
+    deletePrefix: async () => Promise.reject(new Error('no se usa')),
   },
   antivirus: async () => Promise.reject(new Error('no se usa')),
   convert: async () => Promise.reject(new Error('no se usa')),
@@ -129,6 +132,8 @@ describe('enrutador de trabajos de documentos y avisos', () => {
       JOBS.qmsPdfWork,
       JOBS.innDailyWork,
       JOBS.aiIndexWork,
+      JOBS.tenantExportWork,
+      JOBS.tenantPurgeWork,
       JOBS.svcSlaWork,
       JOBS.svcCareWork,
       JOBS.webSiteWork,
