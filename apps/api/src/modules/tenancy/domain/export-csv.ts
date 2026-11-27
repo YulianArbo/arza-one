@@ -3,7 +3,7 @@
 // salen tal cual: un número negativo sigue siendo número. Solo un texto que Excel tomaría por
 // fórmula (=, +, @, o un guion que no inicia un número) lleva un apóstrofo delante.
 
-export const CSV_BOM = '﻿';
+const CSV_BOM = '﻿';
 const SEPARATOR = ';';
 const LINE = '\r\n';
 

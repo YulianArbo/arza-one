@@ -5,12 +5,7 @@ import { runInnDailyWork } from '@arza/api/inn';
 import { renderQualityPdfs, runQmsDailyWork, runQmsIndicatorWork } from '@arza/api/qms';
 import { serviceQualityFigures } from '@arza/api/service';
 import { runSstDailyWork } from '@arza/api/sst';
-import {
-  runTenantExportWork,
-  runTenantPurgeWork,
-  type ExportWorkDependencies,
-  type PurgeWorkDependencies,
-} from '@arza/api/tenancy';
+import { runTenantExportWork, runTenantPurgeWork } from '@arza/api/tenancy';
 import { UnrecoverableError } from 'bullmq';
 
 import {
@@ -78,8 +73,8 @@ interface IncomingJob {
 export type JobHandler = (job: IncomingJob) => Promise<void>;
 
 export type JobDependencies = ExampleEmailDependencies &
-  ExportWorkDependencies &
-  PurgeWorkDependencies &
+  Parameters<typeof runTenantExportWork>[0] &
+  Parameters<typeof runTenantPurgeWork>[0] &
   AccountEmailJobDependencies &
   AuditChainCheckDependencies &
   FileScanJobDependencies &

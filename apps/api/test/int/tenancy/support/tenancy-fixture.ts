@@ -36,7 +36,7 @@ async function createOperatorTenant(): Promise<void> {
 }
 
 /** La empresa operadora, con sus roles, una sola vez por archivo de pruebas. */
-export function ensureOperatorTenant(): Promise<void> {
+function ensureOperatorTenant(): Promise<void> {
   operatorReady ??= createOperatorTenant();
   return operatorReady;
 }

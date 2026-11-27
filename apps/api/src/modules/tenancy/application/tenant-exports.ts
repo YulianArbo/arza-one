@@ -25,7 +25,7 @@ import { isUniqueViolation } from './tenant-cards.js';
 // Dirección, con su identidad confirmada hace poco. El worker la genera; la descarga queda en la
 // auditoría con el número de filas, y eso dispara la alerta de exportación masiva (B44).
 
-export function exportView(row: TenantExportRow): TenantExport {
+function exportView(row: TenantExportRow): TenantExport {
   return {
     id: row.id,
     status: row.status as TenantExport['status'],

@@ -17,7 +17,7 @@ import { sendAs } from './tenancy-fixture.js';
 // Pasos de las pruebas de exportación y eliminación (B48). Las tablas y sus filas se cuentan con
 // el catálogo de PostgreSQL y como dueño del esquema, no con el código que se prueba.
 
-export const DAY = 24 * 60 * 60 * 1000;
+const DAY = 24 * 60 * 60 * 1000;
 
 /** Lector mínimo de ZIP: directorio central y deflate. */
 export function readZip(zip: Buffer): Map<string, Buffer> {
@@ -37,7 +37,7 @@ export function readZip(zip: Buffer): Map<string, Buffer> {
   return entries;
 }
 
-export function clockAt(at: Date): Clock {
+function clockAt(at: Date): Clock {
   return { now: () => at };
 }
 

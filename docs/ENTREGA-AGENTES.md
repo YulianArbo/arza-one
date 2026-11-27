@@ -4,7 +4,7 @@
 
 1. **Toda tabla nueva con `tenant_id` debe crear su política `<tabla>_purge`** (`FOR ALL TO migration_user USING (tenant_id = core_purging_tenant())`). Sin ella la eliminación de empresas no borra nada y `tenant-purge.int.test.ts` falla.
 2. **Toda función nueva `*_tenants_with_*` del worker debe filtrar con `core_tenant_runs_jobs(id)`**: la migración de B48 envolvió las 31 que existían (las originales quedaron como `<nombre>_any`).
-3. La empresa operadora tiene identificador fijo (`OPERATOR_TENANT_ID` en `platform/database/operator-tenant.ts` = `core_operator_tenant_id()`). Las pruebas la crean con `ensureOperatorTenant()` (`test/int/tenancy/support/tenancy-fixture.ts`).
+3. La empresa operadora tiene identificador fijo (`OPERATOR_TENANT_ID` en `platform/database/operator-tenant.ts` = `core_operator_tenant_id()`). Las pruebas la crean con `operator()` (`test/int/tenancy/support/tenancy-fixture.ts`).
 4. `core_tenants`: la aplicación solo puede cambiar datos legales, marca y columnas de control. El plan, los límites y el estado se cambian con las funciones `core_platform_*`. Prisma envía los valores por defecto al crear; el disparador `core_tenants_operator_plan` los fija.
 5. Los límites del plan los hacen cumplir disparadores; el error `PLAN_LIMIT:<tipo>` lo traduce `platform/errors/database-raised.ts`. Una prueba que cree más de 50 usuarios internos en una empresa de prueba debe subirle el plan.
 6. `DatabaseService.withTenantFor(context, work, timeoutMs)` abre una transacción con tiempo propio (lo usa la eliminación).

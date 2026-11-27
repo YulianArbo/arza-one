@@ -14,7 +14,7 @@ export function operatorOnly(): AppError {
   );
 }
 
-export function operatorProtected(): AppError {
+function operatorProtected(): AppError {
   return new AppError(
     HttpStatus.UNPROCESSABLE_ENTITY,
     CODES.operatorProtected,
@@ -26,11 +26,11 @@ export function tenantNotFound(): AppError {
   return new AppError(HttpStatus.NOT_FOUND, CODES.tenantNotFound, 'La empresa no existe.');
 }
 
-export function statusInvalid(message: string): AppError {
+function statusInvalid(message: string): AppError {
   return new AppError(HttpStatus.CONFLICT, CODES.statusInvalid, message);
 }
 
-export function exportRequired(): AppError {
+function exportRequired(): AppError {
   return new AppError(
     HttpStatus.UNPROCESSABLE_ENTITY,
     CODES.exportRequired,

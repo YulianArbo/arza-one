@@ -33,7 +33,7 @@ import { TENANCY_KEYS } from './queries';
 
 const PLATFORM_REASON = 'Esta acción cambia el acceso de una empresa a la plataforma.';
 
-export const PLAN_OPTIONS = TENANT_PLAN_CODES.map((code) => ({
+const PLAN_OPTIONS = TENANT_PLAN_CODES.map((code) => ({
   value: code,
   label: `${PLAN_LABELS[code]}: ${limitLabel(TENANT_PLANS[code].maxInternalUsers)} usuarios, ${storageLabel(TENANT_PLANS[code].storageMb)}${TENANT_PLANS[code].aiAssistant ? ', con asistente' : ''}`,
 }));

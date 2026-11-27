@@ -1080,7 +1080,7 @@ Alta, plan y límites, marca, suspensión, exportación completa y eliminación 
 - **Límites.** Los hacen cumplir disparadores (`iam_users_plan_limit`, `doc_files_plan_limit`); el error `PLAN_LIMIT:<tipo>` lo traduce `platform/errors/database-raised.ts` a `PLAN_LIMIT_REACHED` (409).
 - **Exportación.** `runTenantExportWork` (worker, cada 5 minutos) arma el ZIP en una carpeta temporal con `ZipWriter` y lo sube a `exports/<empresa>/<id>.zip`. Las tablas salen de `core_export_tables()`; lo que nunca sale, de `core_export_omissions()` y `core_export_omits_column()`.
 - **Eliminación.** `runTenantPurgeWork` (worker, 2:30) llama a `core_purge_tenant` con `DatabaseService.withTenantFor` (transacción de hasta 10 minutos) en el contexto de la operadora. **Toda tabla nueva con `tenant_id` debe crear su política `<tabla>_purge`** (ver la migración `20261130000000_core_multi_tenant`); `tenant-purge.int.test.ts` lo comprueba.
-- **Pruebas.** `test/int/tenancy/` (permisos, aislamiento, exportación completa contra el catálogo, eliminación, marca) y las rutas en `test/int/audit/support/tenancy-route-calls.ts`. La empresa operadora se crea con `ensureOperatorTenant()`.
+- **Pruebas.** `test/int/tenancy/` (permisos, aislamiento, exportación completa contra el catálogo, eliminación, marca) y las rutas en `test/int/audit/support/tenancy-route-calls.ts`. El operador y su empresa se crean con `operator()`.
 
 ## Imágenes Docker (B05 y B07)
 

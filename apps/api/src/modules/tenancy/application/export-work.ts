@@ -67,7 +67,7 @@ const README = [
 ].join('\r\n');
 
 /** Clave del ZIP en el almacenamiento: fuera de la carpeta de la empresa, para no exportarlo. */
-export function exportStorageKey(tenantId: string, exportId: string): string {
+function exportStorageKey(tenantId: string, exportId: string): string {
   return `exports/${tenantId}/${exportId}.zip`;
 }
 
