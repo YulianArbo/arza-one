@@ -1,5 +1,13 @@
 # Estado del proyecto ARZA ONE
 
+**B48 construido y en revisión, 27/11/2026 (Claude Code).** El propietario aprobó el plan («Apruebo todo», 12 decisiones). Rama `feat/b48-multiempresa` desde `55314990` (`main` con B47 fusionado, PR #103). **Bloque crítico: requiere revisión externa.**
+
+- Módulo nuevo `tenancy` y cambios en el núcleo (M00): alta, plan y límites, marca, suspensión, exportación completa y eliminación de empresas. Migración `20261130000000_core_multi_tenant` (columnas en `core_tenants`, tabla `core_tenant_exports`, funciones de la plataforma, políticas `<tabla>_purge`).
+- Rol nuevo `OPERADOR_PLATAFORMA`, solo en ARZA TECH; permisos `platform.tenant.read · manage · delete` y `core.tenant.export` (Dirección).
+- Web: Administración → Empresas de la plataforma; marca y exportación en Empresa y sedes; marca en la barra superior de la aplicación y del portal.
+- Verificado en este equipo: integración de multiempresa 26/26 (112/112 con migraciones, permisos y firmas), recorrido de auditoría de las rutas nuevas 13/13, navegador 25/25. Detalle y pendientes en `docs/bloques/B48-cierre.md`; la suite completa la confirma la CI.
+- Pendientes: revisión externa, validación jurídica de la eliminación, valores reales de los planes, módulos por plan y logo en los PDF.
+
 **B47 construido y en revisión, 26/11/2026 (Claude Code).** El propietario aprobó el plan («Apruebo todo», 12 decisiones). Rama `feat/b47-asistente-de-inteligencia-arti` encima de `feat/b46-tableros-gerenciales-y-requisi` (`e481b487`; PR #102 aún sin fusionar). **Bloque crítico: requiere revisión externa.**
 
 - Módulo nuevo `ai` (M20): pasarela de IA con control de permisos, minimización y registro. Tablas `ai_use_cases`, `ai_prompts`, `ai_requests`, `ai_index_chunks`. Migración `20261129000000_ai_assistant_gateway`.
