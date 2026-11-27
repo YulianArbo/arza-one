@@ -11,8 +11,8 @@ import {
 } from './permissions.js';
 
 describe('catálogo de permisos (anexo G)', () => {
-  it('tiene las 21 filas del anexo G sin códigos repetidos', () => {
-    expect(PERMISSION_GROUPS).toHaveLength(21);
+  it('tiene las 22 filas del anexo G sin códigos repetidos', () => {
+    expect(PERMISSION_GROUPS).toHaveLength(22);
     const codes = PERMISSIONS.map((permission) => permission.code);
     expect(new Set(codes).size).toBe(codes.length);
   });

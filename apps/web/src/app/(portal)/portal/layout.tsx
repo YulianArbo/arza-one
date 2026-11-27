@@ -6,6 +6,7 @@ import { UserMenu } from '../../../components/app-shell/top-bar-menus';
 import { BrandLogo } from '../../../components/brand-logo';
 import { ThemeMenu } from '../../../components/theme-menu';
 import { PortalCompany } from '../../../features/portal/portal-company';
+import { CompanyBrand } from '../../../features/tenancy/company-brand';
 import { PortalGate } from '../../../features/portal/portal-gate';
 import { PortalTabs } from '../../../features/portal/portal-tabs';
 import { PortalTrail } from '../../../features/portal/portal-trail';
@@ -39,6 +40,9 @@ function PortalHeader(): JSX.Element {
         </div>
         <div className="ml-auto flex items-center gap-1 md:ml-0">
           <ThemeMenu className="mx-1 hidden sm:inline-flex" />
+          <div className="hidden lg:block">
+            <CompanyBrand />
+          </div>
           <div className="hidden sm:block">
             <PortalCompany />
           </div>

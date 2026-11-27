@@ -141,6 +141,14 @@ export const DATABASE_BOUND_FILES = [
   'src/modules/ai/interface/ai-admin.controller.ts',
   'src/modules/doc/application/assistant-sources.ts',
   'src/modules/service/application/assistant-sources.ts',
+  // Multiempresa (B48): casos de uso y controladores que necesitan PostgreSQL.
+  'src/modules/tenancy/application/export-work.ts',
+  'src/modules/tenancy/application/platform-tenants.ts',
+  'src/modules/tenancy/application/purge-work.ts',
+  'src/modules/tenancy/application/tenancy-audit.ts',
+  'src/modules/tenancy/application/tenant-cards.ts',
+  'src/modules/tenancy/application/tenant-exports.ts',
+  'src/modules/tenancy/interface/**/*.ts',
 ];
 
 /** Procesos que solo arrancan algo; se prueban a mano o como proceso real. */

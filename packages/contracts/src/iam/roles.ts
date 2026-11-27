@@ -11,6 +11,8 @@ export interface SystemRoleDefinition {
   readonly name: string;
   readonly description: string;
   readonly audience: RoleAudience;
+  /** Solo existe en la empresa que opera la plataforma (B48). */
+  readonly operatorOnly?: boolean;
 }
 
 export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
@@ -112,6 +114,14 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     audience: 'internal',
   },
   {
+    code: 'OPERADOR_PLATAFORMA',
+    name: 'Operador de la plataforma',
+    description:
+      'Solo en la empresa que opera ARZA ONE. Alta, plan, suspensión y eliminación de empresas; ve su ficha, nunca su contenido.',
+    audience: 'internal',
+    operatorOnly: true,
+  },
+  {
     code: 'CLIENTE_ADMIN',
     name: 'Administrador del cliente',
     description:
@@ -135,6 +145,8 @@ export const ACCESS_RULES = {
   auditorMaxDays: 90,
   /** El administrador del cliente exige segundo factor (numeral 15.1). */
   secondFactorRole: 'CLIENTE_ADMIN',
+  /** Rol de la empresa que opera la plataforma (B48); como toda cuenta interna, con segundo factor. */
+  operatorRole: 'OPERADOR_PLATAFORMA',
   /** Duración máxima de una delegación de aprobaciones. */
   delegationMaxDays: 60,
   /** Cuentas sin uso en el informe de revisión de accesos (ficha 17.2). */

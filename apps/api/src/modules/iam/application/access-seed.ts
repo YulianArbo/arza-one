@@ -3,6 +3,7 @@ import { SYSTEM_ROLES } from '@arza/contracts';
 import { recordAuditEvent } from '../../../platform/audit/audit-recorder.js';
 import type { Clock } from '../../../platform/clock/clock.js';
 import type { DatabaseService } from '../../../platform/database/database.service.js';
+import { isOperatorTenant } from '../../../platform/database/operator-tenant.js';
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import {
   syncPermissionCatalog,
@@ -80,7 +81,11 @@ export async function seedAccessControl(
     return sync.ids;
   });
   for (const tenantId of tenantIds) {
-    for (const role of SYSTEM_ROLES) {
+    // El operador de la plataforma solo existe en la empresa que la opera (B48, decisión 1).
+    const roles = SYSTEM_ROLES.filter(
+      (role) => role.operatorOnly !== true || isOperatorTenant(tenantId),
+    );
+    for (const role of roles) {
       await database.withTenant({ tenantId, userId: null }, async (tx) => {
         const result = await syncSystemRole(tx, { tenantId, role }, permissionIds, now);
         await recordRoleChange(tx, tenantId, result, now);

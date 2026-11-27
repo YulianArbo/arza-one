@@ -1071,6 +1071,17 @@ Pasarela de IA (ADR-022, ADR-027). Ficha del módulo en
   3. Haga que el módulo dueño publique la lectura por su `index.ts`.
   4. Actualice la evaluación de impacto.
 
+## Multiempresa (B48, módulo `src/modules/tenancy`)
+
+Alta, plan y límites, marca, suspensión, exportación completa y eliminación de empresas. Ficha técnica en `docs/manual/datos/multiempresa.md`; decisión de la eliminación en ADR-028.
+
+- **Operador de la plataforma.** Rol `OPERADOR_PLATAFORMA`, que solo existe en la empresa operadora (`OPERATOR_TENANT_ID` en `platform/database/operator-tenant.ts`, el mismo valor que `core_operator_tenant_id()`). Las funciones `core_platform_*` exigen ese contexto en la base de datos.
+- **Estado de la empresa.** Identidad pregunta por `TENANT_GATE` (lo presta `core/interface/tenant-gate.module.ts`) al iniciar sesión y en cada petición. Las funciones `*_tenants_with_*` del worker filtran las empresas suspendidas con `core_tenant_runs_jobs`; una función nueva de ese tipo debe hacerlo también.
+- **Límites.** Los hacen cumplir disparadores (`iam_users_plan_limit`, `doc_files_plan_limit`); el error `PLAN_LIMIT:<tipo>` lo traduce `platform/errors/database-raised.ts` a `PLAN_LIMIT_REACHED` (409).
+- **Exportación.** `runTenantExportWork` (worker, cada 5 minutos) arma el ZIP en una carpeta temporal con `ZipWriter` y lo sube a `exports/<empresa>/<id>-<intento>.zip` (un archivo por intento: si dos pasadas coinciden, solo la que tomó la exportación la deja lista). Las tablas salen de `core_export_tables()`; lo que nunca sale, de `core_export_omissions()` y `core_export_omits_column()`.
+- **Eliminación.** `runTenantPurgeWork` (worker, 2:30) llama a `core_purge_tenant` con `DatabaseService.withTenantFor` (transacción de hasta 10 minutos) en el contexto de la operadora. **Toda tabla nueva con `tenant_id` debe crear su política `<tabla>_purge`** (ver la migración `20261130000000_core_multi_tenant`); `tenant-purge.int.test.ts` lo comprueba.
+- **Pruebas.** `test/int/tenancy/` (permisos, aislamiento, exportación completa contra el catálogo, eliminación, marca) y las rutas en `test/int/audit/support/tenancy-route-calls.ts`. El operador y su empresa se crean con `operator()`.
+
 ## Imágenes Docker (B05 y B07)
 
 [`Dockerfile`](Dockerfile) produce dos imágenes, sin gestores de paquetes y con usuario sin

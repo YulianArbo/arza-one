@@ -145,6 +145,10 @@ const qmsDailyWorkJobSchema = z.object({});
 const innDailyWorkJobSchema = z.object({});
 /** Índice del asistente de IA (B47, decisión 3): fragmentos del texto vigente. Del sistema. */
 const aiIndexWorkJobSchema = z.object({});
+/** Exportaciones completas de las empresas (B48): generar las pedidas y vencer las viejas. */
+const tenantExportWorkJobSchema = z.object({});
+/** Eliminación de las empresas cuyo plazo de 30 días venció (B48, decisión 6). Del sistema. */
+const tenantPurgeWorkJobSchema = z.object({});
 /** Indicadores de Calidad (B39): cálculo de los automáticos y aviso de los manuales sin medir. */
 const qmsIndicatorWorkJobSchema = z.object({});
 /** PDF del informe de auditoría y del acta de revisión por la dirección (B39). Del sistema. */
@@ -301,6 +305,16 @@ export const JOBS = {
     name: 'ai.index-work',
     schema: aiIndexWorkJobSchema,
   },
+  tenantExportWork: {
+    queue: QUEUES.platform,
+    name: 'core.tenant-export-work',
+    schema: tenantExportWorkJobSchema,
+  },
+  tenantPurgeWork: {
+    queue: QUEUES.platform,
+    name: 'core.tenant-purge-work',
+    schema: tenantPurgeWorkJobSchema,
+  },
   qmsIndicatorWork: {
     queue: QUEUES.platform,
     name: 'qms.indicator-work',
@@ -403,6 +417,15 @@ export const SCHEDULED_JOBS = [
   // Cada 5 minutos: un documento publicado entra al índice del asistente, y uno que dejó de estar
   // vigente o pasó a restringido sale de él, a lo sumo cinco minutos después de su texto (B47).
   { id: 'ai.index-work.every-5-minutes', job: JOBS.aiIndexWork, pattern: '*/5 * * * *' },
+  // Cada 5 minutos: la exportación que pidió la Dirección queda lista a lo sumo cinco minutos
+  // después, más lo que tarde en armarse; las que cumplieron 7 días se borran (B48).
+  {
+    id: 'core.tenant-export-work.every-5-minutes',
+    job: JOBS.tenantExportWork,
+    pattern: '*/5 * * * *',
+  },
+  // Cada día a las 2:30: se borran las empresas cuyo plazo de eliminación venció (B48).
+  { id: 'core.tenant-purge-work.daily', job: JOBS.tenantPurgeWork, pattern: '30 2 * * *' },
   // Cada 5 minutos: la alerta del 80 % y la del plazo vencido llegan a lo sumo cinco minutos tarde,
   // y los tiquetes resueltos que nadie reabrió se cierran (B28).
   { id: 'svc.sla-work.every-5-minutes', job: JOBS.svcSlaWork, pattern: '*/5 * * * *' },

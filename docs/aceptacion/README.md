@@ -17,6 +17,7 @@ requisito del acta de salida a producción ([FT-TEC-008](../puesta-en-marcha/FT-
 | Módulo | Guion                                             | Aprueba                                        |
 | ------ | ------------------------------------------------- | ---------------------------------------------- |
 | M00    | [Núcleo](M00-nucleo.md)                           | Director General                               |
+| M00    | [Multiempresa](M00-multiempresa.md)               | Director General y responsable técnico         |
 | M01    | [Identidad y control de acceso](M01-identidad.md) | Director General                               |
 | M02    | [Terceros](M02-terceros.md)                       | Gerente Comercial                              |
 | M03    | [Gestión documental](M03-documentos.md)           | Coordinador de Calidad e Innovación            |
@@ -38,4 +39,4 @@ requisito del acta de salida a producción ([FT-TEC-008](../puesta-en-marcha/FT-
 | M19    | [Auditoría](M19-auditoria.md)                     | Director General                               |
 | M20    | [Asistente de IA](M20-asistente.md)               | Oficial de Protección de Datos Personales      |
 
-M16 se agregó con B46 y M20 con B47.
+M16 se agregó con B46, M20 con B47 y Multiempresa (M00) con B48.

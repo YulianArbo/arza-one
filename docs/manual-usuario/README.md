@@ -7,6 +7,7 @@ claro, un capítulo por módulo (decisión 7 de B45). Empiece por **Primeros pas
 | ----------------------------------------------------- | --------------------------------------------- |
 | [Primeros pasos](00-primeros-pasos.md)                | Todas las personas                            |
 | [M00 Núcleo](M00-nucleo.md)                           | Administrador de la plataforma                |
+| [M00 Multiempresa](M00-multiempresa.md)               | Operador de la plataforma; Dirección          |
 | [M01 Identidad y control de acceso](M01-identidad.md) | Administrador y Dirección                     |
 | [M02 Terceros](M02-terceros.md)                       | Comercial, Servicio, Finanzas, Talento humano |
 | [M03 Gestión documental y SGC](M03-documentos.md)     | Todas las personas; Calidad                   |
@@ -28,7 +29,7 @@ claro, un capítulo por módulo (decisión 7 de B45). Empiece por **Primeros pas
 | [M19 Auditoría](M19-auditoria.md)                     | Auditor, Dirección y administrador            |
 | [M20 Asistente de IA](M20-asistente.md)               | Todas las personas; Oficial de datos          |
 
-M16 se agregó con B46 y M20 con B47.
+M16 se agregó con B46, M20 con B47 y Multiempresa (M00) con B48.
 
 ## Publicarlo como documento controlado
 

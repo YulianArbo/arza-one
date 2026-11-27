@@ -30,7 +30,9 @@ const MATRIX_COLUMNS = [
 
 export type InternalRoleCode = (typeof MATRIX_COLUMNS)[number];
 export type PortalRoleCode = 'CLIENTE_ADMIN' | 'CLIENTE_USUARIO';
-export type SystemRoleCode = InternalRoleCode | PortalRoleCode;
+/** Rol que solo existe en la empresa que opera la plataforma (B48, decisión 1). */
+export type PlatformRoleCode = 'OPERADOR_PLATAFORMA';
+export type SystemRoleCode = InternalRoleCode | PortalRoleCode | PlatformRoleCode;
 
 /**
  * Matriz del numeral 15.3: C crear y editar, L leer, A aprobar, P solo lo propio, - sin acceso.
@@ -66,11 +68,13 @@ const EXTRAS: Readonly<Partial<Record<InternalRoleCode, readonly PermissionCode[
   // El salario exacto lo ven Talento humano, la Dirección y el Contador (ficha 17.13, decisión 7
   // del B35).
   // Los comunicados del acceso los publica también la Dirección (decisión del dueño, B36A).
+  // La exportación completa de la empresa la pide y la descarga solo la Dirección (B48, decisión 3).
   DIRECCION: [
     'party.due_diligence.approve',
     'purchase.request.approve_high',
     'hr.salary.read',
     'core.announcement.manage',
+    'core.tenant.export',
   ],
   // Quien administra la plataforma vigila el uso del asistente (B47, decisión 6).
   ADMIN_PLATAFORMA: ['ai.request.read'],
@@ -192,12 +196,22 @@ const PORTAL_GRANTS: Readonly<Record<PortalRoleCode, readonly RoleGrant[]>> = {
   ).map((code) => ({ code, own: permissionDefinition(code).ownField !== null })),
 };
 
+/**
+ * El operador de la plataforma solo administra las fichas de las empresas (B48, decisiones 1 y 2):
+ * no recibe nada de la matriz. Si además trabaja en la empresa, tiene también otro rol.
+ */
+const PLATFORM_GRANTS: readonly RoleGrant[] = (
+  PERMISSION_GROUPS.find((group) => group.key === 'platform')?.entries.map((entry) => entry[0]) ??
+  []
+).map((code) => ({ code, own: false }));
+
 function isPortalRole(code: SystemRoleCode): code is PortalRoleCode {
   return code === 'CLIENTE_ADMIN' || code === 'CLIENTE_USUARIO';
 }
 
 /** Permisos con que nace un rol del sistema. */
 export function systemRoleGrants(code: SystemRoleCode): readonly RoleGrant[] {
+  if (code === 'OPERADOR_PLATAFORMA') return PLATFORM_GRANTS;
   return isPortalRole(code) ? PORTAL_GRANTS[code] : internalGrants(code);
 }
 

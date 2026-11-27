@@ -1,6 +1,7 @@
 import { v7 as uuidv7 } from 'uuid';
 import { describe, expect, it } from 'vitest';
 
+import { OPERATOR_TENANT_ID } from '../../../src/platform/database/operator-tenant.js';
 import { buildOpenApiDocument } from '../../../src/platform/openapi/openapi.js';
 import { tenantScope } from '../iam/support/iam-fixtures.js';
 import { AccessScenario } from '../iam/support/access-scenario.js';
@@ -10,7 +11,7 @@ import { WRITE_ROUTE_CALLS } from './support/write-route-calls.js';
 // produce su evento de auditoría. Las rutas salen del OpenAPI de la API en marcha: una ruta nueva
 // que escribe y no tiene su llamada aquí hace fallar la prueba.
 
-const scenario = new AccessScenario('recorrido de escrituras');
+const scenario = new AccessScenario('recorrido de escrituras', 2_000);
 const WRITE_METHODS = ['post', 'put', 'patch', 'delete'] as const;
 
 function writeRoutes(): string[] {
@@ -23,7 +24,8 @@ function writeRoutes(): string[] {
 }
 
 async function auditedActions(correlationId: string): Promise<string[]> {
-  const tenants = [scenario.tenant.id, scenario.otherTenant.id];
+  // Lo que hace el operador de la plataforma queda en la empresa operadora (B48).
+  const tenants = [scenario.tenant.id, scenario.otherTenant.id, OPERATOR_TENANT_ID];
   const found = await Promise.all(
     tenants.map((tenantId) =>
       tenantScope(

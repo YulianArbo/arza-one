@@ -22,6 +22,7 @@ import { findSession, type SessionRef } from '../infrastructure/identity-lookup.
 import { hasConfirmedFactor } from '../infrastructure/second-factor-store.js';
 import { csrfTokenFor, hashSecretToken } from '../infrastructure/secret-token.js';
 import { sessionTokenFrom } from './session-cookie.js';
+import { TENANT_GATE, type TenantGate } from './tenant-gate.js';
 
 interface SessionUserView {
   readonly id: string;
@@ -43,7 +44,7 @@ export interface SessionView {
 /**
  * Valida la cookie de sesión en cada petición (numeral 13.1, paso 4) contra iam_sessions:
  * debe existir, no estar cerrada ni vencida (12 horas en total, 8 sin uso) y ser de una cuenta
- * activa. Al vencer por inactividad, la cierra. Como se consulta en cada petición, una sesión
+ * activa de una empresa activa (B48). Al vencer por inactividad, la cierra. Como se consulta en cada petición, una sesión
  * cerrada desde otro dispositivo deja de servir en la petición siguiente (B09). Informa además si
  * la sesión ya pasó el segundo factor y si la identidad se confirmó en los últimos 30 minutos.
  */
@@ -53,6 +54,7 @@ export class SessionService implements Authenticator {
     @Inject(DatabaseService) private readonly database: DatabaseService,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(CONFIG) private readonly config: Env,
+    @Inject(TENANT_GATE) private readonly gate: TenantGate,
   ) {}
 
   async authenticate(request: Request): Promise<Principal | null> {
@@ -134,6 +136,8 @@ export class SessionService implements Authenticator {
     const session = await tx.session.findUnique({ where: { id: ref.sessionId } });
     const user = await loadUser(tx, ref.userId);
     if (session === null || user === null || !canSignIn(user)) return null;
+    // Una empresa suspendida pierde el acceso en la petición siguiente (B48).
+    if (!(await this.gate.isOpen(tx))) return null;
     if (isIdleExpired(session.lastSeenAt, now)) {
       await this.expireIdle(tx, ref, now);
       return null;

@@ -13,7 +13,7 @@ permisos de una persona son la suma de sus roles vigentes.
 
 | Rol | Código | Para | Permisos | Solo lo propio |
 | --- | --- | --- | --- | --- |
-| Dirección | `DIRECCION` | Interno | 81 | 1 |
+| Dirección | `DIRECCION` | Interno | 82 | 1 |
 | Administrador de plataforma | `ADMIN_PLATAFORMA` | Interno | 38 | 1 |
 | Calidad | `CALIDAD` | Interno | 71 | 1 |
 | Comercial | `COMERCIAL` | Interno | 55 | 10 |
@@ -27,14 +27,15 @@ permisos de una persona son la suma de sus roles vigentes.
 | Oficial de protección de datos | `OFICIAL_DATOS` | Interno | 38 | 6 |
 | Colaborador | `COLABORADOR` | Interno | 27 | 21 |
 | Auditor | `AUDITOR` | Interno | 42 | 0 |
+| Operador de la plataforma | `OPERADOR_PLATAFORMA` | Interno | 3 | 0 |
 | Administrador del cliente | `CLIENTE_ADMIN` | Portal | 9 | 0 |
 | Usuario del cliente | `CLIENTE_USUARIO` | Portal | 4 | 4 |
 
 ## Dirección (`DIRECCION`)
 
-Director General. Lectura transversal, aprobaciones de alto nivel, firma de contratos, tableros. 81 permisos.
+Director General. Lectura transversal, aprobaciones de alto nivel, firma de contratos, tableros. 82 permisos.
 
-- **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema · Administrar los comunicados del acceso
+- **Núcleo (M00):** Ver los datos de la empresa · Ver sedes, procesos, cargos y centros de costo · Ver los parámetros y el estado del sistema · Administrar los comunicados del acceso · Exportar todos los datos de la empresa
 - **Identidad y acceso (M01):** Ver los usuarios y sus roles · Ver los roles y sus permisos · Ver el informe de revisión de accesos
 - **Terceros (M02):** Ver terceros · Aprobar el conocimiento del tercero
 - **Gestión documental (M03):** Ver documentos · Revisar versiones · Aprobar versiones · Publicar versiones · Declarar obsoleta una versión · Decidir solicitudes de cambio · Aprobar formatos diligenciados · Aprobar la disposición final de documentos
@@ -288,6 +289,12 @@ Auditor interno o externo. Solo lectura de evidencias y auditoría, por tiempo l
 - **Seguridad y salud en el trabajo (M13):** Ver el módulo de SST · Ver las actas del comité
 - **Calidad (M14):** Ver el módulo de Calidad · Ver las lecciones aprendidas
 - **Innovación (M15):** Ver innovación y propiedad intelectual
+
+## Operador de la plataforma (`OPERADOR_PLATAFORMA`)
+
+Solo en la empresa que opera ARZA ONE. Alta, plan, suspensión y eliminación de empresas; ve su ficha, nunca su contenido. 3 permisos.
+
+- **Empresas de la plataforma (M00):** Ver las empresas de la plataforma · Dar de alta, cambiar el plan y suspender empresas · Pedir y cancelar la eliminación de una empresa
 
 ## Administrador del cliente (`CLIENTE_ADMIN`)
 

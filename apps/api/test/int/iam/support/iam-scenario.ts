@@ -2,13 +2,16 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import {
   secondFactorConfirmResponseSchema,
   secondFactorSetupResponseSchema,
+  TENANT_PLANS,
   type SecondFactorSetupResponse,
 } from '@arza/contracts';
 import request from 'supertest';
 import { afterAll, beforeAll, expect } from 'vitest';
 
+import { setTenantPlan } from '../../../../src/modules/core/index.js';
 import { totpCodeAt } from '../../../../src/modules/iam/infrastructure/totp.js';
 import type { DatabaseService } from '../../../../src/platform/database/database.service.js';
+import { OPERATOR_TENANT_ID } from '../../../../src/platform/database/operator-tenant.js';
 import type { TenantTransaction } from '../../../../src/platform/database/tenant-context.js';
 import {
   createDatabaseService,
@@ -52,13 +55,26 @@ export class IamScenario {
   private database?: DatabaseService;
   private application?: NestExpressApplication;
 
-  constructor(label: string) {
+  constructor(label: string, internalUserLimit?: number) {
     this.tenant = newTestTenant(`${label} A`);
     this.otherTenant = newTestTenant(`${label} B`);
     beforeAll(async () => {
       this.database = createDatabaseService();
       await createTenant(this.database, this.tenant);
       await createTenant(this.database, this.otherTenant);
+      if (internalUserLimit !== undefined) {
+        const limits = { ...TENANT_PLANS.professional, maxInternalUsers: internalUserLimit };
+        await this.database.withTenant(
+          { tenantId: OPERATOR_TENANT_ID, userId: null },
+          async (tx) => {
+            for (const tenant of [this.tenant, this.otherTenant]) {
+              expect(
+                await setTenantPlan(tx, { id: tenant.id, version: 1, plan: limits.code }, limits),
+              ).toBe(true);
+            }
+          },
+        );
+      }
       // El sitio público de la API es el de la empresa del escenario (B29).
       this.application = await createIamTestApp(this.clock, {
         PUBLIC_SITE_TAX_ID: this.tenant.taxId,

@@ -109,7 +109,7 @@ function Actions(props: ImageFieldProps & { readonly state: FieldState }): JSX.E
 const SAVED = { foto: 'Foto guardada.', logo: 'Logo guardado.' } as const;
 
 export function ImageField(props: ImageFieldProps): JSX.Element {
-  const src = useImageUrl(props.hasImage ? props.target.image : null);
+  const src = useImageUrl(props.hasImage ? (props.target.view ?? props.target.image) : null);
   const state = useImageField(props.target);
   return (
     <div className="flex flex-col gap-3">

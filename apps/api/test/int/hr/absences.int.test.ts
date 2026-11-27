@@ -52,10 +52,8 @@ it('el colaborador solicita vacaciones, su jefe las aprueba y llegan a nómina',
   expect((await act(staff.boss, path, 1)).status).toBe(204);
   const effects = await scenario.inTenant(async (tx) => ({
     novelties: await tx.hrPayrollNovelty.findMany({ where: { sourceId: id } }),
-    audit: await tx.auditEvent.findMany({
-      where: { entityId: id },
-      orderBy: { occurredAt: 'asc' },
-    }),
+    // El reloj de la prueba no avanza: el orden lo da la cadena de la auditoría (seq), no la hora.
+    audit: await tx.auditEvent.findMany({ where: { entityId: id }, orderBy: { seq: 'asc' } }),
     events: await tx.outboxEvent.count({ where: { eventType: { startsWith: 'hr.leave.' } } }),
   }));
   expect(effects.novelties.map((n) => n.concept)).toContain('VACACIONES');

@@ -48,6 +48,15 @@ const EMPTY_LISTS: Readonly<Record<string, unknown>> = {
     has_photo: false,
   },
   '/v1/me/company': { company: null },
+  // La barra superior de la aplicación y del portal muestra la marca de la empresa (B48).
+  // «Empresa y sedes» muestra a la Dirección sus exportaciones completas (B48): ninguna.
+  '/v1/tenant/exports': { data: [] },
+  '/v1/me/branding': {
+    display_name: 'Empresa de prueba',
+    primary_color: null,
+    has_logo: false,
+    version: 1,
+  },
   '/v1/tasks/mine': { data: [], next_cursor: null },
   '/v1/crm/reports/funnel': EMPTY_FUNNEL,
   '/v1/comments': { items: [] },

@@ -18,6 +18,8 @@ export const CORE_PERMISSION_GROUPS = [
       ['core.parameter.manage', 'write', 'Cambiar los parámetros'],
       ['core.sequence.manage', 'write', 'Administrar los consecutivos'],
       ['core.announcement.manage', 'write', 'Administrar los comunicados del acceso'],
+      // B48, decisión 3: la exportación completa la pide y la descarga solo la Dirección.
+      ['core.tenant.export', 'restricted', 'Exportar todos los datos de la empresa'],
     ],
   },
   {
@@ -153,6 +155,18 @@ export const CORE_PERMISSION_GROUPS = [
       // B47, decisiones 6 y 7: solo el Oficial de datos activa un uso, con su evaluación de impacto.
       ['ai.use_case.manage', 'restricted', 'Activar los usos del asistente'],
       ['ai.request.read', 'restricted', 'Ver el registro de usos del asistente'],
+    ],
+  },
+  {
+    key: 'platform',
+    label: 'Empresas de la plataforma',
+    module: 'M00',
+    // B48, decisiones 1 y 2: solo el operador de la plataforma, en la empresa que la opera. Ve la
+    // ficha de cada empresa, nunca su contenido.
+    entries: [
+      ['platform.tenant.read', 'restricted', 'Ver las empresas de la plataforma'],
+      ['platform.tenant.manage', 'restricted', 'Dar de alta, cambiar el plan y suspender empresas'],
+      ['platform.tenant.delete', 'restricted', 'Pedir y cancelar la eliminación de una empresa'],
     ],
   },
 ] as const satisfies readonly PermissionGroupDefinition[];

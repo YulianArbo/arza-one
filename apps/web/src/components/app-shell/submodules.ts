@@ -3,6 +3,7 @@ import {
   HardHat,
   BookOpen,
   Building,
+  Building2,
   CalendarDays,
   ChartLine,
   ClipboardList,
@@ -180,6 +181,8 @@ const ADMINISTRATION = [
   sub(ADMIN_PATHS.sequences, 'Consecutivos', ListChecks, 'core.sequence.manage'),
   sub(ADMIN_PATHS.holidays, 'Festivos', CalendarDays, 'core.parameter.read'),
   sub(ADMIN_PATHS.announcements, 'Comunicados', Megaphone, 'core.announcement.manage'),
+  // Multiempresa (B48): solo el operador, en la empresa que opera la plataforma.
+  sub(ADMIN_PATHS.tenants, 'Empresas de la plataforma', Building2, 'platform.tenant.read'),
 ];
 
 const AUDIT = [

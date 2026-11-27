@@ -1,32 +1,19 @@
 import { z } from 'zod';
 
-// Las semillas de acceso, del núcleo, documentos, privacidad, los parámetros tributarios, el flujo del CRM, la biblioteca y las plantillas de Contratos, el flujo de Proyectos, los terceros ficticios y el flujo de prueba son de sus
-// módulos: este punto de entrada las reúne con la de la plataforma, como app.module.ts reúne los
-// módulos.
-import { seedContracts } from '../../../modules/contract/index.js';
-import { seedCore } from '../../../modules/core/index.js';
-import { seedCrmWorkflows } from '../../../modules/crm/index.js';
-import {
-  seedDocFolders,
-  seedDocForms,
-  seedDocWorkflows,
-  seedRetentionDemo,
-} from '../../../modules/doc/index.js';
-import { seedTaxParameters } from '../../../modules/fin/index.js';
-import { seedInnovation, seedInnovationDemo } from '../../../modules/inn/index.js';
-import { seedSiteDemo, seedSiteTexts } from '../../../modules/web/index.js';
-import { seedAccessControl } from '../../../modules/iam/index.js';
+// Las semillas de cada empresa están en tenant-seed.ts (también las usa el alta de una empresa,
+// B48); este punto de entrada las reúne con la de la plataforma y los datos ficticios.
+import { seedRetentionDemo } from '../../../modules/doc/index.js';
+import { seedInnovationDemo } from '../../../modules/inn/index.js';
+import { seedSiteDemo } from '../../../modules/web/index.js';
 import { seedPartyDemo } from '../../../modules/party/index.js';
-import { seedNotificationTemplates } from '../../../modules/ntf/index.js';
-import { seedPrivacyDemo, seedPrivacyNotices } from '../../../modules/privacy/index.js';
+import { seedPrivacyDemo } from '../../../modules/privacy/index.js';
 import { seedLegalDemo } from '../../../modules/qms/index.js';
-import { seedProjects } from '../../../modules/project/index.js';
-import { seedService } from '../../../modules/service/index.js';
 import { seedWorkflowDemo } from '../../../modules/wf/index.js';
 import { systemClock } from '../../clock/clock.js';
 import { DatabaseService } from '../database.service.js';
 import { DEMO_TENANTS, PLATFORM_TENANT } from './seed-data.js';
 import { seedDemo, seedPlatform } from './seed.js';
+import { seedTenantBasics } from './tenant-seed.js';
 
 // Punto de entrada de `pnpm db:seed` y `pnpm db:seed:demo`. Solo necesita DATABASE_URL.
 const seedEnvSchema = z.object({
@@ -61,20 +48,7 @@ async function main(): Promise<void> {
     }
     const tenants = withDemo ? [PLATFORM_TENANT, ...DEMO_TENANTS] : [PLATFORM_TENANT];
     const tenantIds = tenants.map((tenant) => tenant.id);
-    await seedAccessControl(database, tenantIds, systemClock);
-    await seedCore(database, tenantIds, systemClock);
-    await seedDocFolders(database, tenantIds, systemClock);
-    await seedDocWorkflows(database, tenantIds, systemClock);
-    await seedDocForms(database, tenantIds, systemClock);
-    await seedNotificationTemplates(database, tenantIds, systemClock);
-    await seedPrivacyNotices(database, tenantIds, systemClock);
-    await seedTaxParameters(database, tenantIds, systemClock);
-    await seedCrmWorkflows(database, tenantIds, systemClock);
-    await seedContracts(database, tenantIds, systemClock);
-    await seedProjects(database, tenantIds, systemClock);
-    await seedService(database, tenantIds, systemClock);
-    await seedInnovation(database, tenantIds, systemClock);
-    await seedSiteTexts(database, tenantIds, systemClock);
+    await seedTenantBasics(database, tenantIds, systemClock);
     if (withDemo) await seedDemoData(database);
     process.stdout.write(withDemo ? 'Semilla y datos ficticios listos.\n' : 'Semilla lista.\n');
   } finally {

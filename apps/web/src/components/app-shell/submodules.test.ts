@@ -45,7 +45,7 @@ describe('submódulos por permiso (B22B)', () => {
     const all = slugs.flatMap((slug) => visibleSubmodules(slug, EVERYTHING));
     expect(all.every((entry) => entry.anyOf.length > 0)).toBe(true);
     expect(new Set(all.map((entry) => entry.href)).size).toBe(all.length);
-    expect(all).toHaveLength(58);
+    expect(all).toHaveLength(59);
   });
 });
 

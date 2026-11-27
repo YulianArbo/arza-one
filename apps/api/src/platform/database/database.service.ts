@@ -54,13 +54,34 @@ export class DatabaseService implements OnModuleDestroy {
     work: (transaction: TenantTransaction) => Promise<T>,
     unaudited?: UnauditedWrite,
   ): Promise<T> {
+    return this.run(context, work, unaudited, this.options.transaction);
+  }
+
+  /**
+   * Como withTenant, con un tiempo máximo propio para un trabajo largo del worker que debe ser
+   * una sola transacción, como borrar todos los datos de una empresa (B48).
+   */
+  async withTenantFor<T>(
+    context: TenantContext,
+    work: (transaction: TenantTransaction) => Promise<T>,
+    timeoutMs: number,
+  ): Promise<T> {
+    return this.run(context, work, undefined, { ...this.options.transaction, timeout: timeoutMs });
+  }
+
+  private async run<T>(
+    context: TenantContext,
+    work: (transaction: TenantTransaction) => Promise<T>,
+    unaudited: UnauditedWrite | undefined,
+    limits: { readonly maxWait?: number; readonly timeout?: number } | undefined,
+  ): Promise<T> {
     const validContext = parseTenantContext(context);
     return this.client.$transaction(async (transaction) => {
       await applyTenantContext(transaction, validContext);
       const result = await work(transaction);
       if (unaudited === undefined && this.options.requireAudit) await assertAudited(transaction);
       return result;
-    }, this.options.transaction);
+    }, limits);
   }
 
   /**

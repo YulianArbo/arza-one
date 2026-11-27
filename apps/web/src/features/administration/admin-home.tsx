@@ -26,6 +26,7 @@ const GROUPS: readonly ShortcutGroup[] = [
     title: 'Organización',
     hrefs: [
       ADMIN_PATHS.company,
+      ADMIN_PATHS.tenants,
       ADMIN_PATHS.structure,
       ADMIN_PATHS.costCenters,
       ADMIN_PATHS.holidays,

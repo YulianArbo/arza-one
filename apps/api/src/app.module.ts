@@ -27,6 +27,7 @@ import { NtfModule } from './modules/ntf/index.js';
 import { PrivacyModule } from './modules/privacy/index.js';
 import { PurchaseModule } from './modules/purchase/index.js';
 import { WfModule } from './modules/wf/index.js';
+import { TenancyModule } from './modules/tenancy/index.js';
 import { AccessGuard } from './platform/access/access.guard.js';
 import { AuthorizationGuard } from './platform/access/authorization.guard.js';
 import { ClockModule } from './platform/clock/clock.js';
@@ -72,6 +73,7 @@ const BUSINESS_MODULES = [
   DashboardModule,
   WebModule,
   AiModule,
+  TenancyModule,
 ];
 
 /**

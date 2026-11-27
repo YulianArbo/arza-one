@@ -5,6 +5,7 @@ import { runInnDailyWork } from '@arza/api/inn';
 import { renderQualityPdfs, runQmsDailyWork, runQmsIndicatorWork } from '@arza/api/qms';
 import { serviceQualityFigures } from '@arza/api/service';
 import { runSstDailyWork } from '@arza/api/sst';
+import { runTenantExportWork, runTenantPurgeWork } from '@arza/api/tenancy';
 import { UnrecoverableError } from 'bullmq';
 
 import {
@@ -72,6 +73,8 @@ interface IncomingJob {
 export type JobHandler = (job: IncomingJob) => Promise<void>;
 
 export type JobDependencies = ExampleEmailDependencies &
+  Parameters<typeof runTenantExportWork>[0] &
+  Parameters<typeof runTenantPurgeWork>[0] &
   AccountEmailJobDependencies &
   AuditChainCheckDependencies &
   FileScanJobDependencies &
@@ -116,11 +119,13 @@ function privacyHandlers(deps: JobDependencies): [string, JobHandler][] {
   ];
 }
 
-/** Innovación (B40) y el índice del asistente de IA (B47). */
+/** Innovación (B40), el índice del asistente de IA (B47) y multiempresa (B48). */
 function innovationAndAiHandlers(deps: JobDependencies): [string, JobHandler][] {
   return [
     [JOBS.innDailyWork.name, withoutData(async () => runInnDailyWork(deps))],
     [JOBS.aiIndexWork.name, withoutData(async () => refreshAiIndex(deps))],
+    [JOBS.tenantExportWork.name, withoutData(async () => runTenantExportWork(deps))],
+    [JOBS.tenantPurgeWork.name, withoutData(async () => runTenantPurgeWork(deps))],
   ];
 }
 

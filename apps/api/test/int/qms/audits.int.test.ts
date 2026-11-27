@@ -29,7 +29,7 @@ import { at, coded, created, later, processId, qualityFixture } from './support/
 
 // Programa y auditorías internas (B39; ficha 17.15, decisiones 1 a 4 y 9).
 
-const scenario = new AccessScenario('calidad auditorias');
+const scenario = new AccessScenario('calidad auditorias', 100);
 
 it('Calidad arma y publica el programa anual; uno por año', async () => {
   const f = await qualityFixture(scenario, 'programa');

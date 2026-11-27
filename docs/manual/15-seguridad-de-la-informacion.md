@@ -37,6 +37,7 @@ Los roles del sistema se alinean con los cargos del organigrama DC-SGC-001. Un u
 | **AUDITOR**          | Auditor interno o externo               | Solo lectura de evidencias y auditoría, por tiempo limitado                                                           |
 | **CLIENTE_ADMIN**    | Contacto principal del cliente          | Todo lo de su organización en el portal; gestiona sus usuarios                                                        |
 | **CLIENTE_USUARIO**  | Otros usuarios del cliente              | Proyectos y tiquetes que se le asignen                                                                                |
+| **OPERADOR_PLATAFORMA** | Responsable técnico de ARZA TECH     | Solo en la empresa que opera la plataforma: alta, plan, suspensión y eliminación de empresas; ve su ficha, nunca su contenido (B48) |
 
 ## 15.3 Matriz de permisos por módulo
 
@@ -65,7 +66,7 @@ C: crear y editar. L: leer. A: aprobar o ejecutar transiciones críticas. P: sol
 | **M19 Auditoría**         | L       | L       | L       | —       | —       | —       | —       | —       | —       | —       | —       | L       | —       | L       |
 | **M20 Asistente de IA**   | L       | CA      | CA      | L       | L       | L       | L       | L       | L       | L       | L       | L       | L       | L       |
 
-Siglas de columnas: DIR Dirección, ADM Administrador de plataforma, CAL Calidad, COM Comercial, TEC Líder técnico, EQP Equipo de proyecto, SAC Servicio, FIN Administrativo y financiero, CON Contador, GTH Talento humano, SST Seguridad y salud, DAT Oficial de datos, COL Colaborador, AUD Auditor. El portal M09 aplica a los roles de cliente y la IA M20 hereda los permisos del usuario que la usa: la fila M20 solo dice quién puede usar el asistente (L) y quién administra sus instrucciones (CA). Activar sus usos es del Oficial de datos, y ver su registro, del Oficial de datos, el Auditor y el administrador (permisos sensibles, B47).
+Siglas de columnas: DIR Dirección, ADM Administrador de plataforma, CAL Calidad, COM Comercial, TEC Líder técnico, EQP Equipo de proyecto, SAC Servicio, FIN Administrativo y financiero, CON Contador, GTH Talento humano, SST Seguridad y salud, DAT Oficial de datos, COL Colaborador, AUD Auditor. El portal M09 aplica a los roles de cliente y la IA M20 hereda los permisos del usuario que la usa: la fila M20 solo dice quién puede usar el asistente (L) y quién administra sus instrucciones (CA). Activar sus usos es del Oficial de datos, y ver su registro, del Oficial de datos, el Auditor y el administrador (permisos sensibles, B47). El operador de la plataforma (B48) no tiene columna: solo recibe los permisos `platform.tenant.*`, que ningún otro rol tiene, y la exportación completa de la empresa (`core.tenant.export`) es solo de la Dirección.
 
 ## 15.4 Reglas de autorización por contexto (ABAC)
 

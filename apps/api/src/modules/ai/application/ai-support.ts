@@ -1,5 +1,5 @@
 import { HttpStatus } from '@nestjs/common';
-import { AI_ERROR_CODES, type AiRef } from '@arza/contracts';
+import { AI_ERROR_CODES, TENANCY_ERROR_CODES, type AiRef } from '@arza/contracts';
 
 import type { Prisma } from '../../../generated/prisma/client.js';
 import type { AppAbility } from '../../../platform/access/ability.js';
@@ -48,6 +48,15 @@ export function gatewayOff(): AppError {
     HttpStatus.SERVICE_UNAVAILABLE,
     AI_ERROR_CODES.gatewayOff,
     'El asistente de inteligencia artificial no está disponible en esta instalación.',
+  );
+}
+
+/** El plan de la empresa no incluye el asistente (B48, decisión 9). */
+export function notInPlan(): AppError {
+  return new AppError(
+    HttpStatus.CONFLICT,
+    TENANCY_ERROR_CODES.planLimitReached,
+    'El plan de su empresa no incluye el asistente de inteligencia artificial.',
   );
 }
 
