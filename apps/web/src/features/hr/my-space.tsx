@@ -70,7 +70,7 @@ function EmploymentCard({ employment }: { readonly employment: MyEmployment }): 
 function VacationCard({ employment }: { readonly employment: MyEmployment }): JSX.Element {
   const vacation = employment.vacation;
   return (
-    <HighlightCard title="Mis vacaciones" highlighted>
+    <HighlightCard title="Mis vacaciones">
       <p className="text-display font-semibold">{vacation.available.replace('.', ',')} días</p>
       <p>
         Disponibles hoy. Ganados: {vacation.accrued.replace('.', ',')} · Usados o solicitados:{' '}

@@ -94,7 +94,7 @@ export function HierarchySection(): JSX.Element {
       <CardHeader>
         <CardTitle id="hierarchy-title">Jerarquía de pantallas</CardTitle>
         <CardDescription>
-          Recorrido por etapas, tarjeta destacada, pendientes y accesos del módulo (B22B).
+          Recorrido por etapas, tarjetas de sección, pendientes y accesos del módulo (B22B).
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
@@ -105,10 +105,13 @@ export function HierarchySection(): JSX.Element {
           linkAs={Link}
         />
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)]">
-          <HighlightCard title="Requieren su atención" highlighted>
+          <HighlightCard title="Requieren su atención">
             <AttentionList items={PENDING} linkAs={Link} />
           </HighlightCard>
-          <HighlightCard title="Gestión de recursos" description="Bloque secundario, borde fino.">
+          <HighlightCard
+            title="Gestión de recursos"
+            description="Mismo borde fino; se marca en azul solo al seleccionar."
+          >
             <p className="text-muted-foreground">Contenido de apoyo del módulo.</p>
           </HighlightCard>
         </div>

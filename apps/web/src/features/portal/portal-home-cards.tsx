@@ -30,7 +30,7 @@ export function mainProject(
 function ProjectHighlight({ project }: { readonly project: PortalProjectSummary }): JSX.Element {
   const milestone = project.next_milestone;
   return (
-    <HighlightCard title={project.name} highlighted className="lg:col-span-2">
+    <HighlightCard title={project.name} className="lg:col-span-2">
       <p className="font-heading text-display font-semibold tabular-nums">
         {project.progress_pct} %
       </p>

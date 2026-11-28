@@ -37,7 +37,7 @@ export function SubmoduleList({
     <ul
       className={cn(
         'mt-0.5 mb-1 ml-[1.375rem] flex flex-col gap-0.5 border-l pl-2.5',
-        collapsible && 'hidden lg:flex',
+        collapsible && 'hidden menu-wide:flex',
       )}
     >
       {entries.map((entry) => (

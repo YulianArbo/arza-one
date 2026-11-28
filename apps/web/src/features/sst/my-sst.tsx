@@ -33,7 +33,7 @@ import { useSstQuery } from './sst-queries';
 
 function ReportCard({ committees }: { readonly committees: MySstData['committees'] }) {
   return (
-    <HighlightCard title="Seguridad y salud en el trabajo" highlighted>
+    <HighlightCard title="Seguridad y salud en el trabajo">
       <p>¿Vio algo inseguro o tuvo un incidente? Repórtelo en menos de un minuto.</p>
       <Link className="font-semibold underline" href="/app/mi-espacio/reportar">
         Reportar a SST

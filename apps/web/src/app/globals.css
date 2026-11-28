@@ -3,3 +3,15 @@
 
 /* Clases usadas por los componentes del sistema de diseño. */
 @source '../../../../packages/ui/src';
+
+/*
+ * Menú lateral ancho (B49): en escritorio el menú muestra los nombres, salvo que la persona lo
+ * haya plegado (data-menu="collapsed" en el menú). Reemplaza a lg: en las piezas del menú.
+ */
+@custom-variant menu-wide {
+  @media (width >= 64rem) {
+    &:not([data-menu='collapsed'], [data-menu='collapsed'] *) {
+      @slot;
+    }
+  }
+}

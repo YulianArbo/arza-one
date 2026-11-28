@@ -77,7 +77,6 @@ function StageCard({ stage }: { readonly stage: JourneyStage }): JSX.Element {
           ? 'No hay registros esperando en esta etapa.'
           : `${String(count)} ${count === 1 ? 'registro requiere' : 'registros requieren'} atención en esta etapa.`
       }
-      highlighted
     >
       <AttentionList
         linkAs={Link}

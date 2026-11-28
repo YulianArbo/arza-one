@@ -32,7 +32,7 @@ export function AppShell({ children }: { children: ReactNode }): JSX.Element {
         <main
           id="contenido"
           tabIndex={-1}
-          className="mx-auto flex w-full max-w-7xl min-w-0 flex-1 flex-col gap-6 p-4 animate-enter sm:p-6 lg:px-10 lg:py-8"
+          className="mx-auto flex w-full max-w-screen-2xl min-w-0 flex-1 flex-col gap-6 p-4 animate-enter sm:p-6 lg:px-10 lg:py-8"
         >
           {children}
         </main>

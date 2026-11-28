@@ -5,17 +5,18 @@ import { cn } from '../lib/cn.js';
 export interface HighlightCardProps {
   readonly title: string;
   readonly description?: string | undefined;
-  /** Destaca la tarjeta con el borde azul de la marca. Clara, nunca con fondo oscuro (B22B). */
-  readonly highlighted?: boolean;
   readonly className?: string | undefined;
   readonly children: ReactNode;
 }
 
-/** Bloque de contenido con título de sección. La tarjeta destacada lleva borde azul. */
+/**
+ * Bloque de contenido con título de sección. Todas llevan el mismo borde fino; el borde azul de
+ * la marca aparece solo mientras la persona selecciona algo dentro de la tarjeta (B49, decisión
+ * del propietario del 27/11/2026: nunca un recuadro azul fijo).
+ */
 export function HighlightCard({
   title,
   description,
-  highlighted = false,
   className,
   children,
 }: HighlightCardProps): JSX.Element {
@@ -24,8 +25,7 @@ export function HighlightCard({
     <section
       aria-labelledby={titleId}
       className={cn(
-        'flex flex-col gap-3 rounded-xl bg-card p-6 text-card-foreground',
-        highlighted ? 'border-2 border-primary' : 'border',
+        'flex flex-col gap-3 rounded-xl border bg-card p-6 text-card-foreground transition-colors duration-200 focus-within:border-primary',
         className,
       )}
     >

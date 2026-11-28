@@ -16,6 +16,7 @@ import {
 import { SubmoduleList } from './submodule-list';
 import { inVisibleSubmodule } from './submodules';
 import { useCollapsedGroups } from './use-collapsed-groups';
+import { useIsCompactMenu } from './use-compact-menu';
 
 export interface NavigationListProps {
   /** Permisos del usuario; los iconos no viajan desde el servidor, el menú se arma aquí. */
@@ -96,7 +97,10 @@ function NavigationSection({
           onToggle={onToggle}
         />
       ) : null}
-      <ul id={listId} className={cn('flex flex-col gap-0.5', !open && collapsible && 'lg:hidden')}>
+      <ul
+        id={listId}
+        className={cn('flex flex-col gap-0.5', !open && collapsible && 'menu-wide:hidden')}
+      >
         {showItems
           ? group.items.map((item) => (
               <ModuleEntry key={item.slug} item={item} collapsible={collapsible} {...entry} />
@@ -168,7 +172,7 @@ function GroupHeader({
 }: GroupHeaderProps): JSX.Element {
   const Icon = group.icon ?? ChevronDown;
   return (
-    <h2 className={cn(collapsible && 'hidden lg:block')}>
+    <h2 className={cn(collapsible && 'hidden menu-wide:block')}>
       <button
         type="button"
         aria-expanded={open}
@@ -204,6 +208,7 @@ function NavigationLink({
   onNavigate,
 }: NavigationLinkProps): JSX.Element {
   const Icon = item.icon;
+  const compact = useIsCompactMenu();
   const link = (
     <Link
       href={hrefFor(item)}
@@ -212,14 +217,14 @@ function NavigationLink({
       className={cn(
         'flex items-center gap-2.5 rounded-lg px-3 py-2 text-nav font-medium text-foreground hover-invert',
         active && 'bg-primary/10 text-primary',
-        collapsible && 'justify-center lg:justify-start',
+        collapsible && 'justify-center menu-wide:justify-start',
       )}
     >
       <Icon
         aria-hidden="true"
         className={cn('size-[18px] shrink-0', active ? 'text-primary' : 'text-muted-foreground')}
       />
-      <span className={cn(collapsible && 'sr-only lg:not-sr-only')}>{item.label}</span>
+      <span className={cn(collapsible && 'sr-only menu-wide:not-sr-only')}>{item.label}</span>
     </Link>
   );
   if (!collapsible) {
@@ -228,7 +233,7 @@ function NavigationLink({
   return (
     <Tooltip>
       <TooltipTrigger asChild>{link}</TooltipTrigger>
-      <TooltipContent side="right" className="lg:hidden">
+      <TooltipContent side="right" className={cn(!compact && 'lg:hidden')}>
         {item.label}
       </TooltipContent>
     </Tooltip>

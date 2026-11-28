@@ -55,27 +55,26 @@ describe('encabezado de página (B22B)', () => {
   });
 });
 
-describe('tarjeta destacada (B22B)', () => {
-  it('es una región con nombre y lleva el borde azul cuando se destaca', () => {
+describe('tarjeta de sección (B22B, B49)', () => {
+  it('es una región con nombre y descripción', () => {
     render(
-      <HighlightCard title="Requieren su atención" description="Tres pendientes" highlighted>
+      <HighlightCard title="Requieren su atención" description="Tres pendientes">
         <p>Contenido</p>
       </HighlightCard>,
     );
     const region = screen.getByRole('region', { name: 'Requieren su atención' });
-    expect(region).toHaveClass('border-primary');
     expect(within(region).getByText('Tres pendientes')).toBeVisible();
   });
 
-  it('sin destacar lleva el borde fino', () => {
+  it('lleva el borde fino y solo se marca en azul al seleccionar algo dentro', () => {
     render(
       <HighlightCard title="Continuar trabajando">
         <p>Contenido</p>
       </HighlightCard>,
     );
-    expect(screen.getByRole('region', { name: 'Continuar trabajando' })).not.toHaveClass(
-      'border-primary',
-    );
+    const region = screen.getByRole('region', { name: 'Continuar trabajando' });
+    expect(region).not.toHaveClass('border-primary');
+    expect(region).toHaveClass('border', 'focus-within:border-primary');
   });
 });
 
