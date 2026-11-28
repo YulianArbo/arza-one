@@ -37,6 +37,35 @@ test.describe('menú en escritorio', () => {
   });
 });
 
+test.describe('menú plegable en escritorio', () => {
+  test.use({ viewport: { width: 1280, height: 800 } });
+
+  // B49: plegar el menú no borra lo escrito, deja marcado el módulo actual y se recuerda.
+  test('se pliega a iconos sin perder lo escrito y lo recuerda al volver', async ({ page }) => {
+    await page.goto('/app/sistema-de-diseno');
+    await waitForAppShell(page);
+    const field = page.getByLabel('Nombre del cliente');
+    await field.fill('Cliente de prueba');
+    const menu = page.getByRole('navigation', { name: 'Menú principal' });
+    await page.getByRole('button', { name: 'Contraer menú' }).click();
+
+    await expect(page.getByRole('button', { name: 'Expandir menú' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
+    await expect(menu.getByText('Comercial')).not.toBeInViewport();
+    await expect(field).toHaveValue('Cliente de prueba');
+    await menu.getByRole('link', { name: 'Comercial' }).focus();
+    await expect(page.getByRole('tooltip')).toHaveText('Comercial');
+    expect(await accessibilityViolations(page)).toEqual([]);
+
+    await page.reload();
+    await waitForAppShell(page);
+    await page.getByRole('button', { name: 'Expandir menú' }).click();
+    await expect(menu.getByText('Comercial')).toBeVisible();
+  });
+});
+
 test.describe('menú en tableta', () => {
   test.use({ viewport: { width: 820, height: 1180 } });
 
