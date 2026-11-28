@@ -103,7 +103,7 @@ function AffectedChoice(): JSX.Element {
 
 function Done(props: { readonly result: QuickReportResponse; readonly again: () => void }) {
   return (
-    <HighlightCard title="Reporte enviado" highlighted>
+    <HighlightCard title="Reporte enviado">
       <p role="status">
         Su reporte quedó con el código <strong>{props.result.code}</strong>. SST ya recibió el
         aviso; puede ver el avance en Mi espacio.

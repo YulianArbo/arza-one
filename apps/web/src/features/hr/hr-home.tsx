@@ -86,7 +86,7 @@ function Vacancies(): JSX.Element {
 function Candidates(): JSX.Element {
   const query = useHrQuery('/v1/hr/candidates', candidateListResponseSchema);
   return (
-    <HighlightCard title="Candidaturas" highlighted>
+    <HighlightCard title="Candidaturas">
       <NewCandidate />
       <QueryState query={query} loadingLabel="Cargando candidaturas">
         {({ data }) =>

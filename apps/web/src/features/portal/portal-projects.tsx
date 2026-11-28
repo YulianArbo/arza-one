@@ -163,7 +163,7 @@ function ProjectDetailView({ project }: { readonly project: PortalProjectDetail 
     <>
       <BackLink href={PORTAL_PATHS.projects} label="Volver a proyectos" />
       <PageHeader title={project.name} description={project.description ?? project.code} />
-      <HighlightCard title="Avance" highlighted>
+      <HighlightCard title="Avance">
         <span className="self-start">
           <StatusBadge status={project.status} labels={PROJECT_STATUSES} />
         </span>

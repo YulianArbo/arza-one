@@ -18,7 +18,7 @@ const SHOWN = '4';
 function FeaturedProject({ project }: { readonly project: ProjectSummary }): JSX.Element {
   const percent = project.progress.percent;
   return (
-    <HighlightCard title={project.name} description={project.party.name} highlighted>
+    <HighlightCard title={project.name} description={project.party.name}>
       <p className="text-5xl font-semibold tracking-tight tabular-nums">{percent} %</p>
       <div
         role="meter"

@@ -57,7 +57,6 @@ function FirstResponse(): JSX.Element {
     <HighlightCard
       title="Primera respuesta"
       description="Revise los acuerdos de servicio y atienda primero los casos próximos a vencer."
-      highlighted
     >
       <Link
         href={SERVICE_PATHS.policies}

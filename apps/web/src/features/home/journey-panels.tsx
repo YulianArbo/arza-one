@@ -32,7 +32,7 @@ function attentionItems(tasks: readonly TaskSummary[]) {
 /** Tareas abiertas de la persona, las primeras cinco, destacadas con el borde azul. */
 export function AttentionPanel(): JSX.Element {
   return (
-    <HighlightCard title="Requieren su atención" highlighted>
+    <HighlightCard title="Requieren su atención">
       <QueryState query={useMyTasks('open')} loadingLabel="Cargando sus pendientes">
         {({ data }) =>
           data.length === 0 ? (

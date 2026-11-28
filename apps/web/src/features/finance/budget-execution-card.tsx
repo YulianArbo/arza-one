@@ -99,7 +99,7 @@ export function BudgetExecutionCard(): JSX.Element {
   const budgets = useLedgerQuery('/v1/finance/budgets', budgetListResponseSchema);
   const year = Number(bogotaToday().slice(0, 4));
   return (
-    <HighlightCard title="Ejecución presupuestal" highlighted>
+    <HighlightCard title="Ejecución presupuestal">
       <QueryState query={budgets} loadingLabel="Cargando el presupuesto">
         {({ data }) => {
           const budget = budgetToShow(data, year);
