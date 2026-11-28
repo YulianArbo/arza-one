@@ -32,11 +32,20 @@ async function pdfCount(): Promise<number> {
   );
 }
 
-/** Otra pasada termina primero: deja los contratos con PDF listo, sin archivo de esta pasada. */
-function otherPassFinishes(ids: readonly string[]): Promise<unknown> {
-  return scenario.db.withTenant(tenantTx(), (tx) =>
-    tx.ctrContract.updateMany({ where: { id: { in: [...ids] } }, data: { pdfStatus: 'ready' } }),
-  );
+/** Otra pasada termina primero: cada contrato queda con su PDF, que no es de esta pasada. */
+async function otherPassFinishes(sales: Person, ids: readonly string[]): Promise<string[]> {
+  const files: string[] = [];
+  for (const id of ids) {
+    const fileId = await scenario.signedCopy(sales);
+    await scenario.db.withTenant(tenantTx(), (tx) =>
+      tx.ctrContract.update({
+        where: { id },
+        data: { pdfStatus: 'ready', pdfFileId: fileId, pdfSha256: '2'.repeat(64) },
+      }),
+    );
+    files.push(fileId);
+  }
+  return files;
 }
 
 describe('PDF de contratos con dos pasadas del worker', () => {
@@ -44,12 +53,13 @@ describe('PDF de contratos con dos pasadas del worker', () => {
     const sales = await scenario.sales();
     const ids = [await approvedWithoutPdf(sales), await approvedWithoutPdf(sales)];
     const before = await pdfCount();
+    let otherFiles: string[] = [];
     await renderPendingContracts({
       database: apiDatabase(),
       clock: scenario.clock,
       storage: storage(),
       convertHtml: async () => {
-        await otherPassFinishes(ids);
+        if (otherFiles.length === 0) otherFiles = await otherPassFinishes(sales, ids);
         return samplePdf('Contrato');
       },
     });
@@ -57,10 +67,14 @@ describe('PDF de contratos con dos pasadas del worker', () => {
       tx.ctrContract.findMany({ where: { id: { in: ids } } }),
     );
     expect(contracts.map((contract) => contract.pdfStatus)).toEqual(['ready', 'ready']);
-    const withFile = contracts.filter((contract) => contract.pdfFileId !== null).length;
-    expect(await pdfCount()).toBe(before + withFile);
+    // Los contratos guardan el PDF de la otra pasada y no queda ningún archivo de más.
+    const files = new Set(contracts.map((contract) => contract.pdfFileId));
+    expect(files).toEqual(new Set(otherFiles));
+    expect(await pdfCount()).toBe(before + otherFiles.length);
   });
+});
 
+describe('PDF generado que no se puede amarrar', () => {
   it('si el amarre falla, el error sigue su curso y el archivo se borra', async () => {
     let key = '';
     const store = storeGeneratedPdf(
