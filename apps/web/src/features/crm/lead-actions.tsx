@@ -21,6 +21,7 @@ function DiscardDialog({ lead }: { readonly lead: LeadDetail }): JSX.Element {
     <RecordDialog
       triggerLabel="Descartar"
       variant="outline"
+      size="md"
       title={`Descartar a ${lead.person.name}`}
       description="Un prospecto descartado ya no cambia. El motivo queda en el informe y en la auditoría."
     >

@@ -51,6 +51,7 @@ function DraftActions(props: { readonly draft: Notice; readonly noticeKey: Edita
         )}
       </RecordDialog>
       <ConfirmActionButton
+        size="sm"
         label="Publicar"
         title={`¿Publicar la versión ${String(draft.version_number)} de ${draft.label}?`}
         description="Rige desde ahora y reemplaza la versión vigente. Después no se puede cambiar: para corregirla habrá que crear otra versión. Publíquela solo con el concepto del asesor jurídico."

@@ -150,7 +150,7 @@ export function VersionSteps(props: StepsProps): JSX.Element | null {
       {actions.includes('edit') ? (
         <Link
           href={versionFormPath(props.document.id)}
-          className={buttonVariants({ variant: 'outline', size: 'sm' })}
+          className={buttonVariants({ variant: 'outline', size: 'md' })}
         >
           Editar borrador
         </Link>
@@ -170,6 +170,7 @@ export function VersionSteps(props: StepsProps): JSX.Element | null {
             key={step}
             triggerLabel={ACTION_LABELS[step]}
             variant="outline"
+            size="md"
             title={`${ACTION_LABELS[step]}: ${props.document.code} versión ${props.version.label}`}
             description={DIALOG_TEXTS[step]}
           >

@@ -181,6 +181,7 @@ function PositionActions({ position, lists, onDelete }: RowProps): JSX.Element {
         {(close) => <PositionForm position={position} lists={lists} onSaved={close} />}
       </RecordDialog>
       <ConfirmActionButton
+        size="sm"
         label="Eliminar"
         title={`¿Eliminar el cargo ${position.name}?`}
         description="Solo se puede si nadie lo tiene, nadie le reporta y no lidera procesos. Si no, inactívelo."

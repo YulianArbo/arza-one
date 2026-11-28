@@ -40,12 +40,14 @@ export function PreviewButton(props: {
   readonly kind: 'form-templates' | 'output-templates';
   readonly id: string;
   readonly title: string;
+  /** «sm» en filas de tabla, junto a otros botones pequeños (simetría, B49). */
+  readonly size?: 'sm' | 'md';
 }): JSX.Element {
   const [open, setOpen] = useState(false);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button type="button" variant="outline">
+        <Button type="button" variant="outline" size={props.size ?? 'md'}>
           Vista previa
         </Button>
       </DialogTrigger>
@@ -56,7 +58,7 @@ export function PreviewButton(props: {
             Así se verá la primera hoja del PDF, con el encabezado y el pie institucionales.
           </DialogDescription>
         </DialogHeader>
-        {open ? <Frame {...props} /> : null}
+        {open ? <Frame kind={props.kind} id={props.id} title={props.title} /> : null}
       </DialogContent>
     </Dialog>
   );

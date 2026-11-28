@@ -143,6 +143,7 @@ function Steps({ request }: { readonly request: ChangeRequest }): JSX.Element | 
         <RecordDialog
           triggerLabel="Rechazar"
           variant="outline"
+          size="md"
           title={`Rechazar: ${request.code}`}
           description="La solicitud queda rechazada con el motivo."
         >

@@ -203,6 +203,7 @@ function ContactActions(props: {
         )}
       </RecordDialog>
       <ConfirmActionButton
+        size="sm"
         label="Retirar"
         title={`¿Retirar a ${name} como contacto?`}
         description="Deja de aparecer como contacto. Queda en la auditoría."

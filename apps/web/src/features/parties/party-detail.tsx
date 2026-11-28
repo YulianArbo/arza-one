@@ -43,6 +43,7 @@ function Actions({ party }: { readonly party: PartyDetail }): JSX.Element {
           <RecordDialog
             triggerLabel="Editar"
             variant="outline"
+            size="md"
             title={`Editar ${party.name}`}
             description="Los cambios quedan en la auditoría."
           >

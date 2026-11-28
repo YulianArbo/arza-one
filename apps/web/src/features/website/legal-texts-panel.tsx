@@ -72,6 +72,7 @@ function StepButton(props: { readonly text: LegalText; readonly step: 'approve' 
     <>
       <ConfirmActionButton
         label={approve ? 'Aprobar' : 'Publicar'}
+        size="sm"
         title={`¿${approve ? 'Aprobar' : 'Publicar'} la versión ${String(text.version_number)} de ${label}?`}
         description={
           approve

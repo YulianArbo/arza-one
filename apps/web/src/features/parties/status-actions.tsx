@@ -77,6 +77,7 @@ export function StatusActions({ party }: { readonly party: PartyDetail }): JSX.E
             key={status}
             triggerLabel="Bloquear"
             variant="outline"
+            size="md"
             title={`Bloquear a ${party.name}`}
             description="Un tercero bloqueado no se usa en nuevas operaciones. El motivo queda en la auditoría."
           >

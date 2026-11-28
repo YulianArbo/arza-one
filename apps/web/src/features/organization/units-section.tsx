@@ -199,6 +199,7 @@ function UnitActions({ unit, lists, onDelete }: RowProps): JSX.Element {
         {(close) => <UnitForm unit={unit} lists={lists} onSaved={close} />}
       </RecordDialog>
       <ConfirmActionButton
+        size="sm"
         label="Eliminar"
         title={`¿Eliminar ${unit.name}?`}
         description="Solo se puede si no tiene áreas, cargos ni centros de costo. Si los tiene, inactívelo."

@@ -185,6 +185,7 @@ function SiteActions(props: { readonly site: Site; readonly onDelete: (site: Sit
       </RecordDialog>
       {site.is_main ? null : (
         <ConfirmActionButton
+          size="sm"
           label="Eliminar"
           title={`¿Eliminar la sede ${site.name}?`}
           description="Dejará de aparecer en las listas. Queda en la auditoría."

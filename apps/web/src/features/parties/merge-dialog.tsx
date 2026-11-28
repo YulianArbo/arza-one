@@ -150,6 +150,7 @@ export function MergeDialog({ party }: { readonly party: PartyDetail }): JSX.Ele
     <RecordDialog
       triggerLabel="Fusionar un duplicado"
       variant="outline"
+      size="md"
       title={`Fusionar un duplicado en ${party.name}`}
       description={`${party.name} se conserva; el duplicado se integra en él.`}
     >

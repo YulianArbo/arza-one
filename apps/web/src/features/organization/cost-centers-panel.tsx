@@ -179,6 +179,7 @@ function CenterRow({ center, units, canManage, onDelete }: RowProps): JSX.Elemen
             </RecordDialog>
             <ConfirmActionButton
               label="Eliminar"
+              size="sm"
               title={`¿Eliminar el centro de costo ${center.name}?`}
               description="Dejará de aparecer en las listas. Queda en la auditoría."
               confirmLabel="Sí, eliminar"

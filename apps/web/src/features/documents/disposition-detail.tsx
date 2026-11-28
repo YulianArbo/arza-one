@@ -130,6 +130,7 @@ function Steps({ proposal }: { readonly proposal: DispositionProposalDetail }): 
         <RecordDialog
           triggerLabel="Rechazar"
           variant="outline"
+          size="md"
           title={`Rechazar: ${proposal.code}`}
           description="La propuesta queda rechazada con el motivo."
         >

@@ -93,6 +93,7 @@ function PageActions({ page }: { readonly page: Page }): JSX.Element {
     <div className="flex flex-wrap gap-2">
       <EditPage page={page} />
       <ConfirmActionButton
+        size="sm"
         label={publish ? 'Publicar' : 'Retirar'}
         title={publish ? `¿Publicar «${page.title}»?` : `¿Retirar «${page.title}» del sitio?`}
         description={
