@@ -139,6 +139,7 @@ function CreateFolderDialog(props: CreateProps & { readonly caseFile: boolean })
     <RecordDialog
       triggerLabel={props.caseFile ? 'Nuevo expediente' : 'Nueva carpeta'}
       variant="outline"
+      size="md"
       title={props.caseFile ? 'Expediente de un tercero' : 'Nueva carpeta'}
       description={
         props.caseFile
@@ -185,7 +186,7 @@ export function DocumentExplorer(): JSX.Element {
         return (
           <div className="flex flex-col gap-6">
             <ExplorerActions folder={folder} onCreated={setSelected} />
-            <div className="grid items-start gap-5 md:grid-cols-[18rem_minmax(0,1fr)]">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-[18rem_minmax(0,1fr)]">
               <HighlightCard title="Carpetas">
                 <FolderTree folders={data.data} selected={selected} onSelect={setSelected} />
               </HighlightCard>

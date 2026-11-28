@@ -25,6 +25,9 @@ interface RecordDialogProps {
   readonly title: string;
   readonly description: string;
   readonly variant?: 'primary' | 'outline';
+  /** Tamaño del botón; por defecto el secundario es pequeño. En una barra de acciones, junto a
+   * la acción principal, use «md» para que todos los botones midan igual (B49). */
+  readonly size?: 'sm' | 'md';
   /** Abre el diálogo al llegar, por ejemplo desde «Nueva solicitud» de una portada (B22B). */
   readonly startOpen?: boolean;
   /** El formulario; recibe cómo cerrar el diálogo cuando se guarde. */
@@ -40,7 +43,7 @@ export function RecordDialog(props: RecordDialogProps): JSX.Element {
         <Button
           type="button"
           variant={props.variant ?? 'primary'}
-          size={props.variant === 'outline' ? 'sm' : 'md'}
+          size={props.size ?? (props.variant === 'outline' ? 'sm' : 'md')}
           aria-label={props.triggerAriaLabel}
         >
           <ActionIcon label={props.triggerLabel} />
