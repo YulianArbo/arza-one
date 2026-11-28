@@ -52,6 +52,7 @@ function Actions(props: {
         {(close) => <AnnouncementForm announcement={announcement} onSaved={close} />}
       </RecordDialog>
       <ConfirmActionButton
+        size="sm"
         label="Terminar"
         title={`¿Terminar el comunicado ${announcement.title}?`}
         description="Deja de verse en el acceso desde ya y no se puede volver a publicar; para eso, cree uno nuevo."

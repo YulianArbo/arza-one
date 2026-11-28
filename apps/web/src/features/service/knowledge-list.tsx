@@ -120,7 +120,7 @@ function SearchForm(props: {
     <form
       onSubmit={submit}
       role="search"
-      className="grid gap-3 sm:grid-cols-[1fr_12rem_10rem_10rem_auto] sm:items-end"
+      className="grid gap-3 sm:grid-cols-2 sm:items-end xl:grid-cols-[minmax(0,1fr)_12rem_10rem_10rem_auto]"
     >
       <FormField
         id="kb-buscar"
@@ -129,7 +129,7 @@ function SearchForm(props: {
         onChange={select('q')}
       />
       <FilterSelects manage={props.manage} values={values} select={select} />
-      <Button type="submit" variant="outline">
+      <Button type="submit" variant="outline" className="justify-self-start">
         Buscar
       </Button>
     </form>

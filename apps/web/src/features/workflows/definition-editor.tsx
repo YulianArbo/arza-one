@@ -193,7 +193,7 @@ function EditorForm({ view }: { readonly view: DefinitionView | null }): JSX.Ele
   return (
     <div className="flex flex-col gap-6">
       {view === null ? null : <VersionBar view={view} />}
-      <fieldset disabled={!editable} className="flex flex-col gap-6">
+      <fieldset disabled={!editable} className="flex min-w-0 flex-col gap-6">
         <IdentityFields draft={draft} isNew={view === null} set={set} />
         <StateEditor
           states={draft.states}

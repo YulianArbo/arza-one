@@ -186,7 +186,7 @@ function StateRow(props: RowProps & { readonly onRemove: () => void }): JSX.Elem
           type="button"
           variant="ghost"
           size="sm"
-          className="self-start"
+          className="h-auto min-h-8 self-start py-1.5 text-left whitespace-normal"
           onClick={props.onRemove}
         >
           Quitar el estado «{state.label}»

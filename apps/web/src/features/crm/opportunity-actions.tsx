@@ -84,6 +84,7 @@ function LoseDialog({ opportunity }: Props): JSX.Element {
     <RecordDialog
       triggerLabel="Marcar perdida"
       variant="outline"
+      size="md"
       title={`Marcar perdida ${opportunity.code}`}
       description="Una oportunidad perdida exige el motivo y ya no cambia."
     >

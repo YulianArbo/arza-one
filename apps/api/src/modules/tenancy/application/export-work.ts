@@ -33,6 +33,7 @@ import type { DatabaseService } from '../../../platform/database/database.servic
 import type { TenantTransaction } from '../../../platform/database/tenant-context.js';
 import { csvHeader, csvLine } from '../domain/export-csv.js';
 import { ZipWriter } from '../infrastructure/zip-writer.js';
+import { LostToOtherPass, unlessLost } from './export-race.js';
 
 // Generación de la exportación completa (B48, decisiones 4 y 5). El worker la arma dentro del
 // contexto de la empresa, así la seguridad por fila garantiza que solo salen sus datos. Cada tabla
@@ -212,15 +213,19 @@ async function publish(
     readyAt,
     expiresAt: new Date(readyAt.getTime() + TENANT_EXPORT_TTL_DAYS * DAY_MS),
   };
-  const kept = await deps.database.withTenant(system(tenantId), async (tx) => {
-    if (!(await markExportReady(tx, job, ready))) return false;
-    await auditExport(tx, tenantId, readyAt, {
-      action: 'core.tenant.export_ready',
-      id: job.id,
-      changes: { tables: ready.tables, rows, files: ready.files, size_bytes: sizeBytes },
-    });
-    return true;
-  });
+  const kept = await unlessLost(
+    () =>
+      deps.database.withTenant(system(tenantId), async (tx) => {
+        if (!(await markExportReady(tx, job, ready))) throw new LostToOtherPass();
+        await auditExport(tx, tenantId, readyAt, {
+          action: 'core.tenant.export_ready',
+          id: job.id,
+          changes: { tables: ready.tables, rows, files: ready.files, size_bytes: sizeBytes },
+        });
+        return true;
+      }),
+    false,
+  );
   // Otra pasada retomó la exportación: este archivo sobra.
   if (!kept) await deps.storage.delete(storageKey);
 }
@@ -245,14 +250,18 @@ async function fail(
   tenantId: string,
   job: ClaimedExport,
 ): Promise<void> {
-  await deps.database.withTenant(system(tenantId), async (tx) => {
-    if (!(await markExportFailed(tx, job))) return;
-    await auditExport(tx, tenantId, deps.clock.now(), {
-      action: 'core.tenant.export_fail',
-      id: job.id,
-      changes: {},
-    });
-  });
+  await unlessLost(
+    () =>
+      deps.database.withTenant(system(tenantId), async (tx) => {
+        if (!(await markExportFailed(tx, job))) throw new LostToOtherPass();
+        await auditExport(tx, tenantId, deps.clock.now(), {
+          action: 'core.tenant.export_fail',
+          id: job.id,
+          changes: {},
+        });
+      }),
+    undefined,
+  );
 }
 
 /** Borra los ZIP vencidos de la empresa y los marca como vencidos. */
@@ -279,17 +288,21 @@ async function claim(
   deps: ExportWorkDependencies,
   tenantId: string,
 ): Promise<ClaimedExport | null> {
-  return deps.database.withTenant(system(tenantId), async (tx) => {
-    const job = await claimQueuedExport(tx, deps.clock.now());
-    if (job !== null) {
-      await auditExport(tx, tenantId, deps.clock.now(), {
-        action: 'core.tenant.export_start',
-        id: job.id,
-        changes: { attempt: job.attempt },
-      });
-    }
-    return job;
-  });
+  // Sin nada en cola, o tomada por otra pasada: no queda nada que guardar.
+  return unlessLost<ClaimedExport | null>(
+    () =>
+      deps.database.withTenant(system(tenantId), async (tx) => {
+        const job = await claimQueuedExport(tx, deps.clock.now());
+        if (job === null) throw new LostToOtherPass();
+        await auditExport(tx, tenantId, deps.clock.now(), {
+          action: 'core.tenant.export_start',
+          id: job.id,
+          changes: { attempt: job.attempt },
+        });
+        return job;
+      }),
+    null,
+  );
 }
 
 /** Una pasada: genera las exportaciones en cola y vence las listas antiguas. */

@@ -89,7 +89,11 @@ function NewPromptForm(): JSX.Element {
               form.change(event.target.value);
             }}
           />
-          <Button type="submit" className="self-start" disabled={create.pending}>
+          <Button
+            type="submit"
+            className="h-auto min-h-9 self-start py-2 text-left whitespace-normal"
+            disabled={create.pending}
+          >
             Guardar borrador (otra persona la aprueba)
           </Button>
           {create.error === null ? null : <FormError error={create.error} />}

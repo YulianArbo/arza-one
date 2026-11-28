@@ -84,6 +84,7 @@ export function ReviewButtons(props: ReviewButtonsProps): JSX.Element {
       <RecordDialog
         triggerLabel="Rechazar"
         variant="outline"
+        size="md"
         title={`Rechazar ${props.what}`}
         description="El motivo queda en la auditoría."
       >

@@ -49,6 +49,7 @@ function RuleActions(props: {
         {(close) => <RuleForm rule={rule} onSaved={close} />}
       </RecordDialog>
       <ConfirmActionButton
+        size="sm"
         label={toggle}
         title={`¿${toggle} la regla ${rule.code}?`}
         description={

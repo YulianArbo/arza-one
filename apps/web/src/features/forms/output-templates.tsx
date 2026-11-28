@@ -39,6 +39,7 @@ function PublishButton({ template }: { readonly template: OutputTemplate }): JSX
     <div className="flex flex-col gap-1">
       <ConfirmActionButton
         label="Publicar"
+        size="sm"
         title={`Publicar ${titleOf(template)}`}
         description="Queda en uso y ya no cambia. La versión publicada anterior pasa a retirada."
         confirmLabel="Sí, publicar"
@@ -90,7 +91,7 @@ function TemplateActions({
   if (template === undefined) return null;
   return (
     <div className="flex flex-wrap items-start gap-2">
-      <PreviewButton kind="output-templates" id={template.id} title={titleOf(template)} />
+      <PreviewButton kind="output-templates" id={template.id} title={titleOf(template)} size="sm" />
       {template.actions.includes('edit') ? <EditDialog template={template} /> : null}
       {template.actions.includes('publish') ? <PublishButton template={template} /> : null}
       {template.actions.includes('new_version') ? <NewVersionDialog template={template} /> : null}

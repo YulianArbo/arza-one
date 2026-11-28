@@ -24,6 +24,8 @@ interface ConfirmActionButtonProps {
   /** Texto del botón que confirma, por ejemplo «Sí, cerrar». */
   readonly confirmLabel: string;
   readonly variant?: 'outline' | 'destructive';
+  /** «sm» en filas de tabla, junto a otros botones pequeños (simetría, B49). */
+  readonly size?: 'sm' | 'md';
   readonly disabled: boolean;
   /** Acción de alto impacto: pide escribir este código antes de confirmar (16.5, B22B). */
   readonly confirmCode?: string;
@@ -36,10 +38,9 @@ export function ConfirmActionButton({
   title,
   description,
   confirmLabel,
-  variant = 'outline',
-  disabled,
   confirmCode,
   onConfirm,
+  ...trigger
 }: ConfirmActionButtonProps): JSX.Element {
   const code = useCodeCheck(confirmCode);
   const confirm = (event: MouseEvent<HTMLButtonElement>): void => {
@@ -50,7 +51,13 @@ export function ConfirmActionButton({
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button type="button" variant={variant} className="self-start" disabled={disabled}>
+        <Button
+          type="button"
+          variant={trigger.variant ?? 'outline'}
+          size={trigger.size ?? 'md'}
+          className="self-start"
+          disabled={trigger.disabled}
+        >
           <ActionIcon label={label} />
           {label}
         </Button>

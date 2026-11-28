@@ -169,7 +169,7 @@ function TransitionRow(props: RowProps & { readonly onRemove: () => void }): JSX
           type="button"
           variant="ghost"
           size="sm"
-          className="self-start"
+          className="h-auto min-h-8 self-start py-1.5 text-left whitespace-normal"
           onClick={props.onRemove}
         >
           Quitar la transición «{props.transition.label}»

@@ -198,6 +198,7 @@ function Decision({ record }: { readonly record: FormRecord }): JSX.Element | nu
       <RecordDialog
         triggerLabel="Devolver"
         variant="outline"
+        size="md"
         title={`Devolver: ${record.code}`}
         description="Vuelve al borrador de quien lo diligenció, con el motivo."
       >

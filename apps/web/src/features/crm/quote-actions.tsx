@@ -247,6 +247,7 @@ function DirectionActions({ quote }: Props): JSX.Element {
       <RecordDialog
         triggerLabel="Devolver para corregir"
         variant="outline"
+        size="md"
         title={`Devolver ${quote.code}`}
         description="Vuelve a borrador con su comentario para que Comercial la corrija."
       >
